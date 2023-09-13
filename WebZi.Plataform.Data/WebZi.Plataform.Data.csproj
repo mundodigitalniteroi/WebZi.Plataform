@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.10" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Proxies" Version="7.0.10" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="7.0.10" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.10" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="7.0.10">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="7.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\WebZi.Plataform.CrossCutting\WebZi.Plataform.CrossCutting.csproj" />
+    <ProjectReference Include="..\WebZi.Plataform.Domain\WebZi.Plataform.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Database\" />
+    <Folder Include="Mappings\Liberacao\" />
+    <Folder Include="Mappings\Nfe\" />
+    <Folder Include="Models\" />
+    <Folder Include="Services\Faturamento\" />
+    <Folder Include="Services\Liberacao\" />
+    <Folder Include="Services\Nfe\" />
+    <Folder Include="Services\Pessoa\Documento\" />
+    <Folder Include="Services\Usuario\" />
+    <Folder Include="Services\Veiculo\" />
+  </ItemGroup>
+
+</Project>
