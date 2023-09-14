@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using WebZi.Plataform.Domain.Models.Usuario;
 
-namespace WebZi.Plataform.Data.Mappings.GRV
+namespace WebZi.Plataform.Data.Mappings.Usuario
 {
     public class UsuarioMap : IEntityTypeConfiguration<UsuarioModel>
     {

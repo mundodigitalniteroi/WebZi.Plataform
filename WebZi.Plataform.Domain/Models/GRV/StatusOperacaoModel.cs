@@ -2,18 +2,16 @@
 {
     public class StatusOperacaoModel
     {
-        public char StatusOperacaoId { get; set; }
+        public string StatusOperacaoId { get; set; }
 
         public string Descricao { get; set; }
 
         public byte? Sequencia { get; set; }
 
-        public char FlagVeiculoApreendido { get; set; }
+        public string FlagVeiculoApreendido { get; set; } = "S";
 
-        public char FlagLeilao { get; set; }
+        public string FlagLeilao { get; set; } = "N";
 
-        public virtual ICollection<GrvModel> Grvs { get; set; } // = new List<TbDepGrv>();
-
-        // public virtual ICollection<TbDepGrvBloqueio> TbDepGrvBloqueios { get; set; } = new List<TbDepGrvBloqueio>();
+        public virtual ICollection<GrvModel> Grvs { get; set; }
     }
 }

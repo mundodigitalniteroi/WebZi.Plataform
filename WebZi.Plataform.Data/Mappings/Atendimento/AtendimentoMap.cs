@@ -9,7 +9,11 @@ namespace WebZi.Plataform.Data.Mappings.Atendimento
         public void Configure(EntityTypeBuilder<AtendimentoModel> builder)
         {
             builder
-                .ToTable("tb_dep_atendimento", "dbo")
+                .ToTable("tb_dep_atendimento", "dbo", tb =>
+                {
+                    tb.HasTrigger("tr_log_del_atendimento");
+                    tb.HasTrigger("tr_log_upd_atendimento");
+                })
                 .HasKey(e => e.AtendimentoId);
 
             builder.Property(e => e.AtendimentoId)

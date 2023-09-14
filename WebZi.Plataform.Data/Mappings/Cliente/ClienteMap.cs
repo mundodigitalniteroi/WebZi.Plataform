@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using WebZi.Plataform.Domain.Models.Cliente;
 
-namespace WebZi.Plataform.Data.Mappings.GRV
+namespace WebZi.Plataform.Data.Mappings.Cliente
 {
     public class ClienteMap : IEntityTypeConfiguration<ClienteModel>
     {

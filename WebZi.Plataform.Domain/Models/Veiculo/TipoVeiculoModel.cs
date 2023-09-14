@@ -16,9 +16,9 @@ namespace WebZi.Plataform.Domain.Models.Veiculo
 
         public DateTime? DataAlteracao { get; set; }
 
-        public char FlagNaoRequerCnhNaLiberacao { get; set; }
+        public string FlagNaoRequerCnhNaLiberacao { get; set; }
 
-        public char FlagAtivo { get; set; }
+        public string FlagAtivo { get; set; }
 
         public virtual Usuario.UsuarioModel UsuarioCadastro { get; set; }
 

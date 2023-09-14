@@ -30,7 +30,7 @@ namespace WebZi.Plataform.Domain.Models.GRV
 
         public byte? MotivoApreensaoId { get; set; }
 
-        public char StatusOperacaoId { get; set; }
+        public string StatusOperacaoId { get; set; }
 
         public int? LiberacaoId { get; set; }
 
@@ -41,7 +41,7 @@ namespace WebZi.Plataform.Domain.Models.GRV
         public int? UsuarioEdicaoId { get; set; }
 
         /// <summary>
-        /// ID do Usuário que realizou o cadastro das informações de GGV
+        /// ID do Usuário que realizou o cadastro das informações do GGV
         /// </summary>
         public int? UsuarioCadastroGgvId { get; set; }
 
@@ -113,32 +113,32 @@ namespace WebZi.Plataform.Domain.Models.GRV
 
         public DateTime? DataAlteracao { get; set; }
 
-        public char FlagComboio { get; set; }
+        public string FlagComboio { get; set; }
 
-        public char FlagVeiculoNaoIdentificado { get; set; }
+        public string FlagVeiculoNaoIdentificado { get; set; }
 
-        public char FlagVeiculoSemRegistro { get; set; }
+        public string FlagVeiculoSemRegistro { get; set; }
 
-        public char FlagVeiculoRoubadoFurtado { get; set; }
+        public string FlagVeiculoRoubadoFurtado { get; set; }
 
-        public char FlagChaveDeposito { get; set; }
+        public string FlagChaveDeposito { get; set; }
 
-        public char FlagEstadoLacre { get; set; }
+        public string FlagEstadoLacre { get; set; }
 
-        public char FlagVeiculoMesmasCondicoes { get; set; }
+        public string FlagVeiculoMesmasCondicoes { get; set; }
 
         /// <summary>
         /// Flag que identifica se o GGV já foi cadastrado
         /// </summary>
-        public char FlagGgv { get; set; }
+        public string FlagGgv { get; set; }
 
-        public char FlagVistoria { get; set; }
+        public string FlagVistoria { get; set; }
 
         public string TermoDetran { get; set; }
 
-        public char FlagVeiculoNaoOstentaPlaca { get; set; }
+        public string FlagVeiculoNaoOstentaPlaca { get; set; }
 
-        public char FlagTransbordo { get; set; }
+        public string FlagTransbordo { get; set; }
 
         public DateTime? DataTransbordo { get; set; }
 

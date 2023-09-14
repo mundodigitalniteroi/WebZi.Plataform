@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace WebZi.Plataform.Data.Models;
+﻿namespace WebZi.Plataform.Data.Models;
 
 public partial class TbDepFaturamentoServicosTipoVeiculo
 {

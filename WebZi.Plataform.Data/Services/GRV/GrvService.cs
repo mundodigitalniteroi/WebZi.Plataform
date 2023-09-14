@@ -15,20 +15,20 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
         public async Task<GrvModel> GetById(int id)
         {
-            GrvModel grv = await _context.Grvs
+            return await _context.Grvs
                 .Include(i => i.StatusOperacao)
-                .FirstOrDefaultAsync(w => w.GrvId.Equals(id));
-
-            return grv;
+                .Where(w => w.GrvId.Equals(id))
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
         }
 
         public async Task<GrvModel> GetByProcesso(string numeroFormulario, int clienteId, int depositoId)
         {
-            GrvModel grv = await _context.Grvs
+            return await _context.Grvs
                 .Include(i => i.StatusOperacao)
-                .FirstOrDefaultAsync(w => w.NumeroFormularioGrv.Equals(numeroFormulario) && w.ClienteId.Equals(clienteId) && w.DepositoId.Equals(depositoId));
-
-            return grv;
+                .Where(w => w.NumeroFormularioGrv.Equals(numeroFormulario) && w.ClienteId.Equals(clienteId) && w.DepositoId.Equals(depositoId))
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
         }
     }
 }

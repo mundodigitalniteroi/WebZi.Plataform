@@ -28,7 +28,6 @@
     <Folder Include="Mappings\Liberacao\" />
     <Folder Include="Mappings\Nfe\" />
     <Folder Include="Models\" />
-    <Folder Include="Services\Faturamento\" />
     <Folder Include="Services\Liberacao\" />
     <Folder Include="Services\Nfe\" />
     <Folder Include="Services\Pessoa\Documento\" />

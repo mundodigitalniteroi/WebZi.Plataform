@@ -1,5 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using WebZi.Plataform.Data.Services.Atendimento;
+using WebZi.Plataform.Data.Services.Faturamento;
+using WebZi.Plataform.Data.Services.GRV;
 using WebZi.Plataform.Domain.Services.GRV;
 
 namespace WebZi.Plataform.Data.Services
@@ -11,6 +13,12 @@ namespace WebZi.Plataform.Data.Services
             services.AddScoped<GrvService, GrvService>();
 
             services.AddScoped<AtendimentoService, AtendimentoService>();
+
+            services.AddScoped<QualificacaoResponsavelService,QualificacaoResponsavelService > ();
+
+            services.AddScoped<StatusOperacaoService, StatusOperacaoService>();
+
+            services.AddScoped<TipoMeioCobrancaService, TipoMeioCobrancaService>();
         }
     }
 }

@@ -1,21 +1,14 @@
-﻿using WebZi.Plataform.Domain.Models.Faturamento;
-using WebZi.Plataform.Domain.Models.GRV;
-
-namespace WebZi.Plataform.Domain.Models.Atendimento
+﻿namespace WebZi.Plataform.Domain.Models.Atendimento
 {
-    public class AtendimentoModel
+    public class AtendimentoViewModel
     {
         public int AtendimentoId { get; set; }
 
         public int GrvId { get; set; }
 
+        public byte TipoMeioCobrancaId { get; set; }
+
         public byte QualificacaoResponsavelId { get; set; }
-
-        public long? PessoaFaturamentoId { get; set; }
-
-        public int? EmpresaFaturamentoId { get; set; }
-
-        public string DocumentoSapId { get; set; }
 
         public int UsuarioCadastroId { get; set; }
 
@@ -47,7 +40,7 @@ namespace WebZi.Plataform.Domain.Models.Atendimento
 
         public string ProprietarioNome { get; set; }
 
-        public byte? ProprietarioTipoDocumentoId { get; set; }
+        public byte ProprietarioTipoDocumentoId { get; set; }
 
         public string ProprietarioDocumento { get; set; }
 
@@ -105,38 +98,10 @@ namespace WebZi.Plataform.Domain.Models.Atendimento
 
         public string NotaFiscalEmail { get; set; }
 
-        public int TotalImpressoes { get; set; } = 1;
-
-        public string StatusCadastroSap { get; set; } = "N";
-
-        public string StatusCadastroOrdensVendaSap { get; set; } = "N";
-
-        public DateTime? DataHoraInicioAtendimento { get; set; }
-
-        public DateTime? DataImpressao { get; set; }
-
-        public DateTime DataCadastro { get; set; }
-
-        public DateTime? DataAlteracao { get; set; }
-
-        public string FlagPagamentoFinanciado { get; set; } = "N";
-
-        public string FlagAtendimentoWs { get; set; } = "N";
+        public DateTime DataHoraInicioAtendimento { get; set; }
 
         public string NotaFiscalInscricaoMunicipal { get; set; }
 
-        public virtual GrvModel Grv { get; set; }
-
-        public virtual QualificacaoResponsavelModel QualificacaoResponsavel { get; set; }
-
-        public virtual Usuario.UsuarioModel UsuarioCadastro { get; set; }
-
-        public virtual Usuario.UsuarioModel UsuarioAlteracao { get; set; }
-
-        //public virtual ICollection<TbDepAtendimentoFotosResponsavei> TbDepAtendimentoFotosResponsaveis { get; set; }
-
-        //public virtual ICollection<TbDepAtendimentoSaidaReparo> TbDepAtendimentoSaidaReparos { get; set; }
-
-        public virtual ICollection<FaturamentoModel> Faturamentos { get; set; }
+        public string FlagAtendimentoWs { get; set; }
     }
 }

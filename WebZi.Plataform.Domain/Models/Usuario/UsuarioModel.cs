@@ -35,13 +35,13 @@ namespace WebZi.Plataform.Domain.Models.Usuario
 
         public DateTime? DataUltimoAcesso { get; set; }
 
-        public char FlagPermissaoDesconto { get; set; }
+        public string FlagPermissaoDesconto { get; set; }
 
-        public char FlagPermissaoDataRetroativaFaturamento { get; set; }
+        public string FlagPermissaoDataRetroativaFaturamento { get; set; }
 
-        public char FlagReceberEmailErro { get; set; }
+        public string FlagReceberEmailErro { get; set; }
 
-        public char FlagAtivo { get; set; }
+        public string FlagAtivo { get; set; }
 
         public long? PessoaId { get; set; }
 

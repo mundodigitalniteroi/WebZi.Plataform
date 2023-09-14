@@ -47,30 +47,30 @@ namespace WebZi.Plataform.Domain.Models.Deposito
 
         public DateTime? DataAlteracao { get; set; }
 
-        public char FlagEnderecoCadastroManual { get; set; }
+        public string FlagEnderecoCadastroManual { get; set; }
 
-        public char FlagAtivo { get; set; }
+        public string FlagAtivo { get; set; }
 
-        public char FlagVirtual { get; set; }
+        public string FlagVirtual { get; set; }
 
         //public virtual TbDepUsuario IdUsuarioAlteracaoNavigation { get; set; }
 
         //public virtual TbDepUsuario IdUsuarioCadastroNavigation { get; set; }
 
-        //public virtual ICollection<TbDepClientesDeposito> TbDepClientesDepositos { get; set; } = new List<TbDepClientesDeposito>();
+        //public virtual ICollection<TbDepClientesDeposito> TbDepClientesDepositos { get; set; }
 
         public virtual ICollection<FaturamentoRegraModel> FaturamentoRegras { get; set; }
 
-        //public virtual ICollection<TbDepFaturamentoServicosAssociado> TbDepFaturamentoServicosAssociados { get; set; } = new List<TbDepFaturamentoServicosAssociado>();
+        public virtual ICollection<FaturamentoServicoAssociadoModel> FaturamentoServicosAssociados { get; set; }
 
         public virtual ICollection<GrvModel> Grvs { get; set; }
 
-        //public virtual ICollection<TbDepGtv> TbDepGtvIdDepositoEnvioNavigations { get; set; } = new List<TbDepGtv>();
+        //public virtual ICollection<TbDepGtv> TbDepGtvIdDepositoEnvioNavigations { get; set; }
 
-        //public virtual ICollection<TbDepGtv> TbDepGtvIdDepositoRecebimentoNavigations { get; set; } = new List<TbDepGtv>();
+        //public virtual ICollection<TbDepGtv> TbDepGtvIdDepositoRecebimentoNavigations { get; set; }
 
-        //public virtual ICollection<TbDepReboquista> TbDepReboquista { get; set; } = new List<TbDepReboquista>();
+        //public virtual ICollection<TbDepReboquista> TbDepReboquista { get; set; }
 
-        //public virtual ICollection<TbDepUsuariosDeposito> TbDepUsuariosDepositos { get; set; } = new List<TbDepUsuariosDeposito>();
+        //public virtual ICollection<TbDepUsuariosDeposito> TbDepUsuariosDepositos { get; set; }
     }
 }

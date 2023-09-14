@@ -16,14 +16,14 @@
 
         public byte OrdemApresentacao { get; set; }
 
-        public char FlagPrincipal { get; set; }
+        public string FlagPrincipal { get; set; } = "N";
 
-        public char FlagPossuiDataEmissao { get; set; }
+        public string FlagPossuiDataEmissao { get; set; } = "N";
 
-        public char FlagPossuiDataValidade { get; set; }
+        public string FlagPossuiDataValidade { get; set; } = "N";
 
-        public char FlagPossuiComplemento { get; set; }
+        public string FlagPossuiComplemento { get; set; } = "N";
 
-        public char FlagAtivo { get; set; }
+        public string FlagAtivo { get; set; } = "S";
     }
 }

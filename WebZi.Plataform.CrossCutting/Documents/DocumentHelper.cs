@@ -23,7 +23,7 @@ namespace WebZi.Plataform.CrossCutting.Documents
             {
                 return false;
             }
-            else if (cpf.Distinct().Count() > 1)
+            else if (cpf.Distinct().Count().Equals(11))
             {
                 return false;
             }
@@ -109,7 +109,7 @@ namespace WebZi.Plataform.CrossCutting.Documents
             {
                 return false;
             }
-            else if (cnpj.Distinct().Count() > 1)
+            else if (cnpj.Distinct().Count().Equals(14))
             {
                 return false;
             }
@@ -194,7 +194,7 @@ namespace WebZi.Plataform.CrossCutting.Documents
             {
                 return false;
             }
-            else if (cnh.Distinct().Count() > 1)
+            else if (cnh.Distinct().Count().Equals(11))
             {
                 return false;
             }

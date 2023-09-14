@@ -9,7 +9,14 @@ namespace WebZi.Plataform.Data.Mappings.GRV
         public void Configure(EntityTypeBuilder<GrvModel> builder)
         {
             builder
-                .ToTable("tb_dep_grv", "dbo")
+                .ToTable("tb_dep_grv", "dbo", tb =>
+                {
+                    tb.HasTrigger("tr_log_del_grv");
+                    tb.HasTrigger("tr_log_del_grv_new");
+                    tb.HasTrigger("tr_log_upd_grv");
+                    tb.HasTrigger("tr_log_upd_grv_leilao");
+                    tb.HasTrigger("tr_log_upd_grv_new");
+                })
                 .HasKey(e => e.GrvId);
 
             builder.Property(e => e.GrvId)

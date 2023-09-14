@@ -8,9 +8,9 @@
 
         public string Descricao { get; set; }
 
-        public char FlagPossuiValor { get; set; }
+        public string FlagPossuiValor { get; set; }
 
-        public char FlagAtivo { get; set; }
+        public string FlagAtivo { get; set; }
 
         public virtual ICollection<FaturamentoRegraModel> FaturamentoRegras { get; set; }
     }

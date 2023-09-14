@@ -40,15 +40,31 @@ namespace WebZi.Plataform.Data
 
         public DbSet<DepositoModel> Depositos { get; set; }
 
+        public DbSet<FaturamentoModel> Faturamentos { get; set; }
+
+        public DbSet<FaturamentoBoletoModel> FaturamentoBoletos { get; set; }
+
+        public DbSet<FaturamentoBoletoImagemModel> FaturamentoBoletoImagens { get; set; }
+
+        public DbSet<FaturamentoCartaoModel> FaturamentoCartoes { get; set; }
+
+        public DbSet<FaturamentoComposicaoModel> FaturamentoComposicoes { get; set; }
+
         public DbSet<FaturamentoRegraModel> FaturamentoRegras { get; set; }
 
         public DbSet<FaturamentoRegraTipoModel> FaturamentoRegraTipos { get; set; }
+
+        public DbSet<FaturamentoServicoAssociadoModel> FaturamentoServicosAssociados { get; set; }
+
+        public DbSet<QualificacaoResponsavelModel> QualificacoesResponsaveis { get; set; }
 
         public DbSet<GrvModel> Grvs { get; set; }
 
         public DbSet<StatusOperacaoModel> StatusOperacoes { get; set; }
 
         public DbSet<TipoDocumentoIdentificacaoModel> TiposDocumentosIdentificacao { get; set; }
+
+        public DbSet<TipoMeioCobrancaModel> TiposMeiosCobrancas { get; set; }
 
         public DbSet<TipoVeiculoModel> TiposVeiculos { get; set; }
 

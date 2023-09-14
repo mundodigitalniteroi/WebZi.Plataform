@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using WebZi.Plataform.Domain.Models.Faturamento;
 
-namespace WebZi.Plataform.Data.Mappings.GRV
+namespace WebZi.Plataform.Data.Mappings.Faturamento
 {
     public class FaturamentoRegraMap : IEntityTypeConfiguration<FaturamentoRegraModel>
     {

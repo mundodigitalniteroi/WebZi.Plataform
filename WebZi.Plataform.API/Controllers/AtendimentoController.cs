@@ -1,8 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Text;
+using WebZi.Plataform.CrossCutting.Strings;
 using WebZi.Plataform.Data.Services.Atendimento;
+using WebZi.Plataform.Data.Services.Faturamento;
 using WebZi.Plataform.Domain.Models.Atendimento;
+using WebZi.Plataform.Domain.Models.Faturamento;
 
 namespace WebZi.Plataform.API.Controllers
 {
@@ -17,44 +20,19 @@ namespace WebZi.Plataform.API.Controllers
             _provider = provider;
         }
 
-        [HttpGet("{id}")]
-        public async Task<ActionResult<object>> Get(int id)
-        {
-            if (id <= 0)
-            {
-                return BadRequest("Informe o ID do Atendimento");
-            }
-
-            AtendimentoModel Atendimento = await _provider
-                .GetService<AtendimentoService>()
-                .GetById(id);
-
-            if (Atendimento == null)
-            {
-                return NotFound();
-            }
-
-            return Ok(JsonConvert.SerializeObject(Atendimento));
-        }
-
-        [HttpGet()]
-        public async Task<ActionResult<object>> GetByProcesso(string numeroFormulario, int clienteId, int depositoId)
+        [HttpGet("{Identificador}/{Usuario}")]
+        public async Task<ActionResult<object>> Get(int Identificador, int Usuario)
         {
             StringBuilder erros = new();
 
-            if (string.IsNullOrWhiteSpace(numeroFormulario))
+            if (Identificador <= 0)
             {
-                erros.AppendLine("Informe o Número do Formulário");
+                erros.AppendLine("Identificador do Atendimento inválido");
             }
 
-            if (clienteId <= 0)
+            if (Usuario <= 0)
             {
-                erros.AppendLine("Informe o ID do Cliente");
-            }
-
-            if (depositoId <= 0)
-            {
-                erros.AppendLine("Informe o ID do Depósito");
+                erros.AppendLine("Identificador do Usuário inválido");
             }
 
             if (!string.IsNullOrWhiteSpace(erros.ToString()))
@@ -62,45 +40,157 @@ namespace WebZi.Plataform.API.Controllers
                 return BadRequest(erros.ToString());
             }
 
-            AtendimentoModel Atendimento = await _provider
+            AtendimentoModel atendimento = await _provider
                 .GetService<AtendimentoService>()
-                .GetByProcesso(numeroFormulario, clienteId, depositoId);
+                .GetById(Identificador, Usuario);
 
-            if (Atendimento == null)
+            if (atendimento == null)
             {
-                return NotFound();
+                return NotFound("Atendimento sem permissão de acesso ou inexistente");
             }
 
-            return Ok(JsonConvert.SerializeObject(Atendimento));
+            return Ok(JsonConvert.SerializeObject(atendimento));
         }
 
-        [HttpGet()]
-        public async Task<ActionResult<string>> ChecarGrvAptoParaCadastro(AtendimentoModel atendimento)
+        [HttpGet("{NumeroProcesso}/{Cliente}/{Deposito}/{Usuario}")]
+        public async Task<ActionResult<object>> Get(string NumeroProcesso, int Cliente, int Deposito, int Usuario)
         {
-            string erros = await _provider
-                .GetService<AtendimentoService>()
-                .ChecarGrvParaCadastro(atendimento);
+            StringBuilder erros = new();
 
-            if (!string.IsNullOrWhiteSpace(erros))
+            if (string.IsNullOrWhiteSpace(NumeroProcesso))
             {
-                return BadRequest(erros);
+                erros.AppendLine("Informe o Número do Processo");
+            }
+            else if (!StringHelper.IsNumber(NumeroProcesso))
+            {
+                erros.AppendLine("Número do Processo inválido");
+            }
+            else if (Convert.ToInt64(NumeroProcesso) <= 0)
+            {
+                erros.AppendLine("Número do Processo inválido");
+            }
+
+            if (Cliente <= 0)
+            {
+                erros.AppendLine("Identificador do Cliente inválido");
+            }
+
+            if (Deposito <= 0)
+            {
+                erros.AppendLine("Identificador do Depósito inválido ");
+            }
+
+            if (Usuario <= 0)
+            {
+                erros.AppendLine("Identificador do Usuário inválido");
+            }
+
+            if (!string.IsNullOrWhiteSpace(erros.ToString()))
+            {
+                return BadRequest(erros.ToString());
+            }
+
+            AtendimentoModel atendimento = await _provider
+                .GetService<AtendimentoService>()
+                .GetByProcesso(NumeroProcesso, Cliente, Deposito, Usuario);
+
+            if (atendimento == null)
+            {
+                return NotFound("Atendimento sem permissão de acesso ou inexistente");
+            }
+
+            return Ok(JsonConvert.SerializeObject(atendimento));
+        }
+
+        [HttpGet("QualificacaoResponsavel")]
+        public async Task<ActionResult<List<QualificacaoResponsavelModel>>> ListarQualificacaoResponsavel()
+        {
+            return Ok(await _provider
+                .GetService<QualificacaoResponsavelService>()
+                .List());
+        }
+
+        [HttpGet("TipoMeioCobranca")]
+        public async Task<ActionResult<List<TipoMeioCobrancaModel>>> ListarTipoMeioCobranca()
+        {
+            return Ok(await _provider
+                .GetService<TipoMeioCobrancaService>()
+                .List());
+        }
+
+        [HttpPost("ValidarInformacoesParaCadastro")]
+        public async Task<ActionResult<AtendimentoAvisoViewModel>> ValidarInformacoesParaCadastro(AtendimentoViewModel Atendimento)
+        {
+            AtendimentoAvisoViewModel aviso = await _provider
+                .GetService<AtendimentoService>()
+                .ValidarInformacoesParaCadastro(Atendimento);
+
+            if (aviso.Erros.Count.Equals(0))
+            {
+                aviso.Status = "APTO PARA O CADASTRO";
+
+                return Ok(aviso);
             }
             else
             {
-                return "Todos os campos preenchidos corretamente";
+                aviso.Status = "NÃO ESTÁ APTO PARA O CADASTRO";
+
+                return BadRequest(aviso);
             }
         }
 
-        // POST api/<AtendimentoController>
-        //[HttpPost]
-        //public void Post(Atendimento atendimento)
-        //{
+        [HttpPost("ValidarInformacoesParaAtualizacao")]
+        public async Task<ActionResult<AtendimentoAvisoViewModel>> ValidarInformacoesParaAtualizacao(AtendimentoViewModel Atendimento)
+        {
+            AtendimentoAvisoViewModel aviso = await _provider
+                .GetService<AtendimentoService>()
+                .ValidarInformacoesParaAtualizacao(Atendimento);
 
-        //}
+            if (aviso.Erros.Count.Equals(0))
+            {
+                aviso.Status = "APTO PARA O CADASTRO";
+
+                return Ok(aviso);
+            }
+            else
+            {
+                aviso.Status = "NÃO ESTÁ APTO PARA A ATUALIZAÇÃO";
+
+                return BadRequest(aviso);
+            }
+        }
+
+        [HttpPost("Cadastrar")]
+        public async Task<ActionResult<string>> Cadastrar(AtendimentoViewModel Atendimento)
+        {
+            AtendimentoAvisoViewModel aviso = await _provider
+                .GetService<AtendimentoService>()
+                .ValidarInformacoesParaCadastro(Atendimento);
+
+            if (aviso.Erros.Count > 0)
+            {
+                aviso.Status = "NÃO ESTÁ APTO PARA O CADASTRO";
+
+                return BadRequest(aviso);
+            }
+
+            try
+            {
+                string result = await _provider
+                    .GetService<AtendimentoService>()
+                    .Cadastrar(Atendimento);
+
+                return Ok(JsonConvert.SerializeObject(result));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
 
         // PUT api/<AtendimentoController>/5
         //[HttpPut("{id}")]
-        //public void Put(int id, Atendimento Atendimento)
+        //public void Atualizar(int id, Atendimento Atendimento)
         //{
         //}
     }

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Text;
+using WebZi.Plataform.Data.Services.GRV;
 using WebZi.Plataform.Domain.Models.GRV;
 using WebZi.Plataform.Domain.Services.GRV;
 
@@ -17,44 +18,19 @@ namespace WebZi.Plataform.API.Controllers
             _provider = provider;
         }
 
-        [HttpGet("{id}")]
-        public async Task<ActionResult<object>> Get(int id)
-        {
-            if (id <= 0)
-            {
-                return BadRequest("Informe o ID do GRV");
-            }
-
-            GrvModel grv = await _provider
-                .GetService<GrvService>()
-                .GetById(id);
-
-            if (grv == null)
-            {
-                return NotFound();
-            }
-
-            return Ok(JsonConvert.SerializeObject(grv));
-        }
-
-        [HttpGet()]
-        public async Task<ActionResult<object>> GetByProcesso(string numeroFormulario, int clienteId, int depositoId)
+        [HttpGet("{Identificador}/{Usuario}")]
+        public async Task<ActionResult<object>> Get(int Identificador, int Usuario)
         {
             StringBuilder erros = new();
 
-            if (string.IsNullOrWhiteSpace(numeroFormulario))
+            if (Identificador <= 0)
             {
-                erros.AppendLine("Informe o Número do Formulário");
+                erros.AppendLine("Identificador do GRV inválido");
             }
 
-            if (clienteId <= 0)
+            if (Usuario <= 0)
             {
-                erros.AppendLine("Informe o ID do Cliente");
-            }
-
-            if (depositoId <= 0)
-            {
-                erros.AppendLine("Informe o ID do Depósito");
+                erros.AppendLine("Identificador do Usuário inválido");
             }
 
             if (!string.IsNullOrWhiteSpace(erros.ToString()))
@@ -64,14 +40,64 @@ namespace WebZi.Plataform.API.Controllers
 
             GrvModel grv = await _provider
                 .GetService<GrvService>()
-                .GetByProcesso(numeroFormulario, clienteId, depositoId);
+                .GetById(Identificador);
 
             if (grv == null)
             {
-                return NotFound();
+                return NotFound("GRV sem permissão de acesso ou inexistente");
             }
 
             return Ok(JsonConvert.SerializeObject(grv));
+        }
+
+        [HttpGet("{NumeroProcesso}/{Cliente}/{Deposito}/{Usuario}")]
+        public async Task<ActionResult<object>> Get(string NumeroProcesso, int Cliente, int Deposito, int Usuario)
+        {
+            StringBuilder erros = new();
+
+            if (string.IsNullOrWhiteSpace(NumeroProcesso))
+            {
+                erros.AppendLine("Informe o Número do Processo");
+            }
+
+            if (Cliente <= 0)
+            {
+                erros.AppendLine("Identificador do Cliente inválido");
+            }
+
+            if (Deposito <= 0)
+            {
+                erros.AppendLine("Identificador do Depósito inválido ");
+            }
+
+            if (Usuario <= 0)
+            {
+                erros.AppendLine("Identificador do Usuário inválido");
+            }
+
+            if (!string.IsNullOrWhiteSpace(erros.ToString()))
+            {
+                return BadRequest(erros.ToString());
+            }
+
+            GrvModel grv = await _provider
+                .GetService<GrvService>()
+                .GetByProcesso(NumeroProcesso, Cliente, Deposito);
+
+            if (grv == null)
+            {
+                return NotFound("GRV sem permissão de acesso ou inexistente");
+            }
+
+            return Ok(JsonConvert.SerializeObject(grv));
+        }
+
+        [HttpGet("StatusOperacao")]
+        public async Task<ActionResult<List<StatusOperacaoModel>>> ListarStatusOperacao()
+        {
+            return Ok(await _provider
+                .GetService<StatusOperacaoService>()
+                .List());
         }
 
         // POST api/<GrvController>
