@@ -1,8 +1,8 @@
 ﻿using System.Text.RegularExpressions;
 
-namespace WebZi.Plataform.CrossCutting.Local
+namespace WebZi.Plataform.CrossCutting.Localizacao
 {
-    public abstract class LocalHelper
+    public abstract class LocalizacaoHelper
     {
         public static bool IsCEP(string cep)
         {

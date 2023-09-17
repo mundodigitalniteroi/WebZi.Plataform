@@ -1,4 +1,5 @@
-﻿using WebZi.Plataform.Domain.Models.GRV;
+﻿using WebZi.Plataform.Domain.Models.Faturamento;
+using WebZi.Plataform.Domain.Models.GRV;
 
 namespace WebZi.Plataform.Domain.Models.Veiculo
 {
@@ -24,18 +25,19 @@ namespace WebZi.Plataform.Domain.Models.Veiculo
 
         public virtual Usuario.UsuarioModel UsuarioAlteracao { get; set; }
 
-        //public virtual ICollection<TbDepClienteDepositoTiposVeiculo> TbDepClienteDepositoTiposVeiculos { get; set; } = new List<TbDepClienteDepositoTiposVeiculo>();
+        //public virtual ICollection<ClienteDepositoTiposVeiculo> ClienteDepositoTiposVeiculos { get; set; } = new List<ClienteDepositoTiposVeiculo>();
 
-        //public virtual ICollection<TbDepFaturamentoServicosTipoVeiculo> TbDepFaturamentoServicosTipoVeiculos { get; set; } = new List<TbDepFaturamentoServicosTipoVeiculo>();
+        public virtual ICollection<FaturamentoServicoTipoVeiculoModel> FaturamentoServicosTiposVeiculos { get; set; }
 
         public virtual ICollection<GrvModel> Grvs { get; set; }
 
-        //public virtual ICollection<TbDepSolicitacaoReboquePsv> TbDepSolicitacaoReboquePsvs { get; set; } = new List<TbDepSolicitacaoReboquePsv>();
+        //public virtual ICollection<SolicitacaoReboquePsv> SolicitacaoReboquePsvs { get; set; }
 
-        //public virtual ICollection<TbDepTarifasTipoVeiculo> TbDepTarifasTipoVeiculos { get; set; } = new List<TbDepTarifasTipoVeiculo>();
+        //public virtual ICollection<TarifasTipoVeiculo> TarifasTipoVeiculos { get; set; }
 
-        //public virtual ICollection<TbDepTipoVeiculosClassificacao> TbDepTipoVeiculosClassificacaos { get; set; } = new List<TbDepTipoVeiculosClassificacao>();
+        //public virtual ICollection<TipoVeiculosClassificacao> TipoVeiculosClassificacaos { get; set; }
 
-        //public virtual ICollection<TbDepTipoVeiculosEquipamentosAssociacao> TbDepTipoVeiculosEquipamentosAssociacaos { get; set; } = new List<TbDepTipoVeiculosEquipamentosAssociacao>();
+        // TODO: Implementar o Modelo
+        //public virtual ICollection<TipoVeiculosEquipamentosAssociacao> TipoVeiculosEquipamentosAssociacaos { get; set; }
     }
 }

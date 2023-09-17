@@ -51,109 +51,109 @@ namespace WebZi.Plataform.Domain.Models.Usuario
 
         public int? FuncionarioId { get; set; }
 
-        //public virtual TbDepUsuario IdUsuarioAlteracaoNavigation { get; set; }
+        //public virtual UsuarioModel UsuarioAlteracao { get; set; }
 
-        //public virtual TbDepUsuario IdUsuarioCadastroNavigation { get; set; }
+        //public virtual UsuarioModel UsuarioCadastro { get; set; }
 
-        //public virtual ICollection<TbDepUsuario> InverseIdUsuarioAlteracaoNavigation { get; set; } = new List<TbDepUsuario>();
+        //public virtual ICollection<Usuario> InverseIdUsuarioAlteracaoNavigation { get; set; } = new List<Usuario>();
 
-        //public virtual ICollection<TbDepUsuario> InverseIdUsuarioCadastroNavigation { get; set; } = new List<TbDepUsuario>();
+        //public virtual ICollection<Usuario> InverseIdUsuarioCadastroNavigation { get; set; } = new List<Usuario>();
 
-        //public virtual ICollection<TbDepAgenciasBancaria> TbDepAgenciasBancariaIdUsuarioAlteracaoNavigation { get; set; } = new List<TbDepAgenciasBancaria>();
+        //public virtual ICollection<AgenciasBancaria> AgenciasBancariaIdUsuarioAlteracaoNavigation { get; set; } = new List<AgenciasBancaria>();
 
-        //public virtual ICollection<TbDepAgenciasBancaria> TbDepAgenciasBancariaIdUsuarioCadastroNavigation { get; set; } = new List<TbDepAgenciasBancaria>();
+        //public virtual ICollection<AgenciasBancaria> AgenciasBancariaIdUsuarioCadastroNavigation { get; set; } = new List<AgenciasBancaria>();
 
-        //public virtual ICollection<TbDepAgente> TbDepAgenteUsuarioAlteracaos { get; set; } = new List<TbDepAgente>();
+        //public virtual ICollection<Agente> AgenteUsuarioAlteracaos { get; set; } = new List<Agente>();
 
-        //public virtual ICollection<TbDepAgente> TbDepAgenteUsuarioCadastros { get; set; } = new List<TbDepAgente>();
+        //public virtual ICollection<Agente> AgenteUsuarioCadastros { get; set; } = new List<Agente>();
 
-        //public virtual ICollection<TbDepAlterdatum> TbDepAlterdata { get; set; } = new List<TbDepAlterdatum>();
+        //public virtual ICollection<Alterdatum> Alterdata { get; set; } = new List<Alterdatum>();
 
-        //public virtual ICollection<TbDepAlterdataConfiguracao> TbDepAlterdataConfiguracaoUsuarioAlteracaos { get; set; } = new List<TbDepAlterdataConfiguracao>();
+        //public virtual ICollection<AlterdataConfiguracao> AlterdataConfiguracaoUsuarioAlteracaos { get; set; } = new List<AlterdataConfiguracao>();
 
-        //public virtual ICollection<TbDepAlterdataConfiguracao> TbDepAlterdataConfiguracaoUsuarioCadastros { get; set; } = new List<TbDepAlterdataConfiguracao>();
+        //public virtual ICollection<AlterdataConfiguracao> AlterdataConfiguracaoUsuarioCadastros { get; set; } = new List<AlterdataConfiguracao>();
 
-        //public virtual ICollection<TbDepAlterdataOperacao> TbDepAlterdataOperacaoUsuarioAlteracaos { get; set; } = new List<TbDepAlterdataOperacao>();
+        //public virtual ICollection<AlterdataOperacao> AlterdataOperacaoUsuarioAlteracaos { get; set; } = new List<AlterdataOperacao>();
 
-        //public virtual ICollection<TbDepAlterdataOperacao> TbDepAlterdataOperacaoUsuarioCadastros { get; set; } = new List<TbDepAlterdataOperacao>();
+        //public virtual ICollection<AlterdataOperacao> AlterdataOperacaoUsuarioCadastros { get; set; } = new List<AlterdataOperacao>();
 
-        //public virtual ICollection<TbDepAutoridadesResponsavei> TbDepAutoridadesResponsaveiIdUsuarioAlteracaoNavigation { get; set; } = new List<TbDepAutoridadesResponsavei>();
+        //public virtual ICollection<AutoridadesResponsavei> AutoridadesResponsaveiIdUsuarioAlteracaoNavigation { get; set; } = new List<AutoridadesResponsavei>();
 
-        //public virtual ICollection<TbDepAutoridadesResponsavei> TbDepAutoridadesResponsaveiIdUsuarioCadastroNavigation { get; set; } = new List<TbDepAutoridadesResponsavei>();
+        //public virtual ICollection<AutoridadesResponsavei> AutoridadesResponsaveiIdUsuarioCadastroNavigation { get; set; } = new List<AutoridadesResponsavei>();
 
-        //public virtual ICollection<TbDepBanco> TbDepBancoIdUsuarioAlteracaoNavigation { get; set; } = new List<TbDepBanco>();
+        //public virtual ICollection<Banco> BancoIdUsuarioAlteracaoNavigation { get; set; } = new List<Banco>();
 
-        //public virtual ICollection<TbDepBanco> TbDepBancoIdUsuarioCadastroNavigation { get; set; } = new List<TbDepBanco>();
+        //public virtual ICollection<Banco> BancoIdUsuarioCadastroNavigation { get; set; } = new List<Banco>();
 
-        //public virtual ICollection<TbDepClassificaco> TbDepClassificacos { get; set; } = new List<TbDepClassificaco>();
+        //public virtual ICollection<Classificaco> Classificacos { get; set; } = new List<Classificaco>();
 
-        //public virtual ICollection<TbDepClienteDepositoTiposVeiculo> TbDepClienteDepositoTiposVeiculoIdUsuarioAlteracaoNavigation { get; set; } = new List<TbDepClienteDepositoTiposVeiculo>();
+        //public virtual ICollection<ClienteDepositoTiposVeiculo> ClienteDepositoTiposVeiculoIdUsuarioAlteracaoNavigation { get; set; } = new List<ClienteDepositoTiposVeiculo>();
 
-        //public virtual ICollection<TbDepClienteDepositoTiposVeiculo> TbDepClienteDepositoTiposVeiculoIdUsuarioCadastroNavigation { get; set; } = new List<TbDepClienteDepositoTiposVeiculo>();
+        //public virtual ICollection<ClienteDepositoTiposVeiculo> ClienteDepositoTiposVeiculoIdUsuarioCadastroNavigation { get; set; } = new List<ClienteDepositoTiposVeiculo>();
 
-        //public virtual ICollection<TbDepCliente> TbDepClienteIdUsuarioAlteracaoNavigation { get; set; } = new List<TbDepCliente>();
+        //public virtual ICollection<Cliente> ClienteIdUsuarioAlteracaoNavigation { get; set; } = new List<Cliente>();
 
-        //public virtual ICollection<TbDepCliente> TbDepClienteIdUsuarioCadastroNavigation { get; set; } = new List<TbDepCliente>();
+        //public virtual ICollection<Cliente> ClienteIdUsuarioCadastroNavigation { get; set; } = new List<Cliente>();
 
-        //public virtual ICollection<TbDepClienteRegra> TbDepClienteRegraUsuarioAlteracaos { get; set; } = new List<TbDepClienteRegra>();
+        //public virtual ICollection<ClienteRegra> ClienteRegraUsuarioAlteracaos { get; set; } = new List<ClienteRegra>();
 
-        //public virtual ICollection<TbDepClienteRegra> TbDepClienteRegraUsuarioCadastros { get; set; } = new List<TbDepClienteRegra>();
+        //public virtual ICollection<ClienteRegra> ClienteRegraUsuarioCadastros { get; set; } = new List<ClienteRegra>();
 
-        //public virtual ICollection<TbDepClientesDeposito> TbDepClientesDepositoIdUsuarioAlteracaoNavigation { get; set; } = new List<TbDepClientesDeposito>();
+        //public virtual ICollection<ClientesDeposito> ClientesDepositoIdUsuarioAlteracaoNavigation { get; set; } = new List<ClientesDeposito>();
 
-        //public virtual ICollection<TbDepClientesDeposito> TbDepClientesDepositoIdUsuarioCadastroNavigation { get; set; } = new List<TbDepClientesDeposito>();
+        //public virtual ICollection<ClientesDeposito> ClientesDepositoIdUsuarioCadastroNavigation { get; set; } = new List<ClientesDeposito>();
 
-        //public virtual ICollection<TbDepComunicacaoEmail> TbDepComunicacaoEmails { get; set; } = new List<TbDepComunicacaoEmail>();
+        //public virtual ICollection<ComunicacaoEmail> ComunicacaoEmails { get; set; } = new List<ComunicacaoEmail>();
 
-        //public virtual ICollection<TbDepCondutorEquipamentosOpcionai> TbDepCondutorEquipamentosOpcionaiIdUsuarioAtualizacaoNavigation { get; set; } = new List<TbDepCondutorEquipamentosOpcionai>();
+        //public virtual ICollection<CondutorEquipamentosOpcionai> CondutorEquipamentosOpcionaiIdUsuarioAtualizacaoNavigation { get; set; } = new List<CondutorEquipamentosOpcionai>();
 
-        //public virtual ICollection<TbDepCondutorEquipamentosOpcionai> TbDepCondutorEquipamentosOpcionaiIdUsuarioCadastroNavigation { get; set; } = new List<TbDepCondutorEquipamentosOpcionai>();
+        //public virtual ICollection<CondutorEquipamentosOpcionai> CondutorEquipamentosOpcionaiIdUsuarioCadastroNavigation { get; set; } = new List<CondutorEquipamentosOpcionai>();
 
-        //public virtual ICollection<TbDepCondutorEquipamentosOpcionaisNaoConformidade> TbDepCondutorEquipamentosOpcionaisNaoConformidades { get; set; } = new List<TbDepCondutorEquipamentosOpcionaisNaoConformidade>();
+        //public virtual ICollection<CondutorEquipamentosOpcionaisNaoConformidade> CondutorEquipamentosOpcionaisNaoConformidades { get; set; } = new List<CondutorEquipamentosOpcionaisNaoConformidade>();
 
-        //public virtual ICollection<TbDepDeposito> TbDepDepositoIdUsuarioAlteracaoNavigation { get; set; } = new List<TbDepDeposito>();
+        //public virtual ICollection<Deposito> DepositoIdUsuarioAlteracaoNavigation { get; set; } = new List<Deposito>();
 
-        //public virtual ICollection<TbDepDeposito> TbDepDepositoIdUsuarioCadastroNavigation { get; set; } = new List<TbDepDeposito>();
+        //public virtual ICollection<Deposito> DepositoIdUsuarioCadastroNavigation { get; set; } = new List<Deposito>();
 
-        //public virtual ICollection<TbDepDetranGrvStatusTransacao> TbDepDetranGrvStatusTransacaos { get; set; } = new List<TbDepDetranGrvStatusTransacao>();
+        //public virtual ICollection<DetranGrvStatusTransacao> DetranGrvStatusTransacaos { get; set; } = new List<DetranGrvStatusTransacao>();
 
-        //public virtual ICollection<TbDepDetroGrv> TbDepDetroGrvIdUsuarioAlteracaoNavigation { get; set; } = new List<TbDepDetroGrv>();
+        //public virtual ICollection<DetroGrv> DetroGrvIdUsuarioAlteracaoNavigation { get; set; } = new List<DetroGrv>();
 
-        //public virtual ICollection<TbDepDetroGrv> TbDepDetroGrvIdUsuarioCadastroNavigation { get; set; } = new List<TbDepDetroGrv>();
+        //public virtual ICollection<DetroGrv> DetroGrvIdUsuarioCadastroNavigation { get; set; } = new List<DetroGrv>();
 
-        //public virtual ICollection<TbDepDetroGrvMotivoNaoAutorizado> TbDepDetroGrvMotivoNaoAutorizados { get; set; } = new List<TbDepDetroGrvMotivoNaoAutorizado>();
+        //public virtual ICollection<DetroGrvMotivoNaoAutorizado> DetroGrvMotivoNaoAutorizados { get; set; } = new List<DetroGrvMotivoNaoAutorizado>();
 
-        //public virtual ICollection<TbDepEnquadramentoInfraco> TbDepEnquadramentoInfracos { get; set; } = new List<TbDepEnquadramentoInfraco>();
+        //public virtual ICollection<EnquadramentoInfraco> EnquadramentoInfracos { get; set; } = new List<EnquadramentoInfraco>();
 
-        //public virtual ICollection<TbDepEquipamentosOpcionai> TbDepEquipamentosOpcionaiIdUsuarioAlteracaoNavigation { get; set; } = new List<TbDepEquipamentosOpcionai>();
+        //public virtual ICollection<EquipamentosOpcionai> EquipamentosOpcionaiIdUsuarioAlteracaoNavigation { get; set; } = new List<EquipamentosOpcionai>();
 
-        //public virtual ICollection<TbDepEquipamentosOpcionai> TbDepEquipamentosOpcionaiIdUsuarioNavigation { get; set; } = new List<TbDepEquipamentosOpcionai>();
+        //public virtual ICollection<EquipamentosOpcionai> EquipamentosOpcionaiIdUsuarioNavigation { get; set; } = new List<EquipamentosOpcionai>();
 
-        //public virtual ICollection<TbDepEquipamentosOpcionaisLocalizacao> TbDepEquipamentosOpcionaisLocalizacaoIdUsuarioAlteracaoNavigation { get; set; } = new List<TbDepEquipamentosOpcionaisLocalizacao>();
+        //public virtual ICollection<EquipamentosOpcionaisLocalizacao> EquipamentosOpcionaisLocalizacaoIdUsuarioAlteracaoNavigation { get; set; } = new List<EquipamentosOpcionaisLocalizacao>();
 
-        //public virtual ICollection<TbDepEquipamentosOpcionaisLocalizacao> TbDepEquipamentosOpcionaisLocalizacaoIdUsuarioCadastroNavigation { get; set; } = new List<TbDepEquipamentosOpcionaisLocalizacao>();
+        //public virtual ICollection<EquipamentosOpcionaisLocalizacao> EquipamentosOpcionaisLocalizacaoIdUsuarioCadastroNavigation { get; set; } = new List<EquipamentosOpcionaisLocalizacao>();
 
-        //public virtual ICollection<TbDepFaturamentoBoleto> TbDepFaturamentoBoletos { get; set; } = new List<TbDepFaturamentoBoleto>();
+        //public virtual ICollection<FaturamentoBoleto> FaturamentoBoletos { get; set; } = new List<FaturamentoBoleto>();
 
-        //public virtual ICollection<TbDepFaturamentoComposicao> TbDepFaturamentoComposicaoIdUsuarioAlteracaoQuantidadeNavigation { get; set; } = new List<TbDepFaturamentoComposicao>();
+        //public virtual ICollection<FaturamentoComposicao> FaturamentoComposicaoIdUsuarioAlteracaoQuantidadeNavigation { get; set; } = new List<FaturamentoComposicao>();
 
-        //public virtual ICollection<TbDepFaturamentoComposicao> TbDepFaturamentoComposicaoIdUsuarioDescontoNavigation { get; set; } = new List<TbDepFaturamentoComposicao>();
+        //public virtual ICollection<FaturamentoComposicao> FaturamentoComposicaoIdUsuarioDescontoNavigation { get; set; } = new List<FaturamentoComposicao>();
 
-        //public virtual ICollection<TbDepFaturamento> TbDepFaturamentoIdUsuarioAlteracaoNavigation { get; set; } = new List<TbDepFaturamento>();
+        //public virtual ICollection<Faturamento> FaturamentoIdUsuarioAlteracaoNavigation { get; set; } = new List<Faturamento>();
 
-        //public virtual ICollection<TbDepFaturamento> TbDepFaturamentoIdUsuarioCadastroNavigation { get; set; } = new List<TbDepFaturamento>();
+        //public virtual ICollection<Faturamento> FaturamentoIdUsuarioCadastroNavigation { get; set; } = new List<Faturamento>();
 
-        //public virtual ICollection<TbDepFaturamentoRegra> TbDepFaturamentoRegraIdUsuarioAlteracaoNavigation { get; set; } = new List<TbDepFaturamentoRegra>();
+        //public virtual ICollection<FaturamentoRegra> FaturamentoRegraIdUsuarioAlteracaoNavigation { get; set; } = new List<FaturamentoRegra>();
 
-        //public virtual ICollection<TbDepFaturamentoRegra> TbDepFaturamentoRegraIdUsuarioCadastroNavigation { get; set; } = new List<TbDepFaturamentoRegra>();
+        //public virtual ICollection<FaturamentoRegra> FaturamentoRegraIdUsuarioCadastroNavigation { get; set; } = new List<FaturamentoRegra>();
 
-        //public virtual ICollection<TbDepFaturamentoServicosAssociado> TbDepFaturamentoServicosAssociadoIdUsuarioAlteracaoNavigation { get; set; } = new List<TbDepFaturamentoServicosAssociado>();
+        //public virtual ICollection<FaturamentoServicosAssociado> FaturamentoServicosAssociadoIdUsuarioAlteracaoNavigation { get; set; } = new List<FaturamentoServicosAssociado>();
 
-        //public virtual ICollection<TbDepFaturamentoServicosAssociado> TbDepFaturamentoServicosAssociadoIdUsuarioCadastroNavigation { get; set; } = new List<TbDepFaturamentoServicosAssociado>();
+        //public virtual ICollection<FaturamentoServicosAssociado> FaturamentoServicosAssociadoIdUsuarioCadastroNavigation { get; set; } = new List<FaturamentoServicosAssociado>();
 
-        //public virtual ICollection<TbDepFaturamentoServicosTipo> TbDepFaturamentoServicosTipoIdUsuarioAlteracaoNavigation { get; set; } = new List<TbDepFaturamentoServicosTipo>();
+        //public virtual ICollection<FaturamentoServicosTipo> FaturamentoServicosTipoIdUsuarioAlteracaoNavigation { get; set; } = new List<FaturamentoServicosTipo>();
 
-        //public virtual ICollection<TbDepFaturamentoServicosTipo> TbDepFaturamentoServicosTipoIdUsuarioCadastroNavigation { get; set; } = new List<TbDepFaturamentoServicosTipo>();
+        //public virtual ICollection<FaturamentoServicosTipo> FaturamentoServicosTipoIdUsuarioCadastroNavigation { get; set; } = new List<FaturamentoServicosTipo>();
 
         //public virtual ICollection<GrvBloqueioMotivo> GrvBloqueioMotivos { get; set; } = new List<GrvBloqueioMotivo>();
 
@@ -201,84 +201,84 @@ namespace WebZi.Plataform.Domain.Models.Usuario
 
         //public virtual ICollection<GrvVistorium> GrvVistoriumIdUsuarioCadastroNavigation { get; set; } = new List<GrvVistorium>();
 
-        //public virtual ICollection<TbDepGtv> TbDepGtvIdUsuarioAlteracaoNavigation { get; set; } = new List<TbDepGtv>();
+        //public virtual ICollection<Gtv> GtvIdUsuarioAlteracaoNavigation { get; set; } = new List<Gtv>();
 
-        //public virtual ICollection<TbDepGtv> TbDepGtvIdUsuarioCadastroNavigation { get; set; } = new List<TbDepGtv>();
+        //public virtual ICollection<Gtv> GtvIdUsuarioCadastroNavigation { get; set; } = new List<Gtv>();
 
-        //public virtual ICollection<TbDepGtv> TbDepGtvIdUsuarioSeparacaoVeiculosNavigation { get; set; } = new List<TbDepGtv>();
+        //public virtual ICollection<Gtv> GtvIdUsuarioSeparacaoVeiculosNavigation { get; set; } = new List<Gtv>();
 
-        //public virtual ICollection<TbDepLiberacaoEspecial> TbDepLiberacaoEspecials { get; set; } = new List<TbDepLiberacaoEspecial>();
+        //public virtual ICollection<LiberacaoEspecial> LiberacaoEspecials { get; set; } = new List<LiberacaoEspecial>();
 
-        //public virtual ICollection<TbDepLiberacaoLeilao> TbDepLiberacaoLeilaos { get; set; } = new List<TbDepLiberacaoLeilao>();
+        //public virtual ICollection<LiberacaoLeilao> LiberacaoLeilaos { get; set; } = new List<LiberacaoLeilao>();
 
-        //public virtual ICollection<TbDepLiberacao> TbDepLiberacaos { get; set; } = new List<TbDepLiberacao>();
+        //public virtual ICollection<Liberacao> Liberacaos { get; set; } = new List<Liberacao>();
 
-        //public virtual ICollection<TbDepMarcasModelo> TbDepMarcasModelos { get; set; } = new List<TbDepMarcasModelo>();
+        //public virtual ICollection<MarcasModelo> MarcasModelos { get; set; } = new List<MarcasModelo>();
 
-        //public virtual ICollection<TbDepNfeConfiguracaoImagem> TbDepNfeConfiguracaoImagemUsuarioAlteracaos { get; set; } = new List<TbDepNfeConfiguracaoImagem>();
+        //public virtual ICollection<NfeConfiguracaoImagem> NfeConfiguracaoImagemUsuarioAlteracaos { get; set; } = new List<NfeConfiguracaoImagem>();
 
-        //public virtual ICollection<TbDepNfeConfiguracaoImagem> TbDepNfeConfiguracaoImagemUsuarioCadastros { get; set; } = new List<TbDepNfeConfiguracaoImagem>();
+        //public virtual ICollection<NfeConfiguracaoImagem> NfeConfiguracaoImagemUsuarioCadastros { get; set; } = new List<NfeConfiguracaoImagem>();
 
-        //public virtual ICollection<TbDepNfeNotaFiscal> TbDepNfeNotaFiscals { get; set; } = new List<TbDepNfeNotaFiscal>();
+        //public virtual ICollection<NfeNotaFiscal> NfeNotaFiscals { get; set; } = new List<NfeNotaFiscal>();
 
-        //public virtual ICollection<TbDepNfeRegra> TbDepNfeRegraUsuarioAlteracaos { get; set; } = new List<TbDepNfeRegra>();
+        //public virtual ICollection<NfeRegra> NfeRegraUsuarioAlteracaos { get; set; } = new List<NfeRegra>();
 
-        //public virtual ICollection<TbDepNfeRegra> TbDepNfeRegraUsuarioCadastros { get; set; } = new List<TbDepNfeRegra>();
+        //public virtual ICollection<NfeRegra> NfeRegraUsuarioCadastros { get; set; } = new List<NfeRegra>();
 
-        //public virtual ICollection<TbDepNfeWsErro> TbDepNfeWsErros { get; set; } = new List<TbDepNfeWsErro>();
+        //public virtual ICollection<NfeWsErro> NfeWsErros { get; set; } = new List<NfeWsErro>();
 
-        //public virtual ICollection<TbDepNfe> TbDepNves { get; set; } = new List<TbDepNfe>();
+        //public virtual ICollection<Nfe> Nves { get; set; } = new List<Nfe>();
 
-        //public virtual ICollection<TbDepPixDinamicoConfiguracao> TbDepPixDinamicoConfiguracaoUsuarioAlteracaos { get; set; } = new List<TbDepPixDinamicoConfiguracao>();
+        //public virtual ICollection<PixDinamicoConfiguracao> PixDinamicoConfiguracaoUsuarioAlteracaos { get; set; } = new List<PixDinamicoConfiguracao>();
 
-        //public virtual ICollection<TbDepPixDinamicoConfiguracao> TbDepPixDinamicoConfiguracaoUsuarioCadastros { get; set; } = new List<TbDepPixDinamicoConfiguracao>();
+        //public virtual ICollection<PixDinamicoConfiguracao> PixDinamicoConfiguracaoUsuarioCadastros { get; set; } = new List<PixDinamicoConfiguracao>();
 
-        //public virtual ICollection<TbDepPixDinamicoSenhaConfirmacaoTranferencium> TbDepPixDinamicoSenhaConfirmacaoTranferenciumUsuarioCadastros { get; set; } = new List<TbDepPixDinamicoSenhaConfirmacaoTranferencium>();
+        //public virtual ICollection<PixDinamicoSenhaConfirmacaoTranferencium> PixDinamicoSenhaConfirmacaoTranferenciumUsuarioCadastros { get; set; } = new List<PixDinamicoSenhaConfirmacaoTranferencium>();
 
-        //public virtual ICollection<TbDepPixDinamicoSenhaConfirmacaoTranferencium> TbDepPixDinamicoSenhaConfirmacaoTranferenciumUsuarioFinanceiros { get; set; } = new List<TbDepPixDinamicoSenhaConfirmacaoTranferencium>();
+        //public virtual ICollection<PixDinamicoSenhaConfirmacaoTranferencium> PixDinamicoSenhaConfirmacaoTranferenciumUsuarioFinanceiros { get; set; } = new List<PixDinamicoSenhaConfirmacaoTranferencium>();
 
-        //public virtual ICollection<TbDepPreGrv> TbDepPreGrvs { get; set; } = new List<TbDepPreGrv>();
+        //public virtual ICollection<PreGrv> PreGrvs { get; set; } = new List<PreGrv>();
 
-        //public virtual ICollection<TbDepReboquista> TbDepReboquistaIdUsuarioAlteracaoNavigation { get; set; } = new List<TbDepReboquista>();
+        //public virtual ICollection<Reboquista> ReboquistaIdUsuarioAlteracaoNavigation { get; set; } = new List<Reboquista>();
 
-        //public virtual ICollection<TbDepReboquista> TbDepReboquistaIdUsuarioCadastroNavigation { get; set; } = new List<TbDepReboquista>();
+        //public virtual ICollection<Reboquista> ReboquistaIdUsuarioCadastroNavigation { get; set; } = new List<Reboquista>();
 
-        //public virtual ICollection<TbDepRepositorioArquivo> TbDepRepositorioArquivos { get; set; } = new List<TbDepRepositorioArquivo>();
+        //public virtual ICollection<RepositorioArquivo> RepositorioArquivos { get; set; } = new List<RepositorioArquivo>();
 
-        //public virtual ICollection<TbDepSistemaAcesso> TbDepSistemaAcessoIdUsuarioAcessoNavigation { get; set; } = new List<TbDepSistemaAcesso>();
+        //public virtual ICollection<SistemaAcesso> SistemaAcessoIdUsuarioAcessoNavigation { get; set; } = new List<SistemaAcesso>();
 
-        //public virtual ICollection<TbDepSistemaAcesso> TbDepSistemaAcessoIdUsuarioNavigation { get; set; } = new List<TbDepSistemaAcesso>();
+        //public virtual ICollection<SistemaAcesso> SistemaAcessoIdUsuarioNavigation { get; set; } = new List<SistemaAcesso>();
 
-        //public virtual ICollection<TbDepSistemaPerfilAcesso> TbDepSistemaPerfilAcessoIdUsuarioAlteracaoNavigation { get; set; } = new List<TbDepSistemaPerfilAcesso>();
+        //public virtual ICollection<SistemaPerfilAcesso> SistemaPerfilAcessoIdUsuarioAlteracaoNavigation { get; set; } = new List<SistemaPerfilAcesso>();
 
-        //public virtual ICollection<TbDepSistemaPerfilAcesso> TbDepSistemaPerfilAcessoIdUsuarioCadastroNavigation { get; set; } = new List<TbDepSistemaPerfilAcesso>();
+        //public virtual ICollection<SistemaPerfilAcesso> SistemaPerfilAcessoIdUsuarioCadastroNavigation { get; set; } = new List<SistemaPerfilAcesso>();
 
-        //public virtual ICollection<TbDepSistemaPerfilAcessoUsuario> TbDepSistemaPerfilAcessoUsuarios { get; set; } = new List<TbDepSistemaPerfilAcessoUsuario>();
+        //public virtual ICollection<SistemaPerfilAcessoUsuario> SistemaPerfilAcessoUsuarios { get; set; } = new List<SistemaPerfilAcessoUsuario>();
 
-        //public virtual ICollection<TbDepSolicitacaoReboque> TbDepSolicitacaoReboqueIdUsuarioAlteracaoNavigation { get; set; } = new List<TbDepSolicitacaoReboque>();
+        //public virtual ICollection<SolicitacaoReboque> SolicitacaoReboqueIdUsuarioAlteracaoNavigation { get; set; } = new List<SolicitacaoReboque>();
 
-        //public virtual ICollection<TbDepSolicitacaoReboque> TbDepSolicitacaoReboqueIdUsuarioCadastroNavigation { get; set; } = new List<TbDepSolicitacaoReboque>();
+        //public virtual ICollection<SolicitacaoReboque> SolicitacaoReboqueIdUsuarioCadastroNavigation { get; set; } = new List<SolicitacaoReboque>();
 
-        //public virtual ICollection<TbDepTarifa> TbDepTarifaIdUsuarioAlteracaoNavigation { get; set; } = new List<TbDepTarifa>();
+        //public virtual ICollection<Tarifa> TarifaIdUsuarioAlteracaoNavigation { get; set; } = new List<Tarifa>();
 
-        //public virtual ICollection<TbDepTarifa> TbDepTarifaIdUsuarioCadastroNavigation { get; set; } = new List<TbDepTarifa>();
+        //public virtual ICollection<Tarifa> TarifaIdUsuarioCadastroNavigation { get; set; } = new List<Tarifa>();
 
-        //public virtual ICollection<TbDepTipoVeiculosEquipamentosAssociacao> TbDepTipoVeiculosEquipamentosAssociacaos { get; set; } = new List<TbDepTipoVeiculosEquipamentosAssociacao>();
+        //public virtual ICollection<TipoVeiculosEquipamentosAssociacao> TipoVeiculosEquipamentosAssociacaos { get; set; } = new List<TipoVeiculosEquipamentosAssociacao>();
 
-        //public virtual ICollection<TbDepTiposCombustivei> TbDepTiposCombustiveis { get; set; } = new List<TbDepTiposCombustivei>();
+        //public virtual ICollection<TiposCombustivei> TiposCombustiveis { get; set; } = new List<TiposCombustivei>();
 
-        //public virtual ICollection<TbDepUsuariosCliente> TbDepUsuariosClienteIdUsuarioCadastroNavigation { get; set; } = new List<TbDepUsuariosCliente>();
+        //public virtual ICollection<UsuariosCliente> UsuariosClienteIdUsuarioCadastroNavigation { get; set; } = new List<UsuariosCliente>();
 
-        //public virtual ICollection<TbDepUsuariosCliente> TbDepUsuariosClienteIdUsuarioNavigation { get; set; } = new List<TbDepUsuariosCliente>();
+        //public virtual ICollection<UsuariosCliente> UsuariosClienteIdUsuarioNavigation { get; set; } = new List<UsuariosCliente>();
 
-        //public virtual ICollection<TbDepUsuariosDeposito> TbDepUsuariosDepositoIdUsuarioCadastroNavigation { get; set; } = new List<TbDepUsuariosDeposito>();
+        //public virtual ICollection<UsuariosDeposito> UsuariosDepositoIdUsuarioCadastroNavigation { get; set; } = new List<UsuariosDeposito>();
 
-        //public virtual ICollection<TbDepUsuariosDeposito> TbDepUsuariosDepositoIdUsuarioNavigation { get; set; } = new List<TbDepUsuariosDeposito>();
+        //public virtual ICollection<UsuariosDeposito> UsuariosDepositoIdUsuarioNavigation { get; set; } = new List<UsuariosDeposito>();
 
-        //public virtual ICollection<TbDepUsuariosPermisso> TbDepUsuariosPermissoIdUsuarioAlteracaoNavigation { get; set; } = new List<TbDepUsuariosPermisso>();
+        //public virtual ICollection<UsuariosPermisso> UsuariosPermissoIdUsuarioAlteracaoNavigation { get; set; } = new List<UsuariosPermisso>();
 
-        //public virtual ICollection<TbDepUsuariosPermisso> TbDepUsuariosPermissoIdUsuarioCadastroNavigation { get; set; } = new List<TbDepUsuariosPermisso>();
+        //public virtual ICollection<UsuariosPermisso> UsuariosPermissoIdUsuarioCadastroNavigation { get; set; } = new List<UsuariosPermisso>();
 
-        //public virtual ICollection<TbDepUsuariosPermisso> TbDepUsuariosPermissoIdUsuarioNavigation { get; set; } = new List<TbDepUsuariosPermisso>();
+        //public virtual ICollection<UsuariosPermisso> UsuariosPermissoIdUsuarioNavigation { get; set; } = new List<UsuariosPermisso>();
     }
 }

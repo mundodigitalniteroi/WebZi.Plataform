@@ -4,18 +4,16 @@ namespace WebZi.Plataform.Domain.Models.Faturamento
 {
     public class FaturamentoServicoTipoVeiculoModel
     {
-        public int IdFaturamentoServicoTipoVeiculo { get; set; }
+        public int FaturamentoServicoTipoVeiculoId { get; set; }
 
-        public int IdFaturamentoServicoAssociado { get; set; }
+        public int FaturamentoServicoAssociadoId { get; set; }
 
-        public byte IdTipoVeiculo { get; set; }
+        public byte TipoVeiculoId { get; set; }
 
         public virtual FaturamentoServicoAssociadoModel FaturamentoServicoAssociado { get; set; }
 
         public virtual TipoVeiculoModel TipoVeiculo { get; set; }
 
-        public virtual ICollection<FaturamentoComposicaoModel> FaturamentoComposicoes { get; set; }
-
-        public virtual ICollection<FaturamentoServicoGrvModel> FaturamentoServicoGrvs { get; set; }
+        public virtual ICollection<FaturamentoServicoGrvModel> FaturamentoServicosGrvs { get; set; }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using WebZi.Plataform.Domain.Models.Cliente;
 using WebZi.Plataform.Domain.Models.Deposito;
+using WebZi.Plataform.Domain.Models.Usuario;
 
 namespace WebZi.Plataform.Domain.Models.Faturamento
 {
@@ -33,10 +34,10 @@ namespace WebZi.Plataform.Domain.Models.Faturamento
 
         public virtual FaturamentoRegraTipoModel FaturamentoRegraTipo { get; set; }
 
-        // public virtual TbDepUsuario IdUsuarioAlteracaoNavigation { get; set; }
+         public virtual UsuarioModel UsuarioCadastro { get; set; }
 
-        // public virtual TbDepUsuario IdUsuarioCadastroNavigation { get; set; }
+        public virtual UsuarioModel UsuarioAlteracao { get; set; }
 
-        // public virtual ICollection<TbDepFaturamentoServicosAssociado> TbDepFaturamentoServicosAssociados { get; set; } = new List<TbDepFaturamentoServicosAssociado>();
+        // public virtual ICollection<FaturamentoServicosAssociado> FaturamentoServicosAssociados { get; set; } = new List<FaturamentoServicosAssociado>();
     }
 }

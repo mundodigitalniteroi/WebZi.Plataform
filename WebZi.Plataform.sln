@@ -5,9 +5,9 @@ VisualStudioVersion = 17.7.34009.444
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebZi.Plataform.API", "WebZi.Plataform.API\WebZi.Plataform.API.csproj", "{4AAA90CC-8063-4373-808F-96ACD8F6B5CB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebZi.Plataform.Domain", "WebZi.Plataform.Domain\WebZi.Plataform.Domain.csproj", "{F1D56DD8-1DB0-4BBB-B169-EBBA00B007D9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebZi.Plataform.Domain", "WebZi.Plataform.Domain\WebZi.Plataform.Domain.csproj", "{F1D56DD8-1DB0-4BBB-B169-EBBA00B007D9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebZi.Plataform.Data", "WebZi.Plataform.Data\WebZi.Plataform.Data.csproj", "{233CD555-5FAD-438E-8359-E01CA5E89208}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebZi.Plataform.Data", "WebZi.Plataform.Data\WebZi.Plataform.Data.csproj", "{233CD555-5FAD-438E-8359-E01CA5E89208}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "1 - Application", "1 - Application", "{A834D9B6-ADC2-40CD-B521-6A473C8A9D34}"
 EndProject
@@ -17,7 +17,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "3 - Data", "3 - Data", "{7F
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "4 - CrossCutting", "4 - CrossCutting", "{7EB462C7-A536-49A8-9DDF-131A0DD59EDB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebZi.Plataform.CrossCutting", "WebZi.Plataform.CrossCutting\WebZi.Plataform.CrossCutting.csproj", "{E1F2B7DB-DE7A-457A-AE3C-C9D21C840055}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebZi.Plataform.CrossCutting", "WebZi.Plataform.CrossCutting\WebZi.Plataform.CrossCutting.csproj", "{E1F2B7DB-DE7A-457A-AE3C-C9D21C840055}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebZi.Plataform.Console", "WebZi.Plataform.Console\WebZi.Plataform.Console.csproj", "{85B94414-B95E-451D-9104-C34D267B1FAA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -41,6 +43,10 @@ Global
 		{E1F2B7DB-DE7A-457A-AE3C-C9D21C840055}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E1F2B7DB-DE7A-457A-AE3C-C9D21C840055}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E1F2B7DB-DE7A-457A-AE3C-C9D21C840055}.Release|Any CPU.Build.0 = Release|Any CPU
+		{85B94414-B95E-451D-9104-C34D267B1FAA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{85B94414-B95E-451D-9104-C34D267B1FAA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{85B94414-B95E-451D-9104-C34D267B1FAA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{85B94414-B95E-451D-9104-C34D267B1FAA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -50,6 +56,7 @@ Global
 		{F1D56DD8-1DB0-4BBB-B169-EBBA00B007D9} = {7D2EAA22-7DFE-4DC0-B39E-CA80F6D225C0}
 		{233CD555-5FAD-438E-8359-E01CA5E89208} = {7F23E632-5873-4403-97EF-C46F03A99816}
 		{E1F2B7DB-DE7A-457A-AE3C-C9D21C840055} = {7EB462C7-A536-49A8-9DDF-131A0DD59EDB}
+		{85B94414-B95E-451D-9104-C34D267B1FAA} = {A834D9B6-ADC2-40CD-B521-6A473C8A9D34}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C7CDCEE0-96E6-497B-903F-BAD2D3D6FCF9}

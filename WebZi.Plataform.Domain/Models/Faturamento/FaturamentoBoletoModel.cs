@@ -1,14 +1,16 @@
-﻿namespace WebZi.Plataform.Domain.Models.Faturamento
+﻿using WebZi.Plataform.Domain.Models.Usuario;
+
+namespace WebZi.Plataform.Domain.Models.Faturamento
 {
     public class FaturamentoBoletoModel
     {
-        public int IdFaturamentoBoleto { get; set; }
+        public int FaturamentoBoletoId { get; set; }
 
-        public int IdFaturamento { get; set; }
+        public int FaturamentoId { get; set; }
 
-        public int IdBoleto { get; set; }
+        public int BoletoId { get; set; }
 
-        public int IdUsuarioCadastro { get; set; }
+        public int UsuarioCadastroId { get; set; }
 
         public byte SequenciaEmissao { get; set; }
 
@@ -28,12 +30,12 @@
         /// P = Pago;
         /// C = Cancelado.
         /// </summary>
-        public string Status { get; set; }
+        public string Status { get; set; } = "N";
 
         public virtual FaturamentoModel Faturamento { get; set; }
 
-        // public virtual TbDepUsuario IdUsuarioCadastroNavigation { get; set; }
+        public virtual UsuarioModel UsuarioCadastro { get; set; }
 
-        //public virtual ICollection<TbDepFaturamentoBoletosImagen> TbDepFaturamentoBoletosImagens { get; set; }
+        public virtual FaturamentoBoletoImagemModel FaturamentoBoletoImagem { get; set; }
     }
 }

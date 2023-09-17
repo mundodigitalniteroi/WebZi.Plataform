@@ -1,4 +1,6 @@
-﻿namespace WebZi.Plataform.Domain.Models.Faturamento
+﻿using WebZi.Plataform.Domain.Models.Usuario;
+
+namespace WebZi.Plataform.Domain.Models.Faturamento
 {
     public class FaturamentoComposicaoModel
     {
@@ -51,16 +53,16 @@
 
         public virtual FaturamentoModel Faturamento { get; set; }
 
-        //public virtual TbDepFaturamentoServicosTipoVeiculo IdFaturamentoServicoTipoVeiculoNavigation { get; set; }
+        public virtual FaturamentoServicoTipoVeiculoModel FaturamentoServicoTipoVeiculo { get; set; }
 
-        //public virtual TbDepFaturamentoTipoComposicao IdFaturamentoTipoComposicaoNavigation { get; set; }
+        public virtual FaturamentoTipoComposicaoModel FaturamentoTipoComposicao { get; set; }
 
-        //public virtual TbDepUsuario IdUsuarioAlteracaoQuantidadeNavigation { get; set; }
+        public virtual UsuarioModel UsuarioAlteracaoQuantidade { get; set; }
 
-        //public virtual TbDepUsuario IdUsuarioDescontoNavigation { get; set; }
+        public virtual UsuarioModel UsuarioDesconto { get; set; }
 
-        //public virtual ICollection<TbDepFaturamentoComposicaoNf> TbDepFaturamentoComposicaoNfs { get; set; } = new List<TbDepFaturamentoComposicaoNf>();
+        //public virtual ICollection<FaturamentoComposicaoNf> FaturamentoComposicaoNfs { get; set; } = new List<FaturamentoComposicaoNf>();
 
-        //public virtual ICollection<TbDepNfeFaturamentoComposicao> TbDepNfeFaturamentoComposicaos { get; set; } = new List<TbDepNfeFaturamentoComposicao>();
+        //public virtual ICollection<NfeFaturamentoComposicao> NfeFaturamentoComposicaos { get; set; } = new List<NfeFaturamentoComposicao>();
     }
 }

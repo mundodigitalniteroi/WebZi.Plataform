@@ -11,7 +11,5 @@
         public string FlagVeiculoApreendido { get; set; } = "S";
 
         public string FlagLeilao { get; set; } = "N";
-
-        public virtual ICollection<GrvModel> Grvs { get; set; }
     }
 }

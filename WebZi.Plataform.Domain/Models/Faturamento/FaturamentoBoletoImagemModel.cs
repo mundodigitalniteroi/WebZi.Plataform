@@ -2,9 +2,9 @@
 {
     public class FaturamentoBoletoImagemModel
     {
-        public int IdFaturamentoBoletoImagem { get; set; }
+        public int FaturamentoBoletoImagemId { get; set; }
 
-        public int IdFaturamentoBoleto { get; set; }
+        public int FaturamentoBoletoId { get; set; }
 
         public byte[] Imagem { get; set; }
 

@@ -1,5 +1,7 @@
 ﻿using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.GRV;
+using WebZi.Plataform.Domain.Models.Localizacao;
+using WebZi.Plataform.Domain.Models.Usuario;
 
 namespace WebZi.Plataform.Domain.Models.Deposito
 {
@@ -53,11 +55,13 @@ namespace WebZi.Plataform.Domain.Models.Deposito
 
         public string FlagVirtual { get; set; }
 
-        //public virtual TbDepUsuario IdUsuarioAlteracaoNavigation { get; set; }
+        public virtual CEPModel CEP { get; set; }
 
-        //public virtual TbDepUsuario IdUsuarioCadastroNavigation { get; set; }
+        public virtual UsuarioModel UsuarioCadastro { get; set; }
 
-        //public virtual ICollection<TbDepClientesDeposito> TbDepClientesDepositos { get; set; }
+        public virtual UsuarioModel UsuarioAlteracao { get; set; }
+
+        //public virtual ICollection<ClienteDepositoModel> ClientesDepositos { get; set; }
 
         public virtual ICollection<FaturamentoRegraModel> FaturamentoRegras { get; set; }
 
@@ -65,12 +69,12 @@ namespace WebZi.Plataform.Domain.Models.Deposito
 
         public virtual ICollection<GrvModel> Grvs { get; set; }
 
-        //public virtual ICollection<TbDepGtv> TbDepGtvIdDepositoEnvioNavigations { get; set; }
+        //public virtual ICollection<GtvModel> DepositosEnvios { get; set; }
 
-        //public virtual ICollection<TbDepGtv> TbDepGtvIdDepositoRecebimentoNavigations { get; set; }
+        //public virtual ICollection<GtvModel> DepositosRecebimentos{ get; set; }
 
-        //public virtual ICollection<TbDepReboquista> TbDepReboquista { get; set; }
+        //public virtual ICollection<ReboquistaModel> Reboquistas { get; set; }
 
-        //public virtual ICollection<TbDepUsuariosDeposito> TbDepUsuariosDepositos { get; set; }
+        //public virtual ICollection<UsuarioDepositoModel> UsuariosDepositos { get; set; }
     }
 }

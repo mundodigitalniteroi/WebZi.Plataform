@@ -104,7 +104,7 @@ namespace WebZi.Plataform.Data.Mappings.GRV
                 .IsUnicode(false)
                 .HasColumnName("estacionamento_setor");
 
-            builder.Property(e => e.FaturamentoProdutoCodigo)
+            builder.Property(e => e.FaturamentoProdutoId)
                 .IsRequired()
                 .HasMaxLength(3)
                 .IsUnicode(false)
@@ -372,6 +372,10 @@ namespace WebZi.Plataform.Data.Mappings.GRV
 
             builder.HasOne(d => d.UsuarioCadastroGgv).WithMany(p => p.UsuarioCadastroGgvs)
                 .HasForeignKey(d => d.UsuarioCadastroGgvId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            builder.HasOne(d => d.FaturamentoProduto).WithMany(p => p.Grvs)
+                .HasForeignKey(d => d.FaturamentoProdutoId)
                 .OnDelete(DeleteBehavior.NoAction);
         }
     }

@@ -10,28 +10,20 @@ namespace WebZi.Plataform.Data.Mappings.Faturamento
         {
             builder
                 .ToTable("tb_dep_faturamento_servicos_grv", "dbo")
-                .HasKey(e => e.IdFaturamentoServicoGrv);
+                .HasKey(e => e.FaturamentoServicoGrvId);
 
-            builder.Property(e => e.IdFaturamentoServicoGrv)
+            builder.Property(e => e.FaturamentoServicoGrvId)
                 .HasColumnName("id_faturamento_servico_grv")
                 .ValueGeneratedOnAdd();
 
-            builder.Property(e => e.IdFaturamentoServicoTipoVeiculo)
+            builder.Property(e => e.FaturamentoServicoTipoVeiculoId)
                 .HasColumnName("id_faturamento_servico_tipo_veiculo");
 
-            builder.Property(e => e.IdGrv)
+            builder.Property(e => e.GrvId)
                 .HasColumnName("id_grv");
 
-            builder.Property(e => e.IdUsuarioDesconto)
+            builder.Property(e => e.UsuarioDescontoId)
                 .HasColumnName("id_usuario_desconto");
-
-            builder.Property(e => e.FlagRealizarCobranca)
-                .IsRequired()
-                .HasMaxLength(1)
-                .IsUnicode(false)
-                .HasDefaultValueSql("('S')")
-                .IsFixedLength()
-                .HasColumnName("flag_realizar_cobranca");
 
             builder.Property(e => e.ObservacaoDesconto)
                 .HasMaxLength(255)
@@ -67,6 +59,14 @@ namespace WebZi.Plataform.Data.Mappings.Faturamento
             builder.Property(e => e.ValorDesconto)
                 .HasColumnType("money")
                 .HasColumnName("valor_desconto");
+
+            builder.Property(e => e.FlagRealizarCobranca)
+                .IsRequired()
+                .HasMaxLength(1)
+                .IsUnicode(false)
+                .HasDefaultValueSql("('S')")
+                .IsFixedLength()
+                .HasColumnName("flag_realizar_cobranca");
         }
     }
 }

@@ -6,5 +6,5 @@
 using System.Diagnostics.CodeAnalysis;
 
 [assembly: SuppressMessage("GeneratedRegex", "SYSLIB1045:Convert to 'GeneratedRegexAttribute'.", Justification = "<Pending>", Scope = "member", Target = "~M:WebZi.Plataform.CrossCutting.Strings.StringHelper.IsNumber(System.String)~System.Boolean")]
-[assembly: SuppressMessage("GeneratedRegex", "SYSLIB1045:Convert to 'GeneratedRegexAttribute'.", Justification = "<Pending>", Scope = "member", Target = "~M:WebZi.Plataform.CrossCutting.Local.LocalHelper.IsCEP(System.String)~System.Boolean")]
+[assembly: SuppressMessage("GeneratedRegex", "SYSLIB1045:Convert to 'GeneratedRegexAttribute'.", Justification = "<Pending>", Scope = "member", Target = "~M:WebZi.Plataform.CrossCutting.Local.LocalizacaoHelper.IsCEP(System.String)~System.Boolean")]
 [assembly: SuppressMessage("GeneratedRegex", "SYSLIB1045:Convert to 'GeneratedRegexAttribute'.", Justification = "<Pending>", Scope = "member", Target = "~M:WebZi.Plataform.CrossCutting.Documents.DocumentHelper.IsCNH(System.String)~System.Boolean")]

@@ -10,31 +10,34 @@ namespace WebZi.Plataform.Data.Mappings.Faturamento
         {
             builder
                 .ToTable("tb_dep_faturamento_servicos_associados", "dbo")
-                .HasKey(e => e.IdFaturamentoServicoAssociado);
+                .HasKey(e => e.FaturamentoServicoAssociadoId);
 
-            builder.Property(e => e.IdFaturamentoServicoAssociado)
+            builder.Property(e => e.FaturamentoServicoAssociadoId)
                 .HasColumnName("id_faturamento_servico_associado")
                 .ValueGeneratedOnAdd();
 
-            builder.Property(e => e.IdCliente)
+            builder.Property(e => e.ClienteId)
                 .HasColumnName("id_cliente");
 
-            builder.Property(e => e.IdDeposito)
+            builder.Property(e => e.DepositoId)
                 .HasColumnName("id_deposito");
 
-            builder.Property(e => e.IdFaturamentoRegra)
+            builder.Property(e => e.FaturamentoRegraId)
                 .HasColumnName("id_faturamento_regra");
 
-            builder.Property(e => e.IdFaturamentoServicoTipo)
+            builder.Property(e => e.FaturamentoServicoTipoId)
                 .HasColumnName("id_faturamento_servico_tipo");
 
-            builder.Property(e => e.IdSapTipoComposicao)
+            builder.Property(e => e.ListaServicoId)
+                .HasColumnName("ListaServicoID");
+
+            builder.Property(e => e.SapTipoComposicaoId)
                 .HasColumnName("id_sap_tipo_composicao");
 
-            builder.Property(e => e.IdUsuarioCadastro)
+            builder.Property(e => e.UsuarioCadastroId)
                 .HasColumnName("id_usuario_cadastro");
 
-            builder.Property(e => e.IdUsuarioAlteracao)
+            builder.Property(e => e.UsuarioAlteracaoId)
                 .HasColumnName("id_usuario_alteracao");
 
             builder.Property(e => e.CnaeId)
@@ -66,6 +69,14 @@ namespace WebZi.Plataform.Data.Mappings.Faturamento
             builder.Property(e => e.DescricaoConfiguracaoNfe)
                 .HasMaxLength(100)
                 .IsUnicode(false);
+
+            builder.Property(e => e.PrecoPadrao)
+                .HasColumnType("smallmoney")
+                .HasColumnName("preco_padrao");
+
+            builder.Property(e => e.PrecoValorMinimo)
+                .HasColumnType("smallmoney")
+                .HasColumnName("preco_valor_minimo");
 
             builder.Property(e => e.FlagCobrarSomentePrimeiraFatura)
                 .IsRequired()
@@ -120,17 +131,6 @@ namespace WebZi.Plataform.Data.Mappings.Faturamento
                 .IsFixedLength()
                 .HasComment("AM: Ambos;\r\nVA: Vigência Atual (Valor Padrão);\r\nVI: Vigência Inicial.")
                 .HasColumnName("forma_cobranca");
-
-            builder.Property(e => e.ListaServicoId)
-                .HasColumnName("ListaServicoID");
-
-            builder.Property(e => e.PrecoPadrao)
-                .HasColumnType("smallmoney")
-                .HasColumnName("preco_padrao");
-
-            builder.Property(e => e.PrecoValorMinimo)
-                .HasColumnType("smallmoney")
-                .HasColumnName("preco_valor_minimo");
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.GRV;
+using WebZi.Plataform.Domain.Models.Usuario;
 
 namespace WebZi.Plataform.Domain.Models.Cliente
 {
@@ -91,19 +92,21 @@ namespace WebZi.Plataform.Domain.Models.Cliente
 
         public string FlagPossuiPix { get; set; }
 
-        //public virtual TbDepAgenciasBancaria IdAgenciaBancariaNavigation { get; set; }
+        public virtual TipoMeioCobrancaModel TipoMeioCobranca { get; set; }
 
-        //public virtual TbDepOrgaoExecutivoTransito IdOrgaoExecutivoTransitoNavigation { get; set; }
+        //public virtual AgenciasBancaria IdAgenciaBancariaNavigation { get; set; }
 
-        //public virtual TbDepUsuario IdUsuarioAlteracaoNavigation { get; set; }
+        //public virtual OrgaoExecutivoTransito IdOrgaoExecutivoTransitoNavigation { get; set; }
 
-        //public virtual TbDepUsuario IdUsuarioCadastroNavigation { get; set; }
+        public virtual UsuarioModel UsuarioCadastro { get; set; }
 
-        //public virtual ICollection<TbDepAlterdataContaBancarium> TbDepAlterdataContaBancaria { get; set; }
+        public virtual UsuarioModel UsuarioAlteracao { get; set; }
 
-        //public virtual ICollection<TbDepClienteRegra> TbDepClienteRegras { get; set; }
+        //public virtual ICollection<AlterdataContaBancarium> AlterdataContaBancaria { get; set; }
 
-        //public virtual ICollection<TbDepClientesDeposito> TbDepClientesDepositos { get; set; }
+        //public virtual ICollection<ClienteRegra> ClienteRegras { get; set; }
+
+        //public virtual ICollection<ClientesDeposito> ClientesDepositos { get; set; }
 
         public virtual ICollection<FaturamentoRegraModel> FaturamentoRegras { get; set; }
 
@@ -111,16 +114,16 @@ namespace WebZi.Plataform.Domain.Models.Cliente
 
         public virtual ICollection<GrvModel> Grvs { get; set; }
 
-        //public virtual ICollection<TbDepGtv> TbDepGtvIdClienteEnvioNavigations { get; set; }
+        //public virtual ICollection<Gtv> GtvIdClienteEnvioNavigations { get; set; }
 
-        //public virtual ICollection<TbDepGtv> TbDepGtvIdClienteRecebimentoNavigations { get; set; }
+        //public virtual ICollection<Gtv> GtvIdClienteRecebimentoNavigations { get; set; }
 
-        //public virtual ICollection<TbDepPixDinamicoConfiguracao> TbDepPixDinamicoConfiguracaos { get; set; }
+        //public virtual ICollection<PixDinamicoConfiguracao> PixDinamicoConfiguracaos { get; set; }
 
-        //public virtual ICollection<TbDepReboque> TbDepReboques { get; set; }
+        //public virtual ICollection<Reboque> Reboques { get; set; }
 
-        //public virtual ICollection<TbDepReboquista> TbDepReboquista { get; set; }
+        //public virtual ICollection<Reboquista> Reboquista { get; set; }
 
-        //public virtual ICollection<TbDepUsuariosCliente> TbDepUsuariosClientes { get; set; }
+        //public virtual ICollection<UsuariosCliente> UsuariosClientes { get; set; }
     }
 }

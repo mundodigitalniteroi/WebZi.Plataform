@@ -1,12 +1,14 @@
-﻿namespace WebZi.Plataform.Domain.Models.Faturamento
+﻿using WebZi.Plataform.Domain.Models.Usuario;
+
+namespace WebZi.Plataform.Domain.Models.Faturamento
 {
     public class FaturamentoServicoTipoModel
     {
-        public int IdFaturamentoServicoTipo { get; set; }
+        public int FaturamentoServicoTipoId { get; set; }
 
-        public int IdUsuarioCadastro { get; set; }
+        public int UsuarioCadastroId { get; set; }
 
-        public int? IdUsuarioAlteracao { get; set; }
+        public int? UsuarioAlteracaoId { get; set; }
 
         public string Descricao { get; set; }
 
@@ -21,36 +23,36 @@
         /// </summary>
         public string TipoCobranca { get; set; }
 
-        public string FaturamentoProdutoCodigo { get; set; }
+        public string FaturamentoProdutoId { get; set; } = "DEP";
 
-        public byte OrdemImpressao { get; set; }
+        public byte OrdemImpressao { get; set; } = 1;
 
         public DateTime DataCadastro { get; set; }
 
         public DateTime? DataAlteracao { get; set; }
 
-        public string FlagCobrarTelaGrv { get; set; }
+        public string FlagCobrarTelaGrv { get; set; } = "N";
 
-        public string FlagNaoCobrarSeNaoUsouReboque { get; set; }
+        public string FlagNaoCobrarSeNaoUsouReboque { get; set; } = "N";
 
-        public string FlagServicoObrigatorio { get; set; }
+        public string FlagServicoObrigatorio { get; set; } = "N";
 
-        public string FlagRebocada { get; set; }
+        public string FlagRebocada { get; set; } = "N";
 
-        public string FlagImpressaoAgrupada { get; set; }
+        public string FlagImpressaoAgrupada { get; set; } = "N";
 
-        public string FlagTributacao { get; set; }
+        public string FlagTributacao { get; set; } = "N";
 
-        public string FlagCobrancaPorHora { get; set; }
+        public string FlagCobrancaPorHora { get; set; } = "N";
 
-        public string FlagAtivo { get; set; }
+        public string FlagAtivo { get; set; } = "S";
 
-        //public virtual TbDepFaturamentoProduto FaturamentoProdutoCodigoNavigation { get; set; }
+        public virtual FaturamentoProdutoModel FaturamentoProduto { get; set; }
 
-        //public virtual TbDepUsuario IdUsuarioAlteracaoNavigation { get; set; }
+        public virtual UsuarioModel UsuarioCadastro { get; set; }
 
-        //public virtual TbDepUsuario IdUsuarioCadastroNavigation { get; set; }
+        public virtual UsuarioModel UsuarioAlteracao { get; set; }
 
-        //public virtual ICollection<TbDepFaturamentoServicosAssociado> TbDepFaturamentoServicosAssociados { get; set; }
+        public virtual ICollection<FaturamentoServicoAssociadoModel> FaturamentoServicosAssociados { get; set; }
     }
 }

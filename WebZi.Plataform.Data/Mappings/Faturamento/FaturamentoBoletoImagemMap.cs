@@ -10,13 +10,13 @@ namespace WebZi.Plataform.Data.Mappings.Faturamento
         {
             builder
                 .ToTable("tb_dep_faturamento_boletos_imagens", "dbo")
-                .HasKey(e => e.IdFaturamentoBoletoImagem);
+                .HasKey(e => e.FaturamentoBoletoImagemId);
 
-            builder.Property(e => e.IdFaturamentoBoletoImagem)
+            builder.Property(e => e.FaturamentoBoletoImagemId)
                 .HasColumnName("id_faturamento_boleto_imagem")
                 .ValueGeneratedOnAdd();
 
-            builder.Property(e => e.IdFaturamentoBoleto)
+            builder.Property(e => e.FaturamentoBoletoId)
                 .HasColumnName("id_faturamento_boleto");
 
             builder.Property(e => e.Imagem)

@@ -10,10 +10,10 @@
 
         public string DocumentoImpressao { get; set; }
 
-        public string FlagBanco { get; set; }
+        public string FlagBanco { get; set; } = "S";
 
-        public string FlagPossuiCodigoAutorizacaoCartao { get; set; }
+        public string FlagPossuiCodigoAutorizacaoCartao { get; set; } = "N";
 
-        public string FlagAtivo { get; set; }
+        public string FlagAtivo { get; set; } = "S";
     }
 }

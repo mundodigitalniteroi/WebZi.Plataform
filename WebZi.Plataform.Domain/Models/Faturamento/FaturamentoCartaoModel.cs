@@ -2,13 +2,13 @@
 {
     public class FaturamentoCartaoModel
     {
-        public int IdFaturamentoCartao { get; set; }
+        public int FaturamentoCartaoId { get; set; }
 
-        public int IdFaturamento { get; set; }
+        public int FaturamentoId { get; set; }
 
         public string ReferenceId { get; set; }
 
-        public int IdUsuarioCadastro { get; set; }
+        public int UsuarioCadastroId { get; set; }
 
         public decimal Valor { get; set; }
 

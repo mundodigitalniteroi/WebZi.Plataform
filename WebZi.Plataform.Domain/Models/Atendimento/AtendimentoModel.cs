@@ -1,5 +1,6 @@
 ﻿using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.GRV;
+using WebZi.Plataform.Domain.Models.Usuario;
 
 namespace WebZi.Plataform.Domain.Models.Atendimento
 {
@@ -129,13 +130,13 @@ namespace WebZi.Plataform.Domain.Models.Atendimento
 
         public virtual QualificacaoResponsavelModel QualificacaoResponsavel { get; set; }
 
-        public virtual Usuario.UsuarioModel UsuarioCadastro { get; set; }
+        public virtual UsuarioModel UsuarioCadastro { get; set; }
 
-        public virtual Usuario.UsuarioModel UsuarioAlteracao { get; set; }
+        public virtual UsuarioModel UsuarioAlteracao { get; set; }
 
-        //public virtual ICollection<TbDepAtendimentoFotosResponsavei> TbDepAtendimentoFotosResponsaveis { get; set; }
+        //public virtual ICollection<AtendimentoFotosResponsavei> AtendimentoFotosResponsaveis { get; set; }
 
-        //public virtual ICollection<TbDepAtendimentoSaidaReparo> TbDepAtendimentoSaidaReparos { get; set; }
+        //public virtual ICollection<AtendimentoSaidaReparo> AtendimentoSaidaReparos { get; set; }
 
         public virtual ICollection<FaturamentoModel> Faturamentos { get; set; }
     }

@@ -19,5 +19,25 @@ namespace WebZi.Plataform.CrossCutting.Strings
 
             return true;
         }
+
+        public static string Left(string input, int lengh)
+        {
+            return input[..lengh];
+        }
+
+        public static string Right(string input, int lengh)
+        {
+            return input.Substring(input.Length - lengh, lengh);
+        }
+
+        public static string Mid(string input, int index, int lengh)
+        {
+            return input.Substring(index, lengh);
+        }
+
+        public static string Mid(string input, int index)
+        {
+            return input.Substring(index);
+        }
     }
 }

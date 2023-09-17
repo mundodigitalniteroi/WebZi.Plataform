@@ -10,16 +10,16 @@ namespace WebZi.Plataform.Data.Mappings.Faturamento
         {
             builder
                 .ToTable("tb_dep_faturamento_servicos_tipos", "dbo")
-                .HasKey(e => e.IdFaturamentoServicoTipo);
+                .HasKey(e => e.FaturamentoServicoTipoId);
 
-            builder.Property(e => e.IdFaturamentoServicoTipo)
+            builder.Property(e => e.FaturamentoServicoTipoId)
                 .HasColumnName("id_faturamento_servico_tipo")
                 .ValueGeneratedOnAdd();
 
-            builder.Property(e => e.IdUsuarioCadastro)
+            builder.Property(e => e.UsuarioCadastroId)
                 .HasColumnName("id_usuario_cadastro");
 
-            builder.Property(e => e.IdUsuarioAlteracao)
+            builder.Property(e => e.UsuarioAlteracaoId)
                 .HasColumnName("id_usuario_alteracao");
 
             builder.Property(e => e.DataAlteracao)
@@ -37,7 +37,7 @@ namespace WebZi.Plataform.Data.Mappings.Faturamento
                 .IsUnicode(false)
                 .HasColumnName("descricao");
 
-            builder.Property(e => e.FaturamentoProdutoCodigo)
+            builder.Property(e => e.FaturamentoProdutoId)
                 .IsRequired()
                 .HasMaxLength(3)
                 .IsUnicode(false)
@@ -120,6 +120,11 @@ namespace WebZi.Plataform.Data.Mappings.Faturamento
                 .IsFixedLength()
                 .HasComment("TIPOS DE COBRANÇA:\r\nD = Diárias;\r\nH = Quantidade de HH:MM vezes o Preço;\r\nP = Porcentagem;\r\nQ = Quantidade;\r\nT = Tempo entre duas Datas;\r\nV = Valor.")
                 .HasColumnName("tipo_cobranca");
+
+            builder.HasOne(d => d.FaturamentoProduto)
+                .WithMany(p => p.FaturamentoServicosTipos)
+                .HasForeignKey(d => d.FaturamentoProdutoId)
+                .OnDelete(DeleteBehavior.NoAction);
         }
     }
 }

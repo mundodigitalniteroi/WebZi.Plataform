@@ -4,19 +4,19 @@ namespace WebZi.Plataform.Domain.Models.Faturamento
 {
     public class FaturamentoServicoGrvModel
     {
-        public int IdFaturamentoServicoGrv { get; set; }
+        public int FaturamentoServicoGrvId { get; set; }
 
-        public int IdGrv { get; set; }
+        public int GrvId { get; set; }
 
-        public int IdFaturamentoServicoTipoVeiculo { get; set; }
+        public int FaturamentoServicoTipoVeiculoId { get; set; }
 
-        public int? IdUsuarioDesconto { get; set; }
+        public int? UsuarioDescontoId { get; set; }
 
         public decimal Valor { get; set; }
 
         public string TempoTrabalhado { get; set; }
 
-        public string OrigemCadastro { get; set; }
+        public string OrigemCadastro { get; set; } = "G";
 
         public string TipoDesconto { get; set; }
 
@@ -26,9 +26,9 @@ namespace WebZi.Plataform.Domain.Models.Faturamento
 
         public string ObservacaoDesconto { get; set; }
 
-        public string FlagRealizarCobranca { get; set; }
+        public string FlagRealizarCobranca { get; set; } = "S";
 
-        // public virtual TbDepFaturamentoServicosTipoVeiculo IdFaturamentoServicoTipoVeiculoNavigation { get; set; }
+        public virtual FaturamentoServicoTipoVeiculoModel FaturamentoServicoTipoVeiculo { get; set; }
 
         public virtual GrvModel Grv { get; set; }
     }

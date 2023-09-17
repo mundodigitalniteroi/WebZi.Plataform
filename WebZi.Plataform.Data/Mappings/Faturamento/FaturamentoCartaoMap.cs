@@ -10,16 +10,16 @@ namespace WebZi.Plataform.Data.Mappings.Faturamento
         {
             builder
                 .ToTable("tb_dep_faturamento_cartao", "dbo")
-                .HasKey(e => e.IdFaturamentoCartao);
+                .HasKey(e => e.FaturamentoCartaoId);
 
-            builder.Property(e => e.IdFaturamentoCartao)
+            builder.Property(e => e.FaturamentoCartaoId)
                 .HasColumnName("id_faturamento_cartao")
                 .ValueGeneratedOnAdd();
 
-            builder.Property(e => e.IdFaturamento)
+            builder.Property(e => e.FaturamentoId)
                 .HasColumnName("id_faturamento");
 
-            builder.Property(e => e.IdUsuarioCadastro)
+            builder.Property(e => e.UsuarioCadastroId)
                 .HasColumnName("id_usuario_cadastro");
 
             builder.Property(e => e.ReferenceId)

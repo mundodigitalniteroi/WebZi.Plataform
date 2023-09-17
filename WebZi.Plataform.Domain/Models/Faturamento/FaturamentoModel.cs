@@ -1,4 +1,5 @@
 ﻿using WebZi.Plataform.Domain.Models.Atendimento;
+using WebZi.Plataform.Domain.Models.Usuario;
 
 namespace WebZi.Plataform.Domain.Models.Faturamento
 {
@@ -64,24 +65,24 @@ namespace WebZi.Plataform.Domain.Models.Faturamento
 
         public virtual TipoMeioCobrancaModel TipoMeioCobranca { get; set; }
 
-        //public virtual TbDepUsuario IdUsuarioAlteracaoNavigation { get; set; }
+        public virtual UsuarioModel UsuarioCadastro { get; set; }
 
-        //public virtual TbDepUsuario IdUsuarioCadastroNavigation { get; set; }
+        public virtual UsuarioModel UsuarioAlteracao { get; set; }
 
-        //public virtual ICollection<TbDepFaturamentoBoleto> TbDepFaturamentoBoletos { get; set; }
+        public virtual ICollection<FaturamentoBoletoModel> FaturamentoBoletos { get; set; }
 
-        //public virtual ICollection<TbDepFaturamentoCodigoAutorizacaoCartao> TbDepFaturamentoCodigoAutorizacaoCartaos { get; set; }
+        public virtual ICollection<FaturamentoCodigoAutorizacaoCartaoModel> FaturamentoCodigosAutorizacoesCartoes { get; set; }
 
         public virtual ICollection<FaturamentoComposicaoModel> FaturamentoComposicoes { get; set; }
 
         public virtual ICollection<FaturamentoCartaoModel> FaturamentoCartoes { get; set; }
 
-        //public virtual ICollection<TbDepLiberacaoEspecial> TbDepLiberacaoEspecials { get; set; }
+        //public virtual ICollection<LiberacaoEspecial> LiberacaoEspecials { get; set; }
 
-        //public virtual ICollection<TbDepPixDinamicoSenhaConfirmacaoTranferencium> TbDepPixDinamicoSenhaConfirmacaoTranferencia { get; set; }
+        //public virtual ICollection<PixDinamicoSenhaConfirmacaoTranferencium> PixDinamicoSenhaConfirmacaoTranferencia { get; set; }
 
-        //public virtual ICollection<TbDepPixDinamico> TbDepPixDinamicos { get; set; }
+        //public virtual ICollection<PixDinamico> PixDinamicos { get; set; }
 
-        //public virtual ICollection<TbDepPix> TbDepPixes { get; set; }
+        //public virtual ICollection<Pix> Pixes { get; set; }
     }
 }

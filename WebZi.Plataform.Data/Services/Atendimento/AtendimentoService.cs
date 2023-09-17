@@ -1,8 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using WebZi.Plataform.CrossCutting.Contacts;
 using WebZi.Plataform.CrossCutting.Documents;
-using WebZi.Plataform.CrossCutting.Local;
+using WebZi.Plataform.CrossCutting.Localizacao;
 using WebZi.Plataform.CrossCutting.Web;
+using WebZi.Plataform.Data.Services.Deposito;
+using WebZi.Plataform.Data.Services.Faturamento;
+using WebZi.Plataform.Data.Services.Leilao;
 using WebZi.Plataform.Domain.Models.Atendimento;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.GRV;
@@ -13,10 +17,12 @@ namespace WebZi.Plataform.Data.Services.Atendimento
     public class AtendimentoService
     {
         private readonly AppDbContext _context;
+        private readonly IServiceProvider _provider;
 
-        public AtendimentoService(AppDbContext context)
+        public AtendimentoService(AppDbContext context, IServiceProvider provider)
         {
             _context = context;
+            _provider = provider;
         }
 
         public async Task<AtendimentoModel> GetById(int AtendimentoId, int UsuarioId)
@@ -95,6 +101,26 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             }
             #endregion Consultas
 
+            #region Leilão
+            AtendimentoAvisoViewModel avisoLeilao = await new LeilaoService(_context)
+                .GetAvisoLeilao(Grv.GrvId, Grv.StatusOperacaoId);
+
+            if (avisoLeilao != null)
+            {
+                if (avisoLeilao.Avisos.Count > 0)
+                {
+                    avisos.Avisos.Add(avisoLeilao.Avisos[0]);
+                }
+
+                if (avisoLeilao.Erros.Count > 0)
+                {
+                    avisos.Erros.Add(avisoLeilao.Erros[0]);
+
+                    return avisos;
+                }
+            }
+            #endregion Leilão
+
             #region Dados do Responsável
             if (Atendimento.QualificacaoResponsavelId <= 0)
             {
@@ -129,7 +155,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             {
                 avisos.Erros.Add("Primeiro é necessário informar o CEP do Responsável");
             }
-            else if (!LocalHelper.IsCEP(Atendimento.ResponsavelCep))
+            else if (!LocalizacaoHelper.IsCEP(Atendimento.ResponsavelCep))
             {
                 avisos.Erros.Add($"CEP do Responsável inválido: {Atendimento.ResponsavelCep}");
             }
@@ -158,7 +184,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             {
                 avisos.Erros.Add("Primeiro é necessário informar a Unidade Federativa do Responsável");
             }
-            else if (!LocalHelper.IsUF(Atendimento.ResponsavelUf))
+            else if (!LocalizacaoHelper.IsUF(Atendimento.ResponsavelUf))
             {
                 avisos.Erros.Add("Unidade Federativa do Responsável inválida");
             }
@@ -249,7 +275,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 {
                     avisos.Erros.Add("Primeiro é necessário informar o CEP do Receptor da Nota Fiscal");
                 }
-                else if (!LocalHelper.IsCEP(Atendimento.NotaFiscalCep))
+                else if (!LocalizacaoHelper.IsCEP(Atendimento.NotaFiscalCep))
                 {
                     avisos.Erros.Add($"CEP do Receptor da Nota Fiscal é inválido: {Atendimento.NotaFiscalCep}");
                 }
@@ -278,7 +304,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 {
                     avisos.Erros.Add("Primeiro é necessário informar a UF do Receptor da Nota Fiscal");
                 }
-                else if (!LocalHelper.IsUF(Atendimento.NotaFiscalUf))
+                else if (!LocalizacaoHelper.IsUF(Atendimento.NotaFiscalUf))
                 {
                     avisos.Erros.Add($"Unidade Federativa do Receptor da Nota Fiscal inválida: {Atendimento.NotaFiscalUf}");
                 }
@@ -430,6 +456,9 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
 
+            DateTime DataHoraPorDeposito = await new DepositoService(_context)
+                .SelecionarDataHoraPorDeposito(Grv.DepositoId);
+
             AtendimentoModel Atendimento = new()
             {
                 GrvId = AtendimentoInput.GrvId,
@@ -440,9 +469,9 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
                 DataHoraInicioAtendimento = AtendimentoInput.DataHoraInicioAtendimento,
 
-                DataCadastro = DateTime.Now, //ConfiguracoesController.SelecionarDataHoraPorDeposito(ClientesDepositosModel.DepositoId).ToString("yyyyMMdd HH:mm");
+                DataCadastro = DataHoraPorDeposito,
 
-                DataImpressao = DateTime.Now, //ConfiguracoesController.SelecionarDataHoraPorDeposito(ClientesDepositosModel.DepositoId).ToString("yyyyMMdd HH:mm");
+                DataImpressao = DataHoraPorDeposito,
 
                 TotalImpressoes = 1,
 
@@ -524,42 +553,41 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 Atendimento.NotaFiscalInscricaoMunicipal = AtendimentoInput.NotaFiscalInscricaoMunicipal;
             }
 
-            FaturamentoModel Faturamento = new();
-
-            if (Grv.Cliente.TipoMeioCobrancaId.Value.Equals(0))
-            {
-                Faturamento.TipoMeioCobrancaId = AtendimentoInput.TipoMeioCobrancaId;
-            }
-            else
-            {
-                Faturamento.TipoMeioCobrancaId = Grv.Cliente.TipoMeioCobrancaId.Value;
-            }
-
-            TipoMeioCobrancaModel TipoMeioCobranca = await _context.TiposMeiosCobrancas
-                .Where(w => w.TipoMeioCobrancaId.Equals(Faturamento.TipoMeioCobrancaId))
-                .AsNoTracking()
-                .FirstOrDefaultAsync();
-
-            string novoStatusOperacaoId = "L"; // Aguardando Pagamento
-
-            if (TipoMeioCobranca.Alias.Equals("LIBESP"))
-            {
-                novoStatusOperacaoId = "U"; // Aguardando Liberação Especial
-            }
-
-            GrvModel GrvUpdate = await _context.Grvs
+            GrvModel GrvToUpdate = await _context.Grvs
                 .Where(w => w.GrvId.Equals(AtendimentoInput.GrvId))
                 .FirstOrDefaultAsync();
 
-            GrvUpdate.StatusOperacaoId = novoStatusOperacaoId;
+            List<TipoMeioCobrancaModel> TiposMeiosCobrancas = await _context.TiposMeiosCobrancas
+                .AsNoTracking()
+                .ToListAsync();
+
+            CalculoFaturamentoParametroModel ParametrosCalculoFaturamento = new()
+            {
+                UsuarioCadastroId = Atendimento.UsuarioCadastroId,
+
+                Grv = Grv,
+
+                Atendimento = Atendimento,
+
+                DataHoraAtualPorDeposito = DataHoraPorDeposito,
+
+                TipoMeioCobrancaId = Grv.Cliente.TipoMeioCobrancaId.HasValue && Grv.Cliente.TipoMeioCobrancaId.Value > 0 ? Grv.Cliente.TipoMeioCobrancaId.Value : AtendimentoInput.TipoMeioCobrancaId
+            };
+
+            ParametrosCalculoFaturamento.StatusOperacaoId = GrvToUpdate.StatusOperacaoId = await GetStatusOperacao(TiposMeiosCobrancas, TipoMeioCobrancaId: ParametrosCalculoFaturamento.TipoMeioCobrancaId);
 
             using (var transaction = _context.Database.BeginTransaction())
             {
-                _context.Atendimentos.Add(Atendimento);
+                EntityEntry<AtendimentoModel> AtendimentoResult = _context.Atendimentos.Add(Atendimento);
 
-                _context.Grvs.Update(GrvUpdate);
+                await _context.SaveChangesAsync();
 
-                _context.SaveChanges();
+                FaturamentoModel Faturamento = await new FaturamentoService(_context)
+                    .Calcular(ParametrosCalculoFaturamento);
+
+                _context.Grvs.Update(GrvToUpdate);
+
+                await _context.SaveChangesAsync();
 
                 transaction.Commit();
             }
@@ -569,7 +597,35 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             }
 
-            return null;
+            return "Cadastro do Atendimento concluído com sucesso";
+        }
+
+        private async Task<string> GetStatusOperacao(List<TipoMeioCobrancaModel> TiposMeiosCobrancas, int TipoMeioCobrancaId)
+        {
+            TipoMeioCobrancaModel TipoMeioCobranca = new();
+
+            if (TiposMeiosCobrancas == null)
+            {
+                TipoMeioCobranca = await _context.TiposMeiosCobrancas
+                    .Where(w => w.TipoMeioCobrancaId == TipoMeioCobrancaId)
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync();
+            }
+            else
+            {
+                TipoMeioCobranca = TiposMeiosCobrancas
+                    .Where(w => w.TipoMeioCobrancaId == TipoMeioCobrancaId)
+                    .FirstOrDefault();
+            }
+
+            string StatusOperacaoId = "L"; // Aguardando Pagamento
+
+            if (TipoMeioCobranca.Alias.Equals("LIBESP"))
+            {
+                StatusOperacaoId = "U"; // Aguardando Liberação Especial
+            }
+
+            return StatusOperacaoId;
         }
     }
 }

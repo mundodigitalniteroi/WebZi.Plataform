@@ -32,14 +32,6 @@ namespace WebZi.Plataform.Data.Mappings.Faturamento
                 .IsUnicode(false)
                 .HasColumnName("documento_impressao");
 
-            builder.Property(e => e.FlagAtivo)
-                .IsRequired()
-                .HasMaxLength(1)
-                .IsUnicode(false)
-                .HasDefaultValueSql("('N')")
-                .IsFixedLength()
-                .HasColumnName("flag_ativo");
-
             builder.Property(e => e.FlagBanco)
                 .IsRequired()
                 .HasMaxLength(1)
@@ -55,6 +47,14 @@ namespace WebZi.Plataform.Data.Mappings.Faturamento
                 .HasDefaultValueSql("('N')")
                 .IsFixedLength()
                 .HasColumnName("flag_possui_codigo_autorizacao_cartao");
+
+            builder.Property(e => e.FlagAtivo)
+                .IsRequired()
+                .HasMaxLength(1)
+                .IsUnicode(false)
+                .HasDefaultValueSql("('N')")
+                .IsFixedLength()
+                .HasColumnName("flag_ativo");
         }
     }
 }

@@ -1,5 +1,8 @@
-﻿using WebZi.Plataform.Domain.Models.Cliente;
+﻿using WebZi.Plataform.Domain.Models.Atendimento;
+using WebZi.Plataform.Domain.Models.Cliente;
 using WebZi.Plataform.Domain.Models.Deposito;
+using WebZi.Plataform.Domain.Models.Faturamento;
+using WebZi.Plataform.Domain.Models.Usuario;
 using WebZi.Plataform.Domain.Models.Veiculo;
 
 namespace WebZi.Plataform.Domain.Models.GRV
@@ -47,7 +50,7 @@ namespace WebZi.Plataform.Domain.Models.GRV
 
         public string NumeroFormularioGrv { get; set; }
 
-        public string FaturamentoProdutoCodigo { get; set; }
+        public string FaturamentoProdutoId { get; set; }
 
         public string MatriculaAutoridadeResponsavel { get; set; }
 
@@ -152,78 +155,78 @@ namespace WebZi.Plataform.Domain.Models.GRV
 
         public string VeiculoUf { get; set; }
 
-        //public virtual TbDepFaturamentoProduto FaturamentoProdutoCodigoNavigation { get; set; }
+        public virtual FaturamentoProdutoModel FaturamentoProduto { get; set; }
 
-        //public virtual TbDepAutoridadesResponsavei IdAutoridadeResponsavelNavigation { get; set; }
+        //public virtual AutoridadesResponsavei IdAutoridadeResponsavelNavigation { get; set; }
 
         public virtual ClienteModel Cliente { get; set; }
 
         public virtual DepositoModel Deposito { get; set; }
 
-        //public virtual TbDepLiberacao IdLiberacaoNavigation { get; set; }
+        //public virtual Liberacao IdLiberacaoNavigation { get; set; }
 
-        //public virtual TbDepGrvMotivoApreensao IdMotivoApreensaoNavigation { get; set; }
+        //public virtual GrvMotivoApreensao IdMotivoApreensaoNavigation { get; set; }
 
-        //public virtual TbDepReboque IdReboqueNavigation { get; set; }
+        //public virtual Reboque IdReboqueNavigation { get; set; }
 
-        //public virtual TbDepReboquista IdReboquistaNavigation { get; set; }
+        //public virtual Reboquista IdReboquistaNavigation { get; set; }
 
         public virtual StatusOperacaoModel StatusOperacao { get; set; }
 
         public virtual TipoVeiculoModel TipoVeiculo { get; set; }
 
-        public virtual Usuario.UsuarioModel UsuarioCadastro { get; set; }
+        public virtual UsuarioModel UsuarioCadastro { get; set; }
 
-        public virtual Usuario.UsuarioModel UsuarioAlteracao { get; set; }
+        public virtual UsuarioModel UsuarioAlteracao { get; set; }
 
-        public virtual Usuario.UsuarioModel UsuarioEdicao { get; set; }
+        public virtual UsuarioModel UsuarioEdicao { get; set; }
 
-        public virtual Usuario.UsuarioModel UsuarioCadastroGgv { get; set; }
+        public virtual UsuarioModel UsuarioCadastroGgv { get; set; }
 
-        //public virtual ICollection<TbDepAlterdataErro> TbDepAlterdataErros { get; set; } = new List<TbDepAlterdataErro>();
+        //public virtual ICollection<AlterdataErro> AlterdataErros { get; set; } = new List<AlterdataErro>();
 
-        //public virtual TbDepAlterdatum TbDepAlterdatum { get; set; }
+        //public virtual Alterdatum Alterdatum { get; set; }
 
-        public virtual Atendimento.AtendimentoModel Atendimento { get; set; }
+        public virtual AtendimentoModel Atendimento { get; set; }
 
-        //public virtual TbDepCondutor TbDepCondutor { get; set; }
+        //public virtual CondutorModel Condutor { get; set; }
 
-        //public virtual ICollection<TbDepCondutorEquipamentosOpcionai> TbDepCondutorEquipamentosOpcionais { get; set; } = new List<TbDepCondutorEquipamentosOpcionai>();
+        //public virtual ICollection<CondutorEquipamentosOpcionai> CondutorEquipamentosOpcionais { get; set; } = new List<CondutorEquipamentosOpcionai>();
 
-        //public virtual ICollection<TbDepDetranGrvStatusTransacao> TbDepDetranGrvStatusTransacaos { get; set; } = new List<TbDepDetranGrvStatusTransacao>();
+        //public virtual ICollection<DetranGrvStatusTransacao> DetranGrvStatusTransacaos { get; set; } = new List<DetranGrvStatusTransacao>();
 
-        //public virtual TbDepDetroGrv TbDepDetroGrv { get; set; }
+        //public virtual DetroGrv DetroGrv { get; set; }
 
-        //public virtual ICollection<TbDepFaturamentoServicosGrv> TbDepFaturamentoServicosGrvs { get; set; } = new List<TbDepFaturamentoServicosGrv>();
+        public virtual ICollection<FaturamentoServicoGrvModel> FaturamentosServicosGrvs { get; set; }
 
-        //public virtual ICollection<TbDepGrvBloqueio> TbDepGrvBloqueios { get; set; } = new List<TbDepGrvBloqueio>();
+        //public virtual ICollection<GrvBloqueio> GrvBloqueios { get; set; } = new List<GrvBloqueio>();
 
-        //public virtual TbDepGrvClientesCodigoIdentificacao TbDepGrvClientesCodigoIdentificacao { get; set; }
+        //public virtual GrvClientesCodigoIdentificacao GrvClientesCodigoIdentificacao { get; set; }
 
-        //public virtual ICollection<TbDepGrvCobrancasLegai> TbDepGrvCobrancasLegais { get; set; } = new List<TbDepGrvCobrancasLegai>();
+        //public virtual ICollection<GrvCobrancasLegai> GrvCobrancasLegais { get; set; } = new List<GrvCobrancasLegai>();
 
-        //public virtual ICollection<TbDepGrvDocumento> TbDepGrvDocumentos { get; set; } = new List<TbDepGrvDocumento>();
+        //public virtual ICollection<GrvDocumento> GrvDocumentos { get; set; } = new List<GrvDocumento>();
 
-        //public virtual TbDepGrvDrfa TbDepGrvDrfa { get; set; }
+        //public virtual GrvDrfa GrvDrfa { get; set; }
 
-        //public virtual ICollection<TbDepGrvEnquadramentoInfraco> TbDepGrvEnquadramentoInfracos { get; set; } = new List<TbDepGrvEnquadramentoInfraco>();
+        public virtual ICollection<EnquadramentoInfracaoModel> EnquadramentosInfracoes { get; set; }
 
-        //public virtual ICollection<TbDepGrvFoto> TbDepGrvFotos { get; set; } = new List<TbDepGrvFoto>();
+        //public virtual ICollection<GrvFoto> GrvFotos { get; set; } = new List<GrvFoto>();
 
-        //public virtual ICollection<TbDepGrvLacre> TbDepGrvLacres { get; set; } = new List<TbDepGrvLacre>();
+        //public virtual ICollection<GrvLacre> GrvLacres { get; set; } = new List<GrvLacre>();
 
-        //public virtual ICollection<TbDepGrvVistorium> TbDepGrvVistoria { get; set; } = new List<TbDepGrvVistorium>();
+        //public virtual ICollection<GrvVistorium> GrvVistoria { get; set; } = new List<GrvVistorium>();
 
-        //public virtual ICollection<TbDepGtvGrv> TbDepGtvGrvs { get; set; } = new List<TbDepGtvGrv>();
+        //public virtual ICollection<GtvGrv> GtvGrvs { get; set; } = new List<GtvGrv>();
 
-        //public virtual TbDepLiberacaoEspecial TbDepLiberacaoEspecial { get; set; }
+        //public virtual LiberacaoEspecial LiberacaoEspecial { get; set; }
 
-        //public virtual TbDepLiberacaoLeilao TbDepLiberacaoLeilao { get; set; }
+        //public virtual LiberacaoLeilao LiberacaoLeilao { get; set; }
 
-        //public virtual ICollection<TbDepNfeWsErro> TbDepNfeWsErros { get; set; } = new List<TbDepNfeWsErro>();
+        //public virtual ICollection<NfeWsErro> NfeWsErros { get; set; } = new List<NfeWsErro>();
 
-        //public virtual ICollection<TbDepNfe> TbDepNves { get; set; } = new List<TbDepNfe>();
+        //public virtual ICollection<Nfe> Nves { get; set; } = new List<Nfe>();
 
-        //public virtual TbDepSolicitacaoReboque TbDepSolicitacaoReboque { get; set; }
+        //public virtual SolicitacaoReboque SolicitacaoReboque { get; set; }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Logging;
 using System.Reflection;
 using WebZi.Plataform.CrossCutting.Configuration;
@@ -7,7 +8,10 @@ using WebZi.Plataform.Domain.Models.Cliente;
 using WebZi.Plataform.Domain.Models.Deposito;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.GRV;
+using WebZi.Plataform.Domain.Models.Leilao;
+using WebZi.Plataform.Domain.Models.Localizacao;
 using WebZi.Plataform.Domain.Models.Pessoa.Documento;
+using WebZi.Plataform.Domain.Models.Sistema;
 using WebZi.Plataform.Domain.Models.Usuario;
 using WebZi.Plataform.Domain.Models.Veiculo;
 
@@ -34,11 +38,15 @@ namespace WebZi.Plataform.Data
         }
 
         #region DbSets
+
+        #region Depósito Público
         public DbSet<AtendimentoModel> Atendimentos { get; set; }
 
         public DbSet<ClienteModel> Clientes { get; set; }
 
         public DbSet<DepositoModel> Depositos { get; set; }
+
+        public DbSet<EnquadramentoInfracaoModel> EnquadramentosInfracoes { get; set; }
 
         public DbSet<FaturamentoModel> Faturamentos { get; set; }
 
@@ -48,13 +56,29 @@ namespace WebZi.Plataform.Data
 
         public DbSet<FaturamentoCartaoModel> FaturamentoCartoes { get; set; }
 
+        public DbSet<FaturamentoCodigoAutorizacaoCartaoModel> FaturamentoCodigosAutorizacoesCartoes { get; set; }
+
         public DbSet<FaturamentoComposicaoModel> FaturamentoComposicoes { get; set; }
+
+        public DbSet<FaturamentoComposicaoNotaFiscalModel> FaturamentoComposicaoNotasFiscais { get; set; }
+
+        public DbSet<FaturamentoCondicaoPagamentoModel> FaturamentoCondicoesPagamentos { get; set; }
+
+        public DbSet<FaturamentoProdutoModel> FaturamentoProdutos { get; set; }
 
         public DbSet<FaturamentoRegraModel> FaturamentoRegras { get; set; }
 
         public DbSet<FaturamentoRegraTipoModel> FaturamentoRegraTipos { get; set; }
 
         public DbSet<FaturamentoServicoAssociadoModel> FaturamentoServicosAssociados { get; set; }
+
+        public DbSet<FaturamentoServicoGrvModel> FaturamentoServicosGrvs { get; set; }
+
+        public DbSet<FaturamentoServicoTipoModel> FaturamentoServicosTipos { get; set; }
+
+        public DbSet<FaturamentoServicoTipoVeiculoModel> FaturamentoServicosTiposVeiculos { get; set; }
+
+        public DbSet<FaturamentoTipoComposicaoModel> FaturamentoTiposComposicoes { get; set; }
 
         public DbSet<QualificacaoResponsavelModel> QualificacoesResponsaveis { get; set; }
 
@@ -69,6 +93,42 @@ namespace WebZi.Plataform.Data
         public DbSet<TipoVeiculoModel> TiposVeiculos { get; set; }
 
         public DbSet<UsuarioModel> Usuarios { get; set; }
+        #endregion Depósito Público
+
+        #region Leilão
+        public DbSet<LeilaoModel> Leiloes { get; set; }
+
+        public DbSet<LeilaoLoteModel> LeilaoLotes { get; set; }
+
+        public DbSet<LeilaoLoteStatusModel> LeilaoLotesStatus { get; set; }
+
+        public DbSet<LeilaoStatusModel> LeilaoStatus { get; set; }
+        #endregion
+
+        #region Localização
+        public DbSet<BairroModel> Bairros { get; set; }
+
+        public DbSet<CEPModel> CEPs { get; set; }
+
+        public DbSet<ConfiguracaoModel> Configuracao { get; set; }
+
+        public DbSet<ContinenteModel> Continentes { get; set; }
+
+        public DbSet<EstadoModel> Estados { get; set; }
+
+        public DbSet<FeriadoModel> Feriados { get; set; }
+
+        public DbSet<MunicipioModel> Municipios { get; set; }
+
+        public DbSet<PaisModel> Paises { get; set; }
+
+        public DbSet<RegiaoModel> Regioes { get; set; }
+
+        public DbSet<TipoLogradouroModel> TiposLogradouros { get; set; }
+
+        public DbSet<UTCModel> UTCs { get; set; }
+        #endregion Localização
+
         #endregion DbSets
     }
 }

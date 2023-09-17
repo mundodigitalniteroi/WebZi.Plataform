@@ -117,7 +117,6 @@ public partial class DbGlobalContext : DbContext
     public virtual DbSet<VwGovParametroMunicipio> VwGovParametroMunicipios { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
         => optionsBuilder.UseSqlServer("Data Source=177.39.16.6;Initial Catalog=db_global;User ID=sa;Password=@Studio55Webzi;MultipleActiveResultSets=True;Persist Security Info=True;Transaction Binding=Implicit Unbind;Connection Timeout=60;TrustServerCertificate=True;");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
