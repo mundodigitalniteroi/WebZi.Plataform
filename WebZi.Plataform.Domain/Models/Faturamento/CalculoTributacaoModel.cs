@@ -1,11 +1,9 @@
 ﻿namespace WebZi.Plataform.Domain.Models.Faturamento
 {
-    public class CalculoTributacaoModel
+    public class CalculoTributacaoModel : FaturamentoComposicaoModel
     {
-        public string codigo_material { get; set; }
+        public string CodigoMaterial { get; set; }
 
-        public int id_faturamento_servico_associado { get; set; }
-
-        public string servico_descricao { get; set; }
+        public int FaturamentoServicoAssociadoId { get; set; }
     }
 }

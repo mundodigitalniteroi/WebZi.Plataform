@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore.Storage;
 using WebZi.Plataform.CrossCutting.Contacts;
 using WebZi.Plataform.CrossCutting.Documents;
 using WebZi.Plataform.CrossCutting.Localizacao;
@@ -28,7 +29,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
         public async Task<AtendimentoModel> GetById(int AtendimentoId, int UsuarioId)
         {
             AtendimentoModel atendimento = await _context.Atendimentos
-                .Where(w => w.AtendimentoId.Equals(AtendimentoId))
+                .Where(w => w.AtendimentoId == AtendimentoId)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
 
@@ -39,7 +40,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
         {
             AtendimentoModel atendimento = await _context.Atendimentos
                 .Include(i => i.Grv)
-                .Where(w => w.Grv.NumeroFormularioGrv.Equals(NumeroProcesso) && w.Grv.ClienteId.Equals(ClienteId) && w.Grv.DepositoId.Equals(DepositoId))
+                .Where(w => w.Grv.NumeroFormularioGrv == NumeroProcesso && w.Grv.ClienteId == ClienteId && w.Grv.DepositoId == DepositoId)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
 
@@ -73,7 +74,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 .Include(i => i.Cliente)
                 .Include(i => i.Deposito)
                 .Include(i => i.StatusOperacao)
-                .Where(w => w.GrvId.Equals(Atendimento.GrvId))
+                .Where(w => w.GrvId == Atendimento.GrvId)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
 
@@ -232,7 +233,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             else
             {
                 TipoDocumentoIdentificacaoModel TipoDocumentoIdentificacao = await _context.TiposDocumentosIdentificacao
-                    .Where(w => w.TipoDocumentoIdentificacaoId.Equals(Atendimento.ProprietarioTipoDocumentoId))
+                    .Where(w => w.TipoDocumentoIdentificacaoId == Atendimento.ProprietarioTipoDocumentoId)
                     .AsNoTracking()
                     .FirstOrDefaultAsync();
 
@@ -240,11 +241,11 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 {
                     avisos.Erros.Add($"Tipo do Documento do Proprietário inexistente: {Atendimento.ProprietarioTipoDocumentoId}");
                 }
-                else if (TipoDocumentoIdentificacao.Codigo.Equals("CPF") && !DocumentHelper.IsCPF(Atendimento.ProprietarioDocumento))
+                else if (TipoDocumentoIdentificacao.Codigo == "CPF" && !DocumentHelper.IsCPF(Atendimento.ProprietarioDocumento))
                 {
                     avisos.Erros.Add($"O CPF do Proprietário é inválido: {Atendimento.ProprietarioDocumento}");
                 }
-                else if (TipoDocumentoIdentificacao.Codigo.Equals("CNPJ") && !DocumentHelper.IsCNPJ(Atendimento.ProprietarioDocumento))
+                else if (TipoDocumentoIdentificacao.Codigo == "CNPJ" && !DocumentHelper.IsCNPJ(Atendimento.ProprietarioDocumento))
                 {
                     avisos.Erros.Add($"O CNPJ do Proprietário é inválido: {Atendimento.ProprietarioDocumento}");
                 }
@@ -252,7 +253,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             #endregion Dados do Proprietário
 
             #region Nota Fiscal
-            if (Grv.Cliente.FlagEmissaoNotaFiscalSap.Equals("S"))
+            if (Grv.Cliente.FlagEmissaoNotaFiscalSap == "S")
             {
                 #region Receptor da Nota Fiscal
                 if (string.IsNullOrWhiteSpace(Atendimento.NotaFiscalNome))
@@ -343,8 +344,8 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
                     FaturamentoRegraModel faturamentoRegra = await _context.FaturamentoRegras
                         .Include(i => i.FaturamentoRegraTipo)
-                        .Where(w => w.ClienteId.Equals(Grv.ClienteId) &&
-                                    w.FaturamentoRegraTipo.Codigo.Equals("ATENDINSCRICMUNIC"))
+                        .Where(w => w.ClienteId == Grv.ClienteId &&
+                                    w.FaturamentoRegraTipo.Codigo == "ATENDINSCRICMUNIC")
                         .AsNoTracking()
                         .FirstOrDefaultAsync();
 
@@ -365,7 +366,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             else
             {
                 TipoMeioCobrancaModel TipoMeioCobranca = await _context.TiposMeiosCobrancas
-                    .Where(w => w.TipoMeioCobrancaId.Equals(Atendimento.TipoMeioCobrancaId))
+                    .Where(w => w.TipoMeioCobrancaId == Atendimento.TipoMeioCobrancaId)
                     .AsNoTracking()
                     .FirstOrDefaultAsync();
 
@@ -374,11 +375,11 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                     avisos.Erros.Add($"Forma de Pagamento inexistente: {Atendimento.TipoMeioCobrancaId}");
                 }
 
-                if ((TipoMeioCobranca.Alias.Equals("PIX") || TipoMeioCobranca.Alias.Equals("PIXEST")) && Grv.Cliente.FlagPossuiPixEstatico == "N")
+                if ((TipoMeioCobranca.Alias == "PIX" || TipoMeioCobranca.Alias == "PIXEST") && Grv.Cliente.FlagPossuiPixEstatico == "N")
                 {
                     avisos.Erros.Add("Este Cliente não está configurado para permitir a Forma de Pagamento PIX Estático");
                 }
-                else if (TipoMeioCobranca.Alias.Equals("PIXDIN") && Grv.Cliente.FlagPossuiPixDinamico == "N")
+                else if (TipoMeioCobranca.Alias == "PIXDIN" && Grv.Cliente.FlagPossuiPixDinamico == "N")
                 {
                     avisos.Erros.Add("Este Cliente não está configurado para permitir a Forma de Pagamento PIX Dinâmico");
                 }
@@ -415,7 +416,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 .Include(i => i.Cliente)
                 .Include(i => i.Deposito)
                 .Include(i => i.StatusOperacao)
-                .Where(w => w.GrvId.Equals(Atendimento.GrvId))
+                .Where(w => w.GrvId == Atendimento.GrvId)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
 
@@ -452,7 +453,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             GrvModel Grv = await _context.Grvs
                 .Include(i => i.Cliente)
                 .Include(i => i.Deposito)
-                .Where(w => w.GrvId.Equals(AtendimentoInput.GrvId))
+                .Where(w => w.GrvId == AtendimentoInput.GrvId)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
 
@@ -524,7 +525,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 ProprietarioTelefone = AtendimentoInput.ProprietarioTelefone
             };
 
-            if (Grv.Cliente.FlagEmissaoNotaFiscalSap.Equals("S"))
+            if (Grv.Cliente.FlagEmissaoNotaFiscalSap == "S")
             {
                 Atendimento.NotaFiscalNome = AtendimentoInput.NotaFiscalNome;
 
@@ -554,7 +555,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             }
 
             GrvModel GrvToUpdate = await _context.Grvs
-                .Where(w => w.GrvId.Equals(AtendimentoInput.GrvId))
+                .Where(w => w.GrvId == AtendimentoInput.GrvId)
                 .FirstOrDefaultAsync();
 
             List<TipoMeioCobrancaModel> TiposMeiosCobrancas = await _context.TiposMeiosCobrancas
@@ -576,20 +577,29 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             ParametrosCalculoFaturamento.StatusOperacaoId = GrvToUpdate.StatusOperacaoId = await GetStatusOperacao(TiposMeiosCobrancas, TipoMeioCobrancaId: ParametrosCalculoFaturamento.TipoMeioCobrancaId);
 
-            using (var transaction = _context.Database.BeginTransaction())
+            using (IDbContextTransaction transaction = _context.Database.BeginTransaction())
             {
-                EntityEntry<AtendimentoModel> AtendimentoResult = _context.Atendimentos.Add(Atendimento);
+                try
+                {
+                    await _context.Atendimentos.AddAsync(Atendimento);
 
-                await _context.SaveChangesAsync();
+                    await _context.SaveChangesAsync();
 
-                FaturamentoModel Faturamento = await new FaturamentoService(_context)
-                    .Calcular(ParametrosCalculoFaturamento);
+                    ParametrosCalculoFaturamento.Atendimento = Atendimento;
 
-                _context.Grvs.Update(GrvToUpdate);
+                    FaturamentoModel Faturamento = await new FaturamentoService(_context)
+                        .Calcular(ParametrosCalculoFaturamento);
 
-                await _context.SaveChangesAsync();
+                    _context.Grvs.Update(GrvToUpdate);
 
-                transaction.Commit();
+                    await _context.SaveChangesAsync();
+
+                    transaction.Commit();
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+                }
             }
 
             if (true)
@@ -620,7 +630,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             string StatusOperacaoId = "L"; // Aguardando Pagamento
 
-            if (TipoMeioCobranca.Alias.Equals("LIBESP"))
+            if (TipoMeioCobranca.Alias == "LIBESP")
             {
                 StatusOperacaoId = "U"; // Aguardando Liberação Especial
             }

@@ -125,7 +125,7 @@ namespace WebZi.Plataform.API.Controllers
                 .GetService<AtendimentoService>()
                 .ValidarInformacoesParaCadastro(Atendimento);
 
-            if (aviso.Erros.Count.Equals(0))
+            if (aviso.Erros.Count == 0)
             {
                 aviso.Status = "APTO PARA O CADASTRO";
 
@@ -146,7 +146,7 @@ namespace WebZi.Plataform.API.Controllers
                 .GetService<AtendimentoService>()
                 .ValidarInformacoesParaAtualizacao(Atendimento);
 
-            if (aviso.Erros.Count.Equals(0))
+            if (aviso.Erros.Count == 0)
             {
                 aviso.Status = "APTO PARA O CADASTRO";
 

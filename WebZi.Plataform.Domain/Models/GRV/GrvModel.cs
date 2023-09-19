@@ -108,9 +108,9 @@ namespace WebZi.Plataform.Domain.Models.GRV
 
         public DateTime? DataOficio { get; set; }
 
-        public DateTime? DataHoraRemocao { get; set; }
+        public DateTime DataHoraRemocao { get; set; }
 
-        public DateTime? DataHoraGuarda { get; set; }
+        public DateTime DataHoraGuarda { get; set; }
 
         public DateTime DataCadastro { get; set; }
 

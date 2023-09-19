@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Text;
+using System.Text.RegularExpressions;
 
 namespace WebZi.Plataform.CrossCutting.Strings
 {
@@ -38,6 +39,11 @@ namespace WebZi.Plataform.CrossCutting.Strings
         public static string Mid(string input, int index)
         {
             return input.Substring(index);
+        }
+
+        public static string Normalize(string input)
+        {
+            return Regex.Replace(input.Normalize(NormalizationForm.FormD), @"\p{Mn}", string.Empty);
         }
     }
 }

@@ -2,16 +2,16 @@
 {
     public class CalculoFaturamentoQuantidadeAlteradaModel
     {
-        public int id_faturamento_tipo_composicao { get; set; }
+        public int FaturamentoTipoComposicaoId { get; set; }
 
-        public int id_faturamento_servico_tipo_veiculo { get; set; }
+        public int FaturamentoServicoTipoVeiculoId { get; set; }
 
-        public char tipo_composicao { get; set; }
+        public char TipoComposicao { get; set; }
 
-        public int id_usuario_alteracao_quantidade { get; set; }
+        public int UsuarioAlteracaoQuantidadeId { get; set; }
 
-        public int quantidade_alterada { get; set; }
+        public int QuantidadeAlterada { get; set; }
 
-        public string observacao_quantidade_alterada { get; set; }
+        public string ObservacaoQuantidadeAlterada { get; set; }
     }
 }

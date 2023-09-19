@@ -1,4 +1,6 @@
-﻿namespace WebZi.Plataform.Domain.Models.Faturamento
+﻿using WebZi.Plataform.Domain.Models.GRV;
+
+namespace WebZi.Plataform.Domain.Models.Faturamento
 {
     public class TipoMeioCobrancaModel
     {

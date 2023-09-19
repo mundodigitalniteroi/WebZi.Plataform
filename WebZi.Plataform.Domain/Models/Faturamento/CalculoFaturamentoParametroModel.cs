@@ -5,21 +5,25 @@ namespace WebZi.Plataform.Domain.Models.Faturamento
 {
     public class CalculoFaturamentoParametroModel
     {
-        public int TipoMeioCobrancaId { get; set; }
+        public byte TipoMeioCobrancaId { get; set; }
 
         public int UsuarioCadastroId { get; set; }
 
-        public char origemTipoComposicao { get; set; } = 'P'; // P = PÁTIO, L = LEILÃO
+        public char OrigemTipoComposicao { get; set; } = 'P'; // P = PÁTIO, L = LEILÃO
 
         public string StatusOperacaoId { get; set; }
 
-        public bool flag_cadastrar_faturamento { get; set; } = true;
+        public bool FlagCadastrarFaturamento { get; set; } = true;
 
-        public bool flag_permissao_data_retroativa_faturamento { get; set; }
+        public bool FlagPermissaoDataRetroativaFaturamento { get; set; }
 
         public int Diarias { get; set; }
 
-        public DateTime DataHoraGuarda { get; set; }
+        /// <summary>
+        /// Quando for um Atendimento deve-se usar a Data/Hora da Guarda.
+        /// Se for um Faturamento adicional, deve-se usar a Data do dia anterior à Data final do Faturamento anterior.
+        /// </summary>
+        public DateTime DataHoraInicialParaCalculo { get; set; }
 
         public DateTime DataLiberacao { get; set; }
 
@@ -27,12 +31,16 @@ namespace WebZi.Plataform.Domain.Models.Faturamento
 
         public DateTime DataHoraAtualPorDeposito { get; set; }
 
+        public bool FlagFaturamentoCompleto { get; set; } = true;
+
+        public bool FaturamentoAdicional { get; set; }
+
         public GrvModel Grv { get; set; }
 
         public AtendimentoModel Atendimento { get; set; }
 
-        public List<CalculoFaturamentoQuantidadeAlteradaModel> FaturamentoQuantidadeAlteradaList { get; set; }
+        public List<CalculoFaturamentoQuantidadeAlteradaModel> FaturamentoQuantidadesAlteradas { get; set; }
 
-        public List<CalculoFaturamentoDescontoModel> FaturamentoDescontoList { get; set; }
+        public List<CalculoFaturamentoDescontoModel> FaturamentoDescontos { get; set; }
     }
 }

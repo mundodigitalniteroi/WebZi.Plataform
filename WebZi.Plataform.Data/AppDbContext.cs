@@ -7,9 +7,11 @@ using WebZi.Plataform.Domain.Models.Atendimento;
 using WebZi.Plataform.Domain.Models.Cliente;
 using WebZi.Plataform.Domain.Models.Deposito;
 using WebZi.Plataform.Domain.Models.Faturamento;
+using WebZi.Plataform.Domain.Models.Faturamento.View;
 using WebZi.Plataform.Domain.Models.GRV;
 using WebZi.Plataform.Domain.Models.Leilao;
 using WebZi.Plataform.Domain.Models.Localizacao;
+using WebZi.Plataform.Domain.Models.Localizacao.View;
 using WebZi.Plataform.Domain.Models.Pessoa.Documento;
 using WebZi.Plataform.Domain.Models.Sistema;
 using WebZi.Plataform.Domain.Models.Usuario;
@@ -94,6 +96,14 @@ namespace WebZi.Plataform.Data
 
         public DbSet<UsuarioModel> Usuarios { get; set; }
         #endregion Depósito Público
+
+        #region Views
+        public DbSet<ViewFaturamentoServicoGrvModel> ViewFaturamentoServicosGrvs { get; set; }
+
+        public DbSet<ViewFaturamentoServicoAssociadoVeiculoModel> ViewFaturamentoServicosAssociadosVeiculos { get; set; }
+
+        public DbSet<ViewEnderecoCompletoModel> ViewEnderecosCompletos { get; set; }
+        #endregion Views
 
         #region Leilão
         public DbSet<LeilaoModel> Leiloes { get; set; }

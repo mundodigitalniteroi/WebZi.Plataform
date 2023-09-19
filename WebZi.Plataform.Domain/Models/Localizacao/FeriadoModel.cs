@@ -4,7 +4,7 @@
     {
         public short FeriadoId { get; set; }
 
-        public string Uf { get; set; }
+        public string UF { get; set; }
 
         public int? MunicipioId { get; set; }
 

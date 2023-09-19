@@ -54,7 +54,7 @@ namespace WebZi.Plataform.Data.Services.Leilao
                     }
                 }
 
-                if (aviso.Avisos.Count.Equals(0) && aviso.Erros.Count.Equals(0))
+                if (aviso.Avisos.Count == 0 && aviso.Erros.Count == 0)
                 {
                     return null;
                 }

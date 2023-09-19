@@ -18,40 +18,38 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             _context = context;
         }
 
-        public async Task<CalculoDiariasModel> Calcular(GrvModel Grv, DateTime DataHoraAtualPorDeposito, bool FaturamentoAdicional = false)
+        public async Task<CalculoDiariasModel> Calcular(CalculoFaturamentoParametroModel ParametrosCalculoFaturamento)
         {
             CalculoDiariasModel CalculoDiarias = new()
             {
-                ClienteId = Grv.ClienteId,
+                ClienteId = ParametrosCalculoFaturamento.Grv.ClienteId,
 
-                DepositoId = Grv.DepositoId,
+                DepositoId = ParametrosCalculoFaturamento.Grv.DepositoId,
 
-                MaximoDiariasParaCobranca = Grv.Cliente.MaximoDiariasParaCobranca,
+                MaximoDiariasParaCobranca = ParametrosCalculoFaturamento.Grv.Cliente.MaximoDiariasParaCobranca,
 
-                MaximoDiasVencimento = Grv.Cliente.MaximoDiasVencimento,
+                MaximoDiasVencimento = ParametrosCalculoFaturamento.Grv.Cliente.MaximoDiasVencimento,
 
-                HoraDiaria = Grv.Cliente.HoraDiaria,
+                HoraDiaria = ParametrosCalculoFaturamento.Grv.Cliente.HoraDiaria,
 
-                IsClienteRealizaFaturamentoArrecadacao = Grv.Cliente.FlagClienteRealizaFaturamentoArrecadacao,
+                DataHoraInicialParaCalculo = ParametrosCalculoFaturamento.Grv.DataHoraGuarda,
 
-                FlagUsarHoraDiaria = Grv.Cliente.FlagUsarHoraDiaria,
+                FlagClienteRealizaFaturamentoArrecadacao = ParametrosCalculoFaturamento.Grv.Cliente.FlagClienteRealizaFaturamentoArrecadacao,
 
-                IsEmissaoNotaFiscalSap = Grv.Cliente.FlagEmissaoNotaFiscalSap,
+                FlagUsarHoraDiaria = ParametrosCalculoFaturamento.Grv.Cliente.FlagUsarHoraDiaria,
 
-                IsCobrarDiariasDiasCorridos = Grv.Cliente.FlagCobrarDiariasDiasCorridos,
+                FlagEmissaoNotaFiscalSap = ParametrosCalculoFaturamento.Grv.Cliente.FlagEmissaoNotaFiscalSap,
 
-                DataHoraGuarda = Grv.DataHoraGuarda.GetValueOrDefault(),
+                FlagCobrarDiariasDiasCorridos = ParametrosCalculoFaturamento.Grv.Cliente.FlagCobrarDiariasDiasCorridos,
 
-                DataHoraInicialParaCalculo = Grv.DataHoraGuarda.GetValueOrDefault(),
+                FlagComboio = ParametrosCalculoFaturamento.Grv.FlagComboio,
 
-                IsComboio = Grv.FlagComboio,
-
-                IsPrimeiroFaturamento = (new[] { "V", "1", "B", "D" }.Contains(Grv.StatusOperacaoId)) ? "S" : "N",
+                FlagPrimeiroFaturamento = (new[] { "V", "1", "B", "D" }.Contains(ParametrosCalculoFaturamento.Grv.StatusOperacaoId)) ? "S" : "N",
             };
 
-            if (!CalculoDiarias.DataFinalParaCalculo.HasValue || CalculoDiarias.DataFinalParaCalculo == DateTime.MinValue)
+            if (!CalculoDiarias.DataHoraFinalParaCalculo.HasValue || CalculoDiarias.DataHoraFinalParaCalculo == DateTime.MinValue)
             {
-                CalculoDiarias.DataFinalParaCalculo = DataHoraAtualPorDeposito;
+                CalculoDiarias.DataHoraFinalParaCalculo = ParametrosCalculoFaturamento.DataHoraAtualPorDeposito;
             }
 
             #region REGRA DA HORA DA VIRADA DA DIÁRIA
@@ -61,9 +59,9 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             {
                 CalculoDiarias.DataHoraDiaria = new DateTime
                 (
-                    CalculoDiarias.DataFinalParaCalculo.Value.Year,
-                    CalculoDiarias.DataFinalParaCalculo.Value.Month,
-                    CalculoDiarias.DataFinalParaCalculo.Value.Day,
+                    CalculoDiarias.DataHoraFinalParaCalculo.Value.Year,
+                    CalculoDiarias.DataHoraFinalParaCalculo.Value.Month,
+                    CalculoDiarias.DataHoraFinalParaCalculo.Value.Day,
                     int.Parse(StringHelper.Left(CalculoDiarias.HoraDiaria, 2)),
                     int.Parse(StringHelper.Right(CalculoDiarias.HoraDiaria, 2)),
                     0
@@ -73,9 +71,9 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             {
                 CalculoDiarias.DataHoraDiaria = new DateTime
                 (
-                    CalculoDiarias.DataFinalParaCalculo.Value.Year,
-                    CalculoDiarias.DataFinalParaCalculo.Value.Month,
-                    CalculoDiarias.DataFinalParaCalculo.Value.Day,
+                    CalculoDiarias.DataHoraFinalParaCalculo.Value.Year,
+                    CalculoDiarias.DataHoraFinalParaCalculo.Value.Month,
+                    CalculoDiarias.DataHoraFinalParaCalculo.Value.Day,
                     CalculoDiarias.DataHoraInicialParaCalculo.Hour,
                     CalculoDiarias.DataHoraInicialParaCalculo.Minute,
                     0
@@ -84,35 +82,34 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             #endregion REGRA DA HORA DA VIRADA DA DIÁRIA
 
             List<FaturamentoRegraModel> RegrasFaturamento = await _context.FaturamentoRegras
-                .Where(w => w.ClienteId.Equals(CalculoDiarias.ClienteId) && w.DepositoId.Equals(CalculoDiarias.DepositoId))
+                .Where(w => w.ClienteId == CalculoDiarias.ClienteId && w.DepositoId == CalculoDiarias.DepositoId)
                 .AsNoTracking()
                 .ToListAsync();
 
-            if (RegrasFaturamento.Count.Equals(0))
+            if (RegrasFaturamento.Count == 0)
             {
                 RegrasFaturamento = null;
             }
 
             CalculoDiarias = await SelecionarLocalizacaoDeposito(CalculoDiarias);
 
-            CalculoDiarias.DataHoraOntem = CalculoDiarias.DataFinalParaCalculo.Value.AddDays(-1);
+            CalculoDiarias.DataHoraOntem = CalculoDiarias.DataHoraFinalParaCalculo.Value.AddDays(-1);
 
             CalculoDiarias.DataHoraOntem = new DateTime(CalculoDiarias.DataHoraOntem.Year, CalculoDiarias.DataHoraOntem.Month, CalculoDiarias.DataHoraOntem.Day, 23, 59, 59);
 
-            CalculoDiarias.Feriados = await SelecionarDatasFeriados(CalculoDiarias.Uf, CalculoDiarias.MunicipioId, CalculoDiarias.DataHoraGuarda.Date.Year, CalculoDiarias.DataHoraDiaria.Date.AddDays(10).Year);
+            CalculoDiarias.Feriados = await new FeriadoService(_context)
+                .SelecionarDatasFeriados(CalculoDiarias.Uf, CalculoDiarias.MunicipioId, CalculoDiarias.DataHoraInicialParaCalculo.Date.Year, CalculoDiarias.DataHoraDiaria.Date.AddDays(10).Year);
 
             CalculoDiarias.QuantidadeDiariasPagas = await QuantidadeDiariasPagas(CalculoDiarias);
 
-            CalculoDiarias.CobrarTodasDiarias = RegrasFaturamento?.Count > 0 && RegrasFaturamento.Any(w => w.FaturamentoRegraTipo.Codigo.Equals("CALCDIASNAOCOBRADAS"));
+            CalculoDiarias.CobrarTodasDiarias = RegrasFaturamento?.Count > 0 && RegrasFaturamento.Any(w => w.FaturamentoRegraTipo.Codigo == "CALCDIASNAOCOBRADAS");
 
             if (CalculoDiarias.MaximoDiariasParaCobranca > 0 &&
                 CalculoDiarias.QuantidadeDiariasPagas > 0 &&
                 CalculoDiarias.CobrarTodasDiarias)
             {
                 // Regra calcular diarias não cobradas para faturamento adicional - a partir da data da guarda
-                CalculoDiarias.Diarias = DateTimeHelper.GetDaysBetweenTwoDates(CalculoDiarias.DataHoraGuarda.Date, CalculoDiarias.DataHoraDiaria.Date);
-
-                CalculoDiarias.DataHoraInicialParaCalculo = CalculoDiarias.DataHoraGuarda;
+                CalculoDiarias.Diarias = DateTimeHelper.GetDaysBetweenTwoDates(CalculoDiarias.DataHoraInicialParaCalculo.Date, CalculoDiarias.DataHoraDiaria.Date);
 
                 CalculoDiarias.Diarias -= CalculoDiarias.QuantidadeDiariasPagas;
 
@@ -131,26 +128,26 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             // Se a data da guarda for hoje
             if ((CalculoDiarias.DataHoraInicialParaCalculo.Date == CalculoDiarias.DataHoraDiaria.Date) &&
-                (CalculoDiarias.DataHoraGuarda.Date == CalculoDiarias.DataFinalParaCalculo.Value.Date))
+                (CalculoDiarias.DataHoraInicialParaCalculo.Date == CalculoDiarias.DataHoraFinalParaCalculo.Value.Date))
             {
                 CalculoDiarias.Diarias = 1;
             }
             // Ocorre quando só tem dias úteis
             else if (CalculoDiarias.Diarias == CalculoDiarias.QuantidadeDiasUteis)
             {
-                if ((CalculoDiarias.DataFinalParaCalculo.Value.Hour > CalculoDiarias.DataHoraDiaria.Hour) ||
-                   ((CalculoDiarias.DataFinalParaCalculo.Value.Hour == CalculoDiarias.DataHoraDiaria.Hour) &&
-                   (CalculoDiarias.DataFinalParaCalculo.Value.Minute > CalculoDiarias.DataHoraDiaria.Minute)))
+                if ((CalculoDiarias.DataHoraFinalParaCalculo.Value.Hour > CalculoDiarias.DataHoraDiaria.Hour) ||
+                   ((CalculoDiarias.DataHoraFinalParaCalculo.Value.Hour == CalculoDiarias.DataHoraDiaria.Hour) &&
+                   (CalculoDiarias.DataHoraFinalParaCalculo.Value.Minute > CalculoDiarias.DataHoraDiaria.Minute)))
                 {
                     CalculoDiarias.Diarias++;
                 }
             }
             // Dias corridos, ignora dias não úteis e calcula a partir da Data da Guarda.
-            else if (CalculoDiarias.IsCobrarDiariasDiasCorridos == "S")
+            else if (CalculoDiarias.FlagCobrarDiariasDiasCorridos == "S")
             {
-                if ((CalculoDiarias.DataFinalParaCalculo.Value.Hour > CalculoDiarias.DataHoraDiaria.Hour) ||
-                   ((CalculoDiarias.DataFinalParaCalculo.Value.Hour == CalculoDiarias.DataHoraDiaria.Hour) &&
-                   (CalculoDiarias.DataFinalParaCalculo.Value.Minute > CalculoDiarias.DataHoraDiaria.Minute)))
+                if ((CalculoDiarias.DataHoraFinalParaCalculo.Value.Hour > CalculoDiarias.DataHoraDiaria.Hour) ||
+                   ((CalculoDiarias.DataHoraFinalParaCalculo.Value.Hour == CalculoDiarias.DataHoraDiaria.Hour) &&
+                   (CalculoDiarias.DataHoraFinalParaCalculo.Value.Minute > CalculoDiarias.DataHoraDiaria.Minute)))
                 {
                     CalculoDiarias.Diarias++;
                 }
@@ -162,7 +159,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
                 // Caso a hora do faturamento for superior à hora definida na configuração HRLIBDIAUTIL, todas as diárias serão cobradas
                 // Esta regra só é válida quando o faturamento for após um dia não útil
-                CalculoDiarias.Diarias = AdicionarDiaRegraFaturamento(RegrasFaturamento, CalculoDiarias.DataFinalParaCalculo.Value, CalculoDiarias.Diarias);
+                CalculoDiarias.Diarias = AdicionarDiaRegraFaturamento(RegrasFaturamento, CalculoDiarias.DataHoraFinalParaCalculo.Value, CalculoDiarias.Diarias);
 
                 if (CalculoDiarias.Diarias == dias)
                 {
@@ -176,7 +173,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 {
                     int dias = CalculoDiarias.Diarias;
 
-                    CalculoDiarias.Diarias = AdicionarDiaRegraFaturamento(RegrasFaturamento, CalculoDiarias.DataFinalParaCalculo.Value, CalculoDiarias.Diarias);
+                    CalculoDiarias.Diarias = AdicionarDiaRegraFaturamento(RegrasFaturamento, CalculoDiarias.DataHoraFinalParaCalculo.Value, CalculoDiarias.Diarias);
 
                     if (CalculoDiarias.Diarias == dias)
                     {
@@ -191,9 +188,9 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             // Ocorre quando existe mais de 1 dia útil
             else if (CalculoDiarias.QuantidadeDiasUteis >= 1)
             {
-                if ((CalculoDiarias.DataFinalParaCalculo.Value.Hour > CalculoDiarias.DataHoraDiaria.Hour) ||
-                   ((CalculoDiarias.DataFinalParaCalculo.Value.Hour == CalculoDiarias.DataHoraDiaria.Hour) &&
-                   (CalculoDiarias.DataFinalParaCalculo.Value.Minute > CalculoDiarias.DataHoraDiaria.Minute)))
+                if ((CalculoDiarias.DataHoraFinalParaCalculo.Value.Hour > CalculoDiarias.DataHoraDiaria.Hour) ||
+                   ((CalculoDiarias.DataHoraFinalParaCalculo.Value.Hour == CalculoDiarias.DataHoraDiaria.Hour) &&
+                   (CalculoDiarias.DataHoraFinalParaCalculo.Value.Minute > CalculoDiarias.DataHoraDiaria.Minute)))
                 {
                     CalculoDiarias.Diarias++;
                 }
@@ -203,7 +200,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             CalculoDiarias.Diarias = RetornarMaximoDiaCobranca(CalculoDiarias.MaximoDiariasParaCobranca, CalculoDiarias.Diarias, CalculoDiarias.QuantidadeDiariasPagas);
 
-            if (FaturamentoAdicional)
+            if (ParametrosCalculoFaturamento.FaturamentoAdicional)
             {
                 CalculoDiarias.Diarias = MaximoDiariasCobrarFaturaAdicional(RegrasFaturamento, CalculoDiarias.Diarias);
             }
@@ -220,28 +217,28 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             return CalculoDiarias;
         }
 
-        private async Task<CalculoDiariasModel> SelecionarLocalizacaoDeposito(CalculoDiariasModel CalculoDiariasModel)
+        private async Task<CalculoDiariasModel> SelecionarLocalizacaoDeposito(CalculoDiariasModel CalculoDiarias)
         {
             DepositoModel Deposito = await _context.Depositos
                 .Include(i => i.CEP)
                 .ThenInclude(t => t.Municipio)
-                .Where(w => w.DepositoId.Equals(CalculoDiariasModel.DepositoId))
+                .Where(w => w.DepositoId == CalculoDiarias.DepositoId)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
 
             if (Deposito != null)
             {
-                CalculoDiariasModel.Uf = Deposito.CEP.Municipio.Uf;
+                CalculoDiarias.Uf = Deposito.CEP.Municipio.Uf;
 
-                CalculoDiariasModel.MunicipioId = Deposito.CEP.Municipio.MunicipioId;
+                CalculoDiarias.MunicipioId = Deposito.CEP.Municipio.MunicipioId;
             }
 
-            return CalculoDiariasModel;
+            return CalculoDiarias;
         }
 
         private async Task<int> QuantidadeDiariasPagas(CalculoDiariasModel CalculoDiarias)
         {
-            if (CalculoDiarias.IsPrimeiroFaturamento == "N")
+            if (CalculoDiarias.FlagPrimeiroFaturamento == "N")
             {
                 List<FaturamentoComposicaoModel> FaturamentoComposicoes = await _context.FaturamentoComposicoes
                     .Include(i => i.Faturamento)
@@ -259,45 +256,6 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             }
 
             return 0;
-        }
-
-        private async Task<List<DateTime>> SelecionarDatasFeriados(string uf, int MunicipioId, int AnoInicial, int AnoFinal = 0)
-        {
-            if (AnoFinal <= 0)
-            {
-                AnoFinal = AnoInicial;
-            }
-
-            List<DateTime> DatasFeriados = new();
-
-            List<FeriadoModel> Feriados;
-
-            for (int ano = AnoInicial; ano <= AnoFinal; ano++)
-            {
-                Feriados = await _context.Feriados
-                    .Where(w => (w.Ano == null || w.Ano == ano) &&
-                                ((w.FlagFeriadoNacional == "S") ||
-                                 (w.Uf == uf && w.MunicipioId == null) ||
-                                 (w.MunicipioId == MunicipioId)))
-                    .ToListAsync();
-
-                foreach (var item in Feriados)
-                {
-                    if (item.Ano == null)
-                    {
-                        DatasFeriados.Add(new(ano, item.Mes, item.Dia));
-                    }
-                    else
-                    {
-                        DatasFeriados.Add(new(item.Ano.Value, item.Mes, item.Dia));
-                    }
-                }
-            }
-
-            return DatasFeriados
-                .Distinct()
-                .OrderBy(o => o)
-                .ToList();
         }
 
         private static int GetDiasUteis(DateTime dataInicial, DateTime dataFinal, List<DateTime> Feriados)
@@ -326,7 +284,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
         private static bool IsDiaUtil(DateTime inputDate, List<DateTime> Feriados)
         {
-            if (inputDate.DayOfWeek.Equals(DayOfWeek.Saturday) || inputDate.DayOfWeek.Equals(DayOfWeek.Sunday))
+            if (inputDate.DayOfWeek == DayOfWeek.Saturday || inputDate.DayOfWeek == DayOfWeek.Sunday)
             {
                 return false;
             }
@@ -338,7 +296,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             if (Feriados?.Count > 0)
             {
-                DateTime result = Feriados.Find(w => w.Date.Equals(inputDate.Date));
+                DateTime result = Feriados.Find(w => w.Date == inputDate.Date);
 
                 if (result > DateTime.MinValue)
                 {
@@ -417,16 +375,16 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             return dias;
         }
 
-        private static int RegraNaoCobrarDiariaAtual(List<FaturamentoRegraModel> FaturamentoRegrasList, CalculoDiariasModel CalculoDiariasModel, List<DateTime> Feriados, int totalRealDias, int dias)
+        private static int RegraNaoCobrarDiariaAtual(List<FaturamentoRegraModel> FaturamentoRegras, CalculoDiariasModel CalculoDiarias, List<DateTime> Feriados, int totalRealDias, int dias)
         {
-            if (CalculoDiariasModel.IsComboio == "N" &&
-                CalculoDiariasModel.IsPrimeiroFaturamento == "S" &&
-                FaturamentoRegrasList?.Count > 0 &&
+            if (CalculoDiarias.FlagComboio == "N" &&
+                CalculoDiarias.FlagPrimeiroFaturamento == "S" &&
+                FaturamentoRegras?.Count > 0 &&
                 dias > 1 &&
-                FaturamentoRegrasList.Any(w => w.FaturamentoRegraTipo.Codigo.Equals("NAOCOBRARDIARIAATUAL")) &&
-                IsDiaUtil(CalculoDiariasModel.DataFinalParaCalculo.Value, Feriados) &&
-                CalculoDiariasModel.DataFinalParaCalculo.Value.Hour > CalculoDiariasModel.DataHoraDiaria.Hour &&
-                (CalculoDiariasModel.MaximoDiariasParaCobranca > 0 && CalculoDiariasModel.MaximoDiariasParaCobranca >= totalRealDias))
+                FaturamentoRegras.Any(w => w.FaturamentoRegraTipo.Codigo == "NAOCOBRARDIARIAATUAL") &&
+                IsDiaUtil(CalculoDiarias.DataHoraFinalParaCalculo.Value, Feriados) &&
+                CalculoDiarias.DataHoraFinalParaCalculo.Value.Hour > CalculoDiarias.DataHoraDiaria.Hour &&
+                (CalculoDiarias.MaximoDiariasParaCobranca > 0 && CalculoDiarias.MaximoDiariasParaCobranca >= totalRealDias))
             {
                 dias--;
             }
@@ -434,12 +392,12 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             return dias;
         }
 
-        private static int VerificarRegraNaoCobrarPrimeiraDiaria(List<FaturamentoRegraModel> FaturamentoRegras, CalculoDiariasModel CalculoDiariasModel, int dias)
+        private static int VerificarRegraNaoCobrarPrimeiraDiaria(List<FaturamentoRegraModel> FaturamentoRegras, CalculoDiariasModel CalculoDiarias, int dias)
         {
-            if (CalculoDiariasModel.IsComboio == "N" &&
-                CalculoDiariasModel.IsPrimeiroFaturamento == "S" &&
+            if (CalculoDiarias.FlagComboio == "N" &&
+                CalculoDiarias.FlagPrimeiroFaturamento == "S" &&
                 FaturamentoRegras?.Count > 0
-                && FaturamentoRegras.Any(w => w.FaturamentoRegraTipo.Codigo.Equals("NAOCOBRPRIMEIRDIARIA")))
+                && FaturamentoRegras.Any(w => w.FaturamentoRegraTipo.Codigo == "NAOCOBRPRIMEIRDIARIA"))
             {
                 dias--;
             }

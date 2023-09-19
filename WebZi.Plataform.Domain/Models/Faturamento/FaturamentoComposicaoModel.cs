@@ -33,7 +33,7 @@ namespace WebZi.Plataform.Domain.Models.Faturamento
 
         public decimal ValorTipoComposicao { get; set; }
 
-        public decimal? QuantidadeComposicao { get; set; }
+        public decimal? QuantidadeComposicao { get; set; } = 1;
 
         public decimal ValorComposicao { get; set; }
 
@@ -64,5 +64,22 @@ namespace WebZi.Plataform.Domain.Models.Faturamento
         //public virtual ICollection<FaturamentoComposicaoNf> FaturamentoComposicaoNfs { get; set; } = new List<FaturamentoComposicaoNf>();
 
         //public virtual ICollection<NfeFaturamentoComposicao> NfeFaturamentoComposicaos { get; set; } = new List<NfeFaturamentoComposicao>();
+
+        // Para a Simulação
+        public string ServicoDescricao { get; set; }
+
+        public DateTime DataVigenciaInicial { get; set; }
+
+        public DateTime DataVigenciaFinal { get; set; }
+
+        public char StatusFaturamento { get; set; }
+
+        public int AtendimentoId { get; set; }
+
+        public string IdentificadorNotaFiscal { get; set; }
+
+        public string NumeroNotaFiscal { get; set; }
+
+        public bool SelecionarIdentificadorNotaFiscal { get; set; } = false;
     }
 }

@@ -13,16 +13,14 @@
         public string Uf { get; set; }
 
 
-        public int MaximoDiariasParaCobranca { get; set; }
+        public short MaximoDiariasParaCobranca { get; set; }
 
-        public int MaximoDiasVencimento { get; set; }
+        public short MaximoDiasVencimento { get; set; }
 
         public int Diarias { get; set; }
 
 
         public string HoraDiaria { get; set; }
-
-        public DateTime DataHoraGuarda { get; set; }
 
         public DateTime DataHoraDiaria { get; set; }
 
@@ -30,20 +28,20 @@
 
         public DateTime DataHoraInicialParaCalculo { get; set; }
 
-        public DateTime? DataFinalParaCalculo { get; set; }
+        public DateTime? DataHoraFinalParaCalculo { get; set; }
 
 
         public string FlagUsarHoraDiaria { get; set; }
 
-        public string IsEmissaoNotaFiscalSap { get; set; }
+        public string FlagEmissaoNotaFiscalSap { get; set; }
 
-        public string IsClienteRealizaFaturamentoArrecadacao { get; set; }
+        public string FlagClienteRealizaFaturamentoArrecadacao { get; set; }
 
-        public string IsCobrarDiariasDiasCorridos { get; set; }
+        public string FlagCobrarDiariasDiasCorridos { get; set; }
 
-        public string IsPrimeiroFaturamento { get; set; }
+        public string FlagPrimeiroFaturamento { get; set; }
 
-        public string IsComboio { get; set; }
+        public string FlagComboio { get; set; }
 
         public DateTime DataHoraOntem { get; set; }
 

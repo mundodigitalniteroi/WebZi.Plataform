@@ -20,7 +20,7 @@ namespace WebZi.Plataform.Data.Services.Deposito
         {
             DepositoModel Deposito = await _context.Depositos
                 .Include(i => i.CEP)
-                .Where(w => w.DepositoId.Equals(DepositoId))
+                .Where(w => w.DepositoId == DepositoId)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
 
@@ -30,7 +30,7 @@ namespace WebZi.Plataform.Data.Services.Deposito
 
             DateTime DataHoraAtual = DateTime.Now;
 
-            if (Configuracao.HorarioVerao.Equals("N"))
+            if (Configuracao.HorarioVerao == "N")
             {
                 return DataHoraAtual;
             }

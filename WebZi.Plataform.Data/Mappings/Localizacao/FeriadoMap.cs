@@ -16,7 +16,7 @@ namespace WebZi.Plataform.Data.Mappings.Localizacao
                 .HasColumnName("id_feriado")
                 .ValueGeneratedOnAdd();
 
-            builder.Property(e => e.Uf)
+            builder.Property(e => e.UF)
                 .HasMaxLength(2)
                 .IsUnicode(false)
                 .IsFixedLength()
@@ -61,7 +61,7 @@ namespace WebZi.Plataform.Data.Mappings.Localizacao
 
             builder.HasOne(d => d.Estado).WithMany(p => p.Feriados)
                 .HasPrincipalKey(p => p.Uf)
-                .HasForeignKey(d => d.Uf)
+                .HasForeignKey(d => d.UF)
                 .HasConstraintName("fk_tb_glo_loc_feriados1");
 
             builder.HasOne(d => d.Municipio).WithMany(p => p.Feriados)

@@ -26,6 +26,8 @@ namespace WebZi.Plataform.Data.Services
 
             services.AddScoped<FaturamentoService, FaturamentoService>();
 
+            services.AddScoped<FeriadoService, FeriadoService>();
+
             services.AddScoped<GrvService, GrvService>();
 
             services.AddScoped<LeilaoService, LeilaoService>();
