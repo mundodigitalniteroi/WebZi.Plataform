@@ -1,14 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Data;
-using System.Runtime.Intrinsics.Arm;
 using WebZi.Plataform.CrossCutting.Date;
 using WebZi.Plataform.CrossCutting.Number;
 using WebZi.Plataform.CrossCutting.Strings;
-using WebZi.Plataform.Domain.Models.Deposito;
+using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.Faturamento.View;
-using WebZi.Plataform.Domain.Models.GRV;
-using WebZi.Plataform.Domain.Models.Localizacao;
 using WebZi.Plataform.Domain.Models.Localizacao.View;
 
 namespace WebZi.Plataform.Data.Services.Faturamento
@@ -22,13 +19,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             _context = context;
         }
 
-        public async Task<CalculoFaturamentoModel> Faturar(CalculoFaturamentoParametroModel ParametrosCalculoFaturamento)
+        public async Task Faturar(CalculoFaturamentoParametroModel ParametrosCalculoFaturamento)
         {
-            CalculoFaturamentoModel CalculoFaturamento = new()
-            {
-                Atendimento = ParametrosCalculoFaturamento.Atendimento
-            };
-
             if (ParametrosCalculoFaturamento.DataLiberacao == DateTime.MinValue)
             {
                 ParametrosCalculoFaturamento.DataLiberacao = ParametrosCalculoFaturamento.DataHoraAtualPorDeposito;
@@ -64,15 +56,12 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             }
             #endregion Selecionar todos os Serviços associados ao CLIDEP, incluindo os com a Vigência finalizada
 
-
             #region Verificação de Faturamentos anteriores
             // Faturamento.Status:
             // N = Novo Faturamento/Não Pago;
             // A = Faturamento Adicional e Não Pago (Pra quando a Fatura foi paga em atraso);
             // C = Cancelado, pra quando foi gerada uma Fatura para uma Fatura Vencida e que não foi paga;
             // P = Fatura Paga.
-
-            FaturamentoModel Faturamento = new();
 
             // Se existir ao menos 1 Fatura paga, não deve dar Desconto
             if (await _context.Faturamentos
@@ -92,8 +81,6 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             if (UltimoFaturamento != null)
             {
-                Faturamento.Sequencia += UltimoFaturamento.Sequencia;
-
                 #region Cancelar o Faturamento atual
                 UltimoFaturamento.UsuarioAlteracaoId = ParametrosCalculoFaturamento.Atendimento.UsuarioCadastroId;
 
@@ -147,122 +134,77 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             List<ViewFaturamentoServicoAssociadoVeiculoModel> FaturamentoServicosAssociadosVeiculosTodasVigenciasEncontradas = new();
 
-            // int diarias = CalculoDiarias.Diarias;
+            decimal ValorFaturado = 0;
             int DiariasCalculadas = 0;
             int Horas = 0;
 
-            try
+            foreach (ViewFaturamentoServicoGrvModel FaturamentoServicoGrv in FaturamentoServicosGrvs)
             {
-                foreach (ViewFaturamentoServicoGrvModel FaturamentoServicoGrv in FaturamentoServicosGrvs)
+                if (!VerificarServicoDeveSerCalculado(FaturamentoServicoGrv, UltimoFaturamento, ParametrosCalculoFaturamento))
                 {
-                    if (!VerificarServicoDeveSerCalculado(FaturamentoServicoGrv, UltimoFaturamento, ParametrosCalculoFaturamento))
+                    continue;
+                }
+
+                FaturamentoComposicao = new()
+                {
+                    FaturamentoServicoTipoVeiculoId = FaturamentoServicoGrv.FaturamentoServicoTipoVeiculoId,
+
+                    TipoComposicao = FaturamentoServicoGrv.TipoCobranca,
+
+                    ValorTipoComposicao = FaturamentoServicoGrv.PrecoPadrao,
+                };
+
+                // DIÁRIAS
+                if (FaturamentoServicoGrv.TipoCobranca == "D")
+                {
+                    // Forma de Cobrança:
+                    // AM: Ambos;
+                    // VA: Vigência Atual (Valor Padrão);
+                    // VI: Vigência Inicial.
+
+                    // Quantidade Alterada só se aplica às Diárias
+                    FaturamentoQuantidadeAlterada = null;
+
+                    if (ParametrosCalculoFaturamento.FlagFaturamentoCompleto && ParametrosCalculoFaturamento.FaturamentoQuantidadesAlteradas?.Count > 0)
                     {
-                        continue;
+                        FaturamentoQuantidadeAlterada = ParametrosCalculoFaturamento.FaturamentoQuantidadesAlteradas
+                            .Find(w => w.FaturamentoServicoTipoVeiculoId == FaturamentoServicoGrv.FaturamentoServicoTipoVeiculoId);
                     }
 
-                    FaturamentoComposicao = new()
+                    if (new[] { "AM", "VI" }.Contains(FaturamentoServicoGrv.FormaCobranca))
                     {
-                        FaturamentoServicoTipoVeiculoId = FaturamentoServicoGrv.FaturamentoServicoTipoVeiculoId,
+                        DiariasCalculadas = CalculoDiarias.Diarias;
 
-                        TipoComposicao = FaturamentoServicoGrv.TipoCobranca,
-
-                        ValorTipoComposicao = FaturamentoServicoGrv.PrecoPadrao,
-                    };
-
-                    // DIÁRIAS
-                    if (FaturamentoServicoGrv.TipoCobranca == "D")
-                    {
-                        // Forma de Cobrança:
-                        // AM: Ambos;
-                        // VA: Vigência Atual (Valor Padrão);
-                        // VI: Vigência Inicial.
-
-                        // Quantidade Alterada só se aplica às Diárias
-                        FaturamentoQuantidadeAlterada = null;
-
-                        if (ParametrosCalculoFaturamento.FlagFaturamentoCompleto && ParametrosCalculoFaturamento.FaturamentoQuantidadesAlteradas?.Count > 0)
+                        if (FaturamentoServicoGrv.FormaCobranca == "AM")
                         {
-                            FaturamentoQuantidadeAlterada = ParametrosCalculoFaturamento.FaturamentoQuantidadesAlteradas
-                                .Find(w => w.FaturamentoServicoTipoVeiculoId == FaturamentoServicoGrv.FaturamentoServicoTipoVeiculoId);
-                        }
+                            // Primeiro filtro, cobrar por todas as vigências encontradas
+                            FaturamentoServicosAssociadosVeiculosTodasVigenciasEncontradas = FaturamentoServicosAssociadosVeiculos
+                                .Where(w => w.FaturamentoServicoTipoId == FaturamentoServicoGrv.FaturamentoServicoTipoId &&
+                                           (ParametrosCalculoFaturamento.Grv.DataHoraGuarda.Date >= w.DataVigenciaInicial && ParametrosCalculoFaturamento.Grv.DataHoraGuarda.Date <= w.DataVigenciaFinal) ||
+                                            ParametrosCalculoFaturamento.Grv.DataHoraGuarda <= w.DataVigenciaFinal || w.DataVigenciaFinal == null)
+                                .ToList();
 
-                        if (new[] { "AM", "VI" }.Contains(FaturamentoServicoGrv.FormaCobranca))
-                        {
-                            DiariasCalculadas = CalculoDiarias.Diarias;
-
-                            if (FaturamentoServicoGrv.FormaCobranca == "AM")
+                            foreach (ViewFaturamentoServicoAssociadoVeiculoModel FaturamentoServicoAssociadoVeiculoAmbos in FaturamentoServicosAssociadosVeiculosTodasVigenciasEncontradas)
                             {
-                                // Primeiro filtro, cobrar por todas as vigências encontradas
-                                FaturamentoServicosAssociadosVeiculosTodasVigenciasEncontradas = FaturamentoServicosAssociadosVeiculos
-                                    .Where(w => w.FaturamentoServicoTipoId == FaturamentoServicoGrv.FaturamentoServicoTipoId &&
-                                               (ParametrosCalculoFaturamento.Grv.DataHoraGuarda.Date >= w.DataVigenciaInicial && ParametrosCalculoFaturamento.Grv.DataHoraGuarda.Date <= w.DataVigenciaFinal) || 
-                                                ParametrosCalculoFaturamento.Grv.DataHoraGuarda <= w.DataVigenciaFinal || w.DataVigenciaFinal == null)
-                                    .ToList();
+                                // Retorna a quantidade de Dias entre as datas
+                                CalculoDiarias.Diarias = RetornarQuantidadeDiasServicoDiarias(FaturamentoServicoAssociadoVeiculoAmbos, ParametrosCalculoFaturamento.Grv.DataHoraGuarda, ParametrosCalculoFaturamento.DataHoraAtualPorDeposito);
 
-                                foreach (ViewFaturamentoServicoAssociadoVeiculoModel FaturamentoServicoAssociadoVeiculoAmbos in FaturamentoServicosAssociadosVeiculosTodasVigenciasEncontradas)
+                                if (CalculoDiarias.Diarias >= DiariasCalculadas)
                                 {
-                                    // Retorna a quantidade de Dias entre as datas
-                                    CalculoDiarias.Diarias = RetornarQuantidadeDiasServicoDiarias(FaturamentoServicoAssociadoVeiculoAmbos, ParametrosCalculoFaturamento.Grv.DataHoraGuarda, ParametrosCalculoFaturamento.DataHoraAtualPorDeposito);
+                                    CalculoDiarias.Diarias = DiariasCalculadas;
 
-                                    if (CalculoDiarias.Diarias >= DiariasCalculadas)
-                                    {
-                                        CalculoDiarias.Diarias = DiariasCalculadas;
-
-                                        DiariasCalculadas = 0;
-                                    }
-                                    else
-                                    {
-                                        DiariasCalculadas -= CalculoDiarias.Diarias;
-                                    }
-
-                                    FaturamentoComposicao.FaturamentoServicoTipoVeiculoId = FaturamentoServicoAssociadoVeiculoAmbos.FaturamentoServicoTipoVeiculoId;
-
-                                    FaturamentoComposicao.TipoComposicao = FaturamentoServicoAssociadoVeiculoAmbos.TipoCobranca;
-
-                                    FaturamentoComposicao.ValorTipoComposicao = FaturamentoServicoAssociadoVeiculoAmbos.PrecoPadrao;
-
-                                    // Aplicar Quantidade Alterada
-                                    if (FaturamentoQuantidadeAlterada != null)
-                                    {
-                                        FaturamentoComposicao = AplicarQuantidadeAlterada(FaturamentoComposicao, FaturamentoQuantidadeAlterada);
-
-                                        CalculoDiarias.Diarias += Convert.ToInt32(FaturamentoComposicao.QuantidadeAlterada);
-                                    }
-
-                                    FaturamentoComposicao.QuantidadeComposicao = CalculoDiarias.Diarias;
-
-                                    FaturamentoComposicao.ValorComposicao = Math.Round(FaturamentoServicoAssociadoVeiculoAmbos.PrecoPadrao * CalculoDiarias.Diarias, 2);
-
-                                    FaturamentoComposicao.ValorFaturado = FaturamentoComposicao.ValorComposicao;
-
-                                    // Aplicar os Descontos
-                                    if (ParametrosCalculoFaturamento.FlagFaturamentoCompleto && ParametrosCalculoFaturamento.FaturamentoDescontos?.Count > 0)
-                                    {
-                                        FaturamentoComposicao = AplicarDesconto(FaturamentoComposicao, ParametrosCalculoFaturamento.FaturamentoDescontos);
-                                    }
-
-                                    FaturamentoComposicao.TipoLancamento = "C"; // Crédito
-
-                                    Faturamento.ValorFaturado += FaturamentoComposicao.ValorFaturado;
-
-                                    FaturamentoComposicoes.Add(FaturamentoComposicao);
-
-                                    if (DiariasCalculadas == 0)
-                                    {
-                                        break;
-                                    }
+                                    DiariasCalculadas = 0;
+                                }
+                                else
+                                {
+                                    DiariasCalculadas -= CalculoDiarias.Diarias;
                                 }
 
-                                continue;
-                            }
-                            else if (FaturamentoServicoGrv.FormaCobranca == "VI")
-                            {
-                                // Segundo filtro, cobrar pela Vigência Inicial
-                                FaturamentoServicoAssociadoVeiculo = FaturamentoServicosAssociadosVeiculos
-                                    .Where(w => w.FaturamentoServicoTipoId == FaturamentoServicoGrv.FaturamentoServicoTipoId)
-                                    .Where(w => w.DataVigenciaFinal >= ParametrosCalculoFaturamento.Grv.DataHoraGuarda.Date || w.DataVigenciaFinal == null)
-                                    .OrderBy(o => o.DataVigenciaInicial)
-                                    .FirstOrDefault();
+                                FaturamentoComposicao.FaturamentoServicoTipoVeiculoId = FaturamentoServicoAssociadoVeiculoAmbos.FaturamentoServicoTipoVeiculoId;
+
+                                FaturamentoComposicao.TipoComposicao = FaturamentoServicoAssociadoVeiculoAmbos.TipoCobranca;
+
+                                FaturamentoComposicao.ValorTipoComposicao = FaturamentoServicoAssociadoVeiculoAmbos.PrecoPadrao;
 
                                 // Aplicar Quantidade Alterada
                                 if (FaturamentoQuantidadeAlterada != null)
@@ -272,21 +214,41 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                                     CalculoDiarias.Diarias += Convert.ToInt32(FaturamentoComposicao.QuantidadeAlterada);
                                 }
 
-                                FaturamentoComposicao.TipoComposicao = FaturamentoServicoAssociadoVeiculo.TipoCobranca;
-
-                                FaturamentoComposicao.FaturamentoServicoTipoVeiculoId = FaturamentoServicoAssociadoVeiculo.FaturamentoServicoTipoVeiculoId;
-
-                                FaturamentoComposicao.ValorTipoComposicao = FaturamentoServicoAssociadoVeiculo.PrecoPadrao;
-
                                 FaturamentoComposicao.QuantidadeComposicao = CalculoDiarias.Diarias;
 
-                                FaturamentoComposicao.ValorComposicao = Math.Round(FaturamentoComposicao.ValorTipoComposicao * CalculoDiarias.Diarias, 2);
+                                FaturamentoComposicao.ValorComposicao = Math.Round(FaturamentoServicoAssociadoVeiculoAmbos.PrecoPadrao * CalculoDiarias.Diarias, 2);
 
                                 FaturamentoComposicao.ValorFaturado = FaturamentoComposicao.ValorComposicao;
+
+                                // Aplicar os Descontos
+                                if (ParametrosCalculoFaturamento.FlagFaturamentoCompleto && ParametrosCalculoFaturamento.FaturamentoDescontos?.Count > 0)
+                                {
+                                    FaturamentoComposicao = AplicarDesconto(FaturamentoComposicao, ParametrosCalculoFaturamento.FaturamentoDescontos);
+                                }
+
+                                FaturamentoComposicao.TipoLancamento = "C"; // Crédito
+
+                                ValorFaturado += FaturamentoComposicao.ValorFaturado;
+
+                                FaturamentoComposicoes.Add(FaturamentoComposicao);
+
+                                if (DiariasCalculadas == 0)
+                                {
+                                    break;
+                                }
                             }
+
+                            continue;
                         }
-                        else
+                        else if (FaturamentoServicoGrv.FormaCobranca == "VI")
                         {
+                            // Segundo filtro, cobrar pela Vigência Inicial
+                            FaturamentoServicoAssociadoVeiculo = FaturamentoServicosAssociadosVeiculos
+                                .Where(w => w.FaturamentoServicoTipoId == FaturamentoServicoGrv.FaturamentoServicoTipoId)
+                                .Where(w => w.DataVigenciaFinal >= ParametrosCalculoFaturamento.Grv.DataHoraGuarda.Date || w.DataVigenciaFinal == null)
+                                .OrderBy(o => o.DataVigenciaInicial)
+                                .FirstOrDefault();
+
                             // Aplicar Quantidade Alterada
                             if (FaturamentoQuantidadeAlterada != null)
                             {
@@ -295,121 +257,140 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                                 CalculoDiarias.Diarias += Convert.ToInt32(FaturamentoComposicao.QuantidadeAlterada);
                             }
 
+                            FaturamentoComposicao.TipoComposicao = FaturamentoServicoAssociadoVeiculo.TipoCobranca;
+
+                            FaturamentoComposicao.FaturamentoServicoTipoVeiculoId = FaturamentoServicoAssociadoVeiculo.FaturamentoServicoTipoVeiculoId;
+
+                            FaturamentoComposicao.ValorTipoComposicao = FaturamentoServicoAssociadoVeiculo.PrecoPadrao;
+
                             FaturamentoComposicao.QuantidadeComposicao = CalculoDiarias.Diarias;
 
-                            FaturamentoComposicao.ValorComposicao = Math.Round(FaturamentoServicoGrv.PrecoPadrao * CalculoDiarias.Diarias, 2);
+                            FaturamentoComposicao.ValorComposicao = Math.Round(FaturamentoComposicao.ValorTipoComposicao * CalculoDiarias.Diarias, 2);
 
                             FaturamentoComposicao.ValorFaturado = FaturamentoComposicao.ValorComposicao;
                         }
                     }
-                    else if (FaturamentoServicoGrv.TipoCobranca == "H")
+                    else
                     {
-                        if (string.IsNullOrWhiteSpace(FaturamentoServicoGrv.TempoTrabalhado))
+                        // Aplicar Quantidade Alterada
+                        if (FaturamentoQuantidadeAlterada != null)
                         {
-                            continue;
+                            FaturamentoComposicao = AplicarQuantidadeAlterada(FaturamentoComposicao, FaturamentoQuantidadeAlterada);
+
+                            CalculoDiarias.Diarias += Convert.ToInt32(FaturamentoComposicao.QuantidadeAlterada);
                         }
 
-                        FaturamentoComposicao.QuantidadeComposicao = Math.Round(Convert.ToDecimal(TimeSpan.Parse(FaturamentoServicoGrv.TempoTrabalhado).TotalHours), 2);
+                        FaturamentoComposicao.QuantidadeComposicao = CalculoDiarias.Diarias;
 
-                        FaturamentoComposicao.ValorComposicao = Math.Round(FaturamentoServicoGrv.PrecoPadrao * FaturamentoComposicao.QuantidadeComposicao.Value, 2);
+                        FaturamentoComposicao.ValorComposicao = Math.Round(FaturamentoServicoGrv.PrecoPadrao * CalculoDiarias.Diarias, 2);
 
                         FaturamentoComposicao.ValorFaturado = FaturamentoComposicao.ValorComposicao;
                     }
-                    else if (FaturamentoServicoGrv.TipoCobranca == "Q") // Quantidade
-                    {
-                        if (FaturamentoServicoGrv.FlagRebocada == "S")
-                        {
-                            FaturamentoComposicao.QuantidadeComposicao = 1;
-
-                            if (FaturamentoServicoGrv.FormaCobranca == "VI") // VI: Vigência Inicial
-                            {
-                                FaturamentoServicoAssociadoVeiculo = FaturamentoServicosAssociadosVeiculos
-                                    .Where(w => w.FaturamentoServicoTipoId == FaturamentoServicoGrv.FaturamentoServicoTipoId)
-                                    .Where(w => w.DataVigenciaFinal >= ParametrosCalculoFaturamento.Grv.DataHoraGuarda.Date || w.DataVigenciaFinal == null)
-                                    .OrderBy(o => o.DataVigenciaInicial)
-                                    .First();
-
-                                FaturamentoServicoGrv.PrecoPadrao = FaturamentoServicoAssociadoVeiculo.PrecoPadrao;
-
-                                FaturamentoComposicao.FaturamentoServicoTipoVeiculoId = FaturamentoServicoAssociadoVeiculo.FaturamentoServicoTipoVeiculoId;
-
-                                FaturamentoComposicao.ValorTipoComposicao = FaturamentoServicoAssociadoVeiculo.PrecoPadrao;
-                            }
-                        }
-                        else
-                        {
-                            FaturamentoComposicao.QuantidadeComposicao = Math.Round(FaturamentoServicoGrv.Valor.Value, 2);
-                        }
-
-                        if (FaturamentoComposicao.QuantidadeComposicao == 0)
-                        {
-                            continue;
-                        }
-
-                        FaturamentoComposicao.ValorComposicao = Math.Round(FaturamentoServicoGrv.PrecoPadrao * Math.Round(FaturamentoComposicao.QuantidadeComposicao.Value, 2), 2);
-
-                        FaturamentoComposicao.ValorFaturado = FaturamentoComposicao.ValorComposicao;
-                    }
-                    else if (FaturamentoServicoGrv.TipoCobranca == "V")
-                    {
-                        if (FaturamentoServicoGrv.FlagPermiteAlteracaoValor.Equals("N") && (FaturamentoServicoGrv.PrecoPadrao > 0) && (FaturamentoServicoGrv.Valor == 0))
-                        {
-                            FaturamentoServicoGrv.Valor = 1;
-                        }
-
-                        if (FaturamentoServicoGrv.FlagRebocada == "S")
-                        {
-                            FaturamentoComposicao.QuantidadeComposicao = 1;
-
-                            FaturamentoComposicao.ValorComposicao = Math.Round(FaturamentoServicoGrv.Valor.Value, 2);
-
-                            FaturamentoComposicao.ValorFaturado = FaturamentoComposicao.ValorComposicao;
-                        }
-                        else
-                        {
-                            FaturamentoComposicao.QuantidadeComposicao = Math.Round(FaturamentoServicoGrv.Valor.Value, 2);
-
-                            FaturamentoComposicao.ValorComposicao = Math.Round(FaturamentoServicoGrv.PrecoPadrao * FaturamentoServicoGrv.Valor.Value, 2);
-
-                            FaturamentoComposicao.ValorFaturado = FaturamentoComposicao.ValorComposicao;
-                        }
-                    }
-                    else if (FaturamentoServicoGrv.TipoCobranca == "T") // Tempo
-                    {
-                        if ((Horas = (int)(ParametrosCalculoFaturamento.DataHoraAtualPorDeposito - ParametrosCalculoFaturamento.Grv.DataHoraGuarda).TotalHours) == 0)
-                        {
-                            Horas++;
-                        }
-
-                        FaturamentoComposicao.ValorComposicao = Math.Round(FaturamentoServicoGrv.PrecoPadrao * Horas, 2);
-
-                        FaturamentoComposicao.ValorFaturado = FaturamentoComposicao.ValorComposicao;
-                    }
-
-                    // Aplicar os Descontos
-                    if (ParametrosCalculoFaturamento.FlagFaturamentoCompleto && ParametrosCalculoFaturamento.FaturamentoDescontos?.Count > 0)
-                    {
-                        FaturamentoComposicao = AplicarDesconto(FaturamentoComposicao, ParametrosCalculoFaturamento.FaturamentoDescontos);
-                    }
-
-                    FaturamentoComposicao.TipoLancamento = "C"; // Crédito
-
-                    Faturamento.ValorFaturado += FaturamentoComposicao.ValorFaturado;
-
-                    FaturamentoComposicoes.Add(FaturamentoComposicao);
                 }
-            }
-            catch (Exception)
-            {
-                throw;
+                else if (FaturamentoServicoGrv.TipoCobranca == "H")
+                {
+                    if (string.IsNullOrWhiteSpace(FaturamentoServicoGrv.TempoTrabalhado))
+                    {
+                        continue;
+                    }
+
+                    FaturamentoComposicao.QuantidadeComposicao = Math.Round(Convert.ToDecimal(TimeSpan.Parse(FaturamentoServicoGrv.TempoTrabalhado).TotalHours), 2);
+
+                    FaturamentoComposicao.ValorComposicao = Math.Round(FaturamentoServicoGrv.PrecoPadrao * FaturamentoComposicao.QuantidadeComposicao.Value, 2);
+
+                    FaturamentoComposicao.ValorFaturado = FaturamentoComposicao.ValorComposicao;
+                }
+                else if (FaturamentoServicoGrv.TipoCobranca == "Q") // Quantidade
+                {
+                    if (FaturamentoServicoGrv.FlagRebocada == "S")
+                    {
+                        FaturamentoComposicao.QuantidadeComposicao = 1;
+
+                        if (FaturamentoServicoGrv.FormaCobranca == "VI") // VI: Vigência Inicial
+                        {
+                            FaturamentoServicoAssociadoVeiculo = FaturamentoServicosAssociadosVeiculos
+                                .Where(w => w.FaturamentoServicoTipoId == FaturamentoServicoGrv.FaturamentoServicoTipoId)
+                                .Where(w => w.DataVigenciaFinal >= ParametrosCalculoFaturamento.Grv.DataHoraGuarda.Date || w.DataVigenciaFinal == null)
+                                .OrderBy(o => o.DataVigenciaInicial)
+                                .First();
+
+                            FaturamentoServicoGrv.PrecoPadrao = FaturamentoServicoAssociadoVeiculo.PrecoPadrao;
+
+                            FaturamentoComposicao.FaturamentoServicoTipoVeiculoId = FaturamentoServicoAssociadoVeiculo.FaturamentoServicoTipoVeiculoId;
+
+                            FaturamentoComposicao.ValorTipoComposicao = FaturamentoServicoAssociadoVeiculo.PrecoPadrao;
+                        }
+                    }
+                    else
+                    {
+                        FaturamentoComposicao.QuantidadeComposicao = Math.Round(FaturamentoServicoGrv.Valor.Value, 2);
+                    }
+
+                    if (FaturamentoComposicao.QuantidadeComposicao == 0)
+                    {
+                        continue;
+                    }
+
+                    FaturamentoComposicao.ValorComposicao = Math.Round(FaturamentoServicoGrv.PrecoPadrao * Math.Round(FaturamentoComposicao.QuantidadeComposicao.Value, 2), 2);
+
+                    FaturamentoComposicao.ValorFaturado = FaturamentoComposicao.ValorComposicao;
+                }
+                else if (FaturamentoServicoGrv.TipoCobranca == "V")
+                {
+                    if (FaturamentoServicoGrv.FlagPermiteAlteracaoValor.Equals("N") && (FaturamentoServicoGrv.PrecoPadrao > 0) && (FaturamentoServicoGrv.Valor == 0))
+                    {
+                        FaturamentoServicoGrv.Valor = 1;
+                    }
+
+                    if (FaturamentoServicoGrv.FlagRebocada == "S")
+                    {
+                        FaturamentoComposicao.QuantidadeComposicao = 1;
+
+                        FaturamentoComposicao.ValorComposicao = Math.Round(FaturamentoServicoGrv.Valor.Value, 2);
+
+                        FaturamentoComposicao.ValorFaturado = FaturamentoComposicao.ValorComposicao;
+                    }
+                    else
+                    {
+                        FaturamentoComposicao.QuantidadeComposicao = Math.Round(FaturamentoServicoGrv.Valor.Value, 2);
+
+                        FaturamentoComposicao.ValorComposicao = Math.Round(FaturamentoServicoGrv.PrecoPadrao * FaturamentoServicoGrv.Valor.Value, 2);
+
+                        FaturamentoComposicao.ValorFaturado = FaturamentoComposicao.ValorComposicao;
+                    }
+                }
+                else if (FaturamentoServicoGrv.TipoCobranca == "T") // Tempo
+                {
+                    if ((Horas = (int)(ParametrosCalculoFaturamento.DataHoraAtualPorDeposito - ParametrosCalculoFaturamento.Grv.DataHoraGuarda).TotalHours) == 0)
+                    {
+                        Horas++;
+                    }
+
+                    FaturamentoComposicao.ValorComposicao = Math.Round(FaturamentoServicoGrv.PrecoPadrao * Horas, 2);
+
+                    FaturamentoComposicao.ValorFaturado = FaturamentoComposicao.ValorComposicao;
+                }
+
+                // Aplicar os Descontos
+                if (ParametrosCalculoFaturamento.FlagFaturamentoCompleto && ParametrosCalculoFaturamento.FaturamentoDescontos?.Count > 0)
+                {
+                    FaturamentoComposicao = AplicarDesconto(FaturamentoComposicao, ParametrosCalculoFaturamento.FaturamentoDescontos);
+                }
+
+                FaturamentoComposicao.TipoLancamento = "C"; // Crédito
+
+                ValorFaturado += FaturamentoComposicao.ValorFaturado;
+
+                FaturamentoComposicoes.Add(FaturamentoComposicao);
             }
             #endregion Composição do Faturamento
 
-            if (Faturamento.ValorFaturado > 0)
+            #region Tributação
+            if (ValorFaturado > 0)
             {
                 List<CalculoTributacaoModel> Tributacoes = await CalcularTributacao(_context,
                     ParametrosCalculoFaturamento,
-                    Faturamento.ValorFaturado,
+                    ValorFaturado,
                     ParametrosCalculoFaturamento.Atendimento.NotaFiscalDocumento,
                     ParametrosCalculoFaturamento.Atendimento.NotaFiscalMunicipio,
                     ParametrosCalculoFaturamento.Atendimento.NotaFiscalUf);
@@ -420,33 +401,43 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     {
                         FaturamentoComposicoes.Add(Tributacao);
 
-                        CalculoFaturamento.Tributacoes.Add(Tributacao);
-
-                        Faturamento.ValorFaturado += Tributacao.ValorFaturado;
+                        ValorFaturado += Tributacao.ValorFaturado;
                     }
                 }
             }
+            #endregion Tributação
 
-            #region CADASTRO DO FATURAMENTO
-            Faturamento.AtendimentoId = ParametrosCalculoFaturamento.Atendimento.AtendimentoId;
+            #region Cadastro do Faturamento
+            FaturamentoModel Faturamento = new()
+            {
+                AtendimentoId = ParametrosCalculoFaturamento.Atendimento.AtendimentoId,
 
-            Faturamento.UsuarioCadastroId = ParametrosCalculoFaturamento.UsuarioCadastroId;
+                UsuarioCadastroId = ParametrosCalculoFaturamento.UsuarioCadastroId,
 
-            Faturamento.TipoMeioCobrancaId = ParametrosCalculoFaturamento.TipoMeioCobrancaId;
+                TipoMeioCobrancaId = ParametrosCalculoFaturamento.TipoMeioCobrancaId,
 
-            Faturamento.NumeroIdentificacao = GerarNumeroIdentificacao(ParametrosCalculoFaturamento.Grv.NumeroFormularioGrv, ParametrosCalculoFaturamento.Grv.DepositoId, Faturamento.Sequencia);
+                HoraDiaria = CalculoDiarias.HoraDiaria,
 
-            Faturamento.HoraDiaria = CalculoDiarias.HoraDiaria;
+                MaximoDiariasParaCobranca = CalculoDiarias.MaximoDiariasParaCobranca,
 
-            Faturamento.MaximoDiariasParaCobranca = CalculoDiarias.MaximoDiariasParaCobranca;
+                MaximoDiasVencimento = CalculoDiarias.MaximoDiasVencimento,
 
-            Faturamento.MaximoDiasVencimento = CalculoDiarias.MaximoDiasVencimento;
+                FlagUsarHoraDiaria = CalculoDiarias.FlagUsarHoraDiaria,
 
-            Faturamento.FlagUsarHoraDiaria = CalculoDiarias.FlagUsarHoraDiaria;
+                FlagClienteRealizaFaturamentoArrecadacao = CalculoDiarias.FlagClienteRealizaFaturamentoArrecadacao,
 
-            Faturamento.FlagClienteRealizaFaturamentoArrecadacao = CalculoDiarias.FlagClienteRealizaFaturamentoArrecadacao;
+                FlagCobrarDiariasDiasCorridos = CalculoDiarias.FlagCobrarDiariasDiasCorridos,
 
-            Faturamento.FlagCobrarDiariasDiasCorridos = CalculoDiarias.FlagCobrarDiariasDiasCorridos;
+                DataCalculo = CalculoDiarias.DataHoraInicialParaCalculo,
+
+                DataVencimento = CalcularDataVencimento(ParametrosCalculoFaturamento, CalculoDiarias, ParametrosCalculoFaturamento.FlagPermissaoDataRetroativaFaturamento ? ParametrosCalculoFaturamento.DataHoraAtualPorDeposito : ParametrosCalculoFaturamento.DataLiberacao),
+
+                DataCadastro = ParametrosCalculoFaturamento.DataHoraAtualPorDeposito,
+
+                ValorFaturado = ValorFaturado,
+
+                FaturamentoComposicoes = FaturamentoComposicoes
+            };
 
             if (ParametrosCalculoFaturamento.FlagPermissaoDataRetroativaFaturamento)
             {
@@ -454,53 +445,21 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
                 Faturamento.FlagPermissaoDataRetroativaFaturamento = "S";
             }
-            else
+
+            if (UltimoFaturamento != null)
             {
-                Faturamento.FlagPermissaoDataRetroativaFaturamento = "N";
+                Faturamento.Sequencia += UltimoFaturamento.Sequencia;
             }
 
-            Faturamento.DataCalculo = CalculoDiarias.DataHoraInicialParaCalculo;
+            Faturamento.NumeroIdentificacao = GerarNumeroIdentificacao(ParametrosCalculoFaturamento, Faturamento.Sequencia);
 
-            Faturamento.DataVencimento = CalcularDataVencimento(ParametrosCalculoFaturamento, CalculoDiarias, ParametrosCalculoFaturamento.FlagPermissaoDataRetroativaFaturamento ? ParametrosCalculoFaturamento.DataHoraAtualPorDeposito : ParametrosCalculoFaturamento.DataLiberacao);
-
-            Faturamento.DataCadastro = ParametrosCalculoFaturamento.DataHoraAtualPorDeposito;
-
-            foreach (FaturamentoComposicaoModel Composicao in FaturamentoComposicoes)
+            if (ParametrosCalculoFaturamento.FlagCadastrarFaturamento)
             {
-                // Composicao.FaturamentoId = Faturamento.FaturamentoId;
+                // _context.SetUserContextInfo(Faturamento.UsuarioCadastroId);
 
-                // await _context.FaturamentoComposicoes.AddAsync(Composicao);
-
-                // CalculoFaturamento.Atendimento.Faturamentos[0].FaturamentoComposicoes.Add(Composicao);
-
-                Faturamento.FaturamentoComposicoes.Add(Composicao);
+                await _context.Faturamentos.AddAsync(Faturamento);
             }
-
-            try
-            {
-                if (ParametrosCalculoFaturamento.FlagCadastrarFaturamento)
-                {
-                    await _context.Faturamentos.AddAsync(Faturamento);
-
-                    await _context.SaveChangesAsync();
-                }
-            }
-            catch (Exception ex)
-            {
-                if (true)
-                {
-
-                }
-            }
-
-            CalculoFaturamento.Atendimento.Faturamentos = new List<FaturamentoModel>
-            {
-                Faturamento
-            };
-
-            #endregion CADASTRO DO FATURAMENTO
-
-            return CalculoFaturamento;
+            #endregion Cadastro do Faturamento
         }
 
         private static bool VerificarServicoDeveSerCalculado(ViewFaturamentoServicoGrvModel FaturamentoServicoGrv, FaturamentoModel UltimoFaturamento, CalculoFaturamentoParametroModel ParametrosCalculoFaturamento)
@@ -711,9 +670,11 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             return Tributacoes;
         }
 
-        private static string GerarNumeroIdentificacao(string NumeroFormularioGrv, int DepositoId, int Sequencia)
+        private static string GerarNumeroIdentificacao(CalculoFaturamentoParametroModel ParametrosCalculoFaturamento, int Sequencia)
         {
-            return StringHelper.AddStringLeft(NumeroFormularioGrv, '0', 9) + StringHelper.AddStringLeft(DepositoId.ToString(), '0', 4) + StringHelper.AddStringLeft(Sequencia.ToString(), '0', 3);
+            return StringHelper.AddStringLeft(ParametrosCalculoFaturamento.Grv.NumeroFormularioGrv, '0', 9) +
+                   StringHelper.AddStringLeft(ParametrosCalculoFaturamento.Grv.DepositoId.ToString(), '0', 4) +
+                   StringHelper.AddStringLeft(Sequencia.ToString(), '0', 3);
         }
 
         private static DateTime CalcularDataVencimento(CalculoFaturamentoParametroModel ParametrosCalculoFaturamento, CalculoDiariasModel CalculoDiarias, DateTime? dataFinal = null)

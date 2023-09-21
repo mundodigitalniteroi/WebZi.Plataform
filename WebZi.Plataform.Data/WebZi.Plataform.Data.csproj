@@ -24,7 +24,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Database\" />
     <Folder Include="Mappings\Liberacao\" />
     <Folder Include="Mappings\Nfe\" />
     <Folder Include="Models\" />

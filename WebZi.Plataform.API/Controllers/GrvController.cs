@@ -19,11 +19,11 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("{Identificador}/{Usuario}")]
-        public async Task<ActionResult<object>> Get(int Identificador, int Usuario)
+        public async Task<ActionResult<object>> Get(int Id, int Usuario)
         {
             StringBuilder erros = new();
 
-            if (Identificador <= 0)
+            if (Id <= 0)
             {
                 erros.AppendLine("Identificador do GRV inválido");
             }
@@ -40,7 +40,7 @@ namespace WebZi.Plataform.API.Controllers
 
             GrvModel grv = await _provider
                 .GetService<GrvService>()
-                .GetById(Identificador);
+                .GetById(Id);
 
             if (grv == null)
             {

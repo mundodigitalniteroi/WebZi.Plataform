@@ -9,7 +9,7 @@ namespace WebZi.Plataform.Data.Mappings.Faturamento
         public void Configure(EntityTypeBuilder<FaturamentoComposicaoModel> builder)
         {
             builder
-                .ToTable("tb_log_faturamento_composicao", "dbo")
+                .ToTable("tb_dep_faturamento_composicao", "dbo")
                 .HasKey(e => e.FaturamentoComposicaoId);
 
             builder.Property(e => e.FaturamentoComposicaoId)

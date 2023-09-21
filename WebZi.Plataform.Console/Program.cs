@@ -1,7 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using WebZi.Plataform.Data;
-using WebZi.Plataform.Data.Services.Atendimento;
-using WebZi.Plataform.Domain.Models.Atendimento;
+using WebZi.Plataform.Data.Database;
 
 class Program
 {

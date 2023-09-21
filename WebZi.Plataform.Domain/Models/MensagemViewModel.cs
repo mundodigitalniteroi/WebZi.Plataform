@@ -1,6 +1,6 @@
 ﻿namespace WebZi.Plataform.Domain.Models
 {
-    public class AvisoViewModel
+    public class MensagemViewModel
     {
         public string Status { get; set; }
 

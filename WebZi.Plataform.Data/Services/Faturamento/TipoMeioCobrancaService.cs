@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Domain.Models.Faturamento;
 
 namespace WebZi.Plataform.Data.Services.Faturamento

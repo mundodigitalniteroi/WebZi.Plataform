@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using WebZi.Plataform.CrossCutting.Date;
+using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Services.Localizacao;
 using WebZi.Plataform.Domain.Models.Deposito;
 using WebZi.Plataform.Domain.Models.Localizacao;
@@ -14,6 +15,30 @@ namespace WebZi.Plataform.Data.Services.Deposito
         public DepositoService(AppDbContext context)
         {
             _context = context;
+        }
+
+        public async Task<List<DepositoModel>> List()
+        {
+            return await _context.Depositos
+                .OrderBy(o => o.Descricao)
+                .AsNoTracking()
+                .ToListAsync();
+        }
+
+        public async Task<DepositoModel> GetById(int id)
+        {
+            return await _context.Depositos
+                .Where(w => w.DepositoId == id)
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
+        }
+
+        public async Task<DepositoModel> GetByName(string Name)
+        {
+            return await _context.Depositos
+                .Where(w => w.Descricao == Name)
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
         }
 
         public async Task<DateTime> SelecionarDataHoraPorDeposito(int DepositoId)

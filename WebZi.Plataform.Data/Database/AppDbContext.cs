@@ -1,6 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
+﻿using Castle.Core.Resource;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System;
 using System.Reflection;
 using WebZi.Plataform.CrossCutting.Configuration;
 using WebZi.Plataform.Domain.Models.Atendimento;
@@ -18,7 +20,7 @@ using WebZi.Plataform.Domain.Models.Sistema;
 using WebZi.Plataform.Domain.Models.Usuario;
 using WebZi.Plataform.Domain.Models.Veiculo;
 
-namespace WebZi.Plataform.Data
+namespace WebZi.Plataform.Data.Database
 {
     public partial class AppDbContext : DbContext
     {
@@ -40,10 +42,17 @@ namespace WebZi.Plataform.Data
                 .EnableSensitiveDataLogging(); // Configura o EF para exibir os dados
         }
 
+        public void SetUserContextInfo(int UsuarioId)
+        {
+            Database.ExecuteSqlRaw($"EXECUTE dbo.sp_set_contextinfo {UsuarioId}");
+        }
+
         #region DbSets
 
         #region Depósito Público
         public DbSet<AtendimentoModel> Atendimentos { get; set; }
+
+        public DbSet<AtendimentoFotoResponsavelModel> AtendimentosFotosResponsaveis { get; set; }
 
         public DbSet<ClienteModel> Clientes { get; set; }
 

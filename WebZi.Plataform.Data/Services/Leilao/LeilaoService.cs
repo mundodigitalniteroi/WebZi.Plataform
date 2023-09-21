@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Globalization;
+using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Domain.Models;
 using WebZi.Plataform.Domain.Models.Leilao;
 
@@ -14,7 +15,7 @@ namespace WebZi.Plataform.Data.Services.Leilao
             _context = context;
         }
 
-        public async Task<AvisoViewModel> GetAvisoLeilao(int GrvId, string StatusOperacaoId)
+        public async Task<MensagemViewModel> GetAvisoLeilao(int GrvId, string StatusOperacaoId)
         {
             if (!new[] { "V", "L", "T", "1", "2", "4" }.Contains(StatusOperacaoId))
             {
@@ -32,7 +33,7 @@ namespace WebZi.Plataform.Data.Services.Leilao
 
             if (LeilaoLote != null)
             {
-                AvisoViewModel aviso = new();
+                MensagemViewModel mensagem = new();
 
                 DateTime dataLeilao = DateTime.ParseExact(LeilaoLote.Leilao.DataLeilao, "dd/MM/yyyy", CultureInfo.InvariantCulture);
 
@@ -40,26 +41,26 @@ namespace WebZi.Plataform.Data.Services.Leilao
                     LeilaoLote.Leilao.LeilaoStatus.Ativo != "I" &&
                     LeilaoLote.LeilaoLoteStatus.ValidaLote == "S")
                 {
-                    aviso.Erros.Add($"Este GRV está associado ao Leilão {LeilaoLote.Leilao.Descricao}, Data {dataLeilao:dd/MM/yyyy}, Lote {LeilaoLote.NumeroLote}");
+                    mensagem.Erros.Add($"Este GRV está associado ao Leilão {LeilaoLote.Leilao.Descricao}, Data {dataLeilao:dd/MM/yyyy}, Lote {LeilaoLote.NumeroLote}");
                 }
                 else if (LeilaoLote.Leilao.LeilaoStatus.Ativo != "I" && LeilaoLote.LeilaoLoteStatus.ValidaLote == "S")
                 {
                     if (new[] { "V", "1" }.Contains(StatusOperacaoId))
                     {
-                        aviso.Avisos.Add($"Este GRV está associado ao Leilão {LeilaoLote.Leilao.Descricao}, Data {dataLeilao:dd/MM/yyyy}, Lote {LeilaoLote.NumeroLote}");
+                        mensagem.Avisos.Add($"Este GRV está associado ao Leilão {LeilaoLote.Leilao.Descricao}, Data {dataLeilao:dd/MM/yyyy}, Lote {LeilaoLote.NumeroLote}");
                     }
                     else if (new[] { "L", "T", "2", "4" }.Contains(StatusOperacaoId) && (dataLeilao.Date - DateTime.Now.Date).TotalDays <= 1)
                     {
-                        aviso.Erros.Add($"Este GRV está associado ao Leilão {LeilaoLote.Leilao.Descricao}, Data {dataLeilao:dd/MM/yyyy}, Lote {LeilaoLote.NumeroLote}, para dar prosseguimento a esta Liberação é necessário acionar a equipe do Leilões");
+                        mensagem.Erros.Add($"Este GRV está associado ao Leilão {LeilaoLote.Leilao.Descricao}, Data {dataLeilao:dd/MM/yyyy}, Lote {LeilaoLote.NumeroLote}, para dar prosseguimento a esta Liberação é necessário acionar a equipe do Leilões");
                     }
                 }
 
-                if (aviso.Avisos.Count == 0 && aviso.Erros.Count == 0)
+                if (mensagem.Avisos.Count == 0 && mensagem.Erros.Count == 0)
                 {
                     return null;
                 }
 
-                return aviso;
+                return mensagem;
             }
             else
             {

@@ -1,18 +1,14 @@
-﻿namespace WebZi.Plataform.Domain.Models.Atendimento
+﻿namespace WebZi.Plataform.Domain.Models.Atendimento.ViewModel
 {
-    public class AtendimentoViewModel
+    public class AtendimentoCadastroViewModel
     {
-        public int AtendimentoId { get; set; }
-
         public int GrvId { get; set; }
 
         public byte TipoMeioCobrancaId { get; set; }
 
         public byte QualificacaoResponsavelId { get; set; }
 
-        public int UsuarioCadastroId { get; set; }
-
-        public int? UsuarioAlteracaoId { get; set; }
+        public int UsuarioId { get; set; }
 
         public string ResponsavelNome { get; set; }
 
@@ -37,6 +33,8 @@
         public string ResponsavelDdd { get; set; }
 
         public string ResponsavelTelefone { get; set; }
+
+        public byte[] ResponsavelFoto { get; set; }
 
         public string ProprietarioNome { get; set; }
 
@@ -98,6 +96,6 @@
 
         public string NotaFiscalInscricaoMunicipal { get; set; }
 
-        public DateTime DataHoraInicioAtendimento { get; set; }
+        public DateTime? DataHoraInicioAtendimento { get; set; }
     }
 }

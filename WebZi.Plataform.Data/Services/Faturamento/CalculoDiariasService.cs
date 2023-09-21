@@ -2,10 +2,9 @@
 using System.Data;
 using WebZi.Plataform.CrossCutting.Date;
 using WebZi.Plataform.CrossCutting.Strings;
+using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Domain.Models.Deposito;
 using WebZi.Plataform.Domain.Models.Faturamento;
-using WebZi.Plataform.Domain.Models.GRV;
-using WebZi.Plataform.Domain.Models.Localizacao;
 
 namespace WebZi.Plataform.Data.Services.Faturamento
 {

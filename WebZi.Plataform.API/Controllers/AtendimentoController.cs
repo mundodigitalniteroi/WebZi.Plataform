@@ -6,6 +6,7 @@ using WebZi.Plataform.Data.Services.Atendimento;
 using WebZi.Plataform.Data.Services.Faturamento;
 using WebZi.Plataform.Domain.Models;
 using WebZi.Plataform.Domain.Models.Atendimento;
+using WebZi.Plataform.Domain.Models.Atendimento.ViewModel;
 using WebZi.Plataform.Domain.Models.Faturamento;
 
 namespace WebZi.Plataform.API.Controllers
@@ -22,11 +23,11 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("{Identificador}/{Usuario}")]
-        public async Task<ActionResult<object>> Get(int Identificador, int Usuario)
+        public async Task<ActionResult<object>> Get(int Id, int Usuario)
         {
             StringBuilder erros = new();
 
-            if (Identificador <= 0)
+            if (Id <= 0)
             {
                 erros.AppendLine("Identificador do Atendimento inválido");
             }
@@ -43,7 +44,7 @@ namespace WebZi.Plataform.API.Controllers
 
             AtendimentoModel atendimento = await _provider
                 .GetService<AtendimentoService>()
-                .GetById(Identificador, Usuario);
+                .GetById(Id, Usuario);
 
             if (atendimento == null)
             {
@@ -120,90 +121,61 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpPost("ValidarInformacoesParaCadastro")]
-        public async Task<ActionResult<AvisoViewModel>> ValidarInformacoesParaCadastro(AtendimentoViewModel Atendimento)
+        public async Task<ActionResult<MensagemViewModel>> ValidarInformacoesParaCadastro(AtendimentoCadastroViewModel Atendimento)
         {
-            AvisoViewModel aviso = await _provider
+            MensagemViewModel mensagem = await _provider
                 .GetService<AtendimentoService>()
                 .ValidarInformacoesParaCadastro(Atendimento);
 
-            if (aviso.Erros.Count == 0)
+            if (mensagem.Erros.Count == 0)
             {
-                aviso.Status = "APTO PARA O CADASTRO";
+                mensagem.Status = "APTO PARA O CADASTRO";
 
-                return Ok(aviso);
+                return Ok(mensagem);
             }
             else
             {
-                aviso.Status = "NÃO ESTÁ APTO PARA O CADASTRO";
+                mensagem.Status = "NÃO ESTÁ APTO PARA O CADASTRO";
 
-                return BadRequest(aviso);
-            }
-        }
-
-        [HttpPost("ValidarInformacoesParaAtualizacao")]
-        public async Task<ActionResult<AvisoViewModel>> ValidarInformacoesParaAtualizacao(AtendimentoViewModel Atendimento)
-        {
-            AvisoViewModel aviso = await _provider
-                .GetService<AtendimentoService>()
-                .ValidarInformacoesParaAtualizacao(Atendimento);
-
-            if (aviso.Erros.Count == 0)
-            {
-                aviso.Status = "APTO PARA O CADASTRO";
-
-                return Ok(aviso);
-            }
-            else
-            {
-                aviso.Status = "NÃO ESTÁ APTO PARA A ATUALIZAÇÃO";
-
-                return BadRequest(aviso);
+                return BadRequest(mensagem);
             }
         }
 
         [HttpPost("Cadastrar")]
-        public async Task<ActionResult<object>> Cadastrar(AtendimentoViewModel Atendimento)
+        public async Task<ActionResult<object>> Cadastrar(AtendimentoCadastroViewModel Atendimento)
         {
-            AvisoViewModel aviso = await _provider
+            MensagemViewModel mensagem = await _provider
                 .GetService<AtendimentoService>()
                 .ValidarInformacoesParaCadastro(Atendimento);
 
-            if (aviso.Erros.Count > 0)
+            if (mensagem.Erros.Count > 0)
             {
-                aviso.Status = "NÃO ESTÁ APTO PARA O CADASTRO";
+                mensagem.Status = "NÃO ESTÁ APTO PARA O CADASTRO";
 
-                return BadRequest(aviso);
+                return BadRequest(mensagem);
             }
+
+            AtendimentoCadastroResultViewModel AtendimentoCadastroResultView = new();
 
             try
             {
-                CalculoFaturamentoModel result = await _provider
+                AtendimentoCadastroResultView = await _provider
                     .GetService<AtendimentoService>()
                     .Cadastrar(Atendimento);
 
-                if (result.Mensagens.Erros.Count == 0)
-                {
-                    result.Mensagens.Status = "CADASTRO CONCLUÍDO COM SUCESSO";
+                    AtendimentoCadastroResultView.Mensagem.Status = "CADASTRO CONCLUÍDO COM SUCESSO";
 
-                    return Ok(JsonConvert.SerializeObject(result));
-                }
-                else
-                {
-                    result.Mensagens.Status = "NÃO APTO PARA O CADASTRO";
-
-                    return BadRequest(aviso);
-                }
+                    return Ok(AtendimentoCadastroResultView);
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                AtendimentoCadastroResultView.Mensagem.Status = "OCORREU UM ERRO AO CADASTRAR";
+
+                AtendimentoCadastroResultView.Mensagem.Erros.Add(ex.Message);
+                AtendimentoCadastroResultView.Mensagem.Erros.Add(ex.InnerException.Message);
+
+                return BadRequest(AtendimentoCadastroResultView);
             }
         }
-
-        // PUT api/<AtendimentoController>/5
-        //[HttpPut("{id}")]
-        //public void Atualizar(int id, Atendimento Atendimento)
-        //{
-        //}
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using WebZi.Plataform.Data.Services.Atendimento;
+using WebZi.Plataform.Data.Services.Cliente;
 using WebZi.Plataform.Data.Services.Deposito;
 using WebZi.Plataform.Data.Services.Faturamento;
 using WebZi.Plataform.Data.Services.GRV;
@@ -19,6 +20,8 @@ namespace WebZi.Plataform.Data.Services
             services.AddScoped<CalculoDiariasService, CalculoDiariasService>();
 
             services.AddScoped<CEPService, CEPService>();
+
+            services.AddScoped<ClienteService, ClienteService>();
 
             services.AddScoped<ConfiguracaoService, ConfiguracaoService>();
 
