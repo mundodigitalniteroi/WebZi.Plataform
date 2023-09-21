@@ -45,5 +45,15 @@ namespace WebZi.Plataform.CrossCutting.Strings
         {
             return Regex.Replace(input.Normalize(NormalizationForm.FormD), @"\p{Mn}", string.Empty);
         }
+
+        public static string AddStringLeft(string input, char Caracter, int lenght)
+        {
+            if (input.Length >= lenght)
+            {
+                return input;
+            }
+
+            return input.PadLeft(lenght, Caracter);
+        }
     }
 }

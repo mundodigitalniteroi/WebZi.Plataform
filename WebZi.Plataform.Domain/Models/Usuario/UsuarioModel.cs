@@ -1,4 +1,5 @@
-﻿using WebZi.Plataform.Domain.Models.GRV;
+﻿using WebZi.Plataform.Domain.Models.Atendimento;
+using WebZi.Plataform.Domain.Models.GRV;
 using WebZi.Plataform.Domain.Models.Veiculo;
 
 namespace WebZi.Plataform.Domain.Models.Usuario
@@ -50,6 +51,36 @@ namespace WebZi.Plataform.Domain.Models.Usuario
         public byte? TipoOperadorId { get; set; }
 
         public int? FuncionarioId { get; set; }
+
+        public virtual ICollection<GrvModel> UsuarioCadastroGrvs { get; set; }
+
+        public virtual ICollection<GrvModel> UsuarioAlteracaoGrvs { get; set; }
+
+        public virtual ICollection<GrvModel> UsuarioEdicaoGrvs { get; set; }
+
+        public virtual ICollection<GrvModel> UsuarioCadastroGgvs { get; set; }
+
+        public virtual ICollection<AtendimentoModel> UsuarioCadastroAtendimentos { get; set; }
+        
+        public virtual ICollection<AtendimentoModel> UsuarioAlteracaoAtendimentos { get; set; }
+
+        public virtual ICollection<TipoVeiculoModel> UsuarioCadastroTiposVeiculos { get; set; }
+
+        public virtual ICollection<TipoVeiculoModel> UsuarioAlteracaoTiposVeiculos { get; set; }
+
+        public virtual ICollection<UsuarioClienteModel> UsuariosClientes { get; set; }
+
+        public virtual ICollection<UsuarioClienteModel> UsuariosClientesCadastros { get; set; }
+
+        public virtual ICollection<UsuarioDepositoModel> UsuariosDepositos { get; set; }
+
+        public virtual ICollection<UsuarioDepositoModel> UsuariosDepositosCadastros { get; set; }
+
+        public virtual ICollection<UsuarioPermissaoModel> UsuariosPermissoes { get; set; }
+
+        public virtual ICollection<UsuarioPermissaoModel> UsuariosPermissoesCadastros { get; set; }
+
+        public virtual ICollection<UsuarioPermissaoModel> UsuariosPermissoesAlteracoes { get; set; }
 
         //public virtual UsuarioModel UsuarioAlteracao { get; set; }
 
@@ -177,22 +208,6 @@ namespace WebZi.Plataform.Domain.Models.Usuario
 
         //public virtual ICollection<GrvFoto> GrvFotos { get; set; } = new List<GrvFoto>();
 
-        public virtual ICollection<GrvModel> UsuarioCadastroGrvs { get; set; }
-
-        public virtual ICollection<GrvModel> UsuarioAlteracaoGrvs { get; set; }
-
-        public virtual ICollection<GrvModel> UsuarioEdicaoGrvs { get; set; }
-
-        public virtual ICollection<GrvModel> UsuarioCadastroGgvs { get; set; }
-
-        public virtual ICollection<Atendimento.AtendimentoModel> UsuarioCadastroAtendimentos { get; set; }
-        
-        public virtual ICollection<Atendimento.AtendimentoModel> UsuarioAlteracaoAtendimentos { get; set; }
-
-        public virtual ICollection<TipoVeiculoModel> UsuarioCadastroTiposVeiculos { get; set; }
-
-        public virtual ICollection<TipoVeiculoModel> UsuarioAlteracaoTiposVeiculos { get; set; }
-
         //public virtual ICollection<GrvLacre> GrvLacreIdUsuarioAtualizacaoNavigation { get; set; } = new List<GrvLacre>();
 
         //public virtual ICollection<GrvLacre> GrvLacreIdUsuarioCadastroNavigation { get; set; } = new List<GrvLacre>();
@@ -266,19 +281,5 @@ namespace WebZi.Plataform.Domain.Models.Usuario
         //public virtual ICollection<TipoVeiculosEquipamentosAssociacao> TipoVeiculosEquipamentosAssociacaos { get; set; } = new List<TipoVeiculosEquipamentosAssociacao>();
 
         //public virtual ICollection<TiposCombustivei> TiposCombustiveis { get; set; } = new List<TiposCombustivei>();
-
-        //public virtual ICollection<UsuariosCliente> UsuariosClienteIdUsuarioCadastroNavigation { get; set; } = new List<UsuariosCliente>();
-
-        //public virtual ICollection<UsuariosCliente> UsuariosClienteIdUsuarioNavigation { get; set; } = new List<UsuariosCliente>();
-
-        //public virtual ICollection<UsuariosDeposito> UsuariosDepositoIdUsuarioCadastroNavigation { get; set; } = new List<UsuariosDeposito>();
-
-        //public virtual ICollection<UsuariosDeposito> UsuariosDepositoIdUsuarioNavigation { get; set; } = new List<UsuariosDeposito>();
-
-        //public virtual ICollection<UsuariosPermisso> UsuariosPermissoIdUsuarioAlteracaoNavigation { get; set; } = new List<UsuariosPermisso>();
-
-        //public virtual ICollection<UsuariosPermisso> UsuariosPermissoIdUsuarioCadastroNavigation { get; set; } = new List<UsuariosPermisso>();
-
-        //public virtual ICollection<UsuariosPermisso> UsuariosPermissoIdUsuarioNavigation { get; set; } = new List<UsuariosPermisso>();
     }
 }

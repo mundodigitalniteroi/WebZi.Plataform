@@ -4,6 +4,7 @@ using System.Text;
 using WebZi.Plataform.CrossCutting.Strings;
 using WebZi.Plataform.Data.Services.Atendimento;
 using WebZi.Plataform.Data.Services.Faturamento;
+using WebZi.Plataform.Domain.Models;
 using WebZi.Plataform.Domain.Models.Atendimento;
 using WebZi.Plataform.Domain.Models.Faturamento;
 
@@ -119,9 +120,9 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpPost("ValidarInformacoesParaCadastro")]
-        public async Task<ActionResult<AtendimentoAvisoViewModel>> ValidarInformacoesParaCadastro(AtendimentoViewModel Atendimento)
+        public async Task<ActionResult<AvisoViewModel>> ValidarInformacoesParaCadastro(AtendimentoViewModel Atendimento)
         {
-            AtendimentoAvisoViewModel aviso = await _provider
+            AvisoViewModel aviso = await _provider
                 .GetService<AtendimentoService>()
                 .ValidarInformacoesParaCadastro(Atendimento);
 
@@ -140,9 +141,9 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpPost("ValidarInformacoesParaAtualizacao")]
-        public async Task<ActionResult<AtendimentoAvisoViewModel>> ValidarInformacoesParaAtualizacao(AtendimentoViewModel Atendimento)
+        public async Task<ActionResult<AvisoViewModel>> ValidarInformacoesParaAtualizacao(AtendimentoViewModel Atendimento)
         {
-            AtendimentoAvisoViewModel aviso = await _provider
+            AvisoViewModel aviso = await _provider
                 .GetService<AtendimentoService>()
                 .ValidarInformacoesParaAtualizacao(Atendimento);
 
@@ -161,9 +162,9 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpPost("Cadastrar")]
-        public async Task<ActionResult<string>> Cadastrar(AtendimentoViewModel Atendimento)
+        public async Task<ActionResult<object>> Cadastrar(AtendimentoViewModel Atendimento)
         {
-            AtendimentoAvisoViewModel aviso = await _provider
+            AvisoViewModel aviso = await _provider
                 .GetService<AtendimentoService>()
                 .ValidarInformacoesParaCadastro(Atendimento);
 
@@ -176,11 +177,22 @@ namespace WebZi.Plataform.API.Controllers
 
             try
             {
-                string result = await _provider
+                CalculoFaturamentoModel result = await _provider
                     .GetService<AtendimentoService>()
                     .Cadastrar(Atendimento);
 
-                return Ok(JsonConvert.SerializeObject(result));
+                if (result.Mensagens.Erros.Count == 0)
+                {
+                    result.Mensagens.Status = "CADASTRO CONCLUÍDO COM SUCESSO";
+
+                    return Ok(JsonConvert.SerializeObject(result));
+                }
+                else
+                {
+                    result.Mensagens.Status = "NÃO APTO PARA O CADASTRO";
+
+                    return BadRequest(aviso);
+                }
             }
             catch (Exception ex)
             {

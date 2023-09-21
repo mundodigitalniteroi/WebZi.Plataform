@@ -19,17 +19,8 @@ namespace WebZi.Plataform.Data.Mappings.Faturamento
             builder.Property(e => e.FaturamentoId)
                 .HasColumnName("id_faturamento");
 
-            builder.Property(e => e.DocumentoSapId)
-                .HasMaxLength(10)
-                .IsUnicode(false)
-                .IsFixedLength()
-                .HasColumnName("id_documento_sap");
-
             builder.Property(e => e.FaturamentoServicoTipoVeiculoId)
                 .HasColumnName("id_faturamento_servico_tipo_veiculo");
-
-            builder.Property(e => e.FaturamentoTipoComposicaoId)
-                .HasColumnName("id_faturamento_tipo_composicao");
 
             builder.Property(e => e.UsuarioAlteracaoQuantidadeId)
                 .HasColumnName("id_usuario_alteracao_quantidade");

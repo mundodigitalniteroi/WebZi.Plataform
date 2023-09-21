@@ -1,7 +1,9 @@
 ﻿using WebZi.Plataform.Domain.Models.Atendimento;
 using WebZi.Plataform.Domain.Models.Cliente;
+using WebZi.Plataform.Domain.Models.Condutor;
 using WebZi.Plataform.Domain.Models.Deposito;
 using WebZi.Plataform.Domain.Models.Faturamento;
+using WebZi.Plataform.Domain.Models.Servico;
 using WebZi.Plataform.Domain.Models.Usuario;
 using WebZi.Plataform.Domain.Models.Veiculo;
 
@@ -167,9 +169,9 @@ namespace WebZi.Plataform.Domain.Models.GRV
 
         //public virtual GrvMotivoApreensao IdMotivoApreensaoNavigation { get; set; }
 
-        //public virtual Reboque IdReboqueNavigation { get; set; }
+        public virtual ReboqueModel Reboque { get; set; }
 
-        //public virtual Reboquista IdReboquistaNavigation { get; set; }
+        public virtual ReboquistaModel Reboquista { get; set; }
 
         public virtual StatusOperacaoModel StatusOperacao { get; set; }
 
@@ -189,7 +191,7 @@ namespace WebZi.Plataform.Domain.Models.GRV
 
         public virtual AtendimentoModel Atendimento { get; set; }
 
-        //public virtual CondutorModel Condutor { get; set; }
+        public virtual CondutorModel Condutor { get; set; }
 
         //public virtual ICollection<CondutorEquipamentosOpcionai> CondutorEquipamentosOpcionais { get; set; } = new List<CondutorEquipamentosOpcionai>();
 

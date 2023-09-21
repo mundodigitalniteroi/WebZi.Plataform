@@ -1,6 +1,7 @@
 ﻿using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.GRV;
 using WebZi.Plataform.Domain.Models.Localizacao;
+using WebZi.Plataform.Domain.Models.Servico;
 using WebZi.Plataform.Domain.Models.Usuario;
 
 namespace WebZi.Plataform.Domain.Models.Deposito
@@ -73,7 +74,7 @@ namespace WebZi.Plataform.Domain.Models.Deposito
 
         //public virtual ICollection<GtvModel> DepositosRecebimentos{ get; set; }
 
-        //public virtual ICollection<ReboquistaModel> Reboquistas { get; set; }
+        public virtual ICollection<ReboquistaModel> Reboquistas { get; set; }
 
         //public virtual ICollection<UsuarioDepositoModel> UsuariosDepositos { get; set; }
     }

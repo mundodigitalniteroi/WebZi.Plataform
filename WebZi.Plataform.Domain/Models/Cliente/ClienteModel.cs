@@ -1,5 +1,6 @@
 ﻿using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.GRV;
+using WebZi.Plataform.Domain.Models.Servico;
 using WebZi.Plataform.Domain.Models.Usuario;
 
 namespace WebZi.Plataform.Domain.Models.Cliente
@@ -58,7 +59,7 @@ namespace WebZi.Plataform.Domain.Models.Cliente
 
         public string FlagUsarHoraDiaria { get; set; }
 
-        public string FlagEmissaoNotaFiscalSap { get; set; }
+        public string FlagEmissaoNotaFiscal { get; set; }
 
         public string FlagCadastrarQuilometragem { get; set; }
 
@@ -76,7 +77,7 @@ namespace WebZi.Plataform.Domain.Models.Cliente
 
         public string FlagAtivo { get; set; }
 
-        public int? IdOrgaoExecutivoTransito { get; set; }
+        public int? OrgaoExecutivoTransitoId { get; set; }
 
         public string CodigoOrgao { get; set; }
 
@@ -94,9 +95,9 @@ namespace WebZi.Plataform.Domain.Models.Cliente
 
         public virtual TipoMeioCobrancaModel TipoMeioCobranca { get; set; }
 
-        //public virtual AgenciasBancaria IdAgenciaBancariaNavigation { get; set; }
+        //public virtual AgenciasBancaria AgenciaBancaria { get; set; }
 
-        //public virtual OrgaoExecutivoTransito IdOrgaoExecutivoTransitoNavigation { get; set; }
+        //public virtual OrgaoExecutivoTransito OrgaoExecutivoTransito { get; set; }
 
         public virtual UsuarioModel UsuarioCadastro { get; set; }
 
@@ -120,9 +121,9 @@ namespace WebZi.Plataform.Domain.Models.Cliente
 
         //public virtual ICollection<PixDinamicoConfiguracao> PixDinamicoConfiguracaos { get; set; }
 
-        //public virtual ICollection<Reboque> Reboques { get; set; }
+        public virtual ICollection<ReboqueModel> Reboques { get; set; }
 
-        //public virtual ICollection<Reboquista> Reboquista { get; set; }
+        public virtual ICollection<ReboquistaModel> Reboquistas { get; set; }
 
         //public virtual ICollection<UsuariosCliente> UsuariosClientes { get; set; }
     }

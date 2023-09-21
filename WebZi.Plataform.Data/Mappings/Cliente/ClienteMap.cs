@@ -78,7 +78,7 @@ namespace WebZi.Plataform.Data.Mappings.Cliente
                 .IsFixedLength()
                 .HasColumnName("flag_cobrar_diarias_dias_corridos");
 
-            builder.Property(e => e.FlagEmissaoNotaFiscalSap)
+            builder.Property(e => e.FlagEmissaoNotaFiscal)
                 .IsRequired()
                 .HasMaxLength(1)
                 .IsUnicode(false)
@@ -168,7 +168,7 @@ namespace WebZi.Plataform.Data.Mappings.Cliente
 
             builder.Property(e => e.EmpresaId).HasColumnName("id_empresa");
 
-            builder.Property(e => e.IdOrgaoExecutivoTransito).HasColumnName("id_orgao_executivo_transito");
+            builder.Property(e => e.OrgaoExecutivoTransitoId).HasColumnName("id_orgao_executivo_transito");
 
             builder.Property(e => e.TipoLogradouroId).HasColumnName("id_tipo_logradouro");
 

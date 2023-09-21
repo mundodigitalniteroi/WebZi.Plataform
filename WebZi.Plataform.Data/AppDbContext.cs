@@ -13,6 +13,7 @@ using WebZi.Plataform.Domain.Models.Leilao;
 using WebZi.Plataform.Domain.Models.Localizacao;
 using WebZi.Plataform.Domain.Models.Localizacao.View;
 using WebZi.Plataform.Domain.Models.Pessoa.Documento;
+using WebZi.Plataform.Domain.Models.Servico;
 using WebZi.Plataform.Domain.Models.Sistema;
 using WebZi.Plataform.Domain.Models.Usuario;
 using WebZi.Plataform.Domain.Models.Veiculo;
@@ -86,6 +87,10 @@ namespace WebZi.Plataform.Data
 
         public DbSet<GrvModel> Grvs { get; set; }
 
+        public DbSet<ReboqueModel> Reboques { get; set; }
+
+        public DbSet<ReboquistaModel> Reboquistas { get; set; }
+
         public DbSet<StatusOperacaoModel> StatusOperacoes { get; set; }
 
         public DbSet<TipoDocumentoIdentificacaoModel> TiposDocumentosIdentificacao { get; set; }
@@ -95,6 +100,14 @@ namespace WebZi.Plataform.Data
         public DbSet<TipoVeiculoModel> TiposVeiculos { get; set; }
 
         public DbSet<UsuarioModel> Usuarios { get; set; }
+
+        public DbSet<UsuarioClienteModel> UsuariosClientes { get; set; }
+
+        public DbSet<UsuarioDepositoModel> UsuariosDepositos { get; set; }
+
+        public DbSet<UsuarioTipoPermissaoModel> UsuariosTiposPermissoes { get; set; }
+
+        public DbSet<UsuarioPermissaoModel> UsuariosPermissoes { get; set; }
         #endregion Depósito Público
 
         #region Views

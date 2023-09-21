@@ -76,8 +76,6 @@
 
         public string NotaFiscalDocumento { get; set; }
 
-        public byte? NotaFiscalIdTipoLogradouro { get; set; }
-
         public string NotaFiscalEndereco { get; set; }
 
         public string NotaFiscalNumero { get; set; }
@@ -98,10 +96,8 @@
 
         public string NotaFiscalEmail { get; set; }
 
-        public DateTime DataHoraInicioAtendimento { get; set; }
-
         public string NotaFiscalInscricaoMunicipal { get; set; }
 
-        public string FlagAtendimentoWs { get; set; }
+        public DateTime DataHoraInicioAtendimento { get; set; }
     }
 }

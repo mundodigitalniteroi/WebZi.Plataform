@@ -8,6 +8,7 @@ using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Services.Deposito;
 using WebZi.Plataform.Data.Services.Faturamento;
 using WebZi.Plataform.Data.Services.Leilao;
+using WebZi.Plataform.Domain.Models;
 using WebZi.Plataform.Domain.Models.Atendimento;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.GRV;
@@ -47,9 +48,9 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             return atendimento;
         }
 
-        public async Task<AtendimentoAvisoViewModel> ValidarInformacoesParaCadastro(AtendimentoViewModel Atendimento)
+        public async Task<AvisoViewModel> ValidarInformacoesParaCadastro(AtendimentoViewModel Atendimento)
         {
-            AtendimentoAvisoViewModel avisos = new();
+            AvisoViewModel avisos = new();
 
             #region Consultas
             if (Atendimento.GrvId <= 0)
@@ -103,7 +104,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             #endregion Consultas
 
             #region Leilão
-            AtendimentoAvisoViewModel avisoLeilao = await new LeilaoService(_context)
+            AvisoViewModel avisoLeilao = await new LeilaoService(_context)
                 .GetAvisoLeilao(Grv.GrvId, Grv.StatusOperacaoId);
 
             if (avisoLeilao != null)
@@ -253,7 +254,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             #endregion Dados do Proprietário
 
             #region Nota Fiscal
-            if (Grv.Cliente.FlagEmissaoNotaFiscalSap == "S")
+            if (Grv.Cliente.FlagEmissaoNotaFiscal == "S")
             {
                 #region Receptor da Nota Fiscal
                 if (string.IsNullOrWhiteSpace(Atendimento.NotaFiscalNome))
@@ -389,9 +390,9 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             return avisos;
         }
 
-        public async Task<AtendimentoAvisoViewModel> ValidarInformacoesParaAtualizacao(AtendimentoViewModel Atendimento)
+        public async Task<AvisoViewModel> ValidarInformacoesParaAtualizacao(AtendimentoViewModel Atendimento)
         {
-            AtendimentoAvisoViewModel avisos = new();
+            AvisoViewModel avisos = new();
 
             #region Consultas
             if (Atendimento.GrvId <= 0)
@@ -448,7 +449,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             return avisos;
         }
 
-        public async Task<string> Cadastrar(AtendimentoViewModel AtendimentoInput)
+        public async Task<CalculoFaturamentoModel> Cadastrar(AtendimentoViewModel AtendimentoInput)
         {
             GrvModel Grv = await _context.Grvs
                 .Include(i => i.Cliente)
@@ -476,91 +477,91 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
                 TotalImpressoes = 1,
 
-                ResponsavelNome = AtendimentoInput.ResponsavelNome,
+                ResponsavelNome = AtendimentoInput.ResponsavelNome.ToUpper(),
 
-                ResponsavelDocumento = AtendimentoInput.ResponsavelDocumento,
+                ResponsavelDocumento = AtendimentoInput.ResponsavelDocumento.Replace(".", "").Replace("/", "").Replace("-", ""),
 
                 ResponsavelCnh = AtendimentoInput.ResponsavelCnh,
 
-                ResponsavelEndereco = AtendimentoInput.ResponsavelEndereco,
+                ResponsavelEndereco = AtendimentoInput.ResponsavelEndereco.ToUpper(),
 
-                ResponsavelNumero = AtendimentoInput.ResponsavelNumero,
+                ResponsavelNumero = AtendimentoInput.ResponsavelNumero.ToUpper(),
 
-                ResponsavelComplemento = AtendimentoInput.ResponsavelComplemento,
+                ResponsavelComplemento = AtendimentoInput.ResponsavelComplemento.ToUpper(),
 
-                ResponsavelBairro = AtendimentoInput.ResponsavelBairro,
+                ResponsavelBairro = AtendimentoInput.ResponsavelBairro.ToUpper(),
 
-                ResponsavelMunicipio = AtendimentoInput.ResponsavelMunicipio,
+                ResponsavelMunicipio = AtendimentoInput.ResponsavelMunicipio.ToUpper(),
 
-                ResponsavelUf = AtendimentoInput.ResponsavelUf,
+                ResponsavelUf = AtendimentoInput.ResponsavelUf.ToUpper(),
 
-                ResponsavelCep = AtendimentoInput.ResponsavelCep,
+                ResponsavelCep = AtendimentoInput.ResponsavelCep.Replace("-", ""),
 
                 ResponsavelDdd = AtendimentoInput.ResponsavelDdd,
 
-                ResponsavelTelefone = AtendimentoInput.ResponsavelTelefone,
+                ResponsavelTelefone = AtendimentoInput.ResponsavelTelefone.Replace("-", ""),
 
-                ProprietarioNome = AtendimentoInput.ProprietarioNome,
+                ProprietarioNome = AtendimentoInput.ProprietarioNome.ToUpper(),
 
                 ProprietarioTipoDocumentoId = AtendimentoInput.ProprietarioTipoDocumentoId,
 
                 ProprietarioDocumento = AtendimentoInput.ProprietarioDocumento,
 
-                ProprietarioEndereco = AtendimentoInput.ProprietarioEndereco,
+                ProprietarioEndereco = AtendimentoInput.ProprietarioEndereco.ToUpper(),
 
-                ProprietarioNumero = AtendimentoInput.ProprietarioNumero,
+                ProprietarioNumero = AtendimentoInput.ProprietarioNumero.ToUpper(),
 
-                ProprietarioComplemento = AtendimentoInput.ProprietarioComplemento,
+                ProprietarioComplemento = AtendimentoInput.ProprietarioComplemento.ToUpper(),
 
-                ProprietarioBairro = AtendimentoInput.ProprietarioBairro,
+                ProprietarioBairro = AtendimentoInput.ProprietarioBairro.ToUpper(),
 
-                ProprietarioMunicipio = AtendimentoInput.ProprietarioMunicipio,
+                ProprietarioMunicipio = AtendimentoInput.ProprietarioMunicipio.ToUpper(),
 
-                ProprietarioUf = AtendimentoInput.ProprietarioUf,
+                ProprietarioUf = AtendimentoInput.ProprietarioUf.ToUpper(),
 
-                ProprietarioCep = AtendimentoInput.ProprietarioCep,
+                ProprietarioCep = AtendimentoInput.ProprietarioCep.Replace("-", ""),
 
                 ProprietarioDdd = AtendimentoInput.ProprietarioDdd,
 
-                ProprietarioTelefone = AtendimentoInput.ProprietarioTelefone
+                ProprietarioTelefone = AtendimentoInput.ProprietarioTelefone.Replace("-", "")
             };
 
-            if (Grv.Cliente.FlagEmissaoNotaFiscalSap == "S")
+            if (Grv.Cliente.FlagEmissaoNotaFiscal == "S")
             {
-                Atendimento.NotaFiscalNome = AtendimentoInput.NotaFiscalNome;
+                Atendimento.NotaFiscalNome = AtendimentoInput.NotaFiscalNome.ToUpper();
 
-                Atendimento.NotaFiscalDocumento = AtendimentoInput.NotaFiscalDocumento;
+                Atendimento.NotaFiscalDocumento = AtendimentoInput.NotaFiscalDocumento.Replace(".", "").Replace("/", "").Replace("-", "");
 
-                Atendimento.NotaFiscalEndereco = AtendimentoInput.NotaFiscalEndereco;
+                Atendimento.NotaFiscalEndereco = AtendimentoInput.NotaFiscalEndereco.ToUpper();
 
-                Atendimento.NotaFiscalNumero = AtendimentoInput.NotaFiscalNumero;
+                Atendimento.NotaFiscalNumero = AtendimentoInput.NotaFiscalNumero.ToUpper();
 
-                Atendimento.NotaFiscalComplemento = AtendimentoInput.NotaFiscalComplemento;
+                Atendimento.NotaFiscalComplemento = AtendimentoInput.NotaFiscalComplemento.ToUpper();
 
-                Atendimento.NotaFiscalBairro = AtendimentoInput.NotaFiscalBairro;
+                Atendimento.NotaFiscalBairro = AtendimentoInput.NotaFiscalBairro.ToUpper();
 
-                Atendimento.NotaFiscalMunicipio = AtendimentoInput.NotaFiscalMunicipio;
+                Atendimento.NotaFiscalMunicipio = AtendimentoInput.NotaFiscalMunicipio.ToUpper();
 
-                Atendimento.NotaFiscalUf = AtendimentoInput.NotaFiscalUf;
+                Atendimento.NotaFiscalUf = AtendimentoInput.NotaFiscalUf.ToUpper();
 
-                Atendimento.NotaFiscalCep = AtendimentoInput.NotaFiscalCep;
+                Atendimento.NotaFiscalCep = AtendimentoInput.NotaFiscalCep.Replace("-", "");
 
                 Atendimento.NotaFiscalDdd = AtendimentoInput.NotaFiscalDdd;
 
-                Atendimento.NotaFiscalTelefone = AtendimentoInput.NotaFiscalTelefone;
+                Atendimento.NotaFiscalTelefone = AtendimentoInput.NotaFiscalTelefone.Replace("-", "");
 
-                Atendimento.NotaFiscalEmail = AtendimentoInput.NotaFiscalEmail;
+                Atendimento.NotaFiscalEmail = AtendimentoInput.NotaFiscalEmail.ToLower();
 
-                Atendimento.NotaFiscalInscricaoMunicipal = AtendimentoInput.NotaFiscalInscricaoMunicipal;
+                Atendimento.NotaFiscalInscricaoMunicipal = AtendimentoInput.NotaFiscalInscricaoMunicipal.ToUpper();
             }
-
-            GrvModel GrvToUpdate = await _context.Grvs
-                .Where(w => w.GrvId == AtendimentoInput.GrvId)
-                .FirstOrDefaultAsync();
 
             List<TipoMeioCobrancaModel> TiposMeiosCobrancas = await _context.TiposMeiosCobrancas
                 .AsNoTracking()
                 .ToListAsync();
+
+            GrvModel GrvToUpdate = await _context.Grvs
+                .Where(w => w.GrvId == AtendimentoInput.GrvId)
+                .FirstOrDefaultAsync();
 
             CalculoFaturamentoParametroModel ParametrosCalculoFaturamento = new()
             {
@@ -575,7 +576,9 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 TipoMeioCobrancaId = Grv.Cliente.TipoMeioCobrancaId.HasValue && Grv.Cliente.TipoMeioCobrancaId.Value > 0 ? Grv.Cliente.TipoMeioCobrancaId.Value : AtendimentoInput.TipoMeioCobrancaId
             };
 
-            ParametrosCalculoFaturamento.StatusOperacaoId = GrvToUpdate.StatusOperacaoId = await GetStatusOperacao(TiposMeiosCobrancas, TipoMeioCobrancaId: ParametrosCalculoFaturamento.TipoMeioCobrancaId);
+            ParametrosCalculoFaturamento.StatusOperacaoId = GrvToUpdate.StatusOperacaoId = await GetStatusOperacao(TiposMeiosCobrancas, ParametrosCalculoFaturamento.TipoMeioCobrancaId);
+
+            CalculoFaturamentoModel CalculoFaturamento = new();
 
             using (IDbContextTransaction transaction = _context.Database.BeginTransaction())
             {
@@ -587,8 +590,8 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
                     ParametrosCalculoFaturamento.Atendimento = Atendimento;
 
-                    FaturamentoModel Faturamento = await new FaturamentoService(_context)
-                        .Calcular(ParametrosCalculoFaturamento);
+                    CalculoFaturamento = await new FaturamentoService(_context)
+                        .Faturar(ParametrosCalculoFaturamento);
 
                     _context.Grvs.Update(GrvToUpdate);
 
@@ -599,15 +602,12 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 catch (Exception ex)
                 {
                     transaction.Rollback();
+
+                    CalculoFaturamento.Mensagens.Erros.Add(ex.Message);
                 }
             }
 
-            if (true)
-            {
-
-            }
-
-            return "Cadastro do Atendimento concluído com sucesso";
+            return CalculoFaturamento;
         }
 
         private async Task<string> GetStatusOperacao(List<TipoMeioCobrancaModel> TiposMeiosCobrancas, int TipoMeioCobrancaId)

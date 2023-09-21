@@ -1,6 +1,6 @@
-﻿namespace WebZi.Plataform.Domain.Models.Atendimento
+﻿namespace WebZi.Plataform.Domain.Models
 {
-    public class AtendimentoAvisoViewModel
+    public class AvisoViewModel
     {
         public string Status { get; set; }
 

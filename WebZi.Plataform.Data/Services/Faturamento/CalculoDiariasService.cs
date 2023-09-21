@@ -38,7 +38,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
                 FlagUsarHoraDiaria = ParametrosCalculoFaturamento.Grv.Cliente.FlagUsarHoraDiaria,
 
-                FlagEmissaoNotaFiscalSap = ParametrosCalculoFaturamento.Grv.Cliente.FlagEmissaoNotaFiscalSap,
+                FlagEmissaoNotaFiscalSap = ParametrosCalculoFaturamento.Grv.Cliente.FlagEmissaoNotaFiscal,
 
                 FlagCobrarDiariasDiasCorridos = ParametrosCalculoFaturamento.Grv.Cliente.FlagCobrarDiariasDiasCorridos,
 

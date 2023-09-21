@@ -84,8 +84,6 @@ namespace WebZi.Plataform.Domain.Models.Atendimento
 
         public string NotaFiscalDocumento { get; set; }
 
-        public byte? NotaFiscalIdTipoLogradouro { get; set; }
-
         public string NotaFiscalEndereco { get; set; }
 
         public string NotaFiscalNumero { get; set; }
@@ -106,11 +104,13 @@ namespace WebZi.Plataform.Domain.Models.Atendimento
 
         public string NotaFiscalEmail { get; set; }
 
+        public string NotaFiscalInscricaoMunicipal { get; set; }
+
         public int TotalImpressoes { get; set; } = 1;
 
-        public string StatusCadastroSap { get; set; } = "N";
+        public string StatusCadastroERP { get; set; } = "N";
 
-        public string StatusCadastroOrdensVendaSap { get; set; } = "N";
+        public string StatusCadastroOrdensVendaERP { get; set; } = "N";
 
         public DateTime? DataHoraInicioAtendimento { get; set; }
 
@@ -124,8 +124,6 @@ namespace WebZi.Plataform.Domain.Models.Atendimento
 
         public string FlagAtendimentoWs { get; set; } = "N";
 
-        public string NotaFiscalInscricaoMunicipal { get; set; }
-
         public virtual GrvModel Grv { get; set; }
 
         public virtual QualificacaoResponsavelModel QualificacaoResponsavel { get; set; }
@@ -138,6 +136,6 @@ namespace WebZi.Plataform.Domain.Models.Atendimento
 
         //public virtual ICollection<AtendimentoSaidaReparo> AtendimentoSaidaReparos { get; set; }
 
-        public virtual ICollection<FaturamentoModel> Faturamentos { get; set; }
+        public virtual List<FaturamentoModel> Faturamentos { get; set; } = new List<FaturamentoModel>();
     }
 }

@@ -20,14 +20,8 @@ namespace WebZi.Plataform.Data.Mappings.Atendimento
                 .HasColumnName("id_atendimento")
                 .ValueGeneratedOnAdd();
 
-            builder.Property(e => e.DataAlteracao)
-                .HasColumnType("smalldatetime")
-                .HasColumnName("data_alteracao");
-
-            builder.Property(e => e.DataCadastro)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("smalldatetime")
-                .HasColumnName("data_cadastro");
+            builder.Property(e => e.GrvId)
+                .HasColumnName("id_grv");
 
             builder.Property(e => e.DataHoraInicioAtendimento)
                 .HasColumnType("datetime")
@@ -86,17 +80,20 @@ namespace WebZi.Plataform.Data.Mappings.Atendimento
                 .IsFixedLength()
                 .HasColumnName("id_documento_sap");
 
-            builder.Property(e => e.EmpresaFaturamentoId).HasColumnName("id_empresa_faturamento");
+            builder.Property(e => e.EmpresaFaturamentoId)
+                .HasColumnName("id_empresa_faturamento");
 
-            builder.Property(e => e.GrvId).HasColumnName("id_grv");
+            builder.Property(e => e.PessoaFaturamentoId)
+                .HasColumnName("id_pessoa_faturamento");
 
-            builder.Property(e => e.PessoaFaturamentoId).HasColumnName("id_pessoa_faturamento");
+            builder.Property(e => e.QualificacaoResponsavelId)
+                .HasColumnName("id_qualificacao_responsavel");
 
-            builder.Property(e => e.QualificacaoResponsavelId).HasColumnName("id_qualificacao_responsavel");
+            builder.Property(e => e.UsuarioAlteracaoId)
+                .HasColumnName("id_usuario_alteracao");
 
-            builder.Property(e => e.UsuarioAlteracaoId).HasColumnName("id_usuario_alteracao");
-
-            builder.Property(e => e.UsuarioCadastroId).HasColumnName("id_usuario_cadastro");
+            builder.Property(e => e.UsuarioCadastroId)
+                .HasColumnName("id_usuario_cadastro");
 
             builder.Property(e => e.NotaFiscalBairro)
                 .HasMaxLength(50)
@@ -134,8 +131,6 @@ namespace WebZi.Plataform.Data.Mappings.Atendimento
                 .HasMaxLength(100)
                 .IsUnicode(false)
                 .HasColumnName("nota_fiscal_endereco");
-
-            builder.Property(e => e.NotaFiscalIdTipoLogradouro).HasColumnName("nota_fiscal_id_tipo_logradouro");
 
             builder.Property(e => e.NotaFiscalInscricaoMunicipal)
                 .HasMaxLength(20)
@@ -292,7 +287,7 @@ namespace WebZi.Plataform.Data.Mappings.Atendimento
                 .IsFixedLength()
                 .HasColumnName("responsavel_uf");
 
-            builder.Property(e => e.StatusCadastroOrdensVendaSap)
+            builder.Property(e => e.StatusCadastroOrdensVendaERP)
                 .IsRequired()
                 .HasMaxLength(1)
                 .IsUnicode(false)
@@ -300,7 +295,7 @@ namespace WebZi.Plataform.Data.Mappings.Atendimento
                 .IsFixedLength()
                 .HasColumnName("status_cadastro_ordens_venda_sap");
 
-            builder.Property(e => e.StatusCadastroSap)
+            builder.Property(e => e.StatusCadastroERP)
                 .IsRequired()
                 .HasMaxLength(1)
                 .IsUnicode(false)
@@ -311,9 +306,14 @@ namespace WebZi.Plataform.Data.Mappings.Atendimento
             builder.Property(e => e.TotalImpressoes)
                 .HasColumnName("total_impressoes");
 
-            builder.HasOne(d => d.Grv).WithOne(p => p.Atendimento)
-                .HasForeignKey<AtendimentoModel>(d => d.GrvId)
-                .OnDelete(DeleteBehavior.NoAction);
+            builder.Property(e => e.DataCadastro)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("smalldatetime")
+                .HasColumnName("data_cadastro");
+
+            builder.Property(e => e.DataAlteracao)
+                .HasColumnType("smalldatetime")
+                .HasColumnName("data_alteracao");
 
             builder.HasOne(d => d.UsuarioCadastro).WithMany(p => p.UsuarioCadastroAtendimentos)
                 .HasForeignKey(d => d.UsuarioCadastroId)

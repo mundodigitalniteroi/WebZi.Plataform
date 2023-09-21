@@ -4,7 +4,7 @@
     {
         public static bool IsTelephone(string telephone)
         {
-            telephone = telephone.Trim();
+            telephone = telephone.Replace("-", "").Trim();
 
             if (string.IsNullOrWhiteSpace(telephone))
             {
@@ -24,7 +24,7 @@
 
         public static bool IsCellphone(string cellphone)
         {
-            cellphone = cellphone.Trim();
+            cellphone = cellphone.Replace("-", "").Trim();
 
             if (string.IsNullOrWhiteSpace(cellphone))
             {

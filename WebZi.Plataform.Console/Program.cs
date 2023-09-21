@@ -30,18 +30,6 @@ class Program
 
         // public async Task<string> Cadastrar(AtendimentoViewModel AtendimentoInput)
 
-        try
-        {
-            Testar(_context);
-        }
-        catch (Exception ex)
-        {
-            if (true)
-            {
-
-            }
-        }
-
         int GrvId = 375251;
 
         try
@@ -112,48 +100,5 @@ class Program
         {
 
         }
-    }
-
-    private static async Task<bool> Testar(AppDbContext _context)
-    {
-        AtendimentoViewModel AtendimentoInput = new()
-        {
-            GrvId = 1145732,
-            QualificacaoResponsavelId = 3,
-            UsuarioCadastroId = 1,
-            ResponsavelNome = "TESTE API NOME RESPONSÁVEL",
-            ResponsavelDocumento = "96637737585",
-            ResponsavelCnh = "96637737585",
-            ResponsavelEndereco = "RUA JÚLIA FERREIRA DA SILVA",
-            ResponsavelNumero = "135",
-            ResponsavelComplemento = "COMPLEMENTO",
-            ResponsavelBairro = "MONTE CASTELO",
-            ResponsavelMunicipio = "CABEDELO",
-            ResponsavelUf = "PB",
-            ResponsavelCep = "58101025",
-            ResponsavelDdd = "71",
-            ResponsavelTelefone = "998887777",
-            ProprietarioNome = "TESTE API NOME PROPRIETÁRIO",
-            ProprietarioTipoDocumentoId = 2,
-            ProprietarioDocumento = "96637737585",
-            ProprietarioEndereco = "RUA JÚLIA FERREIRA DA SILVA",
-            ProprietarioNumero = "135",
-            ProprietarioComplemento = "COMPLEMENTO",
-            ProprietarioBairro = "MONTE CASTELO",
-            ProprietarioMunicipio = "CABEDELO",
-            ProprietarioUf = "PB",
-            ProprietarioCep = "58101025",
-            ProprietarioDdd = "71",
-            ProprietarioTelefone = "998887777",
-            DataHoraInicioAtendimento = DateTime.Now,
-            TipoMeioCobrancaId = 1
-        };
-
-        AtendimentoService atendimentoService = new(_context, null);
-
-        string Atendimento = await atendimentoService
-                .Cadastrar(AtendimentoInput);
-
-        return true;
     }
 }

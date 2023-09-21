@@ -9,7 +9,7 @@ namespace WebZi.Plataform.CrossCutting.Documents
         {
             //915.331.274-09 (CPF VÁLIDO)
 
-            cpf = cpf.Trim();
+            cpf = cpf.Replace(".", "").Replace("-", "").Trim();
 
             if (string.IsNullOrWhiteSpace(cpf))
             {
@@ -95,7 +95,7 @@ namespace WebZi.Plataform.CrossCutting.Documents
         {
             //11.519.458/0001-78 (CNPJ VÁLIDO)
 
-            cnpj = cnpj.Trim();
+            cnpj = cnpj.Replace(".", "").Replace("/", "").Replace("-", "").Trim();
             
             if (string.IsNullOrWhiteSpace(cnpj))
             {

@@ -9511,15 +9511,15 @@ public partial class DbMobLinkDepositoPublicoDesenvolvimentoContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_tb_dep_usuarios_clientes2");
 
-            entity.HasOne(d => d.IdUsuarioNavigation).WithMany(p => p.TbDepUsuariosClienteIdUsuarioNavigations)
-                .HasForeignKey(d => d.IdUsuario)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("fk_tb_dep_usuarios_clientes1");
-
             entity.HasOne(d => d.IdUsuarioCadastroNavigation).WithMany(p => p.TbDepUsuariosClienteIdUsuarioCadastroNavigations)
                 .HasForeignKey(d => d.IdUsuarioCadastro)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_tb_dep_usuarios_clientes3");
+
+            entity.HasOne(d => d.IdUsuarioNavigation).WithMany(p => p.TbDepUsuariosClienteIdUsuarioNavigations)
+                .HasForeignKey(d => d.IdUsuario)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_tb_dep_usuarios_clientes1");
         });
 
         modelBuilder.Entity<TbDepUsuariosDeposito>(entity =>

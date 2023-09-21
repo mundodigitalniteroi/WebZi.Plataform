@@ -10,10 +10,6 @@ namespace WebZi.Plataform.Domain.Models.Faturamento
 
         public int? FaturamentoServicoTipoVeiculoId { get; set; }
 
-        public byte? FaturamentoTipoComposicaoId { get; set; }
-
-        public string DocumentoSapId { get; set; }
-
         public int? UsuarioDescontoId { get; set; }
 
         public int? UsuarioAlteracaoQuantidadeId { get; set; }
@@ -55,8 +51,6 @@ namespace WebZi.Plataform.Domain.Models.Faturamento
 
         public virtual FaturamentoServicoTipoVeiculoModel FaturamentoServicoTipoVeiculo { get; set; }
 
-        public virtual FaturamentoTipoComposicaoModel FaturamentoTipoComposicao { get; set; }
-
         public virtual UsuarioModel UsuarioAlteracaoQuantidade { get; set; }
 
         public virtual UsuarioModel UsuarioDesconto { get; set; }
@@ -64,22 +58,5 @@ namespace WebZi.Plataform.Domain.Models.Faturamento
         //public virtual ICollection<FaturamentoComposicaoNf> FaturamentoComposicaoNfs { get; set; } = new List<FaturamentoComposicaoNf>();
 
         //public virtual ICollection<NfeFaturamentoComposicao> NfeFaturamentoComposicaos { get; set; } = new List<NfeFaturamentoComposicao>();
-
-        // Para a Simulação
-        public string ServicoDescricao { get; set; }
-
-        public DateTime DataVigenciaInicial { get; set; }
-
-        public DateTime DataVigenciaFinal { get; set; }
-
-        public char StatusFaturamento { get; set; }
-
-        public int AtendimentoId { get; set; }
-
-        public string IdentificadorNotaFiscal { get; set; }
-
-        public string NumeroNotaFiscal { get; set; }
-
-        public bool SelecionarIdentificadorNotaFiscal { get; set; } = false;
     }
 }

@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Globalization;
-using WebZi.Plataform.Domain.Models.Atendimento;
+using WebZi.Plataform.Domain.Models;
 using WebZi.Plataform.Domain.Models.Leilao;
 
 namespace WebZi.Plataform.Data.Services.Leilao
@@ -14,7 +14,7 @@ namespace WebZi.Plataform.Data.Services.Leilao
             _context = context;
         }
 
-        public async Task<AtendimentoAvisoViewModel> GetAvisoLeilao(int GrvId, string StatusOperacaoId)
+        public async Task<AvisoViewModel> GetAvisoLeilao(int GrvId, string StatusOperacaoId)
         {
             if (!new[] { "V", "L", "T", "1", "2", "4" }.Contains(StatusOperacaoId))
             {
@@ -32,7 +32,7 @@ namespace WebZi.Plataform.Data.Services.Leilao
 
             if (LeilaoLote != null)
             {
-                AtendimentoAvisoViewModel aviso = new();
+                AvisoViewModel aviso = new();
 
                 DateTime dataLeilao = DateTime.ParseExact(LeilaoLote.Leilao.DataLeilao, "dd/MM/yyyy", CultureInfo.InvariantCulture);
 

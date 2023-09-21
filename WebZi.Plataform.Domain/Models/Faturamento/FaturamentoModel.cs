@@ -69,13 +69,13 @@ namespace WebZi.Plataform.Domain.Models.Faturamento
 
         public virtual UsuarioModel UsuarioAlteracao { get; set; }
 
-        public virtual ICollection<FaturamentoBoletoModel> FaturamentoBoletos { get; set; }
+        public virtual ICollection<FaturamentoBoletoModel> FaturamentoBoletos { get; set; } = new List<FaturamentoBoletoModel>();
 
-        public virtual ICollection<FaturamentoCodigoAutorizacaoCartaoModel> FaturamentoCodigosAutorizacoesCartoes { get; set; }
+        public virtual ICollection<FaturamentoCodigoAutorizacaoCartaoModel> FaturamentoCodigosAutorizacoesCartoes { get; set; } = new List<FaturamentoCodigoAutorizacaoCartaoModel>();
 
-        public virtual ICollection<FaturamentoComposicaoModel> FaturamentoComposicoes { get; set; }
+        public virtual ICollection<FaturamentoComposicaoModel> FaturamentoComposicoes { get; set; } = new List<FaturamentoComposicaoModel>();
 
-        public virtual ICollection<FaturamentoCartaoModel> FaturamentoCartoes { get; set; }
+        public virtual ICollection<FaturamentoCartaoModel> FaturamentoCartoes { get; set; } = new List<FaturamentoCartaoModel>();
 
         //public virtual ICollection<LiberacaoEspecial> LiberacaoEspecials { get; set; }
 
