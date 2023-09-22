@@ -76,6 +76,6 @@ namespace WebZi.Plataform.Domain.Models.Deposito
 
         public virtual ICollection<ReboquistaModel> Reboquistas { get; set; }
 
-        //public virtual ICollection<UsuarioDepositoModel> UsuariosDepositos { get; set; }
+        public virtual ICollection<UsuarioDepositoModel> UsuariosDepositos { get; set; }
     }
 }

@@ -1,8 +1,5 @@
-﻿using Castle.Core.Resource;
-using Microsoft.Data.SqlClient;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Reflection;
 using WebZi.Plataform.CrossCutting.Configuration;
 using WebZi.Plataform.Domain.Models.Atendimento;
@@ -18,6 +15,7 @@ using WebZi.Plataform.Domain.Models.Pessoa.Documento;
 using WebZi.Plataform.Domain.Models.Servico;
 using WebZi.Plataform.Domain.Models.Sistema;
 using WebZi.Plataform.Domain.Models.Usuario;
+using WebZi.Plataform.Domain.Models.Usuario.View;
 using WebZi.Plataform.Domain.Models.Veiculo;
 
 namespace WebZi.Plataform.Data.Database
@@ -47,7 +45,7 @@ namespace WebZi.Plataform.Data.Database
             Database.ExecuteSqlRaw($"EXECUTE dbo.sp_set_contextinfo {UsuarioId}");
         }
 
-        #region DbSets
+        #region DbSets public DbSet<XxxxxxxxModel> Xxxxxxxxs { get; set; }
 
         #region Depósito Público
         public DbSet<AtendimentoModel> Atendimentos { get; set; }
@@ -96,6 +94,8 @@ namespace WebZi.Plataform.Data.Database
 
         public DbSet<GrvModel> Grvs { get; set; }
 
+        public DbSet<LacreModel> Lacres { get; set; }
+
         public DbSet<ReboqueModel> Reboques { get; set; }
 
         public DbSet<ReboquistaModel> Reboquistas { get; set; }
@@ -120,6 +120,9 @@ namespace WebZi.Plataform.Data.Database
         #endregion Depósito Público
 
         #region Views
+
+        public DbSet<ViewUsuarioClienteDepositoModel> ViewUsuariosClientesDepositos { get; set; }
+
         public DbSet<ViewFaturamentoServicoGrvModel> ViewFaturamentoServicosGrvs { get; set; }
 
         public DbSet<ViewFaturamentoServicoAssociadoVeiculoModel> ViewFaturamentoServicosAssociadosVeiculos { get; set; }

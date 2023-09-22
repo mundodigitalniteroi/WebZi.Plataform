@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using WebZi.Plataform.Data.Services.Atendimento;
+using WebZi.Plataform.Data.Services.AutoMapper;
 using WebZi.Plataform.Data.Services.Cliente;
 using WebZi.Plataform.Data.Services.Deposito;
 using WebZi.Plataform.Data.Services.Faturamento;
@@ -15,6 +16,8 @@ namespace WebZi.Plataform.Data.Services
     {
         public static void RegisterServices(this IServiceCollection services)
         {
+            services.AddAutoMapper(typeof(AutoMapperService));
+
             services.AddScoped<AtendimentoService, AtendimentoService>();
 
             services.AddScoped<CalculoDiariasService, CalculoDiariasService>();
@@ -32,6 +35,8 @@ namespace WebZi.Plataform.Data.Services
             services.AddScoped<FeriadoService, FeriadoService>();
 
             services.AddScoped<GrvService, GrvService>();
+
+            services.AddScoped<LacreService,LacreService > ();
 
             services.AddScoped<LeilaoService, LeilaoService>();
 

@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using System.Text;
 using WebZi.Plataform.Data.Services.GRV;
 using WebZi.Plataform.Domain.Models.GRV;
+using WebZi.Plataform.Domain.Models.GRV.ViewModel;
 using WebZi.Plataform.Domain.Services.GRV;
 
 namespace WebZi.Plataform.API.Controllers
@@ -19,11 +20,11 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("{Identificador}/{Usuario}")]
-        public async Task<ActionResult<object>> Get(int Id, int Usuario)
+        public async Task<ActionResult<object>> Get(int Identificador, int Usuario)
         {
             StringBuilder erros = new();
 
-            if (Id <= 0)
+            if (Identificador <= 0)
             {
                 erros.AppendLine("Identificador do GRV inválido");
             }
@@ -38,9 +39,9 @@ namespace WebZi.Plataform.API.Controllers
                 return BadRequest(erros.ToString());
             }
 
-            GrvModel grv = await _provider
+            GrvViewModel grv = await _provider
                 .GetService<GrvService>()
-                .GetById(Id);
+                .GetById(Identificador, Usuario);
 
             if (grv == null)
             {
@@ -80,9 +81,9 @@ namespace WebZi.Plataform.API.Controllers
                 return BadRequest(erros.ToString());
             }
 
-            GrvModel grv = await _provider
+            GrvViewModel grv = await _provider
                 .GetService<GrvService>()
-                .GetByProcesso(NumeroProcesso, Cliente, Deposito);
+                .GetByNumeroFormularioGrv(NumeroProcesso, Cliente, Deposito, Usuario);
 
             if (grv == null)
             {
@@ -92,12 +93,20 @@ namespace WebZi.Plataform.API.Controllers
             return Ok(JsonConvert.SerializeObject(grv));
         }
 
-        [HttpGet("StatusOperacao")]
+        [HttpGet("ListarStatusOperacao")]
         public async Task<ActionResult<List<StatusOperacaoModel>>> ListarStatusOperacao()
         {
             return Ok(await _provider
                 .GetService<StatusOperacaoService>()
                 .List());
+        }
+
+        [HttpGet("ListarLacres")]
+        public async Task<ActionResult<List<LacreModel>>> ListarLacres(int GrvId, int Usuario)
+        {
+            return Ok(await _provider
+                .GetService<LacreService>()
+                .List(GrvId, Usuario));
         }
 
         // POST api/<GrvController>

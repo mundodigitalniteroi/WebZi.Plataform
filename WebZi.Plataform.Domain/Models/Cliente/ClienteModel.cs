@@ -125,6 +125,6 @@ namespace WebZi.Plataform.Domain.Models.Cliente
 
         public virtual ICollection<ReboquistaModel> Reboquistas { get; set; }
 
-        //public virtual ICollection<UsuariosCliente> UsuariosClientes { get; set; }
+        public virtual ICollection<UsuarioClienteModel> UsuariosClientes { get; set; }
     }
 }

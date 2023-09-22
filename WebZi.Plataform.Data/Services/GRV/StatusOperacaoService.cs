@@ -16,7 +16,7 @@ namespace WebZi.Plataform.Data.Services.GRV
         public async Task<StatusOperacaoModel> GetById(char id)
         {
             return await _context.StatusOperacoes
-                .Where(w => w.StatusOperacaoId.Equals(id.ToString().ToUpper()))
+                .Where(w => w.StatusOperacaoId == id.ToString().ToUpper())
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
         }

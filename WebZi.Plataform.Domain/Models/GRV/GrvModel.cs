@@ -215,7 +215,7 @@ namespace WebZi.Plataform.Domain.Models.GRV
 
         //public virtual ICollection<GrvFoto> GrvFotos { get; set; } = new List<GrvFoto>();
 
-        //public virtual ICollection<GrvLacre> GrvLacres { get; set; } = new List<GrvLacre>();
+        public virtual ICollection<LacreModel> Lacres { get; set; } = new List<LacreModel>();
 
         //public virtual ICollection<GrvVistorium> GrvVistoria { get; set; } = new List<GrvVistorium>();
 
