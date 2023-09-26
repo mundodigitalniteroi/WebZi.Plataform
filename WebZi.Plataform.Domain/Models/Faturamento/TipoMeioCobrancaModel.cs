@@ -1,6 +1,4 @@
-﻿using WebZi.Plataform.Domain.Models.GRV;
-
-namespace WebZi.Plataform.Domain.Models.Faturamento
+﻿namespace WebZi.Plataform.Domain.Models.Faturamento
 {
     public class TipoMeioCobrancaModel
     {
@@ -11,6 +9,8 @@ namespace WebZi.Plataform.Domain.Models.Faturamento
         public string Alias { get; set; }
 
         public string DocumentoImpressao { get; set; }
+
+        public string CodigoERP { get; set; }
 
         public string FlagBanco { get; set; } = "S";
 

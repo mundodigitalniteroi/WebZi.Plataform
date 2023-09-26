@@ -17,8 +17,9 @@ JsonConvert.DefaultSettings = () => new JsonSerializerSettings
 };
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services
+    .AddEndpointsApiExplorer()
+    .AddSwaggerGen();
 // builder.Services.Configure<JsonOptions>(options => options.SerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
 
 builder.Services.RegisterDependencies(builder.Configuration);
@@ -31,6 +32,13 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseCors(options =>
+{
+    options.AllowAnyMethod()
+        .AllowAnyHeader()
+        .AllowAnyOrigin();
+});
 
 app.UseHttpsRedirection();
 

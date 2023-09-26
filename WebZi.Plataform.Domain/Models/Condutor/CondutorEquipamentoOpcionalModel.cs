@@ -13,7 +13,7 @@ namespace WebZi.Plataform.Domain.Models.Condutor
 
         public int? UsuarioCadastroId { get; set; }
 
-        public int? UsuarioAtualizacaoId { get; set; }
+        public int? UsuarioAlteracaoId { get; set; }
 
         public int? CodigoAvaria { get; set; }
 
@@ -31,7 +31,7 @@ namespace WebZi.Plataform.Domain.Models.Condutor
 
         public virtual UsuarioModel UsuarioCadastro { get; set; }
 
-        public virtual UsuarioModel UsuarioAtualizacao { get; set; }
+        public virtual UsuarioModel UsuarioAlteracao { get; set; }
 
         public virtual ICollection<CondutorEquipamentoOpcionalNaoConformidadeModel> CondutorEquipamentosOpcionaisNaoConformidades { get; set; }
     }

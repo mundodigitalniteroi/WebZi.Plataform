@@ -1,8 +1,6 @@
-﻿using AutoMapper;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Domain.Models.GRV;
-using WebZi.Plataform.Domain.Models.GRV.ViewModel;
 using WebZi.Plataform.Domain.Models.Usuario.View;
 
 namespace WebZi.Plataform.Domain.Services.GRV
@@ -10,18 +8,16 @@ namespace WebZi.Plataform.Domain.Services.GRV
     public class GrvService
     {
         private readonly AppDbContext _context;
-        private readonly IMapper _mapper;
 
-        public GrvService(AppDbContext context, IMapper mapper)
+        public GrvService(AppDbContext context)
         {
             _context = context;
-            _mapper = mapper;
         }
 
-        public async Task<GrvViewModel> GetById(int GrvId, int UsuarioId)
+        public async Task<GrvModel> GetById(int GrvId, int UsuarioId)
         {
             GrvModel Grv = await _context.Grvs
-                .Where(w => w.GrvId.Equals(GrvId))
+                .Where(w => w.GrvId == GrvId)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
 
@@ -41,10 +37,10 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 }
             }
 
-            return _mapper.Map<GrvViewModel>(Grv);
+            return Grv;
         }
 
-        public async Task<GrvViewModel> GetByNumeroFormularioGrv(string NumeroFormularioGrv, int ClienteId, int DepositoId, int UsuarioId)
+        public async Task<GrvModel> GetByNumeroFormularioGrv(string NumeroFormularioGrv, int ClienteId, int DepositoId, int UsuarioId)
         {
             GrvModel Grv = await _context.Grvs
                 .Where(w => w.NumeroFormularioGrv.Equals(NumeroFormularioGrv) && w.ClienteId.Equals(ClienteId) && w.DepositoId.Equals(DepositoId))
@@ -67,13 +63,13 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 }
             }
 
-            return _mapper.Map<GrvViewModel>(Grv);
+            return Grv;
         }
 
         public async Task<bool> GrvExists(int GrvId)
         {
             GrvModel Grv = await _context.Grvs
-                .Where(w => w.GrvId.Equals(GrvId))
+                .Where(w => w.GrvId == GrvId)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
 
@@ -83,7 +79,11 @@ namespace WebZi.Plataform.Domain.Services.GRV
         public async Task<bool> UserCanAccessGrv(int GrvId, int UsuarioId)
         {
             GrvModel Grv = await _context.Grvs
-                .Where(w => w.GrvId.Equals(GrvId))
+                .Include(i => i.Cliente)
+                .ThenInclude(t => t.UsuariosClientes.Where(w => w.UsuarioId == UsuarioId))
+                .Include(i => i.Deposito)
+                .ThenInclude(t => t.UsuariosDepositos.Where(w => w.UsuarioId == UsuarioId))
+                .Where(w => w.GrvId == GrvId)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
 

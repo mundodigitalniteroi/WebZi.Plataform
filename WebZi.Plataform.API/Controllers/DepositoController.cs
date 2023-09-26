@@ -25,16 +25,16 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("GetById")]
-        public async Task<ActionResult<object>> GetById(int Id)
+        public async Task<ActionResult<object>> GetById(int DepositoId)
         {
-            if (Id <= 0)
+            if (DepositoId <= 0)
             {
                 return BadRequest("Identificador do Depósito inválido");
             }
 
             DepositoModel result = await _provider
                 .GetService<DepositoService>()
-                .GetById(Id);
+                .GetById(DepositoId);
 
             if (result == null)
             {
@@ -65,16 +65,16 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("GetDateTimeById")]
-        public async Task<ActionResult<DateTime>> GetDateTimeById(int Id)
+        public async Task<ActionResult<DateTime>> GetDateTimeById(int DepositoId)
         {
-            if (Id <= 0)
+            if (DepositoId <= 0)
             {
                 return BadRequest("Identificador do Depósito inválido");
             }
 
             DateTime result = await _provider
                 .GetService<DepositoService>()
-                .SelecionarDataHoraPorDeposito(Id);
+                .SelecionarDataHoraPorDeposito(DepositoId);
 
             return Ok(result);
         }

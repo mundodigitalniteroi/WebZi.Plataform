@@ -1,4 +1,5 @@
-﻿using WebZi.Plataform.Domain.Models.Faturamento;
+﻿using WebZi.Plataform.Domain.Models.Banco;
+using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.GRV;
 using WebZi.Plataform.Domain.Models.Servico;
 using WebZi.Plataform.Domain.Models.Usuario;
@@ -95,7 +96,7 @@ namespace WebZi.Plataform.Domain.Models.Cliente
 
         public virtual TipoMeioCobrancaModel TipoMeioCobranca { get; set; }
 
-        //public virtual AgenciasBancaria AgenciaBancaria { get; set; }
+        public virtual AgenciaBancariaModel AgenciaBancaria { get; set; }
 
         //public virtual OrgaoExecutivoTransito OrgaoExecutivoTransito { get; set; }
 

@@ -32,7 +32,6 @@
     <Folder Include="Services\Liberacao\" />
     <Folder Include="Services\Nfe\" />
     <Folder Include="Services\Pessoa\Documento\" />
-    <Folder Include="Services\Usuario\" />
     <Folder Include="Services\Veiculo\" />
   </ItemGroup>
 

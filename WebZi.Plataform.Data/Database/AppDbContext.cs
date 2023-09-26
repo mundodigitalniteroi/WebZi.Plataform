@@ -3,7 +3,9 @@ using Microsoft.Extensions.Logging;
 using System.Reflection;
 using WebZi.Plataform.CrossCutting.Configuration;
 using WebZi.Plataform.Domain.Models.Atendimento;
+using WebZi.Plataform.Domain.Models.Banco;
 using WebZi.Plataform.Domain.Models.Cliente;
+using WebZi.Plataform.Domain.Models.ClienteDeposito;
 using WebZi.Plataform.Domain.Models.Deposito;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.Faturamento.View;
@@ -45,14 +47,20 @@ namespace WebZi.Plataform.Data.Database
             Database.ExecuteSqlRaw($"EXECUTE dbo.sp_set_contextinfo {UsuarioId}");
         }
 
-        #region DbSets public DbSet<XxxxxxxxModel> Xxxxxxxxs { get; set; }
+        #region DbSets public DbSet<XxxxxxxxModel> s { get; set; }
 
         #region Depósito Público
+        public DbSet<AgenciaBancariaModel> AgenciasBancarias { get; set; }
+
         public DbSet<AtendimentoModel> Atendimentos { get; set; }
 
         public DbSet<AtendimentoFotoResponsavelModel> AtendimentosFotosResponsaveis { get; set; }
 
+        public DbSet<BancoModel> Bancos { get; set; }
+
         public DbSet<ClienteModel> Clientes { get; set; }
+
+        public DbSet<ClienteDepositoModel> ClientesDepositos { get; set; }
 
         public DbSet<DepositoModel> Depositos { get; set; }
 
@@ -123,6 +131,8 @@ namespace WebZi.Plataform.Data.Database
 
         public DbSet<ViewUsuarioClienteDepositoModel> ViewUsuariosClientesDepositos { get; set; }
 
+        public DbSet<ViewFaturamentoBoletoModel> ViewFaturamentoBoleto { get; set; }
+
         public DbSet<ViewFaturamentoServicoGrvModel> ViewFaturamentoServicosGrvs { get; set; }
 
         public DbSet<ViewFaturamentoServicoAssociadoVeiculoModel> ViewFaturamentoServicosAssociadosVeiculos { get; set; }
@@ -138,6 +148,8 @@ namespace WebZi.Plataform.Data.Database
         public DbSet<LeilaoLoteStatusModel> LeilaoLotesStatus { get; set; }
 
         public DbSet<LeilaoStatusModel> LeilaoStatus { get; set; }
+
+        public DbSet<LiberacaoLeilaoModel> LiberacaoLeilao { get; set; }
         #endregion
 
         #region Localização

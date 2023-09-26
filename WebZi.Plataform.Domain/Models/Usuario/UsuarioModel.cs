@@ -136,7 +136,7 @@ namespace WebZi.Plataform.Domain.Models.Usuario
 
         //public virtual ICollection<ComunicacaoEmail> ComunicacaoEmails { get; set; } = new List<ComunicacaoEmail>();
 
-        //public virtual ICollection<CondutorEquipamentosOpcionai> CondutorEquipamentosOpcionaiIdUsuarioAtualizacaoNavigation { get; set; } = new List<CondutorEquipamentosOpcionai>();
+        //public virtual ICollection<CondutorEquipamentosOpcionai> CondutorEquipamentosOpcionaiIdUsuarioAlteracaoNavigation { get; set; } = new List<CondutorEquipamentosOpcionai>();
 
         //public virtual ICollection<CondutorEquipamentosOpcionai> CondutorEquipamentosOpcionaiIdUsuarioCadastroNavigation { get; set; } = new List<CondutorEquipamentosOpcionai>();
 
@@ -208,7 +208,7 @@ namespace WebZi.Plataform.Domain.Models.Usuario
 
         //public virtual ICollection<GrvFoto> GrvFotos { get; set; } = new List<GrvFoto>();
 
-        //public virtual ICollection<GrvLacre> GrvLacreIdUsuarioAtualizacaoNavigation { get; set; } = new List<GrvLacre>();
+        //public virtual ICollection<GrvLacre> GrvLacreIdUsuarioAlteracaoNavigation { get; set; } = new List<GrvLacre>();
 
         //public virtual ICollection<GrvLacre> GrvLacreIdUsuarioCadastroNavigation { get; set; } = new List<GrvLacre>();
 

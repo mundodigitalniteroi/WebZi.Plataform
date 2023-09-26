@@ -10,7 +10,7 @@
 
         public int? UsuarioCadastroId { get; set; }
 
-        public int? UsuarioAtualizacaoId { get; set; }
+        public int? UsuarioAlteracaoId { get; set; }
 
         public string Lacre { get; set; }
 
@@ -18,12 +18,12 @@
 
         public DateTime DataCadastro { get; set; }
 
-        public DateTime? DataAtualizacao { get; set; }
+        public DateTime? DataAlteracao { get; set; }
 
         //public virtual GrvLacresMotivosDesassociacao LacreMotivoDesassociacao { get; set; }
 
-        //public virtual Usuario IdUsuarioAtualizacaoNavigation { get; set; }
+        //public virtual Usuario UsuarioAlteracaoNavigation { get; set; }
 
-        //public virtual Usuario IdUsuarioCadastroNavigation { get; set; }
+        //public virtual Usuario UsuarioCadastroNavigation { get; set; }
     }
 }

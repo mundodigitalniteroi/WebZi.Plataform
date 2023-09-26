@@ -25,7 +25,7 @@ namespace WebZi.Plataform.Data.Mappings.GRV
             builder.Property(e => e.UsuarioCadastroId)
                 .HasColumnName("id_usuario_cadastro");
 
-            builder.Property(e => e.UsuarioAtualizacaoId)
+            builder.Property(e => e.UsuarioAlteracaoId)
                 .HasColumnName("id_usuario_atualizacao");
             
             builder.Property(e => e.Lacre)
@@ -43,7 +43,7 @@ namespace WebZi.Plataform.Data.Mappings.GRV
                 .HasColumnType("smalldatetime")
                 .HasColumnName("data_cadastro");
 
-            builder.Property(e => e.DataAtualizacao)
+            builder.Property(e => e.DataAlteracao)
                 .HasColumnType("smalldatetime")
                 .HasColumnName("data_atualizacao");
         }

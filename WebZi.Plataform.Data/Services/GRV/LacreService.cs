@@ -16,7 +16,7 @@ namespace WebZi.Plataform.Data.Services.GRV
 
         public async Task<List<LacreModel>> List(int GrvId, int UsuarioId)
         {
-            if (!await new GrvService(_context, null).UserCanAccessGrv(GrvId, UsuarioId))
+            if (!await new GrvService(_context).UserCanAccessGrv(GrvId, UsuarioId))
             {
                 return null;
             }

@@ -37,7 +37,11 @@ namespace WebZi.Plataform.Domain.Models.Faturamento
 
         public GrvModel Grv { get; set; }
 
+        public TipoMeioCobrancaModel TipoMeioCobranca { get; set; }
+
         public AtendimentoModel Atendimento { get; set; }
+
+        public FaturamentoModel Faturamento { get; set; }
 
         public List<CalculoFaturamentoQuantidadeAlteradaModel> FaturamentoQuantidadesAlteradas { get; set; }
 

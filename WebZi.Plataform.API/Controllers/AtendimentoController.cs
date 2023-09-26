@@ -1,5 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
 using System.Text;
 using WebZi.Plataform.CrossCutting.Strings;
 using WebZi.Plataform.Data.Services.Atendimento;
@@ -8,6 +8,8 @@ using WebZi.Plataform.Domain.Models;
 using WebZi.Plataform.Domain.Models.Atendimento;
 using WebZi.Plataform.Domain.Models.Atendimento.ViewModel;
 using WebZi.Plataform.Domain.Models.Faturamento;
+using WebZi.Plataform.Domain.Models.Usuario.ViewModel;
+using WebZi.Plataform.Domain.Services.Usuario;
 
 namespace WebZi.Plataform.API.Controllers
 {
@@ -16,23 +18,25 @@ namespace WebZi.Plataform.API.Controllers
     public class AtendimentoController : ControllerBase
     {
         private readonly IServiceProvider _provider;
+        private readonly IMapper _mapper;
 
-        public AtendimentoController(IServiceProvider provider)
+        public AtendimentoController(IServiceProvider provider, IMapper mapper)
         {
             _provider = provider;
+            _mapper = mapper;
         }
 
-        [HttpGet("{Identificador}/{Usuario}")]
-        public async Task<ActionResult<object>> Get(int Id, int Usuario)
+        [HttpGet("GetById")]
+        public async Task<ActionResult<AtendimentoViewModel>> GetById(int AtendimentoId, int UsuarioId)
         {
             StringBuilder erros = new();
 
-            if (Id <= 0)
+            if (AtendimentoId <= 0)
             {
                 erros.AppendLine("Identificador do Atendimento inválido");
             }
 
-            if (Usuario <= 0)
+            if (UsuarioId <= 0)
             {
                 erros.AppendLine("Identificador do Usuário inválido");
             }
@@ -42,20 +46,20 @@ namespace WebZi.Plataform.API.Controllers
                 return BadRequest(erros.ToString());
             }
 
-            AtendimentoModel atendimento = await _provider
-                .GetService<AtendimentoService>()
-                .GetById(Id, Usuario);
-
-            if (atendimento == null)
+            if (!await FindUser(UsuarioId))
             {
-                return NotFound("Atendimento sem permissão de acesso ou inexistente");
+                return BadRequest("Usuário sem permissão de acesso ou inexistente");
             }
 
-            return Ok(JsonConvert.SerializeObject(atendimento));
+            AtendimentoModel result = await _provider
+                .GetService<AtendimentoService>()
+                .GetById(AtendimentoId, UsuarioId);
+
+            return result != null ? _mapper.Map<AtendimentoViewModel>(result) : NotFound("Atendimento sem permissão de acesso ou inexistente");
         }
 
-        [HttpGet("{NumeroProcesso}/{Cliente}/{Deposito}/{Usuario}")]
-        public async Task<ActionResult<object>> Get(string NumeroProcesso, int Cliente, int Deposito, int Usuario)
+        [HttpGet("GetByProcesso")]
+        public async Task<ActionResult<AtendimentoViewModel>> GetByProcesso(string NumeroProcesso, int ClienteId, int DepositoId, int UsuarioId)
         {
             StringBuilder erros = new();
 
@@ -72,17 +76,17 @@ namespace WebZi.Plataform.API.Controllers
                 erros.AppendLine("Número do Processo inválido");
             }
 
-            if (Cliente <= 0)
+            if (ClienteId <= 0)
             {
                 erros.AppendLine("Identificador do Cliente inválido");
             }
 
-            if (Deposito <= 0)
+            if (DepositoId <= 0)
             {
                 erros.AppendLine("Identificador do Depósito inválido ");
             }
 
-            if (Usuario <= 0)
+            if (UsuarioId <= 0)
             {
                 erros.AppendLine("Identificador do Usuário inválido");
             }
@@ -92,28 +96,62 @@ namespace WebZi.Plataform.API.Controllers
                 return BadRequest(erros.ToString());
             }
 
-            AtendimentoModel atendimento = await _provider
-                .GetService<AtendimentoService>()
-                .GetByProcesso(NumeroProcesso, Cliente, Deposito, Usuario);
-
-            if (atendimento == null)
+            if (!await FindUser(UsuarioId))
             {
-                return NotFound("Atendimento sem permissão de acesso ou inexistente");
+                return BadRequest("Usuário sem permissão de acesso ou inexistente");
             }
 
-            return Ok(JsonConvert.SerializeObject(atendimento));
+            AtendimentoModel result = await _provider
+                .GetService<AtendimentoService>()
+                .GetByProcesso(NumeroProcesso, ClienteId, DepositoId, UsuarioId);
+
+            return result != null ? _mapper.Map<AtendimentoViewModel>(result) : NotFound("Atendimento sem permissão de acesso ou inexistente");
         }
 
-        [HttpGet("QualificacaoResponsavel")]
-        public async Task<ActionResult<List<QualificacaoResponsavelModel>>> ListarQualificacaoResponsavel()
+        [HttpGet("GetBoleto")]
+        public async Task<ActionResult<AtendimentoViewModel>> GetBoleto(int AtendimentoId, int UsuarioId)
         {
-            return Ok(await _provider
-                .GetService<QualificacaoResponsavelService>()
-                .List());
+            StringBuilder erros = new();
+
+            if (AtendimentoId <= 0)
+            {
+                erros.AppendLine("Identificador do Atendimento inválido");
+            }
+
+            if (UsuarioId <= 0)
+            {
+                erros.AppendLine("Identificador do Usuário inválido");
+            }
+
+            if (!string.IsNullOrWhiteSpace(erros.ToString()))
+            {
+                return BadRequest(erros.ToString());
+            }
+
+            if (!await FindUser(UsuarioId))
+            {
+                return BadRequest("Usuário sem permissão de acesso ou inexistente");
+            }
+
+            AtendimentoModel result = await _provider
+                .GetService<AtendimentoService>()
+                .GetById(AtendimentoId, UsuarioId);
+
+            return result != null ? _mapper.Map<AtendimentoViewModel>(result) : NotFound("Atendimento sem permissão de acesso ou inexistente");
         }
 
-        [HttpGet("TipoMeioCobranca")]
-        public async Task<ActionResult<List<TipoMeioCobrancaModel>>> ListarTipoMeioCobranca()
+        [HttpGet("ListQualificacaoResponsavel")]
+        public async Task<ActionResult<List<QualificacaoResponsavelModel>>> ListQualificacaoResponsavel()
+        {
+            var result = await _provider
+                .GetService<QualificacaoResponsavelService>()
+                .List();
+
+            return result?.Count > 0 ? _mapper.Map<List<QualificacaoResponsavelModel>>(result) : NotFound("Qualificação do Responsável não encontrado");
+        }
+
+        [HttpGet("ListTipoMeioCobranca")]
+        public async Task<ActionResult<List<TipoMeioCobrancaModel>>> ListTipoMeioCobranca()
         {
             return Ok(await _provider
                 .GetService<TipoMeioCobrancaService>()
@@ -142,7 +180,7 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpPost("Cadastrar")]
-        public async Task<ActionResult<object>> Cadastrar(AtendimentoCadastroViewModel Atendimento)
+        public async Task<ActionResult<AtendimentoCadastroResultViewModel>> Cadastrar(AtendimentoCadastroViewModel Atendimento)
         {
             MensagemViewModel mensagem = await _provider
                 .GetService<AtendimentoService>()
@@ -153,6 +191,11 @@ namespace WebZi.Plataform.API.Controllers
                 mensagem.Status = "NÃO ESTÁ APTO PARA O CADASTRO";
 
                 return BadRequest(mensagem);
+            }
+
+            if (!await FindUser(Atendimento.UsuarioId))
+            {
+                return BadRequest("Usuário sem permissão de acesso ou inexistente");
             }
 
             AtendimentoCadastroResultViewModel AtendimentoCadastroResultView = new();
@@ -176,6 +219,15 @@ namespace WebZi.Plataform.API.Controllers
 
                 return BadRequest(AtendimentoCadastroResultView);
             }
+        }
+
+        private async Task<bool> FindUser(int UsuarioId)
+        {
+            UsuarioViewModel Usuario = await _provider
+                .GetService<UsuarioService>()
+                .GetById(UsuarioId);
+
+            return Usuario != null && Usuario.FlagAtivo != "N";
         }
     }
 }

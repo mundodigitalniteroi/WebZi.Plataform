@@ -1,22 +1,12 @@
-﻿using WebZi.Plataform.Domain.Models.Faturamento;
-using WebZi.Plataform.Domain.Models.GRV;
-using WebZi.Plataform.Domain.Models.Usuario;
-
-namespace WebZi.Plataform.Domain.Models.Atendimento
+﻿namespace WebZi.Plataform.Domain.Models.Atendimento.ViewModel
 {
-    public class AtendimentoModel
+    public class AtendimentoViewModel
     {
         public int AtendimentoId { get; set; }
 
         public int GrvId { get; set; }
 
         public byte QualificacaoResponsavelId { get; set; }
-
-        public long? PessoaFaturamentoId { get; set; }
-
-        public int? EmpresaFaturamentoId { get; set; }
-
-        public string DocumentoSapId { get; set; }
 
         public int UsuarioCadastroId { get; set; }
 
@@ -110,32 +100,16 @@ namespace WebZi.Plataform.Domain.Models.Atendimento
 
         public string StatusCadastroERP { get; set; } = "N";
 
-        public string StatusCadastroOrdemVendaERP { get; set; } = "N";
-
-        public DateTime? DataHoraInicioAtendimento { get; set; }
-
-        public DateTime? DataImpressao { get; set; }
-
-        public DateTime DataCadastro { get; set; }
-
-        public DateTime? DataAlteracao { get; set; }
+        public string StatusCadastroOrdensVendaERP { get; set; } = "N";
 
         public string FlagPagamentoFinanciado { get; set; } = "N";
 
         public string FlagAtendimentoWs { get; set; } = "N";
 
-        public virtual GrvModel Grv { get; set; }
+        public DateTime? DataHoraInicioAtendimento { get; set; }
 
-        public virtual QualificacaoResponsavelModel QualificacaoResponsavel { get; set; }
+        public DateTime DataCadastro { get; set; }
 
-        public virtual UsuarioModel UsuarioCadastro { get; set; }
-
-        public virtual UsuarioModel UsuarioAlteracao { get; set; }
-
-        public virtual ICollection<AtendimentoFotoResponsavelModel> AtendimentoSFotoSResponsaveIS { get; set; }
-
-        //public virtual ICollection<AtendimentoSaidaReparo> AtendimentoSaidaReparos { get; set; }
-
-        public virtual List<FaturamentoModel> Faturamentos { get; set; } = new List<FaturamentoModel>();
+        public DateTime? DataAlteracao { get; set; }
     }
 }

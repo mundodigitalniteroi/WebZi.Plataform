@@ -32,7 +32,7 @@ namespace WebZi.Plataform.Data.Services.Cliente
         public async Task<ClienteModel> GetByName(string Name)
         {
             return await _context.Clientes
-                .Where(w => w.Nome == Name)
+                .Where(w => w.Nome.Contains(Name))
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
         }

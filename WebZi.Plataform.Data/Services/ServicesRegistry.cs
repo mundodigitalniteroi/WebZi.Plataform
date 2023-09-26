@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using WebZi.Plataform.Data.Services.Atendimento;
 using WebZi.Plataform.Data.Services.AutoMapper;
+using WebZi.Plataform.Data.Services.Banco;
 using WebZi.Plataform.Data.Services.Cliente;
 using WebZi.Plataform.Data.Services.Deposito;
 using WebZi.Plataform.Data.Services.Faturamento;
@@ -9,6 +10,7 @@ using WebZi.Plataform.Data.Services.Leilao;
 using WebZi.Plataform.Data.Services.Localizacao;
 using WebZi.Plataform.Data.Services.Sistema;
 using WebZi.Plataform.Domain.Services.GRV;
+using WebZi.Plataform.Domain.Services.Usuario;
 
 namespace WebZi.Plataform.Data.Services
 {
@@ -18,7 +20,11 @@ namespace WebZi.Plataform.Data.Services
         {
             services.AddAutoMapper(typeof(AutoMapperService));
 
+            services.AddScoped<AgenciaBancariaService, AgenciaBancariaService>();
+
             services.AddScoped<AtendimentoService, AtendimentoService>();
+
+            services.AddScoped<BancoService, BancoService>();
 
             services.AddScoped<CalculoDiariasService, CalculoDiariasService>();
 
@@ -36,7 +42,7 @@ namespace WebZi.Plataform.Data.Services
 
             services.AddScoped<GrvService, GrvService>();
 
-            services.AddScoped<LacreService,LacreService > ();
+            services.AddScoped<LacreService, LacreService>();
 
             services.AddScoped<LeilaoService, LeilaoService>();
 
@@ -45,6 +51,8 @@ namespace WebZi.Plataform.Data.Services
             services.AddScoped<StatusOperacaoService, StatusOperacaoService>();
 
             services.AddScoped<TipoMeioCobrancaService, TipoMeioCobrancaService>();
+
+            services.AddScoped<UsuarioService, UsuarioService>();
         }
     }
 }

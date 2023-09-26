@@ -19,7 +19,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             _context = context;
         }
 
-        public async Task Faturar(CalculoFaturamentoParametroModel ParametrosCalculoFaturamento)
+        public async Task<FaturamentoModel> Faturar(CalculoFaturamentoParametroModel ParametrosCalculoFaturamento)
         {
             if (ParametrosCalculoFaturamento.DataLiberacao == DateTime.MinValue)
             {
@@ -459,6 +459,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
                 await _context.Faturamentos.AddAsync(Faturamento);
             }
+
+            return Faturamento;
             #endregion Cadastro do Faturamento
         }
 

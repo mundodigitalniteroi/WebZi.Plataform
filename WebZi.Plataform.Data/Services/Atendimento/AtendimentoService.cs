@@ -11,8 +11,11 @@ using WebZi.Plataform.Data.Services.Leilao;
 using WebZi.Plataform.Domain.Models;
 using WebZi.Plataform.Domain.Models.Atendimento;
 using WebZi.Plataform.Domain.Models.Atendimento.ViewModel;
+using WebZi.Plataform.Domain.Models.ClienteDeposito;
 using WebZi.Plataform.Domain.Models.Faturamento;
+using WebZi.Plataform.Domain.Models.Faturamento.View;
 using WebZi.Plataform.Domain.Models.GRV;
+using WebZi.Plataform.Domain.Models.Leilao;
 using WebZi.Plataform.Domain.Models.Pagamento.ViewModel;
 using WebZi.Plataform.Domain.Models.Pessoa.Documento;
 
@@ -566,7 +569,23 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 TipoMeioCobrancaId = Grv.Cliente.TipoMeioCobrancaId.HasValue && Grv.Cliente.TipoMeioCobrancaId.Value > 0 ? Grv.Cliente.TipoMeioCobrancaId.Value : AtendimentoInput.TipoMeioCobrancaId
             };
 
+            ParametrosCalculoFaturamento.TipoMeioCobranca = TiposMeiosCobrancas.First(w => w.TipoMeioCobrancaId == ParametrosCalculoFaturamento.TipoMeioCobrancaId);
+
+            // Esta funcionalidade altera o GRV com Status de Leilão para Status de Atendimento
+            // para que o fluxo do Atendimento/Faturamento/Liberação funcionem.
+            string StatusOperacaoLeilaoId = string.Empty;
+
+            if (new[] { "1", "2", "4" }.Contains(Grv.StatusOperacaoId))
+            {
+                StatusOperacaoLeilaoId = Grv.StatusOperacaoId;
+            }
+
             ParametrosCalculoFaturamento.StatusOperacaoId = GrvToUpdate.StatusOperacaoId = await GetStatusOperacao(TiposMeiosCobrancas, ParametrosCalculoFaturamento.TipoMeioCobrancaId);
+
+            ClienteDepositoModel ClienteDeposito = await _context.ClientesDepositos
+                .Where(w => w.ClienteId == 0 && w.DepositoId == 0)
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
 
             AtendimentoCadastroResultViewModel atendimentoCadastroResultView = new();
 
@@ -592,24 +611,53 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
                     ParametrosCalculoFaturamento.Atendimento = Atendimento;
 
-                    await new FaturamentoService(_context)
+                    ParametrosCalculoFaturamento.Faturamento = await new FaturamentoService(_context)
                         .Faturar(ParametrosCalculoFaturamento);
+
+                    if (ParametrosCalculoFaturamento.Grv.Cliente.FlagEmissaoNotaFiscal == "S" && !string.IsNullOrWhiteSpace(ClienteDeposito.CodigoERPOrdemVenda))
+                    {
+                        Atendimento.StatusCadastroERP = "P";
+
+                        if (ParametrosCalculoFaturamento.Faturamento.ValorFaturado > 0)
+                        {
+                            Atendimento.StatusCadastroOrdemVendaERP = "P";
+                        }
+
+                        _context.Atendimentos.Update(Atendimento);
+                    }
 
                     _context.Grvs.Update(GrvToUpdate);
 
                     await _context.SaveChangesAsync();
 
+                    if (new[] { "1", "2", "3" }.Contains(StatusOperacaoLeilaoId))
+                    {
+                        LiberacaoLeilaoModel LiberacaoLeilao = new()
+                        {
+                            GrvId = GrvToUpdate.GrvId,
+
+                            StatusOperacaoLeilaoId = StatusOperacaoLeilaoId,
+
+                            UsuarioCadastroId = ParametrosCalculoFaturamento.UsuarioCadastroId
+                        };
+
+                        await _context.LiberacaoLeilao.AddAsync(LiberacaoLeilao);
+                    }
+
                     transaction.Commit();
+
+                    atendimentoCadastroResultView.AtendimentoId = Atendimento.AtendimentoId;
                 }
                 catch (Exception ex)
                 {
                     transaction.Rollback();
 
+                    atendimentoCadastroResultView.Mensagem.Erros.Add(ex.Message);
                     atendimentoCadastroResultView.Mensagem.Erros.Add(ex.InnerException.Message);
                 }
             }
 
-            atendimentoCadastroResultView.AtendimentoId = Atendimento.AtendimentoId;
+            GerarFormaPagamento(_context, ParametrosCalculoFaturamento);
 
             return atendimentoCadastroResultView;
         }
@@ -640,6 +688,32 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             }
 
             return StatusOperacaoId;
+        }
+
+        private static async void GerarFormaPagamento(AppDbContext _context, CalculoFaturamentoParametroModel ParametrosCalculoFaturamento)
+        {
+            if (ParametrosCalculoFaturamento.Grv.Cliente.FlagClienteRealizaFaturamentoArrecadacao != "N" || ParametrosCalculoFaturamento.Faturamento.ValorFaturado <= 0)
+            {
+                return;
+            }
+
+            // BOLETO
+            if (ParametrosCalculoFaturamento.TipoMeioCobranca.CodigoERP == "D")
+            {
+                FaturamentoBoletoModel FaturamentoBoleto = await _context.FaturamentoBoletos
+                    .FirstOrDefaultAsync(w => w.FaturamentoId == ParametrosCalculoFaturamento.Faturamento.FaturamentoId && w.Status == "N");
+
+                FaturamentoBoleto.Status = "C";
+
+                _context.FaturamentoBoletos.Update(FaturamentoBoleto);
+
+                ViewFaturamentoBoletoModel ViewFaturamentoBoleto = await _context.ViewFaturamentoBoleto
+                    .FirstOrDefaultAsync(w => w.FaturamentoId == ParametrosCalculoFaturamento.Faturamento.FaturamentoId);
+
+
+            }
+
+            return;
         }
     }
 }

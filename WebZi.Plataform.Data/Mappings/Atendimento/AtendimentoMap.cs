@@ -287,7 +287,7 @@ namespace WebZi.Plataform.Data.Mappings.Atendimento
                 .IsFixedLength()
                 .HasColumnName("responsavel_uf");
 
-            builder.Property(e => e.StatusCadastroOrdensVendaERP)
+            builder.Property(e => e.StatusCadastroOrdemVendaERP)
                 .IsRequired()
                 .HasMaxLength(1)
                 .IsUnicode(false)

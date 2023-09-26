@@ -32,6 +32,12 @@ namespace WebZi.Plataform.Data.Mappings.Faturamento
                 .IsUnicode(false)
                 .HasColumnName("documento_impressao");
 
+            builder.Property(e => e.CodigoERP)
+                .HasMaxLength(1)
+                .IsUnicode(false)
+                .IsFixedLength()
+                .HasColumnName("codigo_sap");
+
             builder.Property(e => e.FlagBanco)
                 .IsRequired()
                 .HasMaxLength(1)

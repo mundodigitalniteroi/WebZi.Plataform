@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using WebZi.Plataform.Data.Services.Cliente;
+using WebZi.Plataform.Domain.Models.Banco.ViewModel;
 using WebZi.Plataform.Domain.Models.Cliente;
 
 namespace WebZi.Plataform.API.Controllers
@@ -16,36 +17,23 @@ namespace WebZi.Plataform.API.Controllers
             _provider = provider;
         }
 
-        [HttpGet("List")]
-        public async Task<ActionResult<List<object>>> List()
-        {
-            return Ok(await _provider
-                .GetService<ClienteService>()
-                .List());
-        }
-
         [HttpGet("GetById")]
-        public async Task<ActionResult<object>> GetById(int Id)
+        public async Task<ActionResult<ClienteModel>> GetById(int ClienteId)
         {
-            if (Id <= 0)
+            if (ClienteId <= 0)
             {
                 return BadRequest("Identificador do Cliente inválido");
             }
 
             ClienteModel result = await _provider
                 .GetService<ClienteService>()
-                .GetById(Id);
+                .GetById(ClienteId);
 
-            if (result == null)
-            {
-                return NotFound("Cliente não encontrado");
-            }
-
-            return Ok(JsonConvert.SerializeObject(result));
+            return result != null ? Ok(JsonConvert.SerializeObject(result)) : NotFound("Cliente não encontrado");
         }
 
         [HttpGet("GetByName")]
-        public async Task<ActionResult<object>> GetByName(string Name)
+        public async Task<ActionResult<ClienteModel>> GetByName(string Name)
         {
             if (string.IsNullOrEmpty(Name))
             {
@@ -56,12 +44,7 @@ namespace WebZi.Plataform.API.Controllers
                 .GetService<ClienteService>()
                 .GetByName(Name.ToUpper().Trim());
 
-            if (result == null)
-            {
-                return NotFound("Cliente não encontrado");
-            }
-
-            return Ok(JsonConvert.SerializeObject(result));
+            return result != null ? Ok(JsonConvert.SerializeObject(result)) : NotFound("Cliente não encontrado");
         }
     }
 }

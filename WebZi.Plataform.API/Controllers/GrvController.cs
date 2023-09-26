@@ -1,10 +1,16 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
 using System.Text;
+using WebZi.Plataform.Data.Services.Cliente;
+using WebZi.Plataform.Data.Services.Deposito;
 using WebZi.Plataform.Data.Services.GRV;
+using WebZi.Plataform.Domain.Models.Cliente;
+using WebZi.Plataform.Domain.Models.Deposito;
 using WebZi.Plataform.Domain.Models.GRV;
 using WebZi.Plataform.Domain.Models.GRV.ViewModel;
+using WebZi.Plataform.Domain.Models.Usuario.ViewModel;
 using WebZi.Plataform.Domain.Services.GRV;
+using WebZi.Plataform.Domain.Services.Usuario;
 
 namespace WebZi.Plataform.API.Controllers
 {
@@ -13,23 +19,25 @@ namespace WebZi.Plataform.API.Controllers
     public class GrvController : ControllerBase
     {
         private readonly IServiceProvider _provider;
+        private readonly IMapper _mapper;
 
-        public GrvController(IServiceProvider provider)
+        public GrvController(IServiceProvider provider, IMapper mapper)
         {
             _provider = provider;
+            _mapper = mapper;
         }
 
-        [HttpGet("{Identificador}/{Usuario}")]
-        public async Task<ActionResult<object>> Get(int Identificador, int Usuario)
+        [HttpGet("GetById")]
+        public async Task<ActionResult<GrvViewModel>> GetById(int GrvId, int UsuarioId)
         {
             StringBuilder erros = new();
 
-            if (Identificador <= 0)
+            if (GrvId <= 0)
             {
                 erros.AppendLine("Identificador do GRV inválido");
             }
 
-            if (Usuario <= 0)
+            if (UsuarioId <= 0)
             {
                 erros.AppendLine("Identificador do Usuário inválido");
             }
@@ -39,20 +47,20 @@ namespace WebZi.Plataform.API.Controllers
                 return BadRequest(erros.ToString());
             }
 
-            GrvViewModel grv = await _provider
-                .GetService<GrvService>()
-                .GetById(Identificador, Usuario);
-
-            if (grv == null)
+            if (!await FindUser(UsuarioId))
             {
-                return NotFound("GRV sem permissão de acesso ou inexistente");
+                return BadRequest("Usuário sem permissão de acesso ou inexistente");
             }
 
-            return Ok(JsonConvert.SerializeObject(grv));
+            GrvModel result = await _provider
+                .GetService<GrvService>()
+                .GetById(GrvId, UsuarioId);
+
+            return result != null ? _mapper.Map<GrvViewModel>(result) : NotFound("GRV sem permissão de acesso ou inexistente");
         }
 
-        [HttpGet("{NumeroProcesso}/{Cliente}/{Deposito}/{Usuario}")]
-        public async Task<ActionResult<object>> Get(string NumeroProcesso, int Cliente, int Deposito, int Usuario)
+        [HttpGet("GetByProcesso")]
+        public async Task<ActionResult<GrvViewModel>> GetByProcesso(string NumeroProcesso, int ClienteId, int DepositoId, int UsuarioId)
         {
             StringBuilder erros = new();
 
@@ -61,17 +69,17 @@ namespace WebZi.Plataform.API.Controllers
                 erros.AppendLine("Informe o Número do Processo");
             }
 
-            if (Cliente <= 0)
+            if (ClienteId <= 0)
             {
                 erros.AppendLine("Identificador do Cliente inválido");
             }
 
-            if (Deposito <= 0)
+            if (DepositoId <= 0)
             {
                 erros.AppendLine("Identificador do Depósito inválido ");
             }
 
-            if (Usuario <= 0)
+            if (UsuarioId <= 0)
             {
                 erros.AppendLine("Identificador do Usuário inválido");
             }
@@ -81,44 +89,68 @@ namespace WebZi.Plataform.API.Controllers
                 return BadRequest(erros.ToString());
             }
 
-            GrvViewModel grv = await _provider
-                .GetService<GrvService>()
-                .GetByNumeroFormularioGrv(NumeroProcesso, Cliente, Deposito, Usuario);
-
-            if (grv == null)
+            if (!await FindUser(UsuarioId))
             {
-                return NotFound("GRV sem permissão de acesso ou inexistente");
+                return BadRequest("Usuário sem permissão de acesso ou inexistente");
             }
 
-            return Ok(JsonConvert.SerializeObject(grv));
+            ClienteModel Cliente = await _provider
+                .GetService<ClienteService>()
+                .GetById(ClienteId);
+
+            if (Cliente == null)
+            {
+                return NotFound("Cliente inexistente");
+            }
+
+            DepositoModel Deposito = await _provider
+                .GetService<DepositoService>()
+                .GetById(DepositoId);
+
+            if (Deposito == null)
+            {
+                return NotFound("Depósito inexistente");
+            }
+
+            GrvModel result = await _provider
+                .GetService<GrvService>()
+                .GetByNumeroFormularioGrv(NumeroProcesso, ClienteId, DepositoId, UsuarioId);
+
+            return result != null ? _mapper.Map<GrvViewModel>(result) : NotFound("GRV sem permissão de acesso ou inexistente");
         }
 
-        [HttpGet("ListarStatusOperacao")]
-        public async Task<ActionResult<List<StatusOperacaoModel>>> ListarStatusOperacao()
+        [HttpGet("ListStatusOperacao")]
+        public async Task<ActionResult<List<StatusOperacaoModel>>> ListStatusOperacao()
         {
-            return Ok(await _provider
+            List<StatusOperacaoModel> result = await _provider
                 .GetService<StatusOperacaoService>()
-                .List());
+                .List();
+
+            return result?.Count > 0 ? Ok(result) : NotFound("Status Operação não encontrado");
         }
 
-        [HttpGet("ListarLacres")]
-        public async Task<ActionResult<List<LacreModel>>> ListarLacres(int GrvId, int Usuario)
+        [HttpGet("ListLacres")]
+        public async Task<ActionResult<List<LacreModel>>> ListLacres(int GrvId, int UsuarioId)
         {
-            return Ok(await _provider
+            if (!await FindUser(UsuarioId))
+            {
+                return BadRequest("Usuário sem permissão de acesso ou inexistente");
+            }
+
+            List<LacreModel> result = await _provider
                 .GetService<LacreService>()
-                .List(GrvId, Usuario));
+                .List(GrvId, UsuarioId);
+
+            return result?.Count > 0 ? Ok(result) : NotFound("Lacres sem permissão de acesso ou inexistente");
         }
 
-        // POST api/<GrvController>
-        //[HttpPost]
-        //public void Post(Grv grv)
-        //{
-        //}
+        private async Task<bool> FindUser(int UsuarioId)
+        {
+            UsuarioViewModel Usuario = await _provider
+                .GetService<UsuarioService>()
+                .GetById(UsuarioId);
 
-        // PUT api/<GrvController>/5
-        //[HttpPut("{id}")]
-        //public void Put(int id, Grv grv)
-        //{
-        //}
+            return Usuario != null && Usuario.FlagAtivo != "N";
+        }
     }
 }
