@@ -74,7 +74,7 @@ namespace WebZi.Plataform.API.Controllers
 
             DateTime result = await _provider
                 .GetService<DepositoService>()
-                .SelecionarDataHoraPorDeposito(DepositoId);
+                .GetDataHoraPorDeposito(DepositoId);
 
             return Ok(result);
         }

@@ -1,4 +1,4 @@
-﻿namespace WebZi.Plataform.Domain.Models.Faturamento
+﻿namespace WebZi.Plataform.Domain.Models.Faturamento.Boleto
 {
     public class FaturamentoBoletoImagemModel
     {

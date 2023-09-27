@@ -48,7 +48,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             if (!CalculoDiarias.DataHoraFinalParaCalculo.HasValue || CalculoDiarias.DataHoraFinalParaCalculo == DateTime.MinValue)
             {
-                CalculoDiarias.DataHoraFinalParaCalculo = ParametrosCalculoFaturamento.DataHoraAtualPorDeposito;
+                CalculoDiarias.DataHoraFinalParaCalculo = ParametrosCalculoFaturamento.DataHoraPorDeposito;
             }
 
             #region REGRA DA HORA DA VIRADA DA DIÁRIA

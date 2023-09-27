@@ -1,4 +1,5 @@
 ﻿using WebZi.Plataform.Domain.Models.Atendimento;
+using WebZi.Plataform.Domain.Models.Faturamento.Boleto;
 using WebZi.Plataform.Domain.Models.Usuario;
 
 namespace WebZi.Plataform.Domain.Models.Faturamento

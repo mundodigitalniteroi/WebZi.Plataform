@@ -23,7 +23,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
         {
             if (ParametrosCalculoFaturamento.DataLiberacao == DateTime.MinValue)
             {
-                ParametrosCalculoFaturamento.DataLiberacao = ParametrosCalculoFaturamento.DataHoraAtualPorDeposito;
+                ParametrosCalculoFaturamento.DataLiberacao = ParametrosCalculoFaturamento.DataHoraPorDeposito;
             }
 
             #region Selecionar os Serviços cadastrados no GRV
@@ -86,7 +86,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
                 UltimoFaturamento.Status = "C";
 
-                UltimoFaturamento.DataAlteracao = ParametrosCalculoFaturamento.DataHoraAtualPorDeposito;
+                UltimoFaturamento.DataAlteracao = ParametrosCalculoFaturamento.DataHoraPorDeposito;
 
                 if (ParametrosCalculoFaturamento.FlagCadastrarFaturamento)
                 {
@@ -187,7 +187,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                             foreach (ViewFaturamentoServicoAssociadoVeiculoModel FaturamentoServicoAssociadoVeiculoAmbos in FaturamentoServicosAssociadosVeiculosTodasVigenciasEncontradas)
                             {
                                 // Retorna a quantidade de Dias entre as datas
-                                CalculoDiarias.Diarias = RetornarQuantidadeDiasServicoDiarias(FaturamentoServicoAssociadoVeiculoAmbos, ParametrosCalculoFaturamento.Grv.DataHoraGuarda, ParametrosCalculoFaturamento.DataHoraAtualPorDeposito);
+                                CalculoDiarias.Diarias = RetornarQuantidadeDiasServicoDiarias(FaturamentoServicoAssociadoVeiculoAmbos, ParametrosCalculoFaturamento.Grv.DataHoraGuarda, ParametrosCalculoFaturamento.DataHoraPorDeposito);
 
                                 if (CalculoDiarias.Diarias >= DiariasCalculadas)
                                 {
@@ -361,7 +361,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 }
                 else if (FaturamentoServicoGrv.TipoCobranca == "T") // Tempo
                 {
-                    if ((Horas = (int)(ParametrosCalculoFaturamento.DataHoraAtualPorDeposito - ParametrosCalculoFaturamento.Grv.DataHoraGuarda).TotalHours) == 0)
+                    if ((Horas = (int)(ParametrosCalculoFaturamento.DataHoraPorDeposito - ParametrosCalculoFaturamento.Grv.DataHoraGuarda).TotalHours) == 0)
                     {
                         Horas++;
                     }
@@ -430,9 +430,9 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
                 DataCalculo = CalculoDiarias.DataHoraInicialParaCalculo,
 
-                DataVencimento = CalcularDataVencimento(ParametrosCalculoFaturamento, CalculoDiarias, ParametrosCalculoFaturamento.FlagPermissaoDataRetroativaFaturamento ? ParametrosCalculoFaturamento.DataHoraAtualPorDeposito : ParametrosCalculoFaturamento.DataLiberacao),
+                DataVencimento = CalcularDataVencimento(ParametrosCalculoFaturamento, CalculoDiarias, ParametrosCalculoFaturamento.FlagPermissaoDataRetroativaFaturamento ? ParametrosCalculoFaturamento.DataHoraPorDeposito : ParametrosCalculoFaturamento.DataLiberacao),
 
-                DataCadastro = ParametrosCalculoFaturamento.DataHoraAtualPorDeposito,
+                DataCadastro = ParametrosCalculoFaturamento.DataHoraPorDeposito,
 
                 ValorFaturado = ValorFaturado,
 
@@ -683,7 +683,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
         {
             if (!dataFinal.HasValue)
             {
-                dataFinal = ParametrosCalculoFaturamento.DataHoraAtualPorDeposito;
+                dataFinal = ParametrosCalculoFaturamento.DataHoraPorDeposito;
             }
 
             DateTime dataVencimento = dataFinal.Value;

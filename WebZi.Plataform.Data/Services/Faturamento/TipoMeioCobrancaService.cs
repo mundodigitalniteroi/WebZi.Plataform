@@ -13,10 +13,10 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             _context = context;
         }
 
-        public async Task<TipoMeioCobrancaModel> GetById(byte id)
+        public async Task<TipoMeioCobrancaModel> GetById(byte TipoMeioCobrancaId)
         {
             return await _context.TiposMeiosCobrancas
-                .Where(w => w.TipoMeioCobrancaId.Equals(id))
+                .Where(w => w.TipoMeioCobrancaId == TipoMeioCobrancaId)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
         }

@@ -26,6 +26,8 @@ namespace WebZi.Plataform.Data.Services
 
             services.AddScoped<BancoService, BancoService>();
 
+            services.AddScoped<FaturamentoBoletoService, FaturamentoBoletoService>();
+
             services.AddScoped<CalculoDiariasService, CalculoDiariasService>();
 
             services.AddScoped<CEPService, CEPService>();

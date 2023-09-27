@@ -1,12 +1,13 @@
 ﻿using WebZi.Plataform.Domain.Models.Atendimento;
+using WebZi.Plataform.Domain.Models.Cliente;
+using WebZi.Plataform.Domain.Models.ClienteDeposito;
+using WebZi.Plataform.Domain.Models.Deposito;
 using WebZi.Plataform.Domain.Models.GRV;
 
 namespace WebZi.Plataform.Domain.Models.Faturamento
 {
     public class CalculoFaturamentoParametroModel
     {
-        public byte TipoMeioCobrancaId { get; set; }
-
         public int UsuarioCadastroId { get; set; }
 
         public char OrigemTipoComposicao { get; set; } = 'P'; // P = PÁTIO, L = LEILÃO
@@ -19,6 +20,8 @@ namespace WebZi.Plataform.Domain.Models.Faturamento
 
         public int Diarias { get; set; }
 
+        public string StatusOperacaoLeilaoId { get; set; }
+
         /// <summary>
         /// Quando for um Atendimento deve-se usar a Data/Hora da Guarda.
         /// Se for um Faturamento adicional, deve-se usar a Data do dia anterior à Data final do Faturamento anterior.
@@ -29,7 +32,7 @@ namespace WebZi.Plataform.Domain.Models.Faturamento
 
         public DateTime DataPrazoRetiradaVeiculo { get; set; }
 
-        public DateTime DataHoraAtualPorDeposito { get; set; }
+        public DateTime DataHoraPorDeposito { get; set; }
 
         public bool FlagFaturamentoCompleto { get; set; } = true;
 
@@ -37,7 +40,17 @@ namespace WebZi.Plataform.Domain.Models.Faturamento
 
         public GrvModel Grv { get; set; }
 
+        public ClienteModel Cliente { get; set; }
+
+        public DepositoModel Deposito { get; set; }
+
+        public ClienteDepositoModel ClienteDeposito { get; set; }
+
         public TipoMeioCobrancaModel TipoMeioCobranca { get; set; }
+
+        public List<TipoMeioCobrancaModel> TiposMeiosCobrancas { get; set; }
+
+        public List<FaturamentoRegraModel> FaturamentoRegras { get; set; }
 
         public AtendimentoModel Atendimento { get; set; }
 

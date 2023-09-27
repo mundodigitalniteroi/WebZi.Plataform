@@ -96,7 +96,7 @@ namespace WebZi.Plataform.CrossCutting.Documents
             //11.519.458/0001-78 (CNPJ VÁLIDO)
 
             cnpj = cnpj.Replace(".", "").Replace("/", "").Replace("-", "").Trim();
-            
+
             if (string.IsNullOrWhiteSpace(cnpj))
             {
                 return false;
@@ -202,6 +202,16 @@ namespace WebZi.Plataform.CrossCutting.Documents
             {
                 return true;
             }
+        }
+
+        public static string FormatCNPJ(string cnpj)
+        {
+            return string.Format(@"{0:00\.000\.000/0000-00}", long.Parse(cnpj));
+        }
+
+        public static string FormatCPF(string cpf)
+        {
+            return string.Format(@"{0:000\.000\.000-00}", long.Parse(cpf));
         }
     }
 }

@@ -2,12 +2,14 @@
 using Microsoft.Extensions.Logging;
 using System.Reflection;
 using WebZi.Plataform.CrossCutting.Configuration;
+using WebZi.Plataform.Data.Services.Sistema;
 using WebZi.Plataform.Domain.Models.Atendimento;
 using WebZi.Plataform.Domain.Models.Banco;
 using WebZi.Plataform.Domain.Models.Cliente;
 using WebZi.Plataform.Domain.Models.ClienteDeposito;
 using WebZi.Plataform.Domain.Models.Deposito;
 using WebZi.Plataform.Domain.Models.Faturamento;
+using WebZi.Plataform.Domain.Models.Faturamento.Boleto;
 using WebZi.Plataform.Domain.Models.Faturamento.View;
 using WebZi.Plataform.Domain.Models.GRV;
 using WebZi.Plataform.Domain.Models.Leilao;
@@ -47,7 +49,7 @@ namespace WebZi.Plataform.Data.Database
             Database.ExecuteSqlRaw($"EXECUTE dbo.sp_set_contextinfo {UsuarioId}");
         }
 
-        #region DbSets public DbSet<XxxxxxxxModel> s { get; set; }
+        #region DbSets public DbSet<WebServiceUrlModel> sssssssss { get; set; }
 
         #region Depósito Público
         public DbSet<AgenciaBancariaModel> AgenciasBancarias { get; set; }
@@ -125,6 +127,8 @@ namespace WebZi.Plataform.Data.Database
         public DbSet<UsuarioTipoPermissaoModel> UsuariosTiposPermissoes { get; set; }
 
         public DbSet<UsuarioPermissaoModel> UsuariosPermissoes { get; set; }
+
+        public DbSet<WebServiceUrlModel> WebServiceUrl { get; set; }
         #endregion Depósito Público
 
         #region Views

@@ -41,7 +41,7 @@ namespace WebZi.Plataform.Data.Services.Deposito
                 .FirstOrDefaultAsync();
         }
 
-        public async Task<DateTime> SelecionarDataHoraPorDeposito(int DepositoId)
+        public async Task<DateTime> GetDataHoraPorDeposito(int DepositoId)
         {
             DepositoModel Deposito = await _context.Depositos
                 .Include(i => i.CEP)
