@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Logging;
 using System.Reflection;
 using WebZi.Plataform.CrossCutting.Configuration;
-using WebZi.Plataform.Data.Services.Sistema;
 using WebZi.Plataform.Domain.Models.Atendimento;
 using WebZi.Plataform.Domain.Models.Banco;
 using WebZi.Plataform.Domain.Models.Cliente;
@@ -49,7 +48,7 @@ namespace WebZi.Plataform.Data.Database
             Database.ExecuteSqlRaw($"EXECUTE dbo.sp_set_contextinfo {UsuarioId}");
         }
 
-        #region DbSets public DbSet<WebServiceUrlModel> sssssssss { get; set; }
+        #region DbSets public DbSet<WebServiceUrlModel> WebServiceUrlModel { get; set; }
 
         #region Depósito Público
         public DbSet<AgenciaBancariaModel> AgenciasBancarias { get; set; }

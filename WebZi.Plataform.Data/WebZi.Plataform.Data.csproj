@@ -17,7 +17,12 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="7.0.0" />
+    <PackageReference Include="System.ServiceModel.Duplex" Version="6.0.0" />
+    <PackageReference Include="System.ServiceModel.Federation" Version="6.0.0" />
+    <PackageReference Include="System.ServiceModel.Http" Version="6.0.0" />
+    <PackageReference Include="System.ServiceModel.NetTcp" Version="6.0.0" />
+    <PackageReference Include="System.ServiceModel.Security" Version="6.0.0" />
+    <PackageReference Include="Z.EntityFramework.Plus.EFCore" Version="7.100.0.2" />
   </ItemGroup>
 
   <ItemGroup>
@@ -28,7 +33,6 @@
   <ItemGroup>
     <Folder Include="Mappings\Liberacao\" />
     <Folder Include="Mappings\Nfe\" />
-    <Folder Include="Models\" />
     <Folder Include="Services\Liberacao\" />
     <Folder Include="Services\Nfe\" />
     <Folder Include="Services\Pessoa\Documento\" />

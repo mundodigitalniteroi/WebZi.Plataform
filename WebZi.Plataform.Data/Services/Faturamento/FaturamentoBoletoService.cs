@@ -1,15 +1,17 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System.Diagnostics;
+using Microsoft.EntityFrameworkCore.Storage;
 using WebZi.Plataform.CrossCutting.Date;
 using WebZi.Plataform.CrossCutting.Documents;
 using WebZi.Plataform.CrossCutting.Strings;
 using WebZi.Plataform.Data.Database;
-using WebZi.Plataform.Data.Services.Sistema;
+using WebZi.Plataform.Data.WsBoleto;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.Faturamento.Boleto;
 using WebZi.Plataform.Domain.Models.Faturamento.View;
 using WebZi.Plataform.Domain.Models.GRV;
 using WebZi.Plataform.Domain.Models.Sistema;
+using Z.EntityFramework.Plus;
+using static WebZi.Plataform.Data.WsBoleto.WsBoletoSoapClient;
 
 namespace WebZi.Plataform.Data.Services.Faturamento
 {
@@ -42,151 +44,199 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 .ToList();
         }
 
-        public async void Gerar(GrvModel Grv, FaturamentoModel Faturamento, TipoMeioCobrancaModel TipoMeioCobranca, List<FaturamentoRegraModel> FaturamentoRegras = null)
+        public byte[] Gerar(GrvModel Grv, FaturamentoModel Faturamento, int UsuarioCadastroId, TipoMeioCobrancaModel TipoMeioCobranca = null, List<FaturamentoRegraModel> FaturamentoRegras = null)
         {
-            if (TipoMeioCobranca.CodigoERP != "D" || Faturamento.ValorFaturado <= 0)
+            if (TipoMeioCobranca == null)
             {
-                return;
+                TipoMeioCobranca = _context.TiposMeiosCobrancas
+                    .Where(w => w.TipoMeioCobrancaId == Faturamento.TipoMeioCobrancaId)
+                    .AsNoTracking()
+                    .FirstOrDefault();
             }
 
-            ViewFaturamentoBoletoModel Boleto = await _context.ViewFaturamentoBoleto
-                    .FirstOrDefaultAsync(w => w.FaturamentoId == Faturamento.FaturamentoId);
+            if (TipoMeioCobranca.CodigoERP != "D" || Faturamento.ValorFaturado <= 0)
+            {
+                return null;
+            }
 
-            if (Boleto == null)
+            ViewFaturamentoBoletoModel ViewBoleto = _context.ViewFaturamentoBoleto
+                .FirstOrDefault(w => w.FaturamentoId == Faturamento.FaturamentoId);
+
+            if (ViewBoleto == null)
             {
                 throw new Exception("Dados para impressão do Boleto não encontrado");
             }
 
             Cancelar(Faturamento.FaturamentoId);
 
-            if (FaturamentoRegras == null)
-            {
-                FaturamentoRegras = await _context.FaturamentoRegras
-                    .Include(i => i.FaturamentoRegraTipo)
-                    .Where(w => w.ClienteId == Grv.Cliente.ClienteId && w.DepositoId == Grv.Deposito.DepositoId)
-                    .AsNoTracking()
-                    .ToListAsync();
-            }
-
-            FaturamentoRegraModel FaturamentoRegra = null;
-
-            if (TipoMeioCobranca.Alias.Equals("BOLESP"))
-            {
-                FaturamentoRegra = FaturamentoRegras
-                    .Where(w => w.FaturamentoRegraTipo.Codigo == "VENCIMENTOBOLETOD+")
-                    .FirstOrDefault();
-            }
-
             #region Preenchimento do Modelo
-            BoletoWSModel BoletoWS = new()
+            BoletoTodos boletoTodos = new()
             {
-                cedente_nome = StringHelper.Normalize(Boleto.CedenteNome),
+                cedente_agencia = ViewBoleto.CedenteAgencia,
 
-                cedente_cpfCnpj = DocumentHelper.FormatCNPJ(Boleto.CedenteDocumento),
+                banco = ViewBoleto.CedenteCodigoFebraban,
 
-                cedente_codigo_febraban = Boleto.CedenteCodigoFebraban,
+                cedente_codigo = ViewBoleto.CedenteCodigo,
 
-                cedente_codigo = Boleto.CedenteCodigo,
+                cedente_conta = ViewBoleto.CedenteContaCorrente,
 
-                cedente_agencia = Boleto.CedenteAgencia,
+                cedente_cpfCnpj = DocumentHelper.FormatCNPJ(ViewBoleto.CedenteDocumento.Trim()),
 
-                cedente_conta_corrente = Boleto.CedenteContaCorrente,
+                cedente_digitoConta = ViewBoleto.CedenteDv,
 
-                cedente_dv = Boleto.CedenteDv,
+                cedente_nome = StringHelper.Normalize(ViewBoleto.CedenteNome),
 
-                numeroDocumento = Boleto.NumeroDocumento,
+                cedente_nossoNumeroBoleto = ViewBoleto.CedenteNossoNumero,
 
-                cedente_nossoNumeroBoleto = Boleto.CedenteNossoNumero,
+                numeroDocumento = ViewBoleto.NumeroDocumento,
 
-                sacado_bairro = Boleto.SacadoBairro,
+                sacado_bairro = ViewBoleto.SacadoBairro,
 
-                sacado_cep = Boleto.SacadoCep,
+                sacado_cep = ViewBoleto.SacadoCep,
 
-                sacado_cidade = Boleto.SacadoCidade,
+                sacado_cidade = ViewBoleto.SacadoCidade,
 
-                sacado_cpfCnpj = Boleto.SacadoDocumento.Trim(),
+                sacado_cpfCnpj = ViewBoleto.SacadoDocumento.Trim(),
 
-                sacado_endereco = Boleto.SacadoEndereco,
+                sacado_endereco = ViewBoleto.SacadoEndereco,
 
-                sacado_nome = StringHelper.Normalize(Boleto.SacadoNome),
+                sacado_nome = StringHelper.Normalize(ViewBoleto.SacadoNome ?? string.Empty),
 
-                sacado_uf = Boleto.SacadoUf,
+                sacado_uf = ViewBoleto.SacadoUf,
 
-                valor_boleto = Boleto.ValorBoleto,
+                valor_boleto = ViewBoleto.ValorBoleto,
 
-                sacado_carteira = Boleto.SacadoCarteira,
+                vencimento = ViewBoleto.Vencimento,
 
-                sacado_instrucoes = Boleto.SacadoInstrucoes,
+                carteira = ViewBoleto.SacadoCarteira,
 
-                vencimento = Boleto.Vencimento
+                instrucoes = ViewBoleto.SacadoInstrucoes
             };
 
             FaturamentoBoletoGeradoModel BoletoGerado = new()
             {
-                DataVencimento = DateTimeHelper.GetDateTime(Boleto.Vencimento[..10], "dd/MM/yyyy")
+                DataVencimento = DateTimeHelper.GetDateTime(ViewBoleto.Vencimento[..10], "dd/MM/yyyy")
             };
 
-            if (FaturamentoRegra != null)
+            if (TipoMeioCobranca.Alias.Equals("BOLESP"))
             {
-                BoletoGerado.DiasConfiguracaoDataVencimento = int.Parse(FaturamentoRegra.Valor);
+                if (FaturamentoRegras == null)
+                {
+                    FaturamentoRegras = _context.FaturamentoRegras
+                        .Include(i => i.FaturamentoRegraTipo)
+                        .Where(w => w.ClienteId == Grv.ClienteId && w.DepositoId == Grv.DepositoId)
+                        .AsNoTracking()
+                        .ToList();
+                }
 
-                BoletoGerado.DataVencimento = DateTimeHelper.AddDays(BoletoGerado.DataVencimento, BoletoGerado.DiasConfiguracaoDataVencimento);
+                if (FaturamentoRegras?.Count > 0)
+                {
+                    FaturamentoRegraModel FaturamentoRegra = FaturamentoRegras
+                        .Where(w => w.FaturamentoRegraTipo.Codigo == "VENCIMENTOBOLETOD+")
+                        .FirstOrDefault();
 
-                BoletoWS.vencimento = BoletoGerado.DataVencimento.ToString("dd/MM/yyyy");
+                    if (FaturamentoRegra != null)
+                    {
+                        BoletoGerado.DiasConfiguracaoDataVencimento = int.Parse(FaturamentoRegra.Valor);
+
+                        BoletoGerado.DataVencimento = DateTimeHelper.AddDays(BoletoGerado.DataVencimento, BoletoGerado.DiasConfiguracaoDataVencimento);
+
+                        boletoTodos.vencimento = BoletoGerado.DataVencimento.ToString("dd/MM/yyyy");
+                    }
+                }
             }
             #endregion Preenchimento do Modelo
 
             #region Execução do WebService de geração do Boleto
-            WebServiceUrlModel WebServiceUrl = await _context.WebServiceUrl
-                .Where(w => w.WsName.Equals("WsBoletoSoap", StringComparison.CurrentCultureIgnoreCase))
+            WebServiceUrlModel WebServiceUrl = _context.WebServiceUrl
+                .Where(w => w.WsName == "WsBoletoSoap")
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefault();
 
             int linhaId;
 
             string linha;
 
-            WsBoletoSoapClient
+            string url;
 
-            try
-            {
-                BoletoGerado.Boleto = WebServices.WsBoletoController.RetornarBoletoCaixa(BoletoWS,
-                    ConfiguracoesController.IsDEV,
-                    out linhaId,
-                    out linha);
+            BoletoGerado.Boleto = new WsBoletoSoapClient(EndpointConfiguration.WsBoletoSoap, WebServiceUrl.WsUrl).BoletoBancosRetornoLinha(
+                boleto: boletoTodos,
+                login: WebServiceUrl.WsUsername,
+                senha: WebServiceUrl.WsPassword,
+                Tipo: "img",
+                isdev: true,
+                linha: out linha,
+                linha_id: out linhaId,
+                url: out url);
 
-                BoletoGerado.BoletoId = linhaId;
+            BoletoGerado.BoletoId = linhaId;
 
-                BoletoGerado.Linha = linha;
-            }
-            catch (Exception)
-            {
-                throw;
-            }
+            BoletoGerado.Linha = linha;
             #endregion Execução do WebService de geração do Boleto
 
-            FaturamentoBoletoModel FaturamentoBoleto = new()
+            #region Cadastro do Boleto e da Imagem
+            using (IDbContextTransaction transaction = _context.Database.BeginTransaction())
             {
-                
-            };
+                try
+                {
+                    FaturamentoBoletoModel FaturamentoBoleto = new()
+                    {
+                        FaturamentoId = Faturamento.FaturamentoId,
 
-            await _context.FaturamentoBoletos.AddAsync(FaturamentoBoleto);
+                        BoletoId = BoletoGerado.BoletoId,
+
+                        UsuarioCadastroId = UsuarioCadastroId,
+
+                        SequenciaEmissao = 1,
+
+                        Linha = !string.IsNullOrWhiteSpace(BoletoGerado.Linha) ? BoletoGerado.Linha : "LINHA NÃO RETORNADA",
+
+                        Valor = Faturamento.ValorFaturado,
+
+                        DataEmissao = DateTime.Now,
+
+                        FaturamentoBoletoImagem = new()
+                        {
+                            Imagem = BoletoGerado.Boleto
+                        }
+                    };
+
+                    _context.FaturamentoBoletos.Add(FaturamentoBoleto);
+
+                    _context.SaveChanges();
+
+                    transaction.Commit();
+                }
+                catch (Exception)
+                {
+                    transaction.Rollback();
+
+                    throw;
+                }
+            }
+            #endregion Cadastro do Boleto e da Imagem
+
+            return BoletoGerado.Boleto;
         }
 
-        public async void Cancelar(int FaturamentoId)
+        public void Cancelar(int FaturamentoId)
         {
             // Apesar de ser uma lista, por regra, só pode haver 1 Boleto cadastrado não pago
-            List<FaturamentoBoletoModel> result = await _context.FaturamentoBoletos
+            List<FaturamentoBoletoModel> result = _context.FaturamentoBoletos
                     .Where(w => w.FaturamentoId == FaturamentoId && w.Status == "N")
-                    .ToListAsync();
+                    .ToList();
 
-            if (result != null)
+            if (result?.Count > 0)
             {
-                foreach (var item in result)
+                foreach (FaturamentoBoletoModel FaturamentoBoleto in result)
                 {
-                    item.Status = "C";
+                    FaturamentoBoleto.Status = "C";
 
-                    _context.FaturamentoBoletos.Update(item);
+                    _context.FaturamentoBoletos.Update(FaturamentoBoleto);
+
+                    _context.FaturamentoBoletoImagens
+                        .Where(w => w.FaturamentoBoletoId == FaturamentoBoleto.FaturamentoBoletoId)
+                        .Delete();
                 }
             }
         }

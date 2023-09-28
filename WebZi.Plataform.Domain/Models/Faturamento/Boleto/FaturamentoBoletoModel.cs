@@ -12,7 +12,7 @@ namespace WebZi.Plataform.Domain.Models.Faturamento.Boleto
 
         public int UsuarioCadastroId { get; set; }
 
-        public byte SequenciaEmissao { get; set; }
+        public byte SequenciaEmissao { get; set; } = 1;
 
         public byte? Via { get; set; }
 

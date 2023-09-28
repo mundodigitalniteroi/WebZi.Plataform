@@ -93,9 +93,9 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     _context.Faturamentos.Update(UltimoFaturamento);
                 }
 
-                if (ParametrosCalculoFaturamento.TipoMeioCobrancaId == 0)
+                if (ParametrosCalculoFaturamento.TipoMeioCobranca.TipoMeioCobrancaId == 0)
                 {
-                    ParametrosCalculoFaturamento.TipoMeioCobrancaId = UltimoFaturamento.TipoMeioCobrancaId;
+                    ParametrosCalculoFaturamento.TipoMeioCobranca.TipoMeioCobrancaId = UltimoFaturamento.TipoMeioCobrancaId;
                 }
                 #endregion Cancelar o Faturamento atual
 
@@ -414,7 +414,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
                 UsuarioCadastroId = ParametrosCalculoFaturamento.UsuarioCadastroId,
 
-                TipoMeioCobrancaId = ParametrosCalculoFaturamento.TipoMeioCobrancaId,
+                TipoMeioCobrancaId = ParametrosCalculoFaturamento.TipoMeioCobranca.TipoMeioCobrancaId,
 
                 HoraDiaria = CalculoDiarias.HoraDiaria,
 
@@ -472,7 +472,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             {
                 return false;
             }
-            else if (FaturamentoServicoGrv.FlagPermiteAlteracaoValor.Equals("S") && (FaturamentoServicoGrv.Valor <= 0))
+            else if (FaturamentoServicoGrv.FlagPermiteAlteracaoValor.Equals("S") &&
+                     FaturamentoServicoGrv.Valor <= 0)
             {
                 return false;
             }
@@ -481,22 +482,28 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 // Se o Usuário escolheu por não cobrar o Serviço
                 return false;
             }
-            else if (!ParametrosCalculoFaturamento.FlagFaturamentoCompleto && FaturamentoServicoGrv.FlagCobrarSomentePrimeiraFatura == "S")
+            else if (!ParametrosCalculoFaturamento.FlagFaturamentoCompleto &&
+                     FaturamentoServicoGrv.FlagCobrarSomentePrimeiraFatura == "S")
             {
                 // Se não for o primeiro Faturamento e se o Serviço for para ser cobrado apenas no primeiro Faturamento
                 return false;
             }
-            else if (FaturamentoServicoGrv.FlagCobrarSomentePrimeiraFatura == "S" && UltimoFaturamento != null && UltimoFaturamento.Status == "P")
+            else if (FaturamentoServicoGrv.FlagCobrarSomentePrimeiraFatura == "S" &&
+                     UltimoFaturamento != null &&
+                     UltimoFaturamento.Status == "P")
             {
                 // Se a última Fatura for paga e o Serviço só pode ser cobrado na primeira Fatura
                 return false;
             }
-            else if (ParametrosCalculoFaturamento.Grv.FlagComboio == "S" && FaturamentoServicoGrv.FlagRebocada == "S")
+            else if (ParametrosCalculoFaturamento.Grv.FlagComboio == "S" &&
+                     FaturamentoServicoGrv.FlagRebocada == "S")
             {
                 // Não cobrar rebocada caso o veículo entrou no Depósito por Comboio
                 return false;
             }
-            else if (FaturamentoServicoGrv.FaturamentoRegraTipoCodigo != null && FaturamentoServicoGrv.FaturamentoRegraTipoCodigo.Equals("COBRATARIFABANCARIA") && !ParametrosCalculoFaturamento.TipoMeioCobrancaId.Equals(1))
+            else if (FaturamentoServicoGrv.FaturamentoRegraTipoCodigo != null &&
+                     FaturamentoServicoGrv.FaturamentoRegraTipoCodigo.Equals("COBRATARIFABANCARIA") &&
+                     !ParametrosCalculoFaturamento.TipoMeioCobranca.TipoMeioCobrancaId.Equals(1))
             {
                 // Se o serviço tiver a regra "Cobrança de Tarifa Bancária" e se o Tipo do Meio de Cobrança for Boleto
                 return false;

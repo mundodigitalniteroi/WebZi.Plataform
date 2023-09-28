@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using WebZi.Plataform.Data.Services.Sistema;
+using WebZi.Plataform.Domain.Models.Sistema;
 
 namespace WebZi.Plataform.Data.Mappings.Sistema
 {
