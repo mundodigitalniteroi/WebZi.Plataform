@@ -20,6 +20,7 @@ using WebZi.Plataform.Domain.Models.GRV;
 using WebZi.Plataform.Domain.Models.Leilao;
 using WebZi.Plataform.Domain.Models.Pagamento.ViewModel;
 using WebZi.Plataform.Domain.Models.Pessoa.Documento;
+using WebZi.Plataform.Domain.Services.Usuario;
 
 namespace WebZi.Plataform.Data.Services.Atendimento
 {
@@ -36,7 +37,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
         public async Task<AtendimentoModel> GetById(int AtendimentoId, int UsuarioId)
         {
-            AtendimentoModel atendimento = await _context.Atendimentos
+            AtendimentoModel atendimento = await _context.Atendimento
                 .Where(w => w.AtendimentoId == AtendimentoId)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
@@ -46,7 +47,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
         public async Task<AtendimentoModel> GetByProcesso(string NumeroProcesso, int ClienteId, int DepositoId, int UsuarioId)
         {
-            AtendimentoModel atendimento = await _context.Atendimentos
+            AtendimentoModel atendimento = await _context.Atendimento
                 .Include(i => i.Grv)
                 .Where(w => w.Grv.NumeroFormularioGrv == NumeroProcesso && w.Grv.ClienteId == ClienteId && w.Grv.DepositoId == DepositoId)
                 .AsNoTracking()
@@ -72,13 +73,19 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
                 return mensagem;
             }
+            else if (!await _provider.GetService<UsuarioService>().IsUserActive(Atendimento.UsuarioId))
+            {
+                mensagem.Erros.Add("Usuário sem permissão de acesso ou inexistente");
+
+                return mensagem;
+            }
 
             if (mensagem.Erros.Count > 0)
             {
                 return mensagem;
             }
 
-            GrvModel Grv = await _context.Grvs
+            GrvModel Grv = await _context.Grv
                 .Include(i => i.Cliente)
                 .Include(i => i.Deposito)
                 .Include(i => i.StatusOperacao)
@@ -95,16 +102,16 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             if (Grv.StatusOperacao.StatusOperacaoId != "V" && Grv.StatusOperacao.StatusOperacaoId != "1")
             {
-                mensagem.Erros.Add($"Status do GRV não está apto para o cadastro do Atendimento: {Grv.StatusOperacao.Descricao.ToUpper()}");
+                mensagem.AvisosImpeditivos.Add($"Status do GRV não está apto para o cadastro do Atendimento: {Grv.StatusOperacao.Descricao.ToUpper()}");
 
                 return mensagem;
             }
 
-            AtendimentoModel atendimentoConsulta = await GetById(Atendimento.GrvId, Atendimento.UsuarioId);
+            AtendimentoModel AtendimentoConsulta = await GetById(Atendimento.GrvId, Atendimento.UsuarioId);
 
-            if (atendimentoConsulta != null)
+            if (AtendimentoConsulta != null)
             {
-                mensagem.Erros.Add($"Este GRV já possui um Atendimento cadastrado: {atendimentoConsulta.AtendimentoId}");
+                mensagem.AvisosImpeditivos.Add($"Este GRV já possui um Atendimento cadastrado: {AtendimentoConsulta.AtendimentoId}");
 
                 return mensagem;
             }
@@ -116,14 +123,14 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             if (mensagemLeilao != null)
             {
-                if (mensagemLeilao.Avisos.Count > 0)
+                if (mensagemLeilao.AvisosInformativos.Count > 0)
                 {
-                    mensagem.Avisos.Add(mensagemLeilao.Avisos[0]);
+                    mensagem.AvisosInformativos.Add(mensagemLeilao.AvisosInformativos[0]);
                 }
 
                 if (mensagemLeilao.Erros.Count > 0)
                 {
-                    mensagem.Erros.Add(mensagemLeilao.Erros[0]);
+                    mensagem.AvisosImpeditivos.Add(mensagemLeilao.Erros[0]);
 
                     return mensagem;
                 }
@@ -133,17 +140,17 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             #region Dados do Responsável
             if (Atendimento.QualificacaoResponsavelId <= 0)
             {
-                mensagem.Erros.Add("Primeiro é necessário informar a Qualificação do Responsável");
+                mensagem.AvisosImpeditivos.Add("Primeiro é necessário informar a Qualificação do Responsável");
             }
 
             if (string.IsNullOrWhiteSpace(Atendimento.ResponsavelNome))
             {
-                mensagem.Erros.Add("Primeiro é necessário informar o Nome do Responsável");
+                mensagem.AvisosImpeditivos.Add("Primeiro é necessário informar o Nome do Responsável");
             }
 
             if (string.IsNullOrWhiteSpace(Atendimento.ResponsavelDocumento))
             {
-                mensagem.Erros.Add("Primeiro é necessário informar o CPF do Responsável");
+                mensagem.AvisosImpeditivos.Add("Primeiro é necessário informar o CPF do Responsável");
             }
             else if (!DocumentHelper.IsCPF(Atendimento.ResponsavelDocumento))
             {
@@ -162,7 +169,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             #region Endereço do Responsável
             if (string.IsNullOrWhiteSpace(Atendimento.ResponsavelCep))
             {
-                mensagem.Erros.Add("Primeiro é necessário informar o CEP do Responsável");
+                mensagem.AvisosImpeditivos.Add("Primeiro é necessário informar o CEP do Responsável");
             }
             else if (!LocalizacaoHelper.IsCEP(Atendimento.ResponsavelCep))
             {
@@ -171,27 +178,27 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             if (string.IsNullOrWhiteSpace(Atendimento.ResponsavelEndereco))
             {
-                mensagem.Erros.Add("Primeiro é necessário informar o Logradouro do Responsável");
+                mensagem.AvisosImpeditivos.Add("Primeiro é necessário informar o Logradouro do Responsável");
             }
 
             if (string.IsNullOrWhiteSpace(Atendimento.ResponsavelNumero))
             {
-                mensagem.Erros.Add("Primeiro é necessário informar o Número do Logradouro do Responsável");
+                mensagem.AvisosImpeditivos.Add("Primeiro é necessário informar o Número do Logradouro do Responsável");
             }
 
             if (string.IsNullOrWhiteSpace(Atendimento.ResponsavelBairro))
             {
-                mensagem.Erros.Add("Primeiro é necessário informar o Bairro do Responsável");
+                mensagem.AvisosImpeditivos.Add("Primeiro é necessário informar o Bairro do Responsável");
             }
 
             if (string.IsNullOrWhiteSpace(Atendimento.ResponsavelMunicipio))
             {
-                mensagem.Erros.Add("Primeiro é necessário informar Município do Responsável");
+                mensagem.AvisosImpeditivos.Add("Primeiro é necessário informar Município do Responsável");
             }
 
             if (string.IsNullOrWhiteSpace(Atendimento.ResponsavelUf))
             {
-                mensagem.Erros.Add("Primeiro é necessário informar a Unidade Federativa do Responsável");
+                mensagem.AvisosImpeditivos.Add("Primeiro é necessário informar a Unidade Federativa do Responsável");
             }
             else if (!LocalizacaoHelper.IsUF(Atendimento.ResponsavelUf))
             {
@@ -204,7 +211,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             {
                 if ((!ContactHelper.IsTelephone(Atendimento.ResponsavelTelefone) && !ContactHelper.IsCellphone(Atendimento.ResponsavelTelefone)))
                 {
-                    mensagem.Erros.Add($"Telefone/Celular do Responsável é inválido: {Atendimento.ResponsavelTelefone}");
+                    mensagem.AvisosImpeditivos.Add($"Telefone/Celular do Responsável é inválido: {Atendimento.ResponsavelTelefone}");
                 }
 
                 if (string.IsNullOrWhiteSpace(Atendimento.ResponsavelDdd))
@@ -213,7 +220,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 }
                 else if (!ContactHelper.IsDDD(Atendimento.ResponsavelDdd))
                 {
-                    mensagem.Erros.Add($"DDD do Número do Telefone/Celular do Responsável é inválido: {Atendimento.ResponsavelDdd}");
+                    mensagem.AvisosImpeditivos.Add($"DDD do Número do Telefone/Celular do Responsável é inválido: {Atendimento.ResponsavelDdd}");
                 }
             }
             #endregion DDD + Telefone/Celular do Responsável
@@ -221,26 +228,26 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             #region Dados do Proprietário
             if (string.IsNullOrWhiteSpace(Atendimento.ProprietarioNome))
             {
-                mensagem.Erros.Add("Primeiro é necessário informar o Nome do Proprietário");
+                mensagem.AvisosImpeditivos.Add("Primeiro é necessário informar o Nome do Proprietário");
             }
 
             if (Atendimento.ProprietarioTipoDocumentoId <= 0)
             {
-                mensagem.Erros.Add("Primeiro é necessário informar o Tipo do Documento do Proprietário");
+                mensagem.AvisosImpeditivos.Add("Primeiro é necessário informar o Tipo do Documento do Proprietário");
             }
 
             if (string.IsNullOrWhiteSpace(Atendimento.ProprietarioDocumento))
             {
-                mensagem.Erros.Add("Primeiro é necessário informar o Documento do Proprietário");
+                mensagem.AvisosImpeditivos.Add("Primeiro é necessário informar o Documento do Proprietário");
             }
 
             if (Atendimento.ProprietarioTipoDocumentoId <= 0)
             {
-                mensagem.Erros.Add("Primeiro é necessário informar o Tipo do Documento do Proprietário");
+                mensagem.AvisosImpeditivos.Add("Primeiro é necessário informar o Tipo do Documento do Proprietário");
             }
             else
             {
-                TipoDocumentoIdentificacaoModel TipoDocumentoIdentificacao = await _context.TiposDocumentosIdentificacao
+                TipoDocumentoIdentificacaoModel TipoDocumentoIdentificacao = await _context.TipoDocumentoIdentificacao
                     .Where(w => w.TipoDocumentoIdentificacaoId == Atendimento.ProprietarioTipoDocumentoId)
                     .AsNoTracking()
                     .FirstOrDefaultAsync();
@@ -266,14 +273,14 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 #region Receptor da Nota Fiscal
                 if (string.IsNullOrWhiteSpace(Atendimento.NotaFiscalNome))
                 {
-                    mensagem.Erros.Add("Primeiro é necessário informar o Nome do Receptor da Nota Fiscal");
+                    mensagem.AvisosImpeditivos.Add("Primeiro é necessário informar o Nome do Receptor da Nota Fiscal");
                 }
 
                 if (string.IsNullOrWhiteSpace(Atendimento.NotaFiscalDocumento))
                 {
-                    mensagem.Erros.Add("Primeiro é necessário informar o CPF ou CNPJ do Receptor da Nota Fiscal");
+                    mensagem.AvisosImpeditivos.Add("Primeiro é necessário informar o CPF ou CNPJ do Receptor da Nota Fiscal");
                 }
-                else if (!DocumentHelper.IsCPF(Atendimento.NotaFiscalDocumento) || !DocumentHelper.IsCNPJ(Atendimento.NotaFiscalDocumento))
+                else if (!DocumentHelper.IsCPF(Atendimento.NotaFiscalDocumento) && !DocumentHelper.IsCNPJ(Atendimento.NotaFiscalDocumento))
                 {
                     mensagem.Erros.Add($"CPF ou CNPJ do Receptor da Nota Fiscal é inválido: {Atendimento.NotaFiscalDocumento}");
                 }
@@ -282,7 +289,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 #region Endereço do Receptor da Nota Fiscal
                 if (string.IsNullOrWhiteSpace(Atendimento.NotaFiscalCep))
                 {
-                    mensagem.Erros.Add("Primeiro é necessário informar o CEP do Receptor da Nota Fiscal");
+                    mensagem.AvisosImpeditivos.Add("Primeiro é necessário informar o CEP do Receptor da Nota Fiscal");
                 }
                 else if (!LocalizacaoHelper.IsCEP(Atendimento.NotaFiscalCep))
                 {
@@ -291,27 +298,27 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
                 if (string.IsNullOrWhiteSpace(Atendimento.NotaFiscalEndereco))
                 {
-                    mensagem.Erros.Add("Primeiro é necessário informar o Endereço do Receptor da Nota Fiscal");
+                    mensagem.AvisosImpeditivos.Add("Primeiro é necessário informar o Endereço do Receptor da Nota Fiscal");
                 }
 
                 if (string.IsNullOrWhiteSpace(Atendimento.NotaFiscalNumero))
                 {
-                    mensagem.Erros.Add("Primeiro é necessário informar o Número do Endereço do Receptor da Nota Fiscal");
+                    mensagem.AvisosImpeditivos.Add("Primeiro é necessário informar o Número do Endereço do Receptor da Nota Fiscal");
                 }
 
                 if (string.IsNullOrWhiteSpace(Atendimento.NotaFiscalBairro))
                 {
-                    mensagem.Erros.Add("Primeiro é necessário informar o Bairro do Receptor da Nota Fiscal");
+                    mensagem.AvisosImpeditivos.Add("Primeiro é necessário informar o Bairro do Receptor da Nota Fiscal");
                 }
 
                 if (string.IsNullOrWhiteSpace(Atendimento.NotaFiscalMunicipio))
                 {
-                    mensagem.Erros.Add("Primeiro é necessário informar o Município do Receptor da Nota Fiscal");
+                    mensagem.AvisosImpeditivos.Add("Primeiro é necessário informar o Município do Receptor da Nota Fiscal");
                 }
 
                 if (string.IsNullOrWhiteSpace(Atendimento.NotaFiscalUf))
                 {
-                    mensagem.Erros.Add("Primeiro é necessário informar a UF do Receptor da Nota Fiscal");
+                    mensagem.AvisosImpeditivos.Add("Primeiro é necessário informar a UF do Receptor da Nota Fiscal");
                 }
                 else if (!LocalizacaoHelper.IsUF(Atendimento.NotaFiscalUf))
                 {
@@ -322,7 +329,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 #region Contatos do Receptor da Nota Fiscal
                 if (string.IsNullOrWhiteSpace(Atendimento.NotaFiscalTelefone))
                 {
-                    mensagem.Erros.Add("Primeiro é necessário informar o Número do Telefone/Celular do Receptor da Nota Fiscal");
+                    mensagem.AvisosImpeditivos.Add("Primeiro é necessário informar o Número do Telefone/Celular do Receptor da Nota Fiscal");
                 }
                 else if (!ContactHelper.IsTelephone(Atendimento.NotaFiscalTelefone) && !ContactHelper.IsCellphone(Atendimento.NotaFiscalTelefone))
                 {
@@ -331,7 +338,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
                 if (string.IsNullOrWhiteSpace(Atendimento.NotaFiscalDdd))
                 {
-                    mensagem.Erros.Add("Primeiro é necessário informar o DDD do Telefone/Celular do Receptor da Nota Fiscal");
+                    mensagem.AvisosImpeditivos.Add("Primeiro é necessário informar o DDD do Telefone/Celular do Receptor da Nota Fiscal");
                 }
                 else if (!ContactHelper.IsDDD(Atendimento.NotaFiscalDdd))
                 {
@@ -350,7 +357,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                     // Informar a Inscrição Municipal do Tomador do Serviço do Receptor da Nota Fiscal só é obrigatorio
                     // caso o Cliente esteja cadastrado na regra do Faturamento "ATENDINSCRICMUNIC".
 
-                    FaturamentoRegraModel faturamentoRegra = await _context.FaturamentoRegras
+                    FaturamentoRegraModel faturamentoRegra = await _context.FaturamentoRegra
                         .Include(i => i.FaturamentoRegraTipo)
                         .Where(w => w.ClienteId == Grv.ClienteId &&
                                     w.FaturamentoRegraTipo.Codigo == "ATENDINSCRICMUNIC")
@@ -359,7 +366,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
                     if (faturamentoRegra != null)
                     {
-                        mensagem.Erros.Add("Ao informar o CNPJ do Receptor da Nota Fiscal é preciso informar a Inscrição Municipal do Tomador do Serviço");
+                        mensagem.AvisosImpeditivos.Add("Ao informar o CNPJ do Receptor da Nota Fiscal é preciso informar a Inscrição Municipal do Tomador do Serviço");
                     }
                 }
                 #endregion Inscrição Municipal do Tomador do Serviço
@@ -369,11 +376,11 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             #region Faturamento
             if (Atendimento.TipoMeioCobrancaId <= 0)
             {
-                mensagem.Erros.Add("Primeiro é necessário informar a Forma de Pagamento");
+                mensagem.AvisosImpeditivos.Add("Primeiro é necessário informar a Forma de Pagamento");
             }
             else
             {
-                TipoMeioCobrancaModel TipoMeioCobranca = await _context.TiposMeiosCobrancas
+                TipoMeioCobrancaModel TipoMeioCobranca = await _context.TipoMeioCobranca
                     .Where(w => w.TipoMeioCobrancaId == Atendimento.TipoMeioCobrancaId)
                     .AsNoTracking()
                     .FirstOrDefaultAsync();
@@ -385,11 +392,11 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
                 if ((TipoMeioCobranca.Alias == "PIX" || TipoMeioCobranca.Alias == "PIXEST") && Grv.Cliente.FlagPossuiPixEstatico == "N")
                 {
-                    mensagem.Erros.Add("Este Cliente não está configurado para permitir a Forma de Pagamento PIX Estático");
+                    mensagem.AvisosImpeditivos.Add("Este Cliente não está configurado para permitir a Forma de Pagamento PIX Estático");
                 }
                 else if (TipoMeioCobranca.Alias == "PIXDIN" && Grv.Cliente.FlagPossuiPixDinamico == "N")
                 {
-                    mensagem.Erros.Add("Este Cliente não está configurado para permitir a Forma de Pagamento PIX Dinâmico");
+                    mensagem.AvisosImpeditivos.Add("Este Cliente não está configurado para permitir a Forma de Pagamento PIX Dinâmico");
                 }
             }
             #endregion
@@ -416,7 +423,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 return mensagem;
             }
 
-            GrvModel grv = await _context.Grvs
+            GrvModel grv = await _context.Grv
                 .Include(i => i.Cliente)
                 .Include(i => i.Deposito)
                 .Include(i => i.StatusOperacao)
@@ -556,7 +563,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             {
                 try
                 {
-                    await _context.Atendimentos.AddAsync(Atendimento);
+                    await _context.Atendimento.AddAsync(Atendimento);
 
                     await _context.SaveChangesAsync();
 
@@ -587,14 +594,15 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 }
             }
 
-            GerarFormaPagamento(ParametrosCalculoFaturamento);
+            // TODO:
+            // GerarFormaPagamento(ParametrosCalculoFaturamento);
 
             return AtendimentoCadastroResultView;
         }
 
         private async Task<GrvModel> GetGrv(int GrvId)
         {
-            return await _context.Grvs
+            return await _context.Grv
                 .Include(i => i.Cliente)
                 .Include(i => i.Deposito)
                 .Where(w => w.GrvId == GrvId)
@@ -621,7 +629,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
                 Deposito = Grv.Deposito,
 
-                ClienteDeposito = await _context.ClientesDepositos
+                ClienteDeposito = await _context.ClienteDeposito
                     .Where(w => w.ClienteId == Grv.ClienteId && w.DepositoId == Grv.DepositoId)
                     .AsNoTracking()
                     .FirstOrDefaultAsync(),
@@ -634,11 +642,11 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 // para que o fluxo do Atendimento/Faturamento/Liberação funcionem.
                 StatusOperacaoLeilaoId = new[] { "1", "2", "4" }.Contains(Grv.StatusOperacaoId) ? Grv.StatusOperacaoId : string.Empty,
 
-                TiposMeiosCobrancas = await _context.TiposMeiosCobrancas
+                TiposMeiosCobrancas = await _context.TipoMeioCobranca
                     .AsNoTracking()
                     .ToListAsync(),
 
-                FaturamentoRegras = await _context.FaturamentoRegras
+                FaturamentoRegras = await _context.FaturamentoRegra
                         .Include(i => i.FaturamentoRegraTipo)
                         .Where(w => w.ClienteId == Grv.Cliente.ClienteId && w.DepositoId == Grv.Deposito.DepositoId)
                         .AsNoTracking()
@@ -662,7 +670,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
         {
             if (AtendimentoInput.ResponsavelFoto != null)
             {
-                await _context.AtendimentosFotosResponsaveis.AddAsync(new()
+                await _context.AtendimentoFotoResponsavel.AddAsync(new()
                 {
                     AtendimentoId = AtendimentoId,
 
@@ -682,7 +690,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                     ParametrosCalculoFaturamento.Atendimento.StatusCadastroOrdemVendaERP = "P";
                 }
 
-                _context.Atendimentos.Update(ParametrosCalculoFaturamento.Atendimento);
+                _context.Atendimento.Update(ParametrosCalculoFaturamento.Atendimento);
             }
         }
 
@@ -703,29 +711,29 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
         private async void AtualizarGrv(CalculoFaturamentoParametroModel ParametrosCalculoFaturamento)
         {
-            GrvModel Grv = await _context.Grvs
+            GrvModel Grv = await _context.Grv
                 .Where(w => w.GrvId == ParametrosCalculoFaturamento.Grv.GrvId)
                 .FirstOrDefaultAsync();
 
             Grv.StatusOperacaoId = ParametrosCalculoFaturamento.StatusOperacaoId;
 
-            _context.Grvs.Update(Grv);
+            _context.Grv.Update(Grv);
         }
 
-        private async void GerarFormaPagamento(CalculoFaturamentoParametroModel ParametrosCalculoFaturamento)
-        {
-            if (ParametrosCalculoFaturamento.Grv.Cliente.FlagClienteRealizaFaturamentoArrecadacao != "N" || ParametrosCalculoFaturamento.Faturamento.ValorFaturado <= 0)
-            {
-                return;
-            }
+        //private async void GerarFormaPagamento(CalculoFaturamentoParametroModel ParametrosCalculoFaturamento)
+        //{
+        //    if (ParametrosCalculoFaturamento.Grv.Cliente.FlagClienteRealizaFaturamentoArrecadacao != "N" || ParametrosCalculoFaturamento.Faturamento.ValorFaturado <= 0)
+        //    {
+        //        return;
+        //    }
 
-            // BOLETO
-            if (ParametrosCalculoFaturamento.TipoMeioCobranca.CodigoERP == "D")
-            {
+        //    // BOLETO
+        //    if (ParametrosCalculoFaturamento.TipoMeioCobranca.CodigoERP == "D")
+        //    {
 
-            }
+        //    }
 
-            return;
-        }
+        //    return;
+        //}
     }
 }

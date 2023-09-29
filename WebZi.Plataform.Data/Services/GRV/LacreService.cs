@@ -21,7 +21,7 @@ namespace WebZi.Plataform.Data.Services.GRV
                 return null;
             }
 
-            List<LacreModel> result = await _context.Lacres
+            List<LacreModel> result = await _context.Lacre
                 .Where(w => w.GrvId == GrvId)
                 .AsNoTracking()
                 .ToListAsync();

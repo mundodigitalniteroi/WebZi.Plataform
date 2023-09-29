@@ -16,7 +16,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
         public async Task<GrvModel> GetById(int GrvId, int UsuarioId)
         {
-            GrvModel Grv = await _context.Grvs
+            GrvModel Grv = await _context.Grv
                 .Where(w => w.GrvId == GrvId)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
@@ -27,7 +27,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             }
             else
             {
-                ViewUsuarioClienteDepositoModel Usuario = await _context.ViewUsuariosClientesDepositos
+                ViewUsuarioClienteDepositoModel Usuario = await _context.ViewUsuarioClienteDeposito
                     .Where(w => w.UsuarioId == UsuarioId && w.ClienteId == Grv.ClienteId && w.DepositoId == Grv.DepositoId)
                     .FirstOrDefaultAsync();
 
@@ -42,7 +42,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
         public async Task<GrvModel> GetByNumeroFormularioGrv(string NumeroFormularioGrv, int ClienteId, int DepositoId, int UsuarioId)
         {
-            GrvModel Grv = await _context.Grvs
+            GrvModel Grv = await _context.Grv
                 .Where(w => w.NumeroFormularioGrv.Equals(NumeroFormularioGrv) && w.ClienteId.Equals(ClienteId) && w.DepositoId.Equals(DepositoId))
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
@@ -53,7 +53,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             }
             else
             {
-                ViewUsuarioClienteDepositoModel Usuario = await _context.ViewUsuariosClientesDepositos
+                ViewUsuarioClienteDepositoModel Usuario = await _context.ViewUsuarioClienteDeposito
                     .Where(w => w.UsuarioId == UsuarioId && w.ClienteId == Grv.ClienteId && w.DepositoId == Grv.DepositoId)
                     .FirstOrDefaultAsync();
 
@@ -68,7 +68,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
         public async Task<bool> GrvExists(int GrvId)
         {
-            GrvModel Grv = await _context.Grvs
+            GrvModel Grv = await _context.Grv
                 .Where(w => w.GrvId == GrvId)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
@@ -78,7 +78,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
         public async Task<bool> UserCanAccessGrv(int GrvId, int UsuarioId)
         {
-            GrvModel Grv = await _context.Grvs
+            GrvModel Grv = await _context.Grv
                 .Include(i => i.Cliente)
                 .ThenInclude(t => t.UsuariosClientes.Where(w => w.UsuarioId == UsuarioId))
                 .Include(i => i.Deposito)
@@ -92,7 +92,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 return false;
             }
             
-            ViewUsuarioClienteDepositoModel Usuario = await _context.ViewUsuariosClientesDepositos
+            ViewUsuarioClienteDepositoModel Usuario = await _context.ViewUsuarioClienteDeposito
                 .Where(w => w.UsuarioId == UsuarioId && w.ClienteId == Grv.ClienteId && w.DepositoId == Grv.DepositoId)
                 .FirstOrDefaultAsync();
 
@@ -101,7 +101,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
         public async Task<bool> UserCanAccessGrv(GrvModel Grv, int UsuarioId)
         {
-            ViewUsuarioClienteDepositoModel Usuario = await _context.ViewUsuariosClientesDepositos
+            ViewUsuarioClienteDepositoModel Usuario = await _context.ViewUsuarioClienteDeposito
                 .Where(w => w.UsuarioId == UsuarioId && w.ClienteId == Grv.ClienteId && w.DepositoId == Grv.DepositoId)
                 .FirstOrDefaultAsync();
 

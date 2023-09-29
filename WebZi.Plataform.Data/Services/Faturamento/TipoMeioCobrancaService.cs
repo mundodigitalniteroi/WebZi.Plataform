@@ -15,7 +15,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
         public async Task<TipoMeioCobrancaModel> GetById(byte TipoMeioCobrancaId)
         {
-            return await _context.TiposMeiosCobrancas
+            return await _context.TipoMeioCobranca
                 .Where(w => w.TipoMeioCobrancaId == TipoMeioCobrancaId)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
@@ -23,7 +23,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
         public async Task<List<TipoMeioCobrancaModel>> List()
         {
-            var result = await _context.TiposMeiosCobrancas
+            var result = await _context.TipoMeioCobranca
                 .Where(w => w.FlagAtivo.Equals("S"))
                 .AsNoTracking()
                 .ToListAsync();

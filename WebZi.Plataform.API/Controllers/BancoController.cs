@@ -19,8 +19,8 @@ namespace WebZi.Plataform.API.Controllers
             _mapper = mapper;
         }
 
-        [HttpGet("GetById")]
-        public async Task<ActionResult<BancoViewModel>> GetById(short BancoId)
+        [HttpGet("SelecionarPorId")]
+        public async Task<ActionResult<BancoViewModel>> SelecionarPorId(short BancoId)
         {
             StringBuilder erros = new();
 
@@ -41,8 +41,8 @@ namespace WebZi.Plataform.API.Controllers
             return result != null ? _mapper.Map<BancoViewModel>(result) : NotFound("Banco não encontrado");
         }
 
-        [HttpGet("ListBancos")]
-        public async Task<ActionResult<List<BancoViewModel>>> ListBancos()
+        [HttpGet("ListarBancos")]
+        public async Task<ActionResult<List<BancoViewModel>>> ListarBancos()
         {
             var result = await _provider
                 .GetService<BancoService>()
@@ -51,8 +51,8 @@ namespace WebZi.Plataform.API.Controllers
             return result?.Count > 0 ? _mapper.Map<List<BancoViewModel>>(result) : NotFound("Banco não encontrado");
         }
 
-        [HttpGet("ListAgenciasBancarias")]
-        public async Task<ActionResult<List<AgenciaBancariaViewModel>>> ListAgenciasBancarias(short BancoId)
+        [HttpGet("ListarAgenciasBancarias")]
+        public async Task<ActionResult<List<AgenciaBancariaViewModel>>> ListarAgenciasBancarias(short BancoId)
         {
             StringBuilder erros = new();
 

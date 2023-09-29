@@ -15,7 +15,7 @@ namespace WebZi.Plataform.Data.Services.GRV
 
         public async Task<StatusOperacaoModel> GetById(char id)
         {
-            return await _context.StatusOperacoes
+            return await _context.StatusOperacao
                 .Where(w => w.StatusOperacaoId == id.ToString().ToUpper())
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
@@ -23,7 +23,7 @@ namespace WebZi.Plataform.Data.Services.GRV
 
         public async Task<List<StatusOperacaoModel>> List()
         {
-            var result = await _context.StatusOperacoes
+            var result = await _context.StatusOperacao
                 .OrderBy(o => o.Descricao)
                 .AsNoTracking()
                 .ToListAsync();

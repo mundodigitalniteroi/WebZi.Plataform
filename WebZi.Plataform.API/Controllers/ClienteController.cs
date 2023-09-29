@@ -17,8 +17,8 @@ namespace WebZi.Plataform.API.Controllers
             _provider = provider;
         }
 
-        [HttpGet("GetById")]
-        public async Task<ActionResult<ClienteModel>> GetById(int ClienteId)
+        [HttpGet("SelecionarPorId")]
+        public async Task<ActionResult<ClienteModel>> SelecionarPorId(int ClienteId)
         {
             if (ClienteId <= 0)
             {
@@ -32,8 +32,8 @@ namespace WebZi.Plataform.API.Controllers
             return result != null ? Ok(JsonConvert.SerializeObject(result)) : NotFound("Cliente não encontrado");
         }
 
-        [HttpGet("GetByName")]
-        public async Task<ActionResult<ClienteModel>> GetByName(string Name)
+        [HttpGet("SelecionarPorNome")]
+        public async Task<ActionResult<ClienteModel>> SelecionarPorNome(string Name)
         {
             if (string.IsNullOrEmpty(Name))
             {

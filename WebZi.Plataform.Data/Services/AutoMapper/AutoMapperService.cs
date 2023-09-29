@@ -14,7 +14,7 @@ namespace WebZi.Plataform.Data.Services.AutoMapper
     {
         public AutoMapperService()
         {
-            // CreateMap<AtendimentoViewModel, AtendimentoViewModel>();
+            // CreateMap<Model, ViewModel>();
 
             CreateMap<AtendimentoModel, AtendimentoViewModel>();
 

@@ -4,6 +4,7 @@ using System.Reflection;
 using WebZi.Plataform.CrossCutting.Configuration;
 using WebZi.Plataform.Domain.Models.Atendimento;
 using WebZi.Plataform.Domain.Models.Banco;
+using WebZi.Plataform.Domain.Models.Bucket;
 using WebZi.Plataform.Domain.Models.Cliente;
 using WebZi.Plataform.Domain.Models.ClienteDeposito;
 using WebZi.Plataform.Domain.Models.Deposito;
@@ -48,107 +49,115 @@ namespace WebZi.Plataform.Data.Database
             Database.ExecuteSqlRaw($"EXECUTE dbo.sp_set_contextinfo {UsuarioId}");
         }
 
-        #region DbSets public DbSet<WebServiceUrlModel> WebServiceUrlModel { get; set; }
+        #region DbSets public DbSet<Model> Name { get; set; }
 
         #region Depósito Público
-        public DbSet<AgenciaBancariaModel> AgenciasBancarias { get; set; }
+        public DbSet<AgenciaBancariaModel> AgenciaBancaria { get; set; }
 
-        public DbSet<AtendimentoModel> Atendimentos { get; set; }
+        public DbSet<AtendimentoModel> Atendimento { get; set; }
 
-        public DbSet<AtendimentoFotoResponsavelModel> AtendimentosFotosResponsaveis { get; set; }
+        public DbSet<AtendimentoFotoResponsavelModel> AtendimentoFotoResponsavel { get; set; }
 
-        public DbSet<BancoModel> Bancos { get; set; }
+        public DbSet<BancoModel> Banco { get; set; }
 
-        public DbSet<ClienteModel> Clientes { get; set; }
+        public DbSet<BucketArquivoModel> BucketArquivo { get; set; }
 
-        public DbSet<ClienteDepositoModel> ClientesDepositos { get; set; }
+        public DbSet<BucketNomeTabelaOrigemModel> BucketNomeTabelaOrigem { get; set; }
 
-        public DbSet<DepositoModel> Depositos { get; set; }
+        public DbSet<ClienteModel> Cliente { get; set; }
 
-        public DbSet<EnquadramentoInfracaoModel> EnquadramentosInfracoes { get; set; }
+        public DbSet<ClienteDepositoModel> ClienteDeposito { get; set; }
 
-        public DbSet<FaturamentoModel> Faturamentos { get; set; }
+        public DbSet<ConfiguracaoModel> Configuracao { get; set; }
 
-        public DbSet<FaturamentoBoletoModel> FaturamentoBoletos { get; set; }
+        public DbSet<DepositoModel> Deposito { get; set; }
 
-        public DbSet<FaturamentoBoletoImagemModel> FaturamentoBoletoImagens { get; set; }
+        public DbSet<EnquadramentoInfracaoModel> EnquadramentoInfracoe { get; set; }
 
-        public DbSet<FaturamentoCartaoModel> FaturamentoCartoes { get; set; }
+        public DbSet<FaturamentoModel> Faturamento { get; set; }
 
-        public DbSet<FaturamentoCodigoAutorizacaoCartaoModel> FaturamentoCodigosAutorizacoesCartoes { get; set; }
+        public DbSet<FaturamentoBoletoModel> FaturamentoBoleto { get; set; }
 
-        public DbSet<FaturamentoComposicaoModel> FaturamentoComposicoes { get; set; }
+        public DbSet<FaturamentoBoletoImagemModel> FaturamentoBoletoImagem { get; set; }
 
-        public DbSet<FaturamentoComposicaoNotaFiscalModel> FaturamentoComposicaoNotasFiscais { get; set; }
+        public DbSet<FaturamentoCartaoModel> FaturamentoCartao { get; set; }
 
-        public DbSet<FaturamentoCondicaoPagamentoModel> FaturamentoCondicoesPagamentos { get; set; }
+        public DbSet<FaturamentoCodigoAutorizacaoCartaoModel> FaturamentoCodigoAutorizacaoCartao { get; set; }
 
-        public DbSet<FaturamentoProdutoModel> FaturamentoProdutos { get; set; }
+        public DbSet<FaturamentoComposicaoModel> FaturamentoComposicao { get; set; }
 
-        public DbSet<FaturamentoRegraModel> FaturamentoRegras { get; set; }
+        public DbSet<FaturamentoComposicaoNotaFiscalModel> FaturamentoComposicaoNotaFiscal { get; set; }
 
-        public DbSet<FaturamentoRegraTipoModel> FaturamentoRegraTipos { get; set; }
+        public DbSet<FaturamentoCondicaoPagamentoModel> FaturamentoCondicaoPagamento { get; set; }
 
-        public DbSet<FaturamentoServicoAssociadoModel> FaturamentoServicosAssociados { get; set; }
+        public DbSet<FaturamentoProdutoModel> FaturamentoProduto { get; set; }
 
-        public DbSet<FaturamentoServicoGrvModel> FaturamentoServicosGrvs { get; set; }
+        public DbSet<FaturamentoRegraModel> FaturamentoRegra { get; set; }
 
-        public DbSet<FaturamentoServicoTipoModel> FaturamentoServicosTipos { get; set; }
+        public DbSet<FaturamentoRegraTipoModel> FaturamentoRegraTipo { get; set; }
 
-        public DbSet<FaturamentoServicoTipoVeiculoModel> FaturamentoServicosTiposVeiculos { get; set; }
+        public DbSet<FaturamentoServicoAssociadoModel> FaturamentoServicoAssociado { get; set; }
 
-        public DbSet<FaturamentoTipoComposicaoModel> FaturamentoTiposComposicoes { get; set; }
+        public DbSet<FaturamentoServicoGrvModel> FaturamentoServicoGrv { get; set; }
 
-        public DbSet<QualificacaoResponsavelModel> QualificacoesResponsaveis { get; set; }
+        public DbSet<FaturamentoServicoTipoModel> FaturamentoServicoTipo { get; set; }
 
-        public DbSet<GrvModel> Grvs { get; set; }
+        public DbSet<FaturamentoServicoTipoVeiculoModel> FaturamentoServicoTipoVeiculo { get; set; }
 
-        public DbSet<LacreModel> Lacres { get; set; }
+        public DbSet<FaturamentoTipoComposicaoModel> FaturamentoTipoComposicao { get; set; }
 
-        public DbSet<ReboqueModel> Reboques { get; set; }
+        public DbSet<MotivoApreensaoModel> MotivoApreensao { get; set; }
 
-        public DbSet<ReboquistaModel> Reboquistas { get; set; }
+        public DbSet<QualificacaoResponsavelModel> QualificacaoResponsavel { get; set; }
 
-        public DbSet<StatusOperacaoModel> StatusOperacoes { get; set; }
+        public DbSet<GrvModel> Grv { get; set; }
 
-        public DbSet<TipoDocumentoIdentificacaoModel> TiposDocumentosIdentificacao { get; set; }
+        public DbSet<LacreModel> Lacre { get; set; }
 
-        public DbSet<TipoMeioCobrancaModel> TiposMeiosCobrancas { get; set; }
+        public DbSet<ReboqueModel> Reboque { get; set; }
 
-        public DbSet<TipoVeiculoModel> TiposVeiculos { get; set; }
+        public DbSet<ReboquistaModel> Reboquista { get; set; }
 
-        public DbSet<UsuarioModel> Usuarios { get; set; }
+        public DbSet<StatusOperacaoModel> StatusOperacao { get; set; }
 
-        public DbSet<UsuarioClienteModel> UsuariosClientes { get; set; }
+        public DbSet<TipoDocumentoIdentificacaoModel> TipoDocumentoIdentificacao { get; set; }
 
-        public DbSet<UsuarioDepositoModel> UsuariosDepositos { get; set; }
+        public DbSet<TipoMeioCobrancaModel> TipoMeioCobranca { get; set; }
 
-        public DbSet<UsuarioTipoPermissaoModel> UsuariosTiposPermissoes { get; set; }
+        public DbSet<TipoVeiculoModel> TipoVeiculo { get; set; }
 
-        public DbSet<UsuarioPermissaoModel> UsuariosPermissoes { get; set; }
+        public DbSet<UsuarioModel> Usuario { get; set; }
+
+        public DbSet<UsuarioClienteModel> UsuarioCliente { get; set; }
+
+        public DbSet<UsuarioDepositoModel> UsuarioDeposito { get; set; }
+
+        public DbSet<UsuarioTipoPermissaoModel> UsuarioTipoPermissao { get; set; }
+
+        public DbSet<UsuarioPermissaoModel> UsuarioPermissao { get; set; }
 
         public DbSet<WebServiceUrlModel> WebServiceUrl { get; set; }
         #endregion Depósito Público
 
         #region Views
 
-        public DbSet<ViewUsuarioClienteDepositoModel> ViewUsuariosClientesDepositos { get; set; }
+        public DbSet<ViewUsuarioClienteDepositoModel> ViewUsuarioClienteDeposito { get; set; }
 
         public DbSet<ViewFaturamentoBoletoModel> ViewFaturamentoBoleto { get; set; }
 
-        public DbSet<ViewFaturamentoServicoGrvModel> ViewFaturamentoServicosGrvs { get; set; }
+        public DbSet<ViewFaturamentoServicoGrvModel> ViewFaturamentoServicoGrv { get; set; }
 
-        public DbSet<ViewFaturamentoServicoAssociadoVeiculoModel> ViewFaturamentoServicosAssociadosVeiculos { get; set; }
+        public DbSet<ViewFaturamentoServicoAssociadoVeiculoModel> ViewFaturamentoServicoAssociadoVeiculo { get; set; }
 
-        public DbSet<ViewEnderecoCompletoModel> ViewEnderecosCompletos { get; set; }
+        public DbSet<ViewEnderecoCompletoModel> ViewEnderecoCompleto { get; set; }
         #endregion Views
 
         #region Leilão
-        public DbSet<LeilaoModel> Leiloes { get; set; }
+        public DbSet<LeilaoModel> Leilao { get; set; }
 
-        public DbSet<LeilaoLoteModel> LeilaoLotes { get; set; }
+        public DbSet<LeilaoLoteModel> LeilaoLote { get; set; }
 
-        public DbSet<LeilaoLoteStatusModel> LeilaoLotesStatus { get; set; }
+        public DbSet<LeilaoLoteStatusModel> LeilaoLoteStatus { get; set; }
 
         public DbSet<LeilaoStatusModel> LeilaoStatus { get; set; }
 
@@ -156,27 +165,25 @@ namespace WebZi.Plataform.Data.Database
         #endregion
 
         #region Localização
-        public DbSet<BairroModel> Bairros { get; set; }
+        public DbSet<BairroModel> Bairro { get; set; }
 
-        public DbSet<CEPModel> CEPs { get; set; }
+        public DbSet<CEPModel> CEP { get; set; }
 
-        public DbSet<ConfiguracaoModel> Configuracao { get; set; }
+        public DbSet<ContinenteModel> Continente { get; set; }
 
-        public DbSet<ContinenteModel> Continentes { get; set; }
+        public DbSet<EstadoModel> Estado { get; set; }
 
-        public DbSet<EstadoModel> Estados { get; set; }
+        public DbSet<FeriadoModel> Feriado { get; set; }
 
-        public DbSet<FeriadoModel> Feriados { get; set; }
+        public DbSet<MunicipioModel> Municipio { get; set; }
 
-        public DbSet<MunicipioModel> Municipios { get; set; }
+        public DbSet<PaisModel> Pais { get; set; }
 
-        public DbSet<PaisModel> Paises { get; set; }
+        public DbSet<RegiaoModel> Regiao { get; set; }
 
-        public DbSet<RegiaoModel> Regioes { get; set; }
+        public DbSet<TipoLogradouroModel> TipoLogradouro { get; set; }
 
-        public DbSet<TipoLogradouroModel> TiposLogradouros { get; set; }
-
-        public DbSet<UTCModel> UTCs { get; set; }
+        public DbSet<UTCModel> UTC { get; set; }
         #endregion Localização
 
         #endregion DbSets

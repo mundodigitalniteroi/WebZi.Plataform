@@ -26,7 +26,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             for (int ano = AnoInicial; ano <= AnoFinal; ano++)
             {
-                Feriados = await _context.Feriados
+                Feriados = await _context.Feriado
                     .Where(w => (w.Ano == null || w.Ano == ano) &&
                                 ((w.FlagFeriadoNacional == "S") ||
                                  (w.UF == UF && w.MunicipioId == null) ||

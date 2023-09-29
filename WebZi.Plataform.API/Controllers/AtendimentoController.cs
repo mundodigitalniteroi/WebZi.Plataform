@@ -26,8 +26,8 @@ namespace WebZi.Plataform.API.Controllers
             _mapper = mapper;
         }
 
-        [HttpGet("GetById")]
-        public async Task<ActionResult<AtendimentoViewModel>> GetById(int AtendimentoId, int UsuarioId)
+        [HttpGet("SelecionarPorId")]
+        public async Task<ActionResult<AtendimentoViewModel>> SelecionarPorId(int AtendimentoId, int UsuarioId)
         {
             StringBuilder erros = new();
 
@@ -46,7 +46,7 @@ namespace WebZi.Plataform.API.Controllers
                 return BadRequest(erros.ToString());
             }
 
-            if (!await FindUser(UsuarioId))
+            if (!await _provider.GetService<UsuarioService>().IsUserActive(UsuarioId))
             {
                 return BadRequest("Usuário sem permissão de acesso ou inexistente");
             }
@@ -58,8 +58,8 @@ namespace WebZi.Plataform.API.Controllers
             return result != null ? _mapper.Map<AtendimentoViewModel>(result) : NotFound("Atendimento sem permissão de acesso ou inexistente");
         }
 
-        [HttpGet("GetByProcesso")]
-        public async Task<ActionResult<AtendimentoViewModel>> GetByProcesso(string NumeroProcesso, int ClienteId, int DepositoId, int UsuarioId)
+        [HttpGet("SelecionarPorProcesso")]
+        public async Task<ActionResult<AtendimentoViewModel>> SelecionarPorProcesso(string NumeroProcesso, int ClienteId, int DepositoId, int UsuarioId)
         {
             StringBuilder erros = new();
 
@@ -96,7 +96,7 @@ namespace WebZi.Plataform.API.Controllers
                 return BadRequest(erros.ToString());
             }
 
-            if (!await FindUser(UsuarioId))
+            if (!await _provider.GetService<UsuarioService>().IsUserActive(UsuarioId))
             {
                 return BadRequest("Usuário sem permissão de acesso ou inexistente");
             }
@@ -108,54 +108,14 @@ namespace WebZi.Plataform.API.Controllers
             return result != null ? _mapper.Map<AtendimentoViewModel>(result) : NotFound("Atendimento sem permissão de acesso ou inexistente");
         }
 
-        [HttpGet("GetBoleto")]
-        public async Task<ActionResult<AtendimentoViewModel>> GetBoleto(int AtendimentoId, int UsuarioId)
-        {
-            StringBuilder erros = new();
-
-            if (AtendimentoId <= 0)
-            {
-                erros.AppendLine("Identificador do Atendimento inválido");
-            }
-
-            if (UsuarioId <= 0)
-            {
-                erros.AppendLine("Identificador do Usuário inválido");
-            }
-
-            if (!string.IsNullOrWhiteSpace(erros.ToString()))
-            {
-                return BadRequest(erros.ToString());
-            }
-
-            if (!await FindUser(UsuarioId))
-            {
-                return BadRequest("Usuário sem permissão de acesso ou inexistente");
-            }
-
-            AtendimentoModel result = await _provider
-                .GetService<AtendimentoService>()
-                .GetById(AtendimentoId, UsuarioId);
-
-            return result != null ? _mapper.Map<AtendimentoViewModel>(result) : NotFound("Atendimento sem permissão de acesso ou inexistente");
-        }
-
-        [HttpGet("ListQualificacaoResponsavel")]
-        public async Task<ActionResult<List<QualificacaoResponsavelModel>>> ListQualificacaoResponsavel()
+        [HttpGet("ListarQualificacaoResponsavel")]
+        public async Task<ActionResult<List<QualificacaoResponsavelModel>>> ListarQualificacaoResponsavel()
         {
             var result = await _provider
                 .GetService<QualificacaoResponsavelService>()
                 .List();
 
             return result?.Count > 0 ? _mapper.Map<List<QualificacaoResponsavelModel>>(result) : NotFound("Qualificação do Responsável não encontrado");
-        }
-
-        [HttpGet("ListTipoMeioCobranca")]
-        public async Task<ActionResult<List<TipoMeioCobrancaModel>>> ListTipoMeioCobranca()
-        {
-            return Ok(await _provider
-                .GetService<TipoMeioCobrancaService>()
-                .List());
         }
 
         [HttpPost("ValidarInformacoesParaCadastro")]
@@ -165,7 +125,7 @@ namespace WebZi.Plataform.API.Controllers
                 .GetService<AtendimentoService>()
                 .ValidarInformacoesParaCadastro(Atendimento);
 
-            if (mensagem.Erros.Count == 0)
+            if (mensagem.Erros.Count == 0 && mensagem.AvisosImpeditivos.Count == 0)
             {
                 mensagem.Status = "APTO PARA O CADASTRO";
 
@@ -193,11 +153,6 @@ namespace WebZi.Plataform.API.Controllers
                 return BadRequest(mensagem);
             }
 
-            if (!await FindUser(Atendimento.UsuarioId))
-            {
-                return BadRequest("Usuário sem permissão de acesso ou inexistente");
-            }
-
             AtendimentoCadastroResultViewModel AtendimentoCadastroResultView = new();
 
             try
@@ -219,15 +174,6 @@ namespace WebZi.Plataform.API.Controllers
 
                 return BadRequest(AtendimentoCadastroResultView);
             }
-        }
-
-        private async Task<bool> FindUser(int UsuarioId)
-        {
-            UsuarioViewModel Usuario = await _provider
-                .GetService<UsuarioService>()
-                .GetById(UsuarioId);
-
-            return Usuario != null && Usuario.FlagAtivo != "N";
         }
     }
 }

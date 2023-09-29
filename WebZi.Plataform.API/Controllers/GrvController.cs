@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Text;
+using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Services.Cliente;
 using WebZi.Plataform.Data.Services.Deposito;
 using WebZi.Plataform.Data.Services.GRV;
@@ -18,17 +20,19 @@ namespace WebZi.Plataform.API.Controllers
     [ApiController]
     public class GrvController : ControllerBase
     {
+        private readonly AppDbContext _context;
         private readonly IServiceProvider _provider;
         private readonly IMapper _mapper;
 
-        public GrvController(IServiceProvider provider, IMapper mapper)
+        public GrvController(AppDbContext context, IServiceProvider provider, IMapper mapper)
         {
+            _context = context;
             _provider = provider;
             _mapper = mapper;
         }
 
-        [HttpGet("GetById")]
-        public async Task<ActionResult<GrvViewModel>> GetById(int GrvId, int UsuarioId)
+        [HttpGet("SelecionarPorId")]
+        public async Task<ActionResult<GrvViewModel>> SelecionarPorId(int GrvId, int UsuarioId)
         {
             StringBuilder erros = new();
 
@@ -47,7 +51,7 @@ namespace WebZi.Plataform.API.Controllers
                 return BadRequest(erros.ToString());
             }
 
-            if (!await FindUser(UsuarioId))
+            if (!await _provider.GetService<UsuarioService>().IsUserActive(UsuarioId))
             {
                 return BadRequest("Usuário sem permissão de acesso ou inexistente");
             }
@@ -59,8 +63,8 @@ namespace WebZi.Plataform.API.Controllers
             return result != null ? _mapper.Map<GrvViewModel>(result) : NotFound("GRV sem permissão de acesso ou inexistente");
         }
 
-        [HttpGet("GetByProcesso")]
-        public async Task<ActionResult<GrvViewModel>> GetByProcesso(string NumeroProcesso, int ClienteId, int DepositoId, int UsuarioId)
+        [HttpGet("SelecionarPorProcesso")]
+        public async Task<ActionResult<GrvViewModel>> SelecionarPorProcesso(string NumeroProcesso, int ClienteId, int DepositoId, int UsuarioId)
         {
             StringBuilder erros = new();
 
@@ -89,7 +93,7 @@ namespace WebZi.Plataform.API.Controllers
                 return BadRequest(erros.ToString());
             }
 
-            if (!await FindUser(UsuarioId))
+            if (!await _provider.GetService<UsuarioService>().IsUserActive(UsuarioId))
             {
                 return BadRequest("Usuário sem permissão de acesso ou inexistente");
             }
@@ -119,8 +123,8 @@ namespace WebZi.Plataform.API.Controllers
             return result != null ? _mapper.Map<GrvViewModel>(result) : NotFound("GRV sem permissão de acesso ou inexistente");
         }
 
-        [HttpGet("ListStatusOperacao")]
-        public async Task<ActionResult<List<StatusOperacaoModel>>> ListStatusOperacao()
+        [HttpGet("ListarStatusOperacao")]
+        public async Task<ActionResult<List<StatusOperacaoModel>>> ListarStatusOperacao()
         {
             List<StatusOperacaoModel> result = await _provider
                 .GetService<StatusOperacaoService>()
@@ -129,10 +133,10 @@ namespace WebZi.Plataform.API.Controllers
             return result?.Count > 0 ? Ok(result) : NotFound("Status Operação não encontrado");
         }
 
-        [HttpGet("ListLacres")]
-        public async Task<ActionResult<List<LacreModel>>> ListLacres(int GrvId, int UsuarioId)
+        [HttpGet("ListarLacres")]
+        public async Task<ActionResult<List<LacreModel>>> ListarLacres(int GrvId, int UsuarioId)
         {
-            if (!await FindUser(UsuarioId))
+            if (!await _provider.GetService<UsuarioService>().IsUserActive(UsuarioId))
             {
                 return BadRequest("Usuário sem permissão de acesso ou inexistente");
             }
@@ -144,13 +148,14 @@ namespace WebZi.Plataform.API.Controllers
             return result?.Count > 0 ? Ok(result) : NotFound("Lacres sem permissão de acesso ou inexistente");
         }
 
-        private async Task<bool> FindUser(int UsuarioId)
+        [HttpGet("ListarMotivosApreensoes")]
+        public async Task<ActionResult<List<MotivoApreensaoModel>>> ListarMotivosApreensoes()
         {
-            UsuarioViewModel Usuario = await _provider
-                .GetService<UsuarioService>()
-                .GetById(UsuarioId);
+            List<MotivoApreensaoModel> result = await _context.MotivoApreensao
+                .AsNoTracking()
+                .ToListAsync();
 
-            return Usuario != null && Usuario.FlagAtivo != "N";
+            return result?.Count > 0 ? Ok(result.OrderBy(o => o.Descricao).ToList()) : NotFound("Motivos de Apreensões não encontrados");
         }
     }
 }

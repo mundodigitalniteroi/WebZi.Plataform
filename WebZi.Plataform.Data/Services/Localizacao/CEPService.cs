@@ -15,7 +15,7 @@ namespace WebZi.Plataform.Data.Services.Localizacao
 
         public async Task<CEPModel> GetById(int CEPId)
         {
-            return await _context.CEPs
+            return await _context.CEP
                .Include(i => i.Municipio)
                .Include(i => i.Municipio.Estado)
                .Include(i => i.Bairro)

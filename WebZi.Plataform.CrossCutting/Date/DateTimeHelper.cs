@@ -505,7 +505,7 @@ namespace WebZi.Plataform.CrossCutting.Date
                 int days = 0;
 
                 Phase phase = Phase.Years;
-                DateTimeSpan span = new DateTimeSpan();
+                DateTimeSpan span = new();
                 int officialDay = current.Day;
 
                 while (phase != Phase.Done)

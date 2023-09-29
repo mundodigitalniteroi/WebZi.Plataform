@@ -22,7 +22,7 @@ namespace WebZi.Plataform.Data.Services.Leilao
                 return null;
             }
 
-            LeilaoLoteModel LeilaoLote = await _context.LeilaoLotes
+            LeilaoLoteModel LeilaoLote = await _context.LeilaoLote
                 .Include(i => i.LeilaoLoteStatus)
                 .Include(i => i.Leilao)
                 .Include(i => i.Leilao.LeilaoStatus)
@@ -41,21 +41,21 @@ namespace WebZi.Plataform.Data.Services.Leilao
                     LeilaoLote.Leilao.LeilaoStatus.Ativo != "I" &&
                     LeilaoLote.LeilaoLoteStatus.ValidaLote == "S")
                 {
-                    mensagem.Erros.Add($"Este GRV está associado ao Leilão {LeilaoLote.Leilao.Descricao}, Data {dataLeilao:dd/MM/yyyy}, Lote {LeilaoLote.NumeroLote}");
+                    mensagem.AvisosImpeditivos.Add($"Este GRV está associado ao Leilão {LeilaoLote.Leilao.Descricao}, Data {dataLeilao:dd/MM/yyyy}, Lote {LeilaoLote.NumeroLote}");
                 }
                 else if (LeilaoLote.Leilao.LeilaoStatus.Ativo != "I" && LeilaoLote.LeilaoLoteStatus.ValidaLote == "S")
                 {
                     if (new[] { "V", "1" }.Contains(StatusOperacaoId))
                     {
-                        mensagem.Avisos.Add($"Este GRV está associado ao Leilão {LeilaoLote.Leilao.Descricao}, Data {dataLeilao:dd/MM/yyyy}, Lote {LeilaoLote.NumeroLote}");
+                        mensagem.AvisosInformativos.Add($"Este GRV está associado ao Leilão {LeilaoLote.Leilao.Descricao}, Data {dataLeilao:dd/MM/yyyy}, Lote {LeilaoLote.NumeroLote}");
                     }
                     else if (new[] { "L", "T", "2", "4" }.Contains(StatusOperacaoId) && (dataLeilao.Date - DateTime.Now.Date).TotalDays <= 1)
                     {
-                        mensagem.Erros.Add($"Este GRV está associado ao Leilão {LeilaoLote.Leilao.Descricao}, Data {dataLeilao:dd/MM/yyyy}, Lote {LeilaoLote.NumeroLote}, para dar prosseguimento a esta Liberação é necessário acionar a equipe do Leilões");
+                        mensagem.AvisosImpeditivos.Add($"Este GRV está associado ao Leilão {LeilaoLote.Leilao.Descricao}, Data {dataLeilao:dd/MM/yyyy}, Lote {LeilaoLote.NumeroLote}, para dar prosseguimento a esta Liberação é necessário acionar a equipe do Leilões");
                     }
                 }
 
-                if (mensagem.Avisos.Count == 0 && mensagem.Erros.Count == 0)
+                if (mensagem.AvisosInformativos.Count == 0 && mensagem.Erros.Count == 0)
                 {
                     return null;
                 }

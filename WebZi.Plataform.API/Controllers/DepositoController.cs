@@ -16,16 +16,16 @@ namespace WebZi.Plataform.API.Controllers
             _provider = provider;
         }
 
-        [HttpGet("List")]
-        public async Task<ActionResult<List<object>>> List()
+        [HttpGet("Listar")]
+        public async Task<ActionResult<List<object>>> Listar()
         {
             return Ok(await _provider
                 .GetService<DepositoService>()
                 .List());
         }
 
-        [HttpGet("GetById")]
-        public async Task<ActionResult<object>> GetById(int DepositoId)
+        [HttpGet("SelecionarPorId")]
+        public async Task<ActionResult<object>> SelecionarPorId(int DepositoId)
         {
             if (DepositoId <= 0)
             {
@@ -44,8 +44,8 @@ namespace WebZi.Plataform.API.Controllers
             return Ok(JsonConvert.SerializeObject(result));
         }
 
-        [HttpGet("GetByName")]
-        public async Task<ActionResult<object>> GetByName(string Name)
+        [HttpGet("SelecionarPorNome")]
+        public async Task<ActionResult<object>> SelecionarPorNome(string Name)
         {
             if (string.IsNullOrEmpty(Name))
             {

@@ -167,7 +167,7 @@ namespace WebZi.Plataform.Domain.Models.GRV
 
         //public virtual Liberacao IdLiberacaoNavigation { get; set; }
 
-        //public virtual GrvMotivoApreensao IdMotivoApreensaoNavigation { get; set; }
+        public virtual MotivoApreensaoModel MotivoApreensao { get; set; }
 
         public virtual ReboqueModel Reboque { get; set; }
 

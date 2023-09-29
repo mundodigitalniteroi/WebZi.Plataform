@@ -1,9 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.DependencyInjection;
 using WebZi.Plataform.CrossCutting.Date;
 using WebZi.Plataform.CrossCutting.Documents;
 using WebZi.Plataform.CrossCutting.Strings;
 using WebZi.Plataform.Data.Database;
+using WebZi.Plataform.Data.Services.Banco;
+using WebZi.Plataform.Data.Services.Bucket;
 using WebZi.Plataform.Data.WsBoleto;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.Faturamento.Boleto;
@@ -18,23 +21,35 @@ namespace WebZi.Plataform.Data.Services.Faturamento
     public class FaturamentoBoletoService
     {
         private readonly AppDbContext _context;
+        private readonly IServiceProvider _provider;
 
-        public FaturamentoBoletoService(AppDbContext context)
+        public FaturamentoBoletoService(AppDbContext context, IServiceProvider provider)
         {
             _context = context;
+            _provider = provider;
         }
 
         public async Task<FaturamentoBoletoModel> GetBoletoNaoPagoByFaturamentoId(int FaturamentoId)
         {
-            return await _context.FaturamentoBoletos
+            return await _context.FaturamentoBoleto
                 .Where(w => w.FaturamentoId == FaturamentoId && w.Status == "N")
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
+        }
+
+        public async Task<FaturamentoBoletoImagemModel> GetUltimoBoletoByFaturamentoId(int FaturamentoId)
+        {
+            return await _context.FaturamentoBoletoImagem
+                .Include(i => i.FaturamentoBoleto)
+                .Where(w => w.FaturamentoBoleto.FaturamentoId == FaturamentoId && w.FaturamentoBoleto.Status != "C")
+                .OrderByDescending(o => o.FaturamentoBoletoId)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
         }
 
         public async Task<List<FaturamentoBoletoModel>> GetBoletoByFaturamentoId(int FaturamentoId)
         {
-            List<FaturamentoBoletoModel> result = await _context.FaturamentoBoletos
+            List<FaturamentoBoletoModel> result = await _context.FaturamentoBoleto
                 .Where(w => w.FaturamentoId == FaturamentoId)
                 .AsNoTracking()
                 .ToListAsync();
@@ -48,7 +63,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
         {
             if (TipoMeioCobranca == null)
             {
-                TipoMeioCobranca = _context.TiposMeiosCobrancas
+                TipoMeioCobranca = _context.TipoMeioCobranca
                     .Where(w => w.TipoMeioCobrancaId == Faturamento.TipoMeioCobrancaId)
                     .AsNoTracking()
                     .FirstOrDefault();
@@ -122,7 +137,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             {
                 if (FaturamentoRegras == null)
                 {
-                    FaturamentoRegras = _context.FaturamentoRegras
+                    FaturamentoRegras = _context.FaturamentoRegra
                         .Include(i => i.FaturamentoRegraTipo)
                         .Where(w => w.ClienteId == Grv.ClienteId && w.DepositoId == Grv.DepositoId)
                         .AsNoTracking()
@@ -193,17 +208,16 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
                         Valor = Faturamento.ValorFaturado,
 
-                        DataEmissao = DateTime.Now,
-
-                        FaturamentoBoletoImagem = new()
-                        {
-                            Imagem = BoletoGerado.Boleto
-                        }
+                        DataEmissao = DateTime.Now
                     };
 
-                    _context.FaturamentoBoletos.Add(FaturamentoBoleto);
+                    _context.FaturamentoBoleto.Add(FaturamentoBoleto);
 
                     _context.SaveChanges();
+
+                    BucketArquivoService bucketArquivoService = new(_context);
+
+                    bucketArquivoService.SendFile("FATURAMENBOLETO", FaturamentoBoleto.FaturamentoBoletoId, UsuarioCadastroId, BoletoGerado.Boleto, "");
 
                     transaction.Commit();
                 }
@@ -222,7 +236,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
         public void Cancelar(int FaturamentoId)
         {
             // Apesar de ser uma lista, por regra, só pode haver 1 Boleto cadastrado não pago
-            List<FaturamentoBoletoModel> result = _context.FaturamentoBoletos
+            List<FaturamentoBoletoModel> result = _context.FaturamentoBoleto
                     .Where(w => w.FaturamentoId == FaturamentoId && w.Status == "N")
                     .ToList();
 
@@ -232,9 +246,9 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 {
                     FaturamentoBoleto.Status = "C";
 
-                    _context.FaturamentoBoletos.Update(FaturamentoBoleto);
+                    _context.FaturamentoBoleto.Update(FaturamentoBoleto);
 
-                    _context.FaturamentoBoletoImagens
+                    _context.FaturamentoBoletoImagem
                         .Where(w => w.FaturamentoBoletoId == FaturamentoBoleto.FaturamentoBoletoId)
                         .Delete();
                 }

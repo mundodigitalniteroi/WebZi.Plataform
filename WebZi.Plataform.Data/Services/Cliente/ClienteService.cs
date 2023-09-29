@@ -15,7 +15,7 @@ namespace WebZi.Plataform.Data.Services.Cliente
 
         public async Task<List<ClienteModel>> List()
         {
-            return await _context.Clientes
+            return await _context.Cliente
                 .OrderBy(o => o.Nome)
                 .AsNoTracking()
                 .ToListAsync();
@@ -23,7 +23,7 @@ namespace WebZi.Plataform.Data.Services.Cliente
 
         public async Task<ClienteModel> GetById(int id)
         {
-            return await _context.Clientes
+            return await _context.Cliente
                 .Where(w => w.ClienteId == id)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
@@ -31,7 +31,7 @@ namespace WebZi.Plataform.Data.Services.Cliente
 
         public async Task<ClienteModel> GetByName(string Name)
         {
-            return await _context.Clientes
+            return await _context.Cliente
                 .Where(w => w.Nome.Contains(Name))
                 .AsNoTracking()
                 .FirstOrDefaultAsync();

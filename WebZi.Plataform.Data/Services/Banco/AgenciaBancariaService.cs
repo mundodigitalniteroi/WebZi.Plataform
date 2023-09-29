@@ -15,7 +15,7 @@ namespace WebZi.Plataform.Data.Services.Banco
 
         public async Task<AgenciaBancariaModel> GetById(int AgenciaBancariaId)
         {
-            return await _context.AgenciasBancarias
+            return await _context.AgenciaBancaria
                 .Where(w => w.BancoId == AgenciaBancariaId)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
@@ -23,7 +23,7 @@ namespace WebZi.Plataform.Data.Services.Banco
 
         public async Task<AgenciaBancariaModel> GetByAgencia(int BancoId, string Agencia)
         {
-            return await _context.AgenciasBancarias
+            return await _context.AgenciaBancaria
                 .Where(w => w.BancoId == BancoId && w.CodigoAgencia == Agencia)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
@@ -31,7 +31,7 @@ namespace WebZi.Plataform.Data.Services.Banco
 
         public async Task<BancoModel> List(int BancoId)
         {
-            BancoModel result = await _context.Bancos
+            BancoModel result = await _context.Banco
                 .Include(i => i.AgenciasBancarias.OrderBy(o => o.CodigoAgencia).ThenBy(t => t.ContaCorrente))
                 .Where(w => w.BancoId == BancoId)
                 .AsNoTracking()

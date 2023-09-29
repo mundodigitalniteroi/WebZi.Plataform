@@ -15,7 +15,7 @@ namespace WebZi.Plataform.Data.Services.Banco
 
         public async Task<BancoModel> GetById(short BancoId)
         {
-            return await _context.Bancos
+            return await _context.Banco
                 .Where(w => w.BancoId == BancoId)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
@@ -23,7 +23,7 @@ namespace WebZi.Plataform.Data.Services.Banco
 
         public async Task<BancoModel> GetByName(string Name)
         {
-            return await _context.Bancos
+            return await _context.Banco
                 .Where(w => w.Nome == Name)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
@@ -31,7 +31,7 @@ namespace WebZi.Plataform.Data.Services.Banco
 
         public async Task<List<BancoModel>> List()
         {
-            List<BancoModel> result = await _context.Bancos
+            List<BancoModel> result = await _context.Banco
                 .AsNoTracking()
                 .ToListAsync();
 

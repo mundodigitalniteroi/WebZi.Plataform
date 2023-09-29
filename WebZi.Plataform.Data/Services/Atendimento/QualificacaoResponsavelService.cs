@@ -15,7 +15,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
         public async Task<List<QualificacaoResponsavelModel>> List()
         {
-            var result = await _context.QualificacoesResponsaveis
+            var result = await _context.QualificacaoResponsavel
                 .AsNoTracking()
                 .ToListAsync();
 

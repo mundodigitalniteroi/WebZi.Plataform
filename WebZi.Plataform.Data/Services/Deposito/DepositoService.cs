@@ -19,7 +19,7 @@ namespace WebZi.Plataform.Data.Services.Deposito
 
         public async Task<List<DepositoModel>> List()
         {
-            return await _context.Depositos
+            return await _context.Deposito
                 .OrderBy(o => o.Descricao)
                 .AsNoTracking()
                 .ToListAsync();
@@ -27,7 +27,7 @@ namespace WebZi.Plataform.Data.Services.Deposito
 
         public async Task<DepositoModel> GetById(int id)
         {
-            return await _context.Depositos
+            return await _context.Deposito
                 .Where(w => w.DepositoId == id)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
@@ -35,7 +35,7 @@ namespace WebZi.Plataform.Data.Services.Deposito
 
         public async Task<DepositoModel> GetByName(string Name)
         {
-            return await _context.Depositos
+            return await _context.Deposito
                 .Where(w => w.Descricao == Name)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
@@ -43,7 +43,7 @@ namespace WebZi.Plataform.Data.Services.Deposito
 
         public async Task<DateTime> GetDataHoraPorDeposito(int DepositoId)
         {
-            DepositoModel Deposito = await _context.Depositos
+            DepositoModel Deposito = await _context.Deposito
                 .Include(i => i.CEP)
                 .Where(w => w.DepositoId == DepositoId)
                 .AsNoTracking()
@@ -63,7 +63,7 @@ namespace WebZi.Plataform.Data.Services.Deposito
             CEPModel CEP = await new CEPService(_context)
                 .GetById(Deposito.CepId.Value);
 
-            List<EstadoModel> Estados = await _context.Estados
+            List<EstadoModel> Estados = await _context.Estado
                 .AsNoTracking()
                 .ToListAsync();
 

@@ -4,7 +4,9 @@
     {
         public string Status { get; set; }
 
-        public List<string> Avisos { get; set; } = new List<string>();
+        public List<string> AvisosInformativos { get; set; } = new List<string>();
+
+        public List<string> AvisosImpeditivos { get; set; } = new List<string>();
 
         public List<string> Erros { get; set; } = new List<string>();
     }

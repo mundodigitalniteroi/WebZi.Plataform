@@ -2,6 +2,7 @@
 using WebZi.Plataform.Data.Services.Atendimento;
 using WebZi.Plataform.Data.Services.AutoMapper;
 using WebZi.Plataform.Data.Services.Banco;
+using WebZi.Plataform.Data.Services.Bucket;
 using WebZi.Plataform.Data.Services.Cliente;
 using WebZi.Plataform.Data.Services.Deposito;
 using WebZi.Plataform.Data.Services.Faturamento;
@@ -25,6 +26,8 @@ namespace WebZi.Plataform.Data.Services
             services.AddScoped<AtendimentoService, AtendimentoService>();
 
             services.AddScoped<BancoService, BancoService>();
+
+            services.AddScoped<BucketArquivoService, BucketArquivoService>();
 
             services.AddScoped<FaturamentoBoletoService, FaturamentoBoletoService>();
 

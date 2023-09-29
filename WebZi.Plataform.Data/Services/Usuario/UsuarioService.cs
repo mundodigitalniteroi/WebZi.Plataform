@@ -19,7 +19,7 @@ namespace WebZi.Plataform.Domain.Services.Usuario
 
         public async Task<UsuarioViewModel> GetById(int UsuarioId)
         {
-            UsuarioModel Usuario = await _context.Usuarios
+            UsuarioModel Usuario = await _context.Usuario
                 .Where(w => w.UsuarioId == UsuarioId)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
@@ -34,7 +34,7 @@ namespace WebZi.Plataform.Domain.Services.Usuario
 
         public async Task<UsuarioViewModel> GetByLogin(string Login)
         {
-            UsuarioModel Usuario = await _context.Usuarios
+            UsuarioModel Usuario = await _context.Usuario
                 .Where(w => w.Login == Login)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
@@ -45,6 +45,13 @@ namespace WebZi.Plataform.Domain.Services.Usuario
             }
 
             return _mapper.Map<UsuarioViewModel>(Usuario);
+        }
+
+        public async Task<bool> IsUserActive(int UsuarioId)
+        {
+            UsuarioViewModel Usuario = await GetById(UsuarioId);
+
+            return Usuario != null && Usuario.FlagAtivo != "N";
         }
     }
 }

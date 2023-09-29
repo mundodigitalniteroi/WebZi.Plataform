@@ -80,7 +80,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             }
             #endregion REGRA DA HORA DA VIRADA DA DIÁRIA
 
-            List<FaturamentoRegraModel> RegrasFaturamento = await _context.FaturamentoRegras
+            List<FaturamentoRegraModel> RegrasFaturamento = await _context.FaturamentoRegra
                 .Where(w => w.ClienteId == CalculoDiarias.ClienteId && w.DepositoId == CalculoDiarias.DepositoId)
                 .AsNoTracking()
                 .ToListAsync();
@@ -218,7 +218,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
         private async Task<CalculoDiariasModel> SelecionarLocalizacaoDeposito(CalculoDiariasModel CalculoDiarias)
         {
-            DepositoModel Deposito = await _context.Depositos
+            DepositoModel Deposito = await _context.Deposito
                 .Include(i => i.CEP)
                 .ThenInclude(t => t.Municipio)
                 .Where(w => w.DepositoId == CalculoDiarias.DepositoId)
@@ -239,7 +239,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
         {
             if (CalculoDiarias.FlagPrimeiroFaturamento == "N")
             {
-                List<FaturamentoComposicaoModel> FaturamentoComposicoes = await _context.FaturamentoComposicoes
+                List<FaturamentoComposicaoModel> FaturamentoComposicoes = await _context.FaturamentoComposicao
                     .Include(i => i.Faturamento)
                     .Where(w => w.TipoComposicao == "D" &&
                                 w.QuantidadeComposicao > 0 &&
