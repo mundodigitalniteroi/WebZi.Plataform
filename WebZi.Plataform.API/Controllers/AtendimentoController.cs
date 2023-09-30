@@ -108,6 +108,38 @@ namespace WebZi.Plataform.API.Controllers
             return result != null ? _mapper.Map<AtendimentoViewModel>(result) : NotFound("Atendimento sem permissão de acesso ou inexistente");
         }
 
+        [HttpGet("SelecionarFotoResponsavel")]
+        public async Task<ActionResult<byte[]>> SelecionarFotoResponsavel(int AtendimentoId, int UsuarioId)
+        {
+            StringBuilder erros = new();
+
+            if (AtendimentoId <= 0)
+            {
+                erros.AppendLine("Identificador do Atendimento inválido");
+            }
+
+            if (UsuarioId <= 0)
+            {
+                erros.AppendLine("Identificador do Usuário inválido");
+            }
+
+            if (!string.IsNullOrWhiteSpace(erros.ToString()))
+            {
+                return BadRequest(erros.ToString());
+            }
+
+            if (!await _provider.GetService<UsuarioService>().IsUserActive(UsuarioId))
+            {
+                return BadRequest("Usuário sem permissão de acesso ou inexistente");
+            }
+
+            byte[] result = await _provider
+                .GetService<AtendimentoService>()
+                .GetResponsavelFoto(AtendimentoId);
+
+            return result != null ? Ok(result) : NotFound("Este Atendimento não possui Foto do Responsável");
+        }
+
         [HttpGet("ListarQualificacaoResponsavel")]
         public async Task<ActionResult<List<QualificacaoResponsavelModel>>> ListarQualificacaoResponsavel()
         {
@@ -170,7 +202,11 @@ namespace WebZi.Plataform.API.Controllers
                 AtendimentoCadastroResultView.Mensagem.Status = "OCORREU UM ERRO AO CADASTRAR";
 
                 AtendimentoCadastroResultView.Mensagem.Erros.Add(ex.Message);
-                AtendimentoCadastroResultView.Mensagem.Erros.Add(ex.InnerException.Message);
+
+                if (ex.InnerException != null)
+                {
+                    AtendimentoCadastroResultView.Mensagem.Erros.Add(ex.InnerException.Message);
+                }
 
                 return BadRequest(AtendimentoCadastroResultView);
             }

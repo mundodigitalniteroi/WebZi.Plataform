@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using System.Data;
 using WebZi.Plataform.CrossCutting.Date;
 using WebZi.Plataform.CrossCutting.Number;
@@ -19,7 +20,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             _context = context;
         }
 
-        public async Task<FaturamentoModel> Faturar(CalculoFaturamentoParametroModel ParametrosCalculoFaturamento)
+        public FaturamentoModel Faturar(CalculoFaturamentoParametroModel ParametrosCalculoFaturamento)
         {
             if (ParametrosCalculoFaturamento.DataLiberacao == DateTime.MinValue)
             {
@@ -27,12 +28,12 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             }
 
             #region Selecionar os Serviços cadastrados no GRV
-            List<ViewFaturamentoServicoGrvModel> FaturamentoServicosGrvs = await _context.ViewFaturamentoServicoGrv
+            List<ViewFaturamentoServicoGrvModel> FaturamentoServicosGrvs = _context.ViewFaturamentoServicoGrv
                 .Where(w => w.GrvId == ParametrosCalculoFaturamento.Grv.GrvId &&
                             w.FaturamentoProdutoId == ParametrosCalculoFaturamento.Grv.FaturamentoProdutoId &&
                             w.FlagTributacao == "N")
                 .AsNoTracking()
-                .ToListAsync();
+                .ToList();
 
             if (FaturamentoServicosGrvs == null)
             {
@@ -41,14 +42,14 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             #endregion Selecionar os Serviços cadastrados no GRV
 
             #region Selecionar todos os Serviços associados ao CLIDEP, incluindo os com a Vigência finalizada
-            List<ViewFaturamentoServicoAssociadoVeiculoModel> FaturamentoServicosAssociadosVeiculos = await _context.ViewFaturamentoServicoAssociadoVeiculo
+            List<ViewFaturamentoServicoAssociadoVeiculoModel> FaturamentoServicosAssociadosVeiculos = _context.ViewFaturamentoServicoAssociadoVeiculo
                 .Where(w => w.ClienteId == ParametrosCalculoFaturamento.Grv.ClienteId &&
                             w.DepositoId == ParametrosCalculoFaturamento.Grv.DepositoId &&
                             w.TipoVeiculoId == ParametrosCalculoFaturamento.Grv.TipoVeiculoId &&
                             w.FaturamentoProdutoId == ParametrosCalculoFaturamento.Grv.FaturamentoProdutoId
                 )
                 .AsNoTracking()
-                .ToListAsync();
+                .ToList();
 
             if (FaturamentoServicosAssociadosVeiculos == null)
             {
@@ -64,20 +65,20 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             // P = Fatura Paga.
 
             // Se existir ao menos 1 Fatura paga, não deve dar Desconto
-            if (await _context.Faturamento
+            if (_context.Faturamento
                 .Where(w => w.AtendimentoId == ParametrosCalculoFaturamento.Atendimento.AtendimentoId && w.Status == "P")
                 .AsNoTracking()
-                .AnyAsync())
+                .Any())
             {
                 // Faturamentos adicionais não podem receber descontos
                 ParametrosCalculoFaturamento.FaturamentoAdicional = true;
             }
 
             // Consulta da última Fatura para cancelar
-            FaturamentoModel UltimoFaturamento = await _context.Faturamento
+            FaturamentoModel UltimoFaturamento = _context.Faturamento
                 .Where(w => w.AtendimentoId == ParametrosCalculoFaturamento.Atendimento.AtendimentoId)
                 .OrderByDescending(o => o.FaturamentoId)
-                .FirstOrDefaultAsync();
+                .FirstOrDefault();
 
             if (UltimoFaturamento != null)
             {
@@ -112,7 +113,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             if (ParametrosCalculoFaturamento.Diarias == 0)
             {
-                CalculoDiarias = await new CalculoDiariasService(_context)
+                CalculoDiarias = new CalculoDiariasService(_context)
                     .Calcular(ParametrosCalculoFaturamento);
             }
             else
@@ -388,7 +389,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             #region Tributação
             if (ValorFaturado > 0)
             {
-                List<CalculoTributacaoModel> Tributacoes = await CalcularTributacao(_context,
+                List<CalculoTributacaoModel> Tributacoes = CalcularTributacao(_context,
                     ParametrosCalculoFaturamento,
                     ValorFaturado,
                     ParametrosCalculoFaturamento.Atendimento.NotaFiscalDocumento,
@@ -457,7 +458,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             {
                 // _context.SetUserContextInfo(Faturamento.UsuarioCadastroId);
 
-                await _context.Faturamento.AddAsync(Faturamento);
+                _context.Faturamento.Add(Faturamento);
             }
 
             return Faturamento;
@@ -577,14 +578,14 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             return FaturamentoComposicao;
         }
 
-        private static async Task<List<CalculoTributacaoModel>> CalcularTributacao(AppDbContext _context, CalculoFaturamentoParametroModel ParametrosCalculoFaturamento, decimal valorCalculado, string notaFiscalCnpj, string notaFiscalMunicipio, string notaFiscalUf)
+        private static List<CalculoTributacaoModel> CalcularTributacao(AppDbContext _context, CalculoFaturamentoParametroModel ParametrosCalculoFaturamento, decimal valorCalculado, string notaFiscalCnpj, string notaFiscalMunicipio, string notaFiscalUf)
         {
             if (valorCalculado <= 0 && string.IsNullOrWhiteSpace(notaFiscalCnpj) || string.IsNullOrWhiteSpace(notaFiscalMunicipio) || string.IsNullOrWhiteSpace(notaFiscalUf))
             {
                 return null;
             }
 
-            List<ViewFaturamentoServicoAssociadoVeiculoModel> ServicosTributados = await _context.ViewFaturamentoServicoAssociadoVeiculo
+            List<ViewFaturamentoServicoAssociadoVeiculoModel> ServicosTributados = _context.ViewFaturamentoServicoAssociadoVeiculo
                 .Where(w => w.ClienteId == ParametrosCalculoFaturamento.Grv.ClienteId &&
                             w.DepositoId == ParametrosCalculoFaturamento.Grv.DepositoId &&
                             w.TipoVeiculoId == ParametrosCalculoFaturamento.Grv.TipoVeiculoId &&
@@ -593,17 +594,17 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                             w.DataVigenciaFinal == null
                 )
                 .AsNoTracking()
-                .ToListAsync();
+                .ToList();
 
             if (ServicosTributados == null)
             {
                 return null;
             }
 
-            ViewEnderecoCompletoModel Endereco = await _context.ViewEnderecoCompleto
+            ViewEnderecoCompletoModel Endereco = _context.ViewEnderecoCompleto
                 .Where(w => w.CepId == ParametrosCalculoFaturamento.Grv.Deposito.CepId)
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefault();
 
             if (Endereco == null)
             {
@@ -616,13 +617,13 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             }
 
             #region Selecionar Regras do Faturamento
-            FaturamentoRegraModel FaturamentoRegra = await _context.FaturamentoRegra
+            FaturamentoRegraModel FaturamentoRegra = _context.FaturamentoRegra
                 .Include(i => i.FaturamentoRegraTipo)
                 .Where(w => w.ClienteId == ParametrosCalculoFaturamento.Grv.ClienteId &&
                             w.DepositoId == ParametrosCalculoFaturamento.Grv.DepositoId &&
                             w.FaturamentoRegraTipo.Codigo == "DESCONTOISS")
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefault();
 
             if (FaturamentoRegra != null && Convert.ToDecimal(FaturamentoRegra.Valor) > valorCalculado)
             {
@@ -729,6 +730,41 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             }
 
             return dataVencimento;
+        }
+
+        public bool AlterarFormaPagamento(int FaturamentoId, byte FormaPagamentoId, TipoMeioCobrancaModel TipoMeioCobranca)
+        {
+            FaturamentoModel Faturamento = _context.Faturamento
+                .Where(w => w.FaturamentoId == FaturamentoId)
+                .FirstOrDefault();
+
+            Faturamento.TipoMeioCobrancaId = FormaPagamentoId;
+
+            using IDbContextTransaction transaction = _context.Database.BeginTransaction();
+            
+            try
+            {
+                if (TipoMeioCobranca.Alias == "BOL" || TipoMeioCobranca.Alias == "BOLESP")
+                {
+                    new FaturamentoBoletoService(_context).Cancelar(FaturamentoId);
+                }
+
+                _context.Faturamento
+                    .Update(Faturamento);
+
+                _context.SaveChanges();
+
+                transaction.Commit();
+            }
+
+            catch (Exception)
+            {
+                transaction.Rollback();
+
+                return false;
+            }
+
+            return true;
         }
     }
 }

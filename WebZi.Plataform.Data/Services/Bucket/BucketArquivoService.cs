@@ -5,6 +5,7 @@ using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Domain.Models.Bucket;
 using WebZi.Plataform.Domain.Models.Bucket.Work;
 using WebZi.Plataform.Domain.Models.Sistema;
+using Z.EntityFramework.Plus;
 
 namespace WebZi.Plataform.Data.Services.Bucket
 {
@@ -17,7 +18,7 @@ namespace WebZi.Plataform.Data.Services.Bucket
             _context = context;
         }
 
-        public void SendFile(string CodigoTabelaOrigem, int TabelaOrigemId, int UsuarioCadastroId, byte[] Arquivo, string TipoCadastro)
+        public BucketArquivoModel SendFile(string CodigoTabelaOrigem, int TabelaOrigemId, int UsuarioCadastroId, byte[] Arquivo, string TipoCadastro = "")
         {
             ConfiguracaoModel Configuracao = _context.Configuracao
                 .AsNoTracking()
@@ -56,7 +57,7 @@ namespace WebZi.Plataform.Data.Services.Bucket
                 obj: ArquivosEnvio
             ).FirstOrDefault();
 
-            _context.BucketArquivo.Add(new()
+            BucketArquivoModel BucketArquivo = new()
             {
                 NomeTabelaOrigemId = BucketNomeTabelaOrigem.NomeTabelaOrigemId,
 
@@ -73,11 +74,13 @@ namespace WebZi.Plataform.Data.Services.Bucket
                 PermissaoAcesso = BucketArquivoRetorno.PermissaoAcesso,
 
                 TipoCadastro = TipoCadastro
-            });
+            };
+
+            _context.BucketArquivo.Add(BucketArquivo);
 
             _context.SaveChanges();
 
-            return;
+            return BucketArquivo;
         }
 
         public async Task<byte[]> DownloadFile(string CodigoTabelaOrigem, int TabelaOrigemId)
@@ -93,88 +96,43 @@ namespace WebZi.Plataform.Data.Services.Bucket
                 return null;
             }
 
-            return await HttpClientHelper.DownloadFile(BucketArquivo.Url);
+            return await HttpClientHelper.DownloadFileAsync(BucketArquivo.Url);
         }
 
-        public async void DeleteFile(string CodigoTabelaOrigem, int TabelaOrigemId, int UsuarioCadastroId, byte[] Arquivo, string TipoCadastro)
+        public BucketMensagemRetornoModel DeleteFile(string CodigoTabelaOrigem, int TabelaOrigemId)
         {
-            ConfiguracaoModel Configuracao = await _context.Configuracao
+            ConfiguracaoModel Configuracao = _context.Configuracao
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefault();
 
-            BucketNomeTabelaOrigemModel BucketTabelaOrigem = await _context.BucketNomeTabelaOrigem
-                .Where(w => w.Codigo == CodigoTabelaOrigem)
-                .AsNoTracking()
-                .FirstOrDefaultAsync();
+            BucketArquivoModel BucketArquivo = _context.BucketArquivo
+                .Include(i => i.BucketNomeTabelaOrigem)
+                .Where(w => w.TabelaOrigemId == TabelaOrigemId && w.BucketNomeTabelaOrigem.Codigo == CodigoTabelaOrigem)
+                .FirstOrDefault();
 
-            string NomeArquivo = Guid.NewGuid().ToString() + ".jpg";
+            if (BucketArquivo == null)
+            {
+                return null;
+            }
 
-            BucketArquivoEnvioModel ArquivoEnvio = new()
+            _context.BucketArquivo.Remove(BucketArquivo);
+
+            DeletarArquivoEnvioModel DeletarArquivoEnvio = new()
             {
                 NomeBucket = Configuracao.RepositorioArquivoNomeBucket,
 
-                NomeArquivo = NomeArquivo,
+                NomeArquivo = BucketArquivo.NomeArquivo,
 
-                ArquivoBase64 = Convert.ToBase64String(Arquivo),
-
-                NomePasta = BucketTabelaOrigem.DiretorioRemoto,
-
-                NomeArquivoCompleto = NomeArquivo,
-
-                NomeArquivoOriginal = NomeArquivo,
+                NomePasta = BucketArquivo.BucketNomeTabelaOrigem.DiretorioRemoto
             };
 
-            List<BucketArquivoEnvioModel> ArquivosEnvio = new()
-            {
-                ArquivoEnvio
-            };
-
-            List<BucketArquivoRetornoModel> ListaArquivosRetorno = new();
-
-            try
-            {
-                ListaArquivosRetorno = HttpClientHelper.PostBasicAuth<List<BucketArquivoRetornoModel>>
-                (
-                    url: Configuracao.RepositorioArquivoUrl,
-                    username: Configuracao.RepositorioArquivoUsername,
-                    password: Configuracao.RepositorioArquivoPassword,
-                    obj: ArquivosEnvio
-                );
-            }
-            catch (Exception ex)
-            {
-                if (true)
-                {
-
-                }
-            }
-
-            BucketArquivoRetornoModel arquivoRetorno = ListaArquivosRetorno.FirstOrDefault();
-
-            BucketArquivoModel BucketArquivo = new()
-            {
-                NomeTabelaOrigemId = BucketTabelaOrigem.NomeTabelaOrigemId,
-
-                TabelaOrigemId = TabelaOrigemId,
-
-                UsuarioCadastroId = UsuarioCadastroId,
-
-                NomeArquivo = arquivoRetorno.NomeArquivo,
-
-                TamanhoBytes = arquivoRetorno.TamanhoBytes,
-
-                Url = arquivoRetorno.Url,
-
-                PermissaoAcesso = arquivoRetorno.PermissaoAcesso,
-
-                TipoCadastro = TipoCadastro
-            };
-
-            _context.BucketArquivo.Add(BucketArquivo);
-
-            _context.SaveChanges();
-
-            return;
+            return HttpClientHelper.DeleteBasicAuth<BucketMensagemRetornoModel>
+            (
+                url: Configuracao.RepositorioArquivoUrl,
+                username: Configuracao.RepositorioArquivoUsername,
+                password: Configuracao.RepositorioArquivoPassword,
+                obj: DeletarArquivoEnvio
+            );
         }
     }
 }

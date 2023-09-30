@@ -1,13 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.Extensions.DependencyInjection;
 using WebZi.Plataform.CrossCutting.Date;
 using WebZi.Plataform.CrossCutting.Documents;
 using WebZi.Plataform.CrossCutting.Strings;
+using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
-using WebZi.Plataform.Data.Services.Banco;
 using WebZi.Plataform.Data.Services.Bucket;
 using WebZi.Plataform.Data.WsBoleto;
+using WebZi.Plataform.Domain.Models.Bucket;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.Faturamento.Boleto;
 using WebZi.Plataform.Domain.Models.Faturamento.View;
@@ -21,12 +21,10 @@ namespace WebZi.Plataform.Data.Services.Faturamento
     public class FaturamentoBoletoService
     {
         private readonly AppDbContext _context;
-        private readonly IServiceProvider _provider;
 
-        public FaturamentoBoletoService(AppDbContext context, IServiceProvider provider)
+        public FaturamentoBoletoService(AppDbContext context)
         {
             _context = context;
-            _provider = provider;
         }
 
         public async Task<FaturamentoBoletoModel> GetBoletoNaoPagoByFaturamentoId(int FaturamentoId)
@@ -37,14 +35,29 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 .FirstOrDefaultAsync();
         }
 
-        public async Task<FaturamentoBoletoImagemModel> GetUltimoBoletoByFaturamentoId(int FaturamentoId)
+        public async Task<byte[]> GetUltimoBoleto(int FaturamentoBoletoId)
         {
-            return await _context.FaturamentoBoletoImagem
-                .Include(i => i.FaturamentoBoleto)
-                .Where(w => w.FaturamentoBoleto.FaturamentoId == FaturamentoId && w.FaturamentoBoleto.Status != "C")
-                .OrderByDescending(o => o.FaturamentoBoletoId)
+            BucketArquivoModel BucketArquivo = _context.BucketArquivo
+                .Include(i => i.BucketNomeTabelaOrigem)
+                .Where(w => w.BucketNomeTabelaOrigem.Codigo == "FATURAMENBOLETO")
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefault();
+
+            if (BucketArquivo != null)
+            {
+                return await HttpClientHelper.DownloadFileAsync(BucketArquivo.Url);
+            }
+            else
+            {
+                var result = await _context.FaturamentoBoletoImagem
+                    .Include(i => i.FaturamentoBoleto)
+                    .Where(w => w.FaturamentoBoleto.FaturamentoId == FaturamentoBoletoId && w.FaturamentoBoleto.Status != "C")
+                    .OrderByDescending(o => o.FaturamentoBoletoId)
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync();
+
+                return result.Imagem;
+            }
         }
 
         public async Task<List<FaturamentoBoletoModel>> GetBoletoByFaturamentoId(int FaturamentoId)
@@ -215,9 +228,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
                     _context.SaveChanges();
 
-                    BucketArquivoService bucketArquivoService = new(_context);
-
-                    bucketArquivoService.SendFile("FATURAMENBOLETO", FaturamentoBoleto.FaturamentoBoletoId, UsuarioCadastroId, BoletoGerado.Boleto, "");
+                    new BucketArquivoService(_context).SendFile("FATURAMENBOLETO", FaturamentoBoleto.FaturamentoBoletoId, UsuarioCadastroId, BoletoGerado.Boleto);
 
                     transaction.Commit();
                 }
@@ -251,6 +262,9 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     _context.FaturamentoBoletoImagem
                         .Where(w => w.FaturamentoBoletoId == FaturamentoBoleto.FaturamentoBoletoId)
                         .Delete();
+
+                    new BucketArquivoService(_context)
+                        .DeleteFile("FATURAMENBOLETO", FaturamentoBoleto.FaturamentoBoletoId);
                 }
             }
         }

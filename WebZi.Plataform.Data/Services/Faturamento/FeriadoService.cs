@@ -13,7 +13,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             _context = context;
         }
 
-        public async Task<List<DateTime>> SelecionarDatasFeriados(string UF, int MunicipioId, int AnoInicial, int AnoFinal = 0)
+        public List<DateTime> SelecionarDatasFeriados(string UF, int MunicipioId, int AnoInicial, int AnoFinal = 0)
         {
             if (AnoFinal <= 0)
             {
@@ -26,12 +26,12 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             for (int ano = AnoInicial; ano <= AnoFinal; ano++)
             {
-                Feriados = await _context.Feriado
+                Feriados = _context.Feriado
                     .Where(w => (w.Ano == null || w.Ano == ano) &&
                                 ((w.FlagFeriadoNacional == "S") ||
                                  (w.UF == UF && w.MunicipioId == null) ||
                                  (w.MunicipioId == MunicipioId)))
-                    .ToListAsync();
+                    .ToList();
 
                 foreach (var item in Feriados)
                 {

@@ -1,5 +1,8 @@
-﻿using System.Net;
+﻿using Newtonsoft.Json.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Text;
 
 namespace WebZi.Plataform.CrossCutting.Web
@@ -94,15 +97,41 @@ namespace WebZi.Plataform.CrossCutting.Web
             }
         }
 
-        public static async Task<byte[]> DownloadFile(string url)
+        public static async Task<byte[]> DownloadFileAsync(string url)
         {
             ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072;
+
+            InitializeHttpClient(url);
 
             using var response = await httpClient.GetAsync(url);
             
             return await response.Content
                 .ReadAsByteArrayAsync()
                 .ConfigureAwait(false);
+        }
+
+        public static T DeleteBasicAuth<T>(string url, string username, string password, object obj) where T : class
+        {
+            return Task.Run(async () => await DeleteBasicAuthAsync<T>(url, username, password, obj)).Result;
+        }
+
+        private static async Task<T> DeleteBasicAuthAsync<T>(string url, string username, string password, object obj) where T : class
+        {
+            InitializeHttpClient(url);
+
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.ASCII.GetBytes($"{username}:{password}")));
+
+            HttpRequestMessage request = new()
+            {
+                Content = JsonContent.Create(obj),
+                Method = HttpMethod.Delete,
+                RequestUri = new Uri(url)
+            };
+
+            using (HttpResponseMessage httpResponseMessage = await httpClient.SendAsync(request))
+            {
+                return JsonHelper.DeserializeObject<T>(await httpResponseMessage.Content.ReadAsStringAsync());
+            }
         }
     }
 }

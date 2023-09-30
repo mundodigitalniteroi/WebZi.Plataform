@@ -17,7 +17,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             _context = context;
         }
 
-        public async Task<CalculoDiariasModel> Calcular(CalculoFaturamentoParametroModel ParametrosCalculoFaturamento)
+        public CalculoDiariasModel Calcular(CalculoFaturamentoParametroModel ParametrosCalculoFaturamento)
         {
             CalculoDiariasModel CalculoDiarias = new()
             {
@@ -80,26 +80,26 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             }
             #endregion REGRA DA HORA DA VIRADA DA DIÁRIA
 
-            List<FaturamentoRegraModel> RegrasFaturamento = await _context.FaturamentoRegra
+            List<FaturamentoRegraModel> RegrasFaturamento = _context.FaturamentoRegra
                 .Where(w => w.ClienteId == CalculoDiarias.ClienteId && w.DepositoId == CalculoDiarias.DepositoId)
                 .AsNoTracking()
-                .ToListAsync();
+                .ToList();
 
             if (RegrasFaturamento.Count == 0)
             {
                 RegrasFaturamento = null;
             }
 
-            CalculoDiarias = await SelecionarLocalizacaoDeposito(CalculoDiarias);
+            CalculoDiarias = SelecionarLocalizacaoDeposito(CalculoDiarias);
 
             CalculoDiarias.DataHoraOntem = CalculoDiarias.DataHoraFinalParaCalculo.Value.AddDays(-1);
 
             CalculoDiarias.DataHoraOntem = new DateTime(CalculoDiarias.DataHoraOntem.Year, CalculoDiarias.DataHoraOntem.Month, CalculoDiarias.DataHoraOntem.Day, 23, 59, 59);
 
-            CalculoDiarias.Feriados = await new FeriadoService(_context)
+            CalculoDiarias.Feriados = new FeriadoService(_context)
                 .SelecionarDatasFeriados(CalculoDiarias.Uf, CalculoDiarias.MunicipioId, CalculoDiarias.DataHoraInicialParaCalculo.Date.Year, CalculoDiarias.DataHoraDiaria.Date.AddDays(10).Year);
 
-            CalculoDiarias.QuantidadeDiariasPagas = await QuantidadeDiariasPagas(CalculoDiarias);
+            CalculoDiarias.QuantidadeDiariasPagas = QuantidadeDiariasPagas(CalculoDiarias);
 
             CalculoDiarias.CobrarTodasDiarias = RegrasFaturamento?.Count > 0 && RegrasFaturamento.Any(w => w.FaturamentoRegraTipo.Codigo == "CALCDIASNAOCOBRADAS");
 
@@ -216,14 +216,14 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             return CalculoDiarias;
         }
 
-        private async Task<CalculoDiariasModel> SelecionarLocalizacaoDeposito(CalculoDiariasModel CalculoDiarias)
+        private CalculoDiariasModel SelecionarLocalizacaoDeposito(CalculoDiariasModel CalculoDiarias)
         {
-            DepositoModel Deposito = await _context.Deposito
+            DepositoModel Deposito = _context.Deposito
                 .Include(i => i.CEP)
                 .ThenInclude(t => t.Municipio)
                 .Where(w => w.DepositoId == CalculoDiarias.DepositoId)
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefault();
 
             if (Deposito != null)
             {
@@ -235,17 +235,17 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             return CalculoDiarias;
         }
 
-        private async Task<int> QuantidadeDiariasPagas(CalculoDiariasModel CalculoDiarias)
+        private int QuantidadeDiariasPagas(CalculoDiariasModel CalculoDiarias)
         {
             if (CalculoDiarias.FlagPrimeiroFaturamento == "N")
             {
-                List<FaturamentoComposicaoModel> FaturamentoComposicoes = await _context.FaturamentoComposicao
+                List<FaturamentoComposicaoModel> FaturamentoComposicoes = _context.FaturamentoComposicao
                     .Include(i => i.Faturamento)
                     .Where(w => w.TipoComposicao == "D" &&
                                 w.QuantidadeComposicao > 0 &&
                                 w.Faturamento.AtendimentoId == CalculoDiarias.AtendimentoId &&
                                 w.Faturamento.Status == "P")
-                    .ToListAsync();
+                    .ToList();
 
                 if (FaturamentoComposicoes?.Count > 0)
                 {

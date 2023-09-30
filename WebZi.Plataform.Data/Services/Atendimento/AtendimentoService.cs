@@ -6,18 +6,16 @@ using WebZi.Plataform.CrossCutting.Documents;
 using WebZi.Plataform.CrossCutting.Localizacao;
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
-using WebZi.Plataform.Data.Services.Banco;
+using WebZi.Plataform.Data.Services.Bucket;
 using WebZi.Plataform.Data.Services.Deposito;
 using WebZi.Plataform.Data.Services.Faturamento;
 using WebZi.Plataform.Data.Services.Leilao;
 using WebZi.Plataform.Domain.Models;
 using WebZi.Plataform.Domain.Models.Atendimento;
 using WebZi.Plataform.Domain.Models.Atendimento.ViewModel;
-using WebZi.Plataform.Domain.Models.ClienteDeposito;
+using WebZi.Plataform.Domain.Models.Bucket;
 using WebZi.Plataform.Domain.Models.Faturamento;
-using WebZi.Plataform.Domain.Models.Faturamento.View;
 using WebZi.Plataform.Domain.Models.GRV;
-using WebZi.Plataform.Domain.Models.Leilao;
 using WebZi.Plataform.Domain.Models.Pagamento.ViewModel;
 using WebZi.Plataform.Domain.Models.Pessoa.Documento;
 using WebZi.Plataform.Domain.Services.Usuario;
@@ -357,14 +355,14 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                     // Informar a Inscrição Municipal do Tomador do Serviço do Receptor da Nota Fiscal só é obrigatorio
                     // caso o Cliente esteja cadastrado na regra do Faturamento "ATENDINSCRICMUNIC".
 
-                    FaturamentoRegraModel faturamentoRegra = await _context.FaturamentoRegra
+                    FaturamentoRegraModel FaturamentoRegra = await _context.FaturamentoRegra
                         .Include(i => i.FaturamentoRegraTipo)
                         .Where(w => w.ClienteId == Grv.ClienteId &&
                                     w.FaturamentoRegraTipo.Codigo == "ATENDINSCRICMUNIC")
                         .AsNoTracking()
                         .FirstOrDefaultAsync();
 
-                    if (faturamentoRegra != null)
+                    if (FaturamentoRegra != null)
                     {
                         mensagem.AvisosImpeditivos.Add("Ao informar o CNPJ do Receptor da Nota Fiscal é preciso informar a Inscrição Municipal do Tomador do Serviço");
                     }
@@ -563,13 +561,14 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             {
                 try
                 {
-                    await _context.Atendimento.AddAsync(Atendimento);
+                    _context.Atendimento.Add(Atendimento);
 
-                    await _context.SaveChangesAsync();
+                    _context.SaveChanges();
 
                     ParametrosCalculoFaturamento.Atendimento = Atendimento;
 
-                    ParametrosCalculoFaturamento.Faturamento = await new FaturamentoService(_context).Faturar(ParametrosCalculoFaturamento);
+                    ParametrosCalculoFaturamento.Faturamento = new FaturamentoService(_context)
+                        .Faturar(ParametrosCalculoFaturamento);
 
                     CadastrarFoto(Atendimento.AtendimentoId, AtendimentoInput);
 
@@ -579,7 +578,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
                     AtualizarGrv(ParametrosCalculoFaturamento);
 
-                    await _context.SaveChangesAsync();
+                    _context.SaveChanges();
 
                     transaction.Commit();
 
@@ -590,7 +589,11 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                     transaction.Rollback();
 
                     AtendimentoCadastroResultView.Mensagem.Erros.Add(ex.Message);
-                    AtendimentoCadastroResultView.Mensagem.Erros.Add(ex.InnerException.Message);
+
+                    if (ex.InnerException.Message != null)
+                    {
+                        AtendimentoCadastroResultView.Mensagem.Erros.Add(ex.InnerException.Message);
+                    }
                 }
             }
 
@@ -666,16 +669,11 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             return ParametrosCalculoFaturamento;
         }
 
-        private async void CadastrarFoto(int AtendimentoId, AtendimentoCadastroViewModel AtendimentoInput)
+        private void CadastrarFoto(int AtendimentoId, AtendimentoCadastroViewModel AtendimentoInput)
         {
             if (AtendimentoInput.ResponsavelFoto != null)
             {
-                await _context.AtendimentoFotoResponsavel.AddAsync(new()
-                {
-                    AtendimentoId = AtendimentoId,
-
-                    Foto = AtendimentoInput.ResponsavelFoto
-                });
+                new BucketArquivoService(_context).SendFile("ATENDIMFOTORESP", AtendimentoId, AtendimentoInput.UsuarioId, AtendimentoInput.ResponsavelFoto);
             }
         }
 
@@ -709,15 +707,38 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             }
         }
 
-        private async void AtualizarGrv(CalculoFaturamentoParametroModel ParametrosCalculoFaturamento)
+        private void AtualizarGrv(CalculoFaturamentoParametroModel ParametrosCalculoFaturamento)
         {
-            GrvModel Grv = await _context.Grv
+            GrvModel Grv = _context.Grv
                 .Where(w => w.GrvId == ParametrosCalculoFaturamento.Grv.GrvId)
-                .FirstOrDefaultAsync();
+                .FirstOrDefault();
 
             Grv.StatusOperacaoId = ParametrosCalculoFaturamento.StatusOperacaoId;
 
             _context.Grv.Update(Grv);
+        }
+
+        public async Task<byte[]> GetResponsavelFoto(int AtendimentoId)
+        {
+            BucketArquivoModel BucketArquivo = _context.BucketArquivo
+                .Include(i => i.BucketNomeTabelaOrigem)
+                .Where(w => w.BucketNomeTabelaOrigem.Codigo == "ATENDIMFOTORESP")
+                .AsNoTracking()
+                .FirstOrDefault();
+
+            if (BucketArquivo != null)
+            {
+                return await HttpClientHelper.DownloadFileAsync(BucketArquivo.Url);
+            }
+            else
+            {
+                var result = await _context.AtendimentoFotoResponsavel
+                    .Where(w => w.AtendimentoId == AtendimentoId)
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync();
+
+                return result.Foto;
+            }
         }
 
         //private async void GerarFormaPagamento(CalculoFaturamentoParametroModel ParametrosCalculoFaturamento)

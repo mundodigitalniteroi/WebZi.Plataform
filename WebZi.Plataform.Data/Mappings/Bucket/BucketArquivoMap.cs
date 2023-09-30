@@ -46,6 +46,10 @@ namespace WebZi.Plataform.Data.Mappings.Bucket
             builder.Property(e => e.DataHoraCadastro)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("smalldatetime");
+
+            builder.HasOne(d => d.BucketNomeTabelaOrigem).WithMany(p => p.BucketArquivos)
+                .HasForeignKey(d => d.NomeTabelaOrigemId)
+                .OnDelete(DeleteBehavior.NoAction);
         }
     }
 }

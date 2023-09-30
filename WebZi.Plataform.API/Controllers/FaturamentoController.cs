@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using System.Text;
 using WebZi.Plataform.Data.Database;
+using WebZi.Plataform.Data.Services.Banco;
 using WebZi.Plataform.Data.Services.Faturamento;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.Faturamento.Boleto;
@@ -100,6 +101,7 @@ namespace WebZi.Plataform.API.Controllers
             FaturamentoModel Faturamento = await _context.Faturamento
                 .Include(i => i.Atendimento)
                 .ThenInclude(t => t.Grv)
+                .Include(i => i.FaturamentoBoletos.Where(w => w.Status != "C"))
                 .Where(w => w.FaturamentoId == FaturamentoId)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
@@ -131,23 +133,20 @@ namespace WebZi.Plataform.API.Controllers
                 return BadRequest($"Esse Faturamento está cadastrado com outra Forma de Pagamento: {TipoMeioCobranca.Descricao}");
             }
 
-            // TODO:
-            // Baixar a imagem do Bucket
-
-            FaturamentoBoletoImagemModel result = await _provider
-                .GetService<FaturamentoBoletoService>()
-                .GetUltimoBoletoByFaturamentoId(FaturamentoId);
-
-            if (result == null)
+            if (Faturamento.FaturamentoBoletos?.Count == null)
             {
-                return BadRequest("Boleto foi cancelado ou inexistente");
+                return NotFound("Boleto não encontrado");
             }
 
-            return result != null ? Ok(result.Imagem) : NotFound("Boleto não encontrado");
+            var result = await _provider
+                .GetService<FaturamentoBoletoService>()
+                .GetUltimoBoleto(Faturamento.FaturamentoBoletos.FirstOrDefault().FaturamentoBoletoId);
+
+            return result != null ? Ok(result) : NotFound("Boleto foi cancelado ou inexistente");
         }
 
         [HttpGet("AlterarFormaPagamento")]
-        public async Task<ActionResult<string>> AlterarFormaPagamento(int FaturamentoId, byte FormaPagamentoId, int UsuarioId)
+        public async Task<ActionResult<string>> AlterarFormaPagamento(int FaturamentoId, byte NovaFormaPagamentoId, int UsuarioId)
         {
             StringBuilder erros = new();
 
@@ -156,7 +155,7 @@ namespace WebZi.Plataform.API.Controllers
                 erros.AppendLine("Identificador do Faturamento inválido");
             }
 
-            if (FormaPagamentoId <= 0)
+            if (NovaFormaPagamentoId <= 0)
             {
                 erros.AppendLine("Identificador da Forma de Pagamento inválido");
             }
@@ -200,13 +199,13 @@ namespace WebZi.Plataform.API.Controllers
                 return BadRequest("Esse Faturamento já foi pago");
             }
 
-            if (Faturamento.TipoMeioCobrancaId == FormaPagamentoId)
+            if (Faturamento.TipoMeioCobrancaId == NovaFormaPagamentoId)
             {
                 return BadRequest("Forma de Pagamento já selecionado");
             }
 
             TipoMeioCobrancaModel TipoMeioCobranca = await _context.TipoMeioCobranca
-                .Where(w => w.TipoMeioCobrancaId == FormaPagamentoId)
+                .Where(w => w.TipoMeioCobrancaId == NovaFormaPagamentoId)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
 
@@ -215,14 +214,11 @@ namespace WebZi.Plataform.API.Controllers
                 return BadRequest("Forma de Pagamento inexistente");
             }
 
-            Faturamento.TipoMeioCobrancaId = FormaPagamentoId;
+            bool result = _provider
+                .GetService<FaturamentoService>()
+                .AlterarFormaPagamento(FaturamentoId, NovaFormaPagamentoId, TipoMeioCobranca);
 
-            _context.Faturamento
-                .Update(Faturamento);
-
-            _context.SaveChanges();
-
-            return Ok($"Forma de pagamento alterada com sucesso: {TipoMeioCobranca.Descricao}");
+            return result ? Ok($"Forma de Pagamento alterada com sucesso: {TipoMeioCobranca.Descricao}") : BadRequest($"Não foi possível alterar a Forma de Pagamento");
         }
     }
 }

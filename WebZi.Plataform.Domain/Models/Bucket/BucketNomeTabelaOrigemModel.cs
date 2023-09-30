@@ -11,5 +11,7 @@
         public string Descricao { get; set; }
 
         public string DiretorioRemoto { get; set; }
+
+        public virtual ICollection<BucketArquivoModel> BucketArquivos { get; set; }
     }
 }

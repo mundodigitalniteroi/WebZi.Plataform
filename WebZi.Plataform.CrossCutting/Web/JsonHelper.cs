@@ -3,11 +3,12 @@
 namespace WebZi.Plataform.CrossCutting.Web
 {
     public abstract class JsonHelper
-    {/// <summary>
-     /// Convert an object to a JSON string
-     /// </summary>
-     /// <param name="obj"></param>
-     /// <returns>A JSON string</returns>
+    {
+        /// <summary>
+        /// Convert an object to a JSON string
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns>A JSON string</returns>
         public static string Serialize(object obj)
         {
             Console.WriteLine(JsonConvert.SerializeObject(obj));

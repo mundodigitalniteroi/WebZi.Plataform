@@ -27,8 +27,8 @@ namespace WebZi.Plataform.Domain.Models.Bucket
 
         /// <summary>
         /// Coluna usada apenas no cadastro das Fotos do GGV:
-        /// E - EntradaPatio
-        /// R - Regularizacao
+        /// E - Entrada no Pátio
+        /// R - Regularização
         /// V - Vistoria
         /// </summary>
         public string TipoCadastro { get; set; }
