@@ -7,6 +7,7 @@ using WebZi.Plataform.Domain.Models.GRV;
 using WebZi.Plataform.Domain.Models.GRV.ViewModel;
 using WebZi.Plataform.Domain.Models.Usuario;
 using WebZi.Plataform.Domain.Models.Usuario.ViewModel;
+using WebZi.Plataform.Domain.ViewModel.GRV;
 
 namespace WebZi.Plataform.Data.Services.AutoMapper
 {
@@ -23,6 +24,8 @@ namespace WebZi.Plataform.Data.Services.AutoMapper
             CreateMap<BancoModel, BancoViewModel>();
 
             CreateMap<GrvModel, GrvViewModel>();
+
+            CreateMap<List<LacreModel>, List<LacreResultViewModel>>();
 
             CreateMap<UsuarioModel, UsuarioViewModel>();
         }

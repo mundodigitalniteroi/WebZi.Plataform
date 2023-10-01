@@ -17,12 +17,12 @@ namespace WebZi.Plataform.Domain.Services.Usuario
             _mapper = mapper;
         }
 
-        public async Task<UsuarioViewModel> GetById(int UsuarioId)
+        public UsuarioViewModel GetById(int UsuarioId)
         {
-            UsuarioModel Usuario = await _context.Usuario
+            UsuarioModel Usuario = _context.Usuario
                 .Where(w => w.UsuarioId == UsuarioId)
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefault();
 
             if (Usuario == null)
             {
@@ -32,12 +32,12 @@ namespace WebZi.Plataform.Domain.Services.Usuario
             return _mapper.Map<UsuarioViewModel>(Usuario);
         }
 
-        public async Task<UsuarioViewModel> GetByLogin(string Login)
+        public UsuarioViewModel GetByLogin(string Login)
         {
-            UsuarioModel Usuario = await _context.Usuario
+            UsuarioModel Usuario = _context.Usuario
                 .Where(w => w.Login == Login)
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefault();
 
             if (Usuario == null)
             {
@@ -47,9 +47,9 @@ namespace WebZi.Plataform.Domain.Services.Usuario
             return _mapper.Map<UsuarioViewModel>(Usuario);
         }
 
-        public async Task<bool> IsUserActive(int UsuarioId)
+        public bool IsUserActive(int UsuarioId)
         {
-            UsuarioViewModel Usuario = await GetById(UsuarioId);
+            UsuarioViewModel Usuario = GetById(UsuarioId);
 
             return Usuario != null && Usuario.FlagAtivo != "N";
         }

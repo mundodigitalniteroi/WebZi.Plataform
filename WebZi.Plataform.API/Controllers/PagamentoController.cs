@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using WebZi.Plataform.Data.Services.Atendimento;
-using WebZi.Plataform.Domain.Models;
 using WebZi.Plataform.Domain.Models.Pagamento.ViewModel;
+using WebZi.Plataform.Domain.ViewModel;
 
 namespace WebZi.Plataform.API.Controllers
 {
@@ -25,13 +25,13 @@ namespace WebZi.Plataform.API.Controllers
 
             if (mensagem.Erros.Count == 0)
             {
-                mensagem.Status = "APTO PARA O PAGAMENTO";
+                mensagem.HtmlStatusCode = CrossCutting.Web.HtmlStatusCodeEnum.Ok;
 
                 return Ok(mensagem);
             }
             else
             {
-                mensagem.Status = "NÃO ESTÁ APTO PARA O PAGAMENTO";
+                mensagem.HtmlStatusCode = CrossCutting.Web.HtmlStatusCodeEnum.BadRequest;
 
                 return BadRequest(mensagem);
             }

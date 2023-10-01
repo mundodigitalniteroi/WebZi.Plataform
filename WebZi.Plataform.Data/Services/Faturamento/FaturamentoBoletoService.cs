@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using WebZi.Plataform.CrossCutting.Date;
 using WebZi.Plataform.CrossCutting.Documents;
@@ -7,12 +8,15 @@ using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Services.Bucket;
 using WebZi.Plataform.Data.WsBoleto;
+using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Bucket;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.Faturamento.Boleto;
 using WebZi.Plataform.Domain.Models.Faturamento.View;
+using WebZi.Plataform.Domain.Models.Faturamento.ViewModel;
 using WebZi.Plataform.Domain.Models.GRV;
 using WebZi.Plataform.Domain.Models.Sistema;
+using WebZi.Plataform.Domain.Services.Usuario;
 using Z.EntityFramework.Plus;
 using static WebZi.Plataform.Data.WsBoleto.WsBoletoSoapClient;
 
@@ -21,13 +25,15 @@ namespace WebZi.Plataform.Data.Services.Faturamento
     public class FaturamentoBoletoService
     {
         private readonly AppDbContext _context;
+        private readonly IMapper _mapper;
 
-        public FaturamentoBoletoService(AppDbContext context)
+        public FaturamentoBoletoService(AppDbContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
-        public async Task<FaturamentoBoletoModel> GetBoletoNaoPagoByFaturamentoId(int FaturamentoId)
+        public async Task<FaturamentoBoletoModel> GetBoletoNaoPago(int FaturamentoId)
         {
             return await _context.FaturamentoBoleto
                 .Where(w => w.FaturamentoId == FaturamentoId && w.Status == "N")
@@ -35,8 +41,75 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 .FirstOrDefaultAsync();
         }
 
-        public async Task<byte[]> GetUltimoBoleto(int FaturamentoBoletoId)
+        public BoletoResultView GetUltimoBoleto(int FaturamentoId, int UsuarioId)
         {
+            BoletoResultView BoletoResultView = new();
+
+            List<string> erros = new();
+
+            if (FaturamentoId <= 0)
+            {
+                erros.Add("Identificador do Faturamento inválido");
+            }
+
+            if (UsuarioId <= 0)
+            {
+                erros.Add("Identificador do Usuário inválido");
+            }
+
+            if (erros.Count > 0)
+            {
+                BoletoResultView.Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.BadRequest;
+
+                foreach (var erro in erros)
+                {
+                    BoletoResultView.Mensagem.AvisosImpeditivos.Add(erro);
+                }
+
+                return BoletoResultView;
+            }
+
+            if (!new UsuarioService(_context, _mapper).IsUserActive(UsuarioId))
+            {
+                BoletoResultView.Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.Unauthorized;
+
+                BoletoResultView.Mensagem.AvisosImpeditivos.Add("Usuário sem permissão de acesso ou inexistente");
+
+                return BoletoResultView;
+            }
+
+            FaturamentoModel Faturamento = _context.Faturamento
+                .Include(i => i.FaturamentoBoletos.Where(w => w.Status != "C"))
+                .Include(i => i.TipoMeioCobranca)
+                .Where(w => w.FaturamentoId == FaturamentoId)
+                .AsNoTracking()
+                .FirstOrDefault();
+
+            if (Faturamento == null)
+            {
+                BoletoResultView.Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.NotFound;
+
+                BoletoResultView.Mensagem.AvisosImpeditivos.Add("Faturamento não encontrado");
+
+                return BoletoResultView;
+            }
+            else if (Faturamento.TipoMeioCobranca.Alias != "BOL" && Faturamento.TipoMeioCobranca.Alias != "BOLESP")
+            {
+                BoletoResultView.Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.BadRequest;
+
+                BoletoResultView.Mensagem.AvisosImpeditivos.Add($"Esse Faturamento está cadastrado em outra Forma de Pagamento: {Faturamento.TipoMeioCobranca.Descricao}");
+
+                return BoletoResultView;
+            }
+            else if (Faturamento.FaturamentoBoletos?.Count == null)
+            {
+                BoletoResultView.Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.NotFound;
+
+                BoletoResultView.Mensagem.AvisosImpeditivos.Add("Boleto foi cancelado ou inexistente");
+
+                return BoletoResultView;
+            }
+
             BucketArquivoModel BucketArquivo = _context.BucketArquivo
                 .Include(i => i.BucketNomeTabelaOrigem)
                 .Where(w => w.BucketNomeTabelaOrigem.Codigo == "FATURAMENBOLETO")
@@ -45,31 +118,38 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             if (BucketArquivo != null)
             {
-                return await HttpClientHelper.DownloadFileAsync(BucketArquivo.Url);
+                BoletoResultView.Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.Ok;
+
+                BoletoResultView.Boleto = HttpClientHelper.DownloadFile(BucketArquivo.Url);
+
+                return BoletoResultView;
             }
             else
             {
-                var result = await _context.FaturamentoBoletoImagem
+                FaturamentoBoletoImagemModel FaturamentoBoletoImagem = _context.FaturamentoBoletoImagem
                     .Include(i => i.FaturamentoBoleto)
-                    .Where(w => w.FaturamentoBoleto.FaturamentoId == FaturamentoBoletoId && w.FaturamentoBoleto.Status != "C")
+                    .Where(w => w.FaturamentoBoleto.FaturamentoId == Faturamento.FaturamentoBoletos.FirstOrDefault().FaturamentoBoletoId && w.FaturamentoBoleto.Status != "C")
                     .OrderByDescending(o => o.FaturamentoBoletoId)
                     .AsNoTracking()
-                    .FirstOrDefaultAsync();
+                    .FirstOrDefault();
 
-                return result.Imagem;
+                if (FaturamentoBoletoImagem != null)
+                {
+                    BoletoResultView.Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.Ok;
+
+                    BoletoResultView.Boleto = FaturamentoBoletoImagem.Imagem;
+
+                    return BoletoResultView;
+                }
+                else
+                {
+                    BoletoResultView.Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.NotFound;
+
+                    BoletoResultView.Mensagem.AvisosImpeditivos.Add("A imagem do Boleto não foi gerado ou foi excluído");
+
+                    return BoletoResultView;
+                }
             }
-        }
-
-        public async Task<List<FaturamentoBoletoModel>> GetBoletoByFaturamentoId(int FaturamentoId)
-        {
-            List<FaturamentoBoletoModel> result = await _context.FaturamentoBoleto
-                .Where(w => w.FaturamentoId == FaturamentoId)
-                .AsNoTracking()
-                .ToListAsync();
-
-            return result
-                .OrderBy(o => o.DataEmissao)
-                .ToList();
         }
 
         public byte[] Gerar(GrvModel Grv, FaturamentoModel Faturamento, int UsuarioCadastroId, TipoMeioCobrancaModel TipoMeioCobranca = null, List<FaturamentoRegraModel> FaturamentoRegras = null)

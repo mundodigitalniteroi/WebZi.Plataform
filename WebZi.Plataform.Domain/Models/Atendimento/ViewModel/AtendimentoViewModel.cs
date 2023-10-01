@@ -1,4 +1,6 @@
-﻿namespace WebZi.Plataform.Domain.Models.Atendimento.ViewModel
+﻿using WebZi.Plataform.Domain.ViewModel;
+
+namespace WebZi.Plataform.Domain.Models.Atendimento.ViewModel
 {
     public class AtendimentoViewModel
     {
@@ -111,5 +113,7 @@
         public DateTime DataCadastro { get; set; }
 
         public DateTime? DataAlteracao { get; set; }
+
+        public MensagemViewModel Mensagem { get; set; } = new MensagemViewModel();
     }
 }

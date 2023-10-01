@@ -2,14 +2,16 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Text;
 using WebZi.Plataform.CrossCutting.Strings;
+using WebZi.Plataform.CrossCutting.Web;
+using WebZi.Plataform.Data.Database;
+using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Atendimento;
-using WebZi.Plataform.Data.Services.Faturamento;
-using WebZi.Plataform.Domain.Models;
+using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Atendimento;
 using WebZi.Plataform.Domain.Models.Atendimento.ViewModel;
-using WebZi.Plataform.Domain.Models.Faturamento;
-using WebZi.Plataform.Domain.Models.Usuario.ViewModel;
+using WebZi.Plataform.Domain.Models.Faturamento.ViewModel;
 using WebZi.Plataform.Domain.Services.Usuario;
+using WebZi.Plataform.Domain.ViewModel;
 
 namespace WebZi.Plataform.API.Controllers
 {
@@ -17,45 +19,66 @@ namespace WebZi.Plataform.API.Controllers
     [ApiController]
     public class AtendimentoController : ControllerBase
     {
-        private readonly IServiceProvider _provider;
+        private readonly AppDbContext _context;
         private readonly IMapper _mapper;
+        private readonly IServiceProvider _provider;
 
-        public AtendimentoController(IServiceProvider provider, IMapper mapper)
+        public AtendimentoController(AppDbContext context, IMapper mapper, IServiceProvider provider)
         {
-            _provider = provider;
+            _context = context;
             _mapper = mapper;
+            _provider = provider;
         }
 
         [HttpGet("SelecionarPorId")]
         public async Task<ActionResult<AtendimentoViewModel>> SelecionarPorId(int AtendimentoId, int UsuarioId)
         {
-            StringBuilder erros = new();
+            AtendimentoViewModel AtendimentoView = new();
+
+            List<string> erros = new();
 
             if (AtendimentoId <= 0)
             {
-                erros.AppendLine("Identificador do Atendimento inválido");
+                erros.Add("Identificador do Atendimento inválido");
             }
 
             if (UsuarioId <= 0)
             {
-                erros.AppendLine("Identificador do Usuário inválido");
+                erros.Add("Identificador do Usuário inválido");
             }
 
-            if (!string.IsNullOrWhiteSpace(erros.ToString()))
+            if (erros.Count > 0)
             {
-                return BadRequest(erros.ToString());
+                AtendimentoView.Mensagem = MensagemViewHelper.GetNewMessage(erros, MensagemTipoAvisoEnum.Impeditivo);
+
+                return AtendimentoView;
             }
 
-            if (!await _provider.GetService<UsuarioService>().IsUserActive(UsuarioId))
+            if (!new UsuarioService(_context, _mapper).IsUserActive(UsuarioId))
             {
-                return BadRequest("Usuário sem permissão de acesso ou inexistente");
+                AtendimentoView.Mensagem = MensagemViewHelper.GetNewMessage("Usuário sem permissão de acesso ou inexistente", MensagemTipoAvisoEnum.Impeditivo, HtmlStatusCodeEnum.Unauthorized);
+
+                return AtendimentoView;
             }
 
-            AtendimentoModel result = await _provider
+            AtendimentoViewModel result = await _provider
                 .GetService<AtendimentoService>()
                 .GetById(AtendimentoId, UsuarioId);
 
-            return result != null ? _mapper.Map<AtendimentoViewModel>(result) : NotFound("Atendimento sem permissão de acesso ou inexistente");
+            if (result != null)
+            {
+                AtendimentoView = _mapper.Map<AtendimentoViewModel>(result);
+
+                AtendimentoView.Mensagem = MensagemViewHelper.GetOkMessage("OK");
+            }
+            else
+            {
+                AtendimentoView.Mensagem = MensagemViewHelper.GetNotFound("Atendimento sem permissão de acesso ou inexistente");
+
+                return AtendimentoView;
+            }
+
+            return AtendimentoView;
         }
 
         [HttpGet("SelecionarPorProcesso")]
@@ -96,10 +119,10 @@ namespace WebZi.Plataform.API.Controllers
                 return BadRequest(erros.ToString());
             }
 
-            if (!await _provider.GetService<UsuarioService>().IsUserActive(UsuarioId))
-            {
-                return BadRequest("Usuário sem permissão de acesso ou inexistente");
-            }
+            //if (!await _provider.GetService<UsuarioService>().IsUserActive(UsuarioId))
+            //{
+            //    return BadRequest("Usuário sem permissão de acesso ou inexistente");
+            //}
 
             AtendimentoModel result = await _provider
                 .GetService<AtendimentoService>()
@@ -128,10 +151,10 @@ namespace WebZi.Plataform.API.Controllers
                 return BadRequest(erros.ToString());
             }
 
-            if (!await _provider.GetService<UsuarioService>().IsUserActive(UsuarioId))
-            {
-                return BadRequest("Usuário sem permissão de acesso ou inexistente");
-            }
+            //if (!await _provider.GetService<UsuarioService>().IsUserActive(UsuarioId))
+            //{
+            //    return BadRequest("Usuário sem permissão de acesso ou inexistente");
+            //}
 
             byte[] result = await _provider
                 .GetService<AtendimentoService>()
@@ -159,13 +182,13 @@ namespace WebZi.Plataform.API.Controllers
 
             if (mensagem.Erros.Count == 0 && mensagem.AvisosImpeditivos.Count == 0)
             {
-                mensagem.Status = "APTO PARA O CADASTRO";
+                mensagem.HtmlStatusCode = HtmlStatusCodeEnum.Ok;
 
                 return Ok(mensagem);
             }
             else
             {
-                mensagem.Status = "NÃO ESTÁ APTO PARA O CADASTRO";
+                mensagem.HtmlStatusCode = HtmlStatusCodeEnum.BadRequest;
 
                 return BadRequest(mensagem);
             }
@@ -180,7 +203,7 @@ namespace WebZi.Plataform.API.Controllers
 
             if (mensagem.Erros.Count > 0)
             {
-                mensagem.Status = "NÃO ESTÁ APTO PARA O CADASTRO";
+                mensagem.HtmlStatusCode = HtmlStatusCodeEnum.BadRequest;
 
                 return BadRequest(mensagem);
             }
@@ -193,13 +216,13 @@ namespace WebZi.Plataform.API.Controllers
                     .GetService<AtendimentoService>()
                     .Cadastrar(Atendimento);
 
-                    AtendimentoCadastroResultView.Mensagem.Status = "CADASTRO CONCLUÍDO COM SUCESSO";
+                AtendimentoCadastroResultView.Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.Ok;
 
-                    return Ok(AtendimentoCadastroResultView);
+                return Ok(AtendimentoCadastroResultView);
             }
             catch (Exception ex)
             {
-                AtendimentoCadastroResultView.Mensagem.Status = "OCORREU UM ERRO AO CADASTRAR";
+                AtendimentoCadastroResultView.Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.InternalServerError;
 
                 AtendimentoCadastroResultView.Mensagem.Erros.Add(ex.Message);
 

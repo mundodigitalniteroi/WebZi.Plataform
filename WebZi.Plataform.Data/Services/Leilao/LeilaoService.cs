@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Globalization;
 using WebZi.Plataform.Data.Database;
-using WebZi.Plataform.Domain.Models;
 using WebZi.Plataform.Domain.Models.Leilao;
+using WebZi.Plataform.Domain.ViewModel;
 
 namespace WebZi.Plataform.Data.Services.Leilao
 {

@@ -12,4 +12,8 @@
     <Folder Include="Models\Nfe\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\WebZi.Plataform.CrossCutting\WebZi.Plataform.CrossCutting.csproj" />
+  </ItemGroup>
+
 </Project>

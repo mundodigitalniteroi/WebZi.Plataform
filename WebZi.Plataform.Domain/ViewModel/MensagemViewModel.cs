@@ -1,8 +1,10 @@
-﻿namespace WebZi.Plataform.Domain.Models
+﻿using WebZi.Plataform.CrossCutting.Web;
+
+namespace WebZi.Plataform.Domain.ViewModel
 {
     public class MensagemViewModel
     {
-        public string Status { get; set; }
+        public HtmlStatusCodeEnum HtmlStatusCode { get; set; }
 
         public List<string> AvisosInformativos { get; set; } = new List<string>();
 

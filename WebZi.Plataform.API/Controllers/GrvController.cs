@@ -13,6 +13,7 @@ using WebZi.Plataform.Domain.Models.GRV.ViewModel;
 using WebZi.Plataform.Domain.Models.Usuario.ViewModel;
 using WebZi.Plataform.Domain.Services.GRV;
 using WebZi.Plataform.Domain.Services.Usuario;
+using WebZi.Plataform.Domain.ViewModel.GRV;
 
 namespace WebZi.Plataform.API.Controllers
 {
@@ -51,10 +52,10 @@ namespace WebZi.Plataform.API.Controllers
                 return BadRequest(erros.ToString());
             }
 
-            if (!await _provider.GetService<UsuarioService>().IsUserActive(UsuarioId))
-            {
-                return BadRequest("Usuário sem permissão de acesso ou inexistente");
-            }
+            //if (!await _provider.GetService<UsuarioService>().IsUserActive(UsuarioId))
+            //{
+            //    return BadRequest("Usuário sem permissão de acesso ou inexistente");
+            //}
 
             GrvModel result = await _provider
                 .GetService<GrvService>()
@@ -93,10 +94,10 @@ namespace WebZi.Plataform.API.Controllers
                 return BadRequest(erros.ToString());
             }
 
-            if (!await _provider.GetService<UsuarioService>().IsUserActive(UsuarioId))
-            {
-                return BadRequest("Usuário sem permissão de acesso ou inexistente");
-            }
+            //if (!await _provider.GetService<UsuarioService>().IsUserActive(UsuarioId))
+            //{
+            //    return BadRequest("Usuário sem permissão de acesso ou inexistente");
+            //}
 
             ClienteModel Cliente = await _provider
                 .GetService<ClienteService>()
@@ -134,18 +135,13 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("ListarLacres")]
-        public async Task<ActionResult<List<LacreModel>>> ListarLacres(int GrvId, int UsuarioId)
+        public async Task<ActionResult<LacreResultViewModel>> ListarLacres(int GrvId, int UsuarioId)
         {
-            if (!await _provider.GetService<UsuarioService>().IsUserActive(UsuarioId))
-            {
-                return BadRequest("Usuário sem permissão de acesso ou inexistente");
-            }
-
-            List<LacreModel> result = await _provider
+            LacreResultViewModelList result = await _provider
                 .GetService<LacreService>()
                 .List(GrvId, UsuarioId);
 
-            return result?.Count > 0 ? Ok(result) : NotFound("Lacres sem permissão de acesso ou inexistente");
+            return StatusCode((int)result.Mensagem.HtmlStatusCode, result);
         }
 
         [HttpGet("ListarMotivosApreensoes")]

@@ -97,6 +97,11 @@ namespace WebZi.Plataform.CrossCutting.Web
             }
         }
 
+        public static byte[] DownloadFile(string url)
+        {
+            return Task.Run(async () => await DownloadFileAsync(url)).Result;
+        }
+
         public static async Task<byte[]> DownloadFileAsync(string url)
         {
             ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072;
@@ -104,7 +109,7 @@ namespace WebZi.Plataform.CrossCutting.Web
             InitializeHttpClient(url);
 
             using var response = await httpClient.GetAsync(url);
-            
+
             return await response.Content
                 .ReadAsByteArrayAsync()
                 .ConfigureAwait(false);
