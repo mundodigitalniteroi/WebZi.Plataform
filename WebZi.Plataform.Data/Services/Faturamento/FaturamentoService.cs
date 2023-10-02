@@ -8,10 +8,10 @@ using WebZi.Plataform.CrossCutting.Strings;
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Domain.Models.Faturamento;
-using WebZi.Plataform.Domain.Models.Faturamento.View;
-using WebZi.Plataform.Domain.Models.Localizacao.View;
 using WebZi.Plataform.Domain.Services.Usuario;
 using WebZi.Plataform.Domain.ViewModel;
+using WebZi.Plataform.Domain.Views.Faturamento;
+using WebZi.Plataform.Domain.Views.Localizacao;
 
 namespace WebZi.Plataform.Data.Services.Faturamento
 {
@@ -771,7 +771,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 return Mensagem;
             }
 
-            if (!new UsuarioService(_context, _mapper).IsUserActive(UsuarioId))
+            if (!new UsuarioService(_context).IsUserActive(UsuarioId))
             {
                 Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.Unauthorized;
 

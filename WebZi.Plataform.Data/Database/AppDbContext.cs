@@ -10,17 +10,17 @@ using WebZi.Plataform.Domain.Models.ClienteDeposito;
 using WebZi.Plataform.Domain.Models.Deposito;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.Faturamento.Boleto;
-using WebZi.Plataform.Domain.Models.Faturamento.View;
 using WebZi.Plataform.Domain.Models.GRV;
 using WebZi.Plataform.Domain.Models.Leilao;
 using WebZi.Plataform.Domain.Models.Localizacao;
-using WebZi.Plataform.Domain.Models.Localizacao.View;
 using WebZi.Plataform.Domain.Models.Pessoa.Documento;
 using WebZi.Plataform.Domain.Models.Servico;
 using WebZi.Plataform.Domain.Models.Sistema;
 using WebZi.Plataform.Domain.Models.Usuario;
-using WebZi.Plataform.Domain.Models.Usuario.View;
 using WebZi.Plataform.Domain.Models.Veiculo;
+using WebZi.Plataform.Domain.Views.Faturamento;
+using WebZi.Plataform.Domain.Views.Localizacao;
+using WebZi.Plataform.Domain.Views.Usuario;
 
 namespace WebZi.Plataform.Data.Database
 {

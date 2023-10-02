@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using WebZi.Plataform.Data.Services.Atendimento;
-using WebZi.Plataform.Domain.Models.Pagamento.ViewModel;
 using WebZi.Plataform.Domain.ViewModel;
+using WebZi.Plataform.Domain.ViewModel.Pagamento;
 
 namespace WebZi.Plataform.API.Controllers
 {

@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using WebZi.Plataform.Domain.Models.Faturamento.View;
+using WebZi.Plataform.Domain.Views.Faturamento;
 
 namespace WebZi.Plataform.Data.Mappings.Faturamento.View
 {

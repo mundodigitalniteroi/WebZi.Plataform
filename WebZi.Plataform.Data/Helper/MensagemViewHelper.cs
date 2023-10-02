@@ -6,7 +6,7 @@ namespace WebZi.Plataform.Data.Helper
 {
     public abstract class MensagemViewHelper
     {
-        public static MensagemViewModel GetOkMessage(string Message)
+        public static MensagemViewModel GetOk(string Message)
         {
             MensagemViewModel Mensagem = new()
             {
@@ -18,7 +18,19 @@ namespace WebZi.Plataform.Data.Helper
             return Mensagem;
         }
 
-        public static MensagemViewModel GetNotFound(string Message)
+        public static MensagemViewModel GetOkFound(string Message = "Registro encontrado com sucesso")
+        {
+            MensagemViewModel Mensagem = new()
+            {
+                HtmlStatusCode = HtmlStatusCodeEnum.Ok
+            };
+
+            Mensagem.AvisosInformativos.Add(Message);
+
+            return Mensagem;
+        }
+
+        public static MensagemViewModel GetNotFound(string Message = "Registro não encontrado")
         {
             MensagemViewModel Mensagem = new()
             {
@@ -50,6 +62,28 @@ namespace WebZi.Plataform.Data.Helper
             };
 
             Mensagem.AvisosImpeditivos.Add(Message);
+
+            return Mensagem;
+        }
+
+        public static MensagemViewModel GetInternalServerError(string Message, Exception ex)
+        {
+            MensagemViewModel Mensagem = new()
+            {
+                HtmlStatusCode = HtmlStatusCodeEnum.InternalServerError
+            };
+
+            if (!string.IsNullOrWhiteSpace(Message))
+            {
+                Mensagem.Erros.Add(Message);
+            }
+
+            Mensagem.Erros.Add(ex.Message);
+
+            if (ex.InnerException != null)
+            {
+                Mensagem.Erros.Add(ex.InnerException.Message);
+            }
 
             return Mensagem;
         }

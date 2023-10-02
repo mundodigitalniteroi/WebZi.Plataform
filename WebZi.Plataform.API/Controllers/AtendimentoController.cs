@@ -1,17 +1,10 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
-using System.Text;
-using WebZi.Plataform.CrossCutting.Strings;
 using WebZi.Plataform.CrossCutting.Web;
-using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Atendimento;
-using WebZi.Plataform.Domain.Enums;
-using WebZi.Plataform.Domain.Models.Atendimento;
-using WebZi.Plataform.Domain.Models.Atendimento.ViewModel;
-using WebZi.Plataform.Domain.Models.Faturamento.ViewModel;
-using WebZi.Plataform.Domain.Services.Usuario;
 using WebZi.Plataform.Domain.ViewModel;
+using WebZi.Plataform.Domain.ViewModel.Atendimento;
 
 namespace WebZi.Plataform.API.Controllers
 {
@@ -19,219 +12,158 @@ namespace WebZi.Plataform.API.Controllers
     [ApiController]
     public class AtendimentoController : ControllerBase
     {
-        private readonly AppDbContext _context;
-        private readonly IMapper _mapper;
         private readonly IServiceProvider _provider;
 
-        public AtendimentoController(AppDbContext context, IMapper mapper, IServiceProvider provider)
+        public AtendimentoController(IServiceProvider provider)
         {
-            _context = context;
-            _mapper = mapper;
             _provider = provider;
         }
 
         [HttpGet("SelecionarPorId")]
         public async Task<ActionResult<AtendimentoViewModel>> SelecionarPorId(int AtendimentoId, int UsuarioId)
         {
-            AtendimentoViewModel AtendimentoView = new();
+            AtendimentoViewModel ResultView = new();
 
-            List<string> erros = new();
-
-            if (AtendimentoId <= 0)
+            try
             {
-                erros.Add("Identificador do Atendimento inválido");
-            }
+                ResultView = await _provider
+                    .GetService<AtendimentoService>()
+                    .GetById(AtendimentoId, UsuarioId);
 
-            if (UsuarioId <= 0)
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
             {
-                erros.Add("Identificador do Usuário inválido");
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError("Ocorreu um erro interno", ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
-
-            if (erros.Count > 0)
-            {
-                AtendimentoView.Mensagem = MensagemViewHelper.GetNewMessage(erros, MensagemTipoAvisoEnum.Impeditivo);
-
-                return AtendimentoView;
-            }
-
-            if (!new UsuarioService(_context, _mapper).IsUserActive(UsuarioId))
-            {
-                AtendimentoView.Mensagem = MensagemViewHelper.GetNewMessage("Usuário sem permissão de acesso ou inexistente", MensagemTipoAvisoEnum.Impeditivo, HtmlStatusCodeEnum.Unauthorized);
-
-                return AtendimentoView;
-            }
-
-            AtendimentoViewModel result = await _provider
-                .GetService<AtendimentoService>()
-                .GetById(AtendimentoId, UsuarioId);
-
-            if (result != null)
-            {
-                AtendimentoView = _mapper.Map<AtendimentoViewModel>(result);
-
-                AtendimentoView.Mensagem = MensagemViewHelper.GetOkMessage("OK");
-            }
-            else
-            {
-                AtendimentoView.Mensagem = MensagemViewHelper.GetNotFound("Atendimento sem permissão de acesso ou inexistente");
-
-                return AtendimentoView;
-            }
-
-            return AtendimentoView;
         }
 
         [HttpGet("SelecionarPorProcesso")]
         public async Task<ActionResult<AtendimentoViewModel>> SelecionarPorProcesso(string NumeroProcesso, int ClienteId, int DepositoId, int UsuarioId)
         {
-            StringBuilder erros = new();
+            AtendimentoViewModel ResultView = new();
 
-            if (string.IsNullOrWhiteSpace(NumeroProcesso))
+            try
             {
-                erros.AppendLine("Informe o Número do Processo");
+                ResultView = await _provider
+                    .GetService<AtendimentoService>()
+                    .GetByProcesso(NumeroProcesso, ClienteId, DepositoId, UsuarioId);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
-            else if (!StringHelper.IsNumber(NumeroProcesso))
+            catch (Exception ex)
             {
-                erros.AppendLine("Número do Processo inválido");
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError("Ocorreu um erro interno", ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
-            else if (Convert.ToInt64(NumeroProcesso) <= 0)
-            {
-                erros.AppendLine("Número do Processo inválido");
-            }
-
-            if (ClienteId <= 0)
-            {
-                erros.AppendLine("Identificador do Cliente inválido");
-            }
-
-            if (DepositoId <= 0)
-            {
-                erros.AppendLine("Identificador do Depósito inválido ");
-            }
-
-            if (UsuarioId <= 0)
-            {
-                erros.AppendLine("Identificador do Usuário inválido");
-            }
-
-            if (!string.IsNullOrWhiteSpace(erros.ToString()))
-            {
-                return BadRequest(erros.ToString());
-            }
-
-            //if (!await _provider.GetService<UsuarioService>().IsUserActive(UsuarioId))
-            //{
-            //    return BadRequest("Usuário sem permissão de acesso ou inexistente");
-            //}
-
-            AtendimentoModel result = await _provider
-                .GetService<AtendimentoService>()
-                .GetByProcesso(NumeroProcesso, ClienteId, DepositoId, UsuarioId);
-
-            return result != null ? _mapper.Map<AtendimentoViewModel>(result) : NotFound("Atendimento sem permissão de acesso ou inexistente");
         }
 
         [HttpGet("SelecionarFotoResponsavel")]
-        public async Task<ActionResult<byte[]>> SelecionarFotoResponsavel(int AtendimentoId, int UsuarioId)
+        public async Task<ActionResult<AtendimentoFotoResponsavelViewModel>> SelecionarFotoResponsavel(int AtendimentoId, int UsuarioId)
         {
-            StringBuilder erros = new();
+            AtendimentoFotoResponsavelViewModel ResultView = new();
 
-            if (AtendimentoId <= 0)
+            try
             {
-                erros.AppendLine("Identificador do Atendimento inválido");
-            }
+                ResultView = await _provider
+                    .GetService<AtendimentoService>()
+                    .GetResponsavelFoto(AtendimentoId, UsuarioId);
 
-            if (UsuarioId <= 0)
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
             {
-                erros.AppendLine("Identificador do Usuário inválido");
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError("Ocorreu um erro interno", ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
-
-            if (!string.IsNullOrWhiteSpace(erros.ToString()))
-            {
-                return BadRequest(erros.ToString());
-            }
-
-            //if (!await _provider.GetService<UsuarioService>().IsUserActive(UsuarioId))
-            //{
-            //    return BadRequest("Usuário sem permissão de acesso ou inexistente");
-            //}
-
-            byte[] result = await _provider
-                .GetService<AtendimentoService>()
-                .GetResponsavelFoto(AtendimentoId);
-
-            return result != null ? Ok(result) : NotFound("Este Atendimento não possui Foto do Responsável");
         }
 
         [HttpGet("ListarQualificacaoResponsavel")]
-        public async Task<ActionResult<List<QualificacaoResponsavelModel>>> ListarQualificacaoResponsavel()
+        public async Task<ActionResult<QualificacaoResponsavelViewModelList>> ListarQualificacaoResponsavel()
         {
-            var result = await _provider
-                .GetService<QualificacaoResponsavelService>()
-                .List();
+            QualificacaoResponsavelViewModelList ResultView = new();
 
-            return result?.Count > 0 ? _mapper.Map<List<QualificacaoResponsavelModel>>(result) : NotFound("Qualificação do Responsável não encontrado");
+            try
+            {
+                ResultView = await _provider
+                    .GetService<QualificacaoResponsavelService>()
+                    .ListAsync();
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError("Ocorreu um erro interno", ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
         }
 
         [HttpPost("ValidarInformacoesParaCadastro")]
         public async Task<ActionResult<MensagemViewModel>> ValidarInformacoesParaCadastro(AtendimentoCadastroViewModel Atendimento)
         {
-            MensagemViewModel mensagem = await _provider
-                .GetService<AtendimentoService>()
-                .ValidarInformacoesParaCadastro(Atendimento);
+            MensagemViewModel ResultView;
 
-            if (mensagem.Erros.Count == 0 && mensagem.AvisosImpeditivos.Count == 0)
+            try
             {
-                mensagem.HtmlStatusCode = HtmlStatusCodeEnum.Ok;
+                ResultView = await _provider
+                    .GetService<AtendimentoService>()
+                    .ValidarInformacoesParaCadastro(Atendimento);
 
-                return Ok(mensagem);
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
             }
-            else
+            catch (Exception ex)
             {
-                mensagem.HtmlStatusCode = HtmlStatusCodeEnum.BadRequest;
+                ResultView = MensagemViewHelper.GetInternalServerError("Ocorreu um erro interno", ex);
 
-                return BadRequest(mensagem);
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
             }
         }
 
         [HttpPost("Cadastrar")]
         public async Task<ActionResult<AtendimentoCadastroResultViewModel>> Cadastrar(AtendimentoCadastroViewModel Atendimento)
         {
-            MensagemViewModel mensagem = await _provider
-                .GetService<AtendimentoService>()
-                .ValidarInformacoesParaCadastro(Atendimento);
-
-            if (mensagem.Erros.Count > 0)
-            {
-                mensagem.HtmlStatusCode = HtmlStatusCodeEnum.BadRequest;
-
-                return BadRequest(mensagem);
-            }
-
-            AtendimentoCadastroResultViewModel AtendimentoCadastroResultView = new();
+            AtendimentoCadastroResultViewModel ResultView = new();
 
             try
             {
-                AtendimentoCadastroResultView = await _provider
+                ResultView.Mensagem = await _provider
                     .GetService<AtendimentoService>()
-                    .Cadastrar(Atendimento);
+                    .ValidarInformacoesParaCadastro(Atendimento);
 
-                AtendimentoCadastroResultView.Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.Ok;
-
-                return Ok(AtendimentoCadastroResultView);
+                if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+                {
+                    return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView.Mensagem);
+                }
             }
             catch (Exception ex)
             {
-                AtendimentoCadastroResultView.Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.InternalServerError;
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError("Ocorreu um erro interno", ex);
 
-                AtendimentoCadastroResultView.Mensagem.Erros.Add(ex.Message);
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
 
-                if (ex.InnerException != null)
-                {
-                    AtendimentoCadastroResultView.Mensagem.Erros.Add(ex.InnerException.Message);
-                }
+            try
+            {
+                ResultView = await _provider
+                    .GetService<AtendimentoService>()
+                    .Cadastrar(Atendimento);
 
-                return BadRequest(AtendimentoCadastroResultView);
+                ResultView.Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.Ok;
+
+                ResultView.Mensagem.AvisosInformativos.Add("Cadastro concluído com sucesso");
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView.Mensagem);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError("Ocorreu um erro interno", ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
         }
     }

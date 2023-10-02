@@ -1,4 +1,4 @@
-﻿namespace WebZi.Plataform.Domain.Models.Usuario.View
+﻿namespace WebZi.Plataform.Domain.Views.Usuario
 {
     public class ViewUsuarioClienteDepositoModel
     {

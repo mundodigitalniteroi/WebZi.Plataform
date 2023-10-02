@@ -1,4 +1,4 @@
-﻿namespace WebZi.Plataform.Domain.Models.Pagamento.ViewModel
+﻿namespace WebZi.Plataform.Domain.ViewModel.Pagamento
 {
     public class PagamentoViewModel
     {

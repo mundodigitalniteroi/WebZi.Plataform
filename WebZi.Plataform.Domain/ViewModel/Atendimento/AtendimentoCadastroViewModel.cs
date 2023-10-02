@@ -1,4 +1,4 @@
-﻿namespace WebZi.Plataform.Domain.Models.Atendimento.ViewModel
+﻿namespace WebZi.Plataform.Domain.ViewModel.Atendimento
 {
     public class AtendimentoCadastroViewModel
     {

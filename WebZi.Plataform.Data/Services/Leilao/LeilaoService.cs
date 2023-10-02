@@ -15,7 +15,7 @@ namespace WebZi.Plataform.Data.Services.Leilao
             _context = context;
         }
 
-        public async Task<MensagemViewModel> GetAvisoLeilao(int GrvId, string StatusOperacaoId)
+        public async Task<MensagemViewModel> GetAvisosLeilao(int GrvId, string StatusOperacaoId)
         {
             if (!new[] { "V", "L", "T", "1", "2", "4" }.Contains(StatusOperacaoId))
             {

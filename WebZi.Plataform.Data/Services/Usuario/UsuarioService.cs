@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Domain.Models.Usuario;
-using WebZi.Plataform.Domain.Models.Usuario.ViewModel;
+using WebZi.Plataform.Domain.ViewModel.Usuario;
 
 namespace WebZi.Plataform.Domain.Services.Usuario
 {
@@ -10,6 +10,11 @@ namespace WebZi.Plataform.Domain.Services.Usuario
     {
         private readonly AppDbContext _context;
         private readonly IMapper _mapper;
+
+        public UsuarioService(AppDbContext context)
+        {
+            _context = context;
+        }
 
         public UsuarioService(AppDbContext context, IMapper mapper)
         {
@@ -49,7 +54,10 @@ namespace WebZi.Plataform.Domain.Services.Usuario
 
         public bool IsUserActive(int UsuarioId)
         {
-            UsuarioViewModel Usuario = GetById(UsuarioId);
+            UsuarioModel Usuario = _context.Usuario
+                .Where(w => w.UsuarioId == UsuarioId)
+                .AsNoTracking()
+                .FirstOrDefault();
 
             return Usuario != null && Usuario.FlagAtivo != "N";
         }

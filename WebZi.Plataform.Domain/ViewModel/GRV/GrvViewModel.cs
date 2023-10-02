@@ -1,4 +1,4 @@
-﻿namespace WebZi.Plataform.Domain.Models.GRV.ViewModel
+﻿namespace WebZi.Plataform.Domain.ViewModel.GRV
 {
     public class GrvViewModel
     {

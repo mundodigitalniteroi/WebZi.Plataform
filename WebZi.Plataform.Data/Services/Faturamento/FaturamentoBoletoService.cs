@@ -12,11 +12,11 @@ using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Bucket;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.Faturamento.Boleto;
-using WebZi.Plataform.Domain.Models.Faturamento.View;
-using WebZi.Plataform.Domain.Models.Faturamento.ViewModel;
 using WebZi.Plataform.Domain.Models.GRV;
 using WebZi.Plataform.Domain.Models.Sistema;
 using WebZi.Plataform.Domain.Services.Usuario;
+using WebZi.Plataform.Domain.ViewModel.Faturamento;
+using WebZi.Plataform.Domain.Views.Faturamento;
 using Z.EntityFramework.Plus;
 using static WebZi.Plataform.Data.WsBoleto.WsBoletoSoapClient;
 
@@ -69,7 +69,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 return BoletoResultView;
             }
 
-            if (!new UsuarioService(_context, _mapper).IsUserActive(UsuarioId))
+            if (!new UsuarioService(_context).IsUserActive(UsuarioId))
             {
                 BoletoResultView.Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.Unauthorized;
 

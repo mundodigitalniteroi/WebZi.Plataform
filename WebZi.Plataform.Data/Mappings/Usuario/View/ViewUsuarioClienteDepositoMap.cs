@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using WebZi.Plataform.Domain.Models.Usuario.View;
+using WebZi.Plataform.Domain.Views.Usuario;
 
 namespace WebZi.Plataform.Data.Mappings.Usuario.View
 {

@@ -24,7 +24,7 @@ namespace WebZi.Plataform.Data.Services.GRV
         {
             LacreResultViewModelList LacreResultView = new();
 
-            if (!new UsuarioService(_context, _mapper).IsUserActive(UsuarioId))
+            if (!new UsuarioService(_context).IsUserActive(UsuarioId))
             {
                 LacreResultView.Mensagem = MensagemViewHelper.GetUnauthorized("Usuário desativado ou inexistente");
 
@@ -48,7 +48,7 @@ namespace WebZi.Plataform.Data.Services.GRV
                     .OrderBy(o => o.Lacre)
                     .ToList();
 
-                LacreResultView.Mensagem = MensagemViewHelper.GetOkMessage("Registro encontrado");
+                LacreResultView.Mensagem = MensagemViewHelper.GetOk("Registro encontrado");
 
                 LacreResultView.Lacres = _mapper.Map<List<LacreResultViewModel>>(result);
             }

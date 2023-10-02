@@ -1,4 +1,4 @@
-﻿namespace WebZi.Plataform.Domain.Models.Usuario.ViewModel
+﻿namespace WebZi.Plataform.Domain.ViewModel.Usuario
 {
     public class UsuarioViewModel
     {

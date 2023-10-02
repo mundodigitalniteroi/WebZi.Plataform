@@ -7,9 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Models\ClienteDeposito\View\" />
     <Folder Include="Models\Liberacao\" />
     <Folder Include="Models\Nfe\" />
+    <Folder Include="Models\Pagamento\" />
   </ItemGroup>
 
   <ItemGroup>

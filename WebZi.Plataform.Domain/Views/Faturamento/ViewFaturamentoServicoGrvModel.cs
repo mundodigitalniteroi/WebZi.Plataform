@@ -1,4 +1,4 @@
-﻿namespace WebZi.Plataform.Domain.Models.Faturamento.View
+﻿namespace WebZi.Plataform.Domain.Views.Faturamento
 {
     public class ViewFaturamentoServicoGrvModel
     {

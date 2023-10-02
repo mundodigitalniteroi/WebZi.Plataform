@@ -1,4 +1,4 @@
-﻿namespace WebZi.Plataform.Domain.Models.Banco.ViewModel
+﻿namespace WebZi.Plataform.Domain.ViewModel.Banco
 {
     public class BancoViewModel
     {

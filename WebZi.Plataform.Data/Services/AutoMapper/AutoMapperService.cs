@@ -1,13 +1,12 @@
 ﻿using AutoMapper;
 using WebZi.Plataform.Domain.Models.Atendimento;
-using WebZi.Plataform.Domain.Models.Atendimento.ViewModel;
 using WebZi.Plataform.Domain.Models.Banco;
-using WebZi.Plataform.Domain.Models.Banco.ViewModel;
 using WebZi.Plataform.Domain.Models.GRV;
-using WebZi.Plataform.Domain.Models.GRV.ViewModel;
 using WebZi.Plataform.Domain.Models.Usuario;
-using WebZi.Plataform.Domain.Models.Usuario.ViewModel;
+using WebZi.Plataform.Domain.ViewModel.Atendimento;
+using WebZi.Plataform.Domain.ViewModel.Banco;
 using WebZi.Plataform.Domain.ViewModel.GRV;
+using WebZi.Plataform.Domain.ViewModel.Usuario;
 
 namespace WebZi.Plataform.Data.Services.AutoMapper
 {
@@ -25,7 +24,7 @@ namespace WebZi.Plataform.Data.Services.AutoMapper
 
             CreateMap<GrvModel, GrvViewModel>();
 
-            CreateMap<List<LacreModel>, List<LacreResultViewModel>>();
+            // CreateMap<List<LacreModel>, List<LacreResultViewModel>>();
 
             CreateMap<UsuarioModel, UsuarioViewModel>();
         }

@@ -1,4 +1,4 @@
-﻿namespace WebZi.Plataform.Domain.Models.Localizacao.View
+﻿namespace WebZi.Plataform.Domain.Views.Localizacao
 {
     public class ViewEnderecoCompletoModel
     {

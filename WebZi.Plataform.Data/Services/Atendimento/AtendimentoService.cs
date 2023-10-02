@@ -1,25 +1,28 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.Extensions.DependencyInjection;
 using WebZi.Plataform.CrossCutting.Contacts;
 using WebZi.Plataform.CrossCutting.Documents;
 using WebZi.Plataform.CrossCutting.Localizacao;
+using WebZi.Plataform.CrossCutting.Strings;
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
+using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Bucket;
 using WebZi.Plataform.Data.Services.Deposito;
 using WebZi.Plataform.Data.Services.Faturamento;
 using WebZi.Plataform.Data.Services.Leilao;
+using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Atendimento;
-using WebZi.Plataform.Domain.Models.Atendimento.ViewModel;
 using WebZi.Plataform.Domain.Models.Bucket;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.GRV;
-using WebZi.Plataform.Domain.Models.Pagamento.ViewModel;
 using WebZi.Plataform.Domain.Models.Pessoa.Documento;
+using WebZi.Plataform.Domain.Services.GRV;
 using WebZi.Plataform.Domain.Services.Usuario;
 using WebZi.Plataform.Domain.ViewModel;
+using WebZi.Plataform.Domain.ViewModel.Atendimento;
+using WebZi.Plataform.Domain.ViewModel.Pagamento;
 
 namespace WebZi.Plataform.Data.Services.Atendimento
 {
@@ -27,41 +30,156 @@ namespace WebZi.Plataform.Data.Services.Atendimento
     {
         private readonly AppDbContext _context;
         private readonly IMapper _mapper;
-        private readonly IServiceProvider _provider;
 
-        public AtendimentoService(AppDbContext context, IMapper mapper, IServiceProvider provider)
+        public AtendimentoService(AppDbContext context, IMapper mapper)
         {
             _context = context;
             _mapper = mapper;
-            _provider = provider;
         }
 
         public async Task<AtendimentoViewModel> GetById(int AtendimentoId, int UsuarioId)
         {
-            AtendimentoModel result = await _context.Atendimento
-                .Where(w => w.AtendimentoId == AtendimentoId)
+            AtendimentoViewModel ReturnView = new();
+
+            List<string> erros = new();
+
+            if (AtendimentoId <= 0)
+            {
+                erros.Add("Identificador do Atendimento inválido");
+            }
+
+            if (UsuarioId <= 0)
+            {
+                erros.Add("Identificador do Usuário inválido");
+            }
+
+            if (erros.Count > 0)
+            {
+                ReturnView.Mensagem = MensagemViewHelper.GetNewMessage(erros, MensagemTipoAvisoEnum.Impeditivo);
+
+                return ReturnView;
+            }
+
+            if (!new UsuarioService(_context).IsUserActive(UsuarioId))
+            {
+                ReturnView.Mensagem = MensagemViewHelper.GetUnauthorized("Usuário desativado ou inexistente");
+
+                return ReturnView;
+            }
+
+            GrvModel Grv = await _context.Grv
+                .Include(i => i.Atendimento)
+                .Where(w => w.Atendimento.AtendimentoId == AtendimentoId)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
 
-            return result != null ? _mapper.Map<AtendimentoViewModel>(result) : null;
+            if (Grv == null)
+            {
+                ReturnView.Mensagem = MensagemViewHelper.GetNotFound("GRV não encontrado");
+
+                return ReturnView;
+            }
+            else if (!await new GrvService(_context).UserCanAccessGrv(Grv.GrvId, UsuarioId))
+            {
+                ReturnView.Mensagem = MensagemViewHelper.GetUnauthorized("Usuário sem permissão de acesso ao GRV");
+
+                return ReturnView;
+            }
+            else if (Grv.Atendimento == null)
+            {
+                ReturnView.Mensagem = MensagemViewHelper.GetNotFound("Atendimento não encontrado");
+
+                return ReturnView;
+            }
+
+            ReturnView = _mapper.Map<AtendimentoViewModel>(Grv.Atendimento);
+
+            ReturnView.Mensagem = MensagemViewHelper.GetOk("Registro encontrado com sucesso");
+
+            return ReturnView;
         }
 
-        public async Task<AtendimentoModel> GetByProcesso(string NumeroProcesso, int ClienteId, int DepositoId, int UsuarioId)
+        public async Task<AtendimentoViewModel> GetByProcesso(string NumeroProcesso, int ClienteId, int DepositoId, int UsuarioId)
         {
-            AtendimentoModel atendimento = await _context.Atendimento
-                .Include(i => i.Grv)
-                .Where(w => w.Grv.NumeroFormularioGrv == NumeroProcesso && w.Grv.ClienteId == ClienteId && w.Grv.DepositoId == DepositoId)
+            AtendimentoViewModel ReturnView = new();
+
+            List<string> erros = new();
+
+            if (string.IsNullOrWhiteSpace(NumeroProcesso))
+            {
+                erros.Add("Informe o Número do Processo");
+            }
+            else if (!StringHelper.IsNumber(NumeroProcesso) || Convert.ToInt64(NumeroProcesso) <= 0)
+            {
+                erros.Add("Número do Processo inválido");
+            }
+
+            if (ClienteId <= 0)
+            {
+                erros.Add("Identificador do Cliente inválido");
+            }
+
+            if (DepositoId <= 0)
+            {
+                erros.Add("Identificador do Depósito inválido ");
+            }
+
+            if (UsuarioId <= 0)
+            {
+                erros.Add("Identificador do Usuário inválido");
+            }
+
+            if (erros.Count > 0)
+            {
+                ReturnView.Mensagem = MensagemViewHelper.GetNewMessage(erros, MensagemTipoAvisoEnum.Impeditivo);
+
+                return ReturnView;
+            }
+
+            if (!new UsuarioService(_context).IsUserActive(UsuarioId))
+            {
+                ReturnView.Mensagem = MensagemViewHelper.GetUnauthorized("Usuário desativado ou inexistente");
+
+                return ReturnView;
+            }
+
+            GrvModel Grv = await _context.Grv
+                .Include(i => i.Atendimento)
+                .Where(w => w.NumeroFormularioGrv == NumeroProcesso && w.ClienteId == ClienteId && w.DepositoId == DepositoId)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
 
-            return atendimento;
+            if (Grv == null)
+            {
+                ReturnView.Mensagem = MensagemViewHelper.GetNotFound("GRV não encontrado");
+
+                return ReturnView;
+            }
+            else if (!await new GrvService(_context).UserCanAccessGrv(Grv.GrvId, UsuarioId))
+            {
+                ReturnView.Mensagem = MensagemViewHelper.GetUnauthorized("Usuário sem permissão de acesso ao GRV");
+
+                return ReturnView;
+            }
+            else if (Grv.Atendimento == null)
+            {
+                ReturnView.Mensagem = MensagemViewHelper.GetNotFound("Atendimento não encontrado");
+
+                return ReturnView;
+            }
+
+            ReturnView = _mapper.Map<AtendimentoViewModel>(Grv.Atendimento);
+
+            ReturnView.Mensagem = MensagemViewHelper.GetOk("Registro encontrado com sucesso");
+
+            return ReturnView;
         }
 
         public async Task<MensagemViewModel> ValidarInformacoesParaCadastro(AtendimentoCadastroViewModel Atendimento)
         {
             MensagemViewModel Mensagem = new();
 
-            #region Consultas
+            #region Validações de IDs
             List<string> erros = new();
 
             if (Atendimento.GrvId <= 0)
@@ -76,78 +194,60 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             if (erros.Count > 0)
             {
-                Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.BadRequest;
-
-                foreach (var erro in erros)
-                {
-                    Mensagem.AvisosImpeditivos.Add(erro);
-                }
-
-                return Mensagem;
+                return MensagemViewHelper.GetNewMessage(erros, MensagemTipoAvisoEnum.Impeditivo);
             }
+            #endregion Validações de IDs
 
-            if (!new UsuarioService(_context, _mapper).IsUserActive(Atendimento.UsuarioId))
+            #region Validações do Usuário
+            if (!new UsuarioService(_context).IsUserActive(Atendimento.UsuarioId))
             {
-                Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.Unauthorized;
-
-                Mensagem.AvisosImpeditivos.Add("Usuário sem permissão de acesso ou inexistente");
-
-                return Mensagem;
+                return MensagemViewHelper.GetUnauthorized("Usuário desativado ou inexistente");
             }
+            else if (!await new GrvService(_context).UserCanAccessGrv(Atendimento.GrvId, Atendimento.UsuarioId))
+            {
+                return MensagemViewHelper.GetUnauthorized("Usuário sem permissão de acesso ao GRV ou GRV inexistente");
+            }
+            #endregion Validações do Usuário
 
+            #region Consultas
             GrvModel Grv = await _context.Grv
                 .Include(i => i.Cliente)
                 .Include(i => i.Deposito)
                 .Include(i => i.StatusOperacao)
+                .Include(i => i.Atendimento)
                 .Where(w => w.GrvId == Atendimento.GrvId)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
 
-            if (Grv == null)
-            {
-                Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.BadRequest;
-
-                Mensagem.AvisosImpeditivos.Add("GRV sem permissão de acesso ou inexistente");
-
-                return Mensagem;
-            }
-
             if (Grv.StatusOperacao.StatusOperacaoId != "V" && Grv.StatusOperacao.StatusOperacaoId != "1")
             {
-                Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.BadRequest;
-
-                Mensagem.AvisosImpeditivos.Add($"Status do GRV não está apto para o cadastro do Atendimento: {Grv.StatusOperacao.Descricao.ToUpper()}");
-
-                return Mensagem;
+                return MensagemViewHelper.GetBadRequest($"Status do GRV não está apto para o cadastro do Atendimento: {Grv.StatusOperacao.Descricao.ToUpper()}");
             }
-
-            AtendimentoViewModel AtendimentoConsulta = await GetById(Atendimento.GrvId, Atendimento.UsuarioId);
-
-            if (AtendimentoConsulta != null)
+            else if (Grv.Atendimento != null)
             {
-                Mensagem.AvisosImpeditivos.Add($"Este GRV já possui um Atendimento cadastrado: {AtendimentoConsulta.AtendimentoId}");
-
-                return Mensagem;
+                return MensagemViewHelper.GetBadRequest($"Este GRV já possui um Atendimento cadastrado: {Grv.Atendimento.AtendimentoId}");
             }
             #endregion Consultas
 
             #region Leilão
-            MensagemViewModel mensagemLeilao = await new LeilaoService(_context)
-                .GetAvisoLeilao(Grv.GrvId, Grv.StatusOperacaoId);
+            Mensagem = await new LeilaoService(_context)
+                .GetAvisosLeilao(Grv.GrvId, Grv.StatusOperacaoId);
 
-            if (mensagemLeilao != null)
+            if (Mensagem != null)
             {
-                if (mensagemLeilao.AvisosInformativos.Count > 0)
+                foreach (var item in Mensagem.AvisosInformativos)
                 {
-                    Mensagem.AvisosInformativos.Add(mensagemLeilao.AvisosInformativos[0]);
+                    Mensagem.AvisosInformativos.Add(item);
                 }
 
-                if (mensagemLeilao.Erros.Count > 0)
+                if (Mensagem.Erros.Count > 0)
                 {
-                    Mensagem.AvisosImpeditivos.Add(mensagemLeilao.Erros[0]);
-
-                    return Mensagem;
+                    return MensagemViewHelper.GetNewMessage(Mensagem.Erros, MensagemTipoAvisoEnum.Erro);
                 }
+            }
+            else
+            {
+                Mensagem = new();
             }
             #endregion Leilão
 
@@ -255,11 +355,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 Mensagem.AvisosImpeditivos.Add("Primeiro é necessário informar o Documento do Proprietário");
             }
 
-            if (Atendimento.ProprietarioTipoDocumentoId <= 0)
-            {
-                Mensagem.AvisosImpeditivos.Add("Primeiro é necessário informar o Tipo do Documento do Proprietário");
-            }
-            else
+            if (Atendimento.ProprietarioTipoDocumentoId > 0)
             {
                 TipoDocumentoIdentificacaoModel TipoDocumentoIdentificacao = await _context.TipoDocumentoIdentificacao
                     .Where(w => w.TipoDocumentoIdentificacaoId == Atendimento.ProprietarioTipoDocumentoId)
@@ -270,11 +366,19 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 {
                     Mensagem.Erros.Add($"Tipo do Documento do Proprietário inexistente: {Atendimento.ProprietarioTipoDocumentoId}");
                 }
-                else if (TipoDocumentoIdentificacao.Codigo == "CPF" && !DocumentHelper.IsCPF(Atendimento.ProprietarioDocumento))
+                else if (TipoDocumentoIdentificacao.Codigo != "CPF" && TipoDocumentoIdentificacao.Codigo == "CNPJ")
+                {
+                    Mensagem.AvisosImpeditivos.Add("O Tipo do Documento do Proprietário precisa ser CPF ou CNPJ");
+                }
+                else if (TipoDocumentoIdentificacao.Codigo == "CPF"
+                    && !string.IsNullOrWhiteSpace(Atendimento.ProprietarioDocumento)
+                    && !DocumentHelper.IsCPF(Atendimento.ProprietarioDocumento))
                 {
                     Mensagem.Erros.Add($"O CPF do Proprietário é inválido: {Atendimento.ProprietarioDocumento}");
                 }
-                else if (TipoDocumentoIdentificacao.Codigo == "CNPJ" && !DocumentHelper.IsCNPJ(Atendimento.ProprietarioDocumento))
+                else if (TipoDocumentoIdentificacao.Codigo == "CNPJ"
+                    && !string.IsNullOrWhiteSpace(Atendimento.ProprietarioDocumento)
+                    && !DocumentHelper.IsCNPJ(Atendimento.ProprietarioDocumento))
                 {
                     Mensagem.Erros.Add($"O CNPJ do Proprietário é inválido: {Atendimento.ProprietarioDocumento}");
                 }
@@ -415,6 +519,15 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             }
             #endregion
 
+            if (Mensagem.AvisosImpeditivos.Count > 0 || Mensagem.Erros.Count > 0)
+            {
+                Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.BadRequest;
+            }
+            else
+            {
+                Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.Ok;
+            }
+
             return Mensagem;
         }
 
@@ -468,7 +581,12 @@ namespace WebZi.Plataform.Data.Services.Atendimento
         public async Task<AtendimentoCadastroResultViewModel> Cadastrar(AtendimentoCadastroViewModel AtendimentoInput)
         {
             #region Consultas
-            GrvModel Grv = await GetGrv(AtendimentoInput.GrvId);
+            GrvModel Grv = await _context.Grv
+                .Include(i => i.Cliente)
+                .Include(i => i.Deposito)
+                .Where(w => w.GrvId == AtendimentoInput.GrvId)
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
 
             DateTime DataHoraPorDeposito = await GetDataHoraPorDeposito(Grv.DepositoId);
             #endregion Consultas
@@ -619,20 +737,9 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             return AtendimentoCadastroResultView;
         }
 
-        private async Task<GrvModel> GetGrv(int GrvId)
-        {
-            return await _context.Grv
-                .Include(i => i.Cliente)
-                .Include(i => i.Deposito)
-                .Where(w => w.GrvId == GrvId)
-                .AsNoTracking()
-                .FirstOrDefaultAsync();
-        }
-
         private async Task<DateTime> GetDataHoraPorDeposito(int DepositoId)
         {
-            return await _provider
-                .GetService<DepositoService>()
+            return await new DepositoService(_context)
                 .GetDataHoraPorDeposito(DepositoId);
         }
 
@@ -708,11 +815,11 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             }
         }
 
-        private async void CadastrarLiberacaoLeilao(CalculoFaturamentoParametroModel ParametrosCalculoFaturamento)
+        private void CadastrarLiberacaoLeilao(CalculoFaturamentoParametroModel ParametrosCalculoFaturamento)
         {
             if (new[] { "1", "2", "3" }.Contains(ParametrosCalculoFaturamento.StatusOperacaoLeilaoId))
             {
-                await _context.LiberacaoLeilao.AddAsync(new()
+                _context.LiberacaoLeilao.Add(new()
                 {
                     GrvId = ParametrosCalculoFaturamento.Grv.GrvId,
 
@@ -734,8 +841,36 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             _context.Grv.Update(Grv);
         }
 
-        public async Task<byte[]> GetResponsavelFoto(int AtendimentoId)
+        public async Task<AtendimentoFotoResponsavelViewModel> GetResponsavelFoto(int AtendimentoId, int UsuarioId)
         {
+            AtendimentoFotoResponsavelViewModel ReturnView = new();
+
+            List<string> erros = new();
+
+            if (AtendimentoId <= 0)
+            {
+                erros.Add("Identificador do Atendimento inválido");
+            }
+
+            if (UsuarioId <= 0)
+            {
+                erros.Add("Identificador do Usuário inválido");
+            }
+
+            if (erros.Count > 0)
+            {
+                ReturnView.Mensagem = MensagemViewHelper.GetNewMessage(erros, MensagemTipoAvisoEnum.Impeditivo);
+
+                return ReturnView;
+            }
+
+            if (!new UsuarioService(_context).IsUserActive(UsuarioId))
+            {
+                ReturnView.Mensagem = MensagemViewHelper.GetUnauthorized("Usuário desativado ou inexistente");
+
+                return ReturnView;
+            }
+
             BucketArquivoModel BucketArquivo = _context.BucketArquivo
                 .Include(i => i.BucketNomeTabelaOrigem)
                 .Where(w => w.BucketNomeTabelaOrigem.Codigo == "ATENDIMFOTORESP")
@@ -744,16 +879,33 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             if (BucketArquivo != null)
             {
-                return await HttpClientHelper.DownloadFileAsync(BucketArquivo.Url);
+                ReturnView.Foto = HttpClientHelper.DownloadFile(BucketArquivo.Url);
+
+                ReturnView.Mensagem = MensagemViewHelper.GetOk("Registro encontrado com sucesso");
+
+                return ReturnView;
             }
             else
             {
-                var result = await _context.AtendimentoFotoResponsavel
+                AtendimentoFotoResponsavelModel AtendimentoFotoResponsavel = await _context.AtendimentoFotoResponsavel
                     .Where(w => w.AtendimentoId == AtendimentoId)
                     .AsNoTracking()
                     .FirstOrDefaultAsync();
 
-                return result.Foto;
+                if (AtendimentoFotoResponsavel != null)
+                {
+                    ReturnView.Foto = AtendimentoFotoResponsavel.Foto;
+
+                    ReturnView.Mensagem = MensagemViewHelper.GetOk("Registro encontrado com sucesso");
+
+                    return ReturnView;
+                }
+                else
+                {
+                    ReturnView.Mensagem = MensagemViewHelper.GetNotFound("Registro não encontrado");
+
+                    return ReturnView;
+                }
             }
         }
 

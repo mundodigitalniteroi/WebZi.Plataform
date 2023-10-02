@@ -9,10 +9,7 @@ using WebZi.Plataform.Data.Services.GRV;
 using WebZi.Plataform.Domain.Models.Cliente;
 using WebZi.Plataform.Domain.Models.Deposito;
 using WebZi.Plataform.Domain.Models.GRV;
-using WebZi.Plataform.Domain.Models.GRV.ViewModel;
-using WebZi.Plataform.Domain.Models.Usuario.ViewModel;
 using WebZi.Plataform.Domain.Services.GRV;
-using WebZi.Plataform.Domain.Services.Usuario;
 using WebZi.Plataform.Domain.ViewModel.GRV;
 
 namespace WebZi.Plataform.API.Controllers
@@ -134,15 +131,15 @@ namespace WebZi.Plataform.API.Controllers
             return result?.Count > 0 ? Ok(result) : NotFound("Status Operação não encontrado");
         }
 
-        [HttpGet("ListarLacres")]
-        public async Task<ActionResult<LacreResultViewModel>> ListarLacres(int GrvId, int UsuarioId)
-        {
-            LacreResultViewModelList result = await _provider
-                .GetService<LacreService>()
-                .List(GrvId, UsuarioId);
+        //[HttpGet("ListarLacres")]
+        //public async Task<ActionResult<LacreResultViewModel>> ListarLacres(int GrvId, int UsuarioId)
+        //{
+        //    LacreResultViewModelList result = await _provider
+        //        .GetService<LacreService>()
+        //        .List(GrvId, UsuarioId);
 
-            return StatusCode((int)result.Mensagem.HtmlStatusCode, result);
-        }
+        //    return StatusCode((int)result.Mensagem.HtmlStatusCode, result);
+        //}
 
         [HttpGet("ListarMotivosApreensoes")]
         public async Task<ActionResult<List<MotivoApreensaoModel>>> ListarMotivosApreensoes()

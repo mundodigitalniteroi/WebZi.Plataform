@@ -7,9 +7,9 @@ using WebZi.Plataform.Data.Services.Faturamento;
 using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.Faturamento.Boleto;
-using WebZi.Plataform.Domain.Models.Faturamento.ViewModel;
 using WebZi.Plataform.Domain.Services.Usuario;
 using WebZi.Plataform.Domain.ViewModel;
+using WebZi.Plataform.Domain.ViewModel.Faturamento;
 
 namespace WebZi.Plataform.API.Controllers
 {

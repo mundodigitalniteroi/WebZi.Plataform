@@ -1,6 +1,6 @@
 ﻿using WebZi.Plataform.Domain.ViewModel;
 
-namespace WebZi.Plataform.Domain.Models.Faturamento.ViewModel
+namespace WebZi.Plataform.Domain.ViewModel.Faturamento
 {
     public class BoletoResultView
     {

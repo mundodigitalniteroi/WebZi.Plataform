@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using WebZi.Plataform.Data.Services.Cliente;
-using WebZi.Plataform.Domain.Models.Banco.ViewModel;
 using WebZi.Plataform.Domain.Models.Cliente;
 
 namespace WebZi.Plataform.API.Controllers

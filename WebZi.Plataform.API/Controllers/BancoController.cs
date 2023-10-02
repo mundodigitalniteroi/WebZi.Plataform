@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Text;
 using WebZi.Plataform.Data.Services.Banco;
-using WebZi.Plataform.Domain.Models.Banco.ViewModel;
+using WebZi.Plataform.Domain.ViewModel.Banco;
 
 namespace WebZi.Plataform.API.Controllers
 {

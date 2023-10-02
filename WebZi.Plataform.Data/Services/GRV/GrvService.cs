@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Domain.Models.GRV;
-using WebZi.Plataform.Domain.Models.Usuario.View;
+using WebZi.Plataform.Domain.Views.Usuario;
 
 namespace WebZi.Plataform.Domain.Services.GRV
 {
@@ -79,10 +79,6 @@ namespace WebZi.Plataform.Domain.Services.GRV
         public async Task<bool> UserCanAccessGrv(int GrvId, int UsuarioId)
         {
             GrvModel Grv = await _context.Grv
-                .Include(i => i.Cliente)
-                .ThenInclude(t => t.UsuariosClientes.Where(w => w.UsuarioId == UsuarioId))
-                .Include(i => i.Deposito)
-                .ThenInclude(t => t.UsuariosDepositos.Where(w => w.UsuarioId == UsuarioId))
                 .Where(w => w.GrvId == GrvId)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
