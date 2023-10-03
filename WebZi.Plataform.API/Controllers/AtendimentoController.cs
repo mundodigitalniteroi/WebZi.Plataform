@@ -1,10 +1,10 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Atendimento;
 using WebZi.Plataform.Domain.ViewModel;
 using WebZi.Plataform.Domain.ViewModel.Atendimento;
+using WebZi.Plataform.Domain.ViewModel.Generic;
 
 namespace WebZi.Plataform.API.Controllers
 {
@@ -34,7 +34,7 @@ namespace WebZi.Plataform.API.Controllers
             }
             catch (Exception ex)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError("Ocorreu um erro interno", ex);
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -55,16 +55,16 @@ namespace WebZi.Plataform.API.Controllers
             }
             catch (Exception ex)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError("Ocorreu um erro interno", ex);
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
         }
 
         [HttpGet("SelecionarFotoResponsavel")]
-        public async Task<ActionResult<AtendimentoFotoResponsavelViewModel>> SelecionarFotoResponsavel(int AtendimentoId, int UsuarioId)
+        public async Task<ActionResult<ImageViewModel>> SelecionarFotoResponsavel(int AtendimentoId, int UsuarioId)
         {
-            AtendimentoFotoResponsavelViewModel ResultView = new();
+            ImageViewModel ResultView = new();
 
             try
             {
@@ -76,7 +76,7 @@ namespace WebZi.Plataform.API.Controllers
             }
             catch (Exception ex)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError("Ocorreu um erro interno", ex);
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -97,14 +97,14 @@ namespace WebZi.Plataform.API.Controllers
             }
             catch (Exception ex)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError("Ocorreu um erro interno", ex);
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
         }
 
         [HttpPost("ValidarInformacoesParaCadastro")]
-        public async Task<ActionResult<MensagemViewModel>> ValidarInformacoesParaCadastro(AtendimentoCadastroViewModel Atendimento)
+        public async Task<ActionResult<MensagemViewModel>> ValidarInformacoesParaCadastro(AtendimentoCadastroInputViewModel Atendimento)
         {
             MensagemViewModel ResultView;
 
@@ -118,14 +118,14 @@ namespace WebZi.Plataform.API.Controllers
             }
             catch (Exception ex)
             {
-                ResultView = MensagemViewHelper.GetInternalServerError("Ocorreu um erro interno", ex);
+                ResultView = MensagemViewHelper.GetInternalServerError(ex);
 
                 return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
             }
         }
 
         [HttpPost("Cadastrar")]
-        public async Task<ActionResult<AtendimentoCadastroResultViewModel>> Cadastrar(AtendimentoCadastroViewModel Atendimento)
+        public async Task<ActionResult<AtendimentoCadastroResultViewModel>> Cadastrar(AtendimentoCadastroInputViewModel Atendimento)
         {
             AtendimentoCadastroResultViewModel ResultView = new();
 
@@ -142,7 +142,7 @@ namespace WebZi.Plataform.API.Controllers
             }
             catch (Exception ex)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError("Ocorreu um erro interno", ex);
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -161,7 +161,7 @@ namespace WebZi.Plataform.API.Controllers
             }
             catch (Exception ex)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError("Ocorreu um erro interno", ex);
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }

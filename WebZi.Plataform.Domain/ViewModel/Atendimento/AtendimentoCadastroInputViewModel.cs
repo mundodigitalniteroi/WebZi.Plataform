@@ -1,6 +1,6 @@
 ﻿namespace WebZi.Plataform.Domain.ViewModel.Atendimento
 {
-    public class AtendimentoCadastroViewModel
+    public class AtendimentoCadastroInputViewModel
     {
         public int GrvId { get; set; }
 

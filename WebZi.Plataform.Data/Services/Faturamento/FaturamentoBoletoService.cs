@@ -6,16 +6,17 @@ using WebZi.Plataform.CrossCutting.Documents;
 using WebZi.Plataform.CrossCutting.Strings;
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
+using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Bucket;
 using WebZi.Plataform.Data.WsBoleto;
-using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Bucket;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.Faturamento.Boleto;
 using WebZi.Plataform.Domain.Models.GRV;
 using WebZi.Plataform.Domain.Models.Sistema;
+using WebZi.Plataform.Domain.Services.GRV;
 using WebZi.Plataform.Domain.Services.Usuario;
-using WebZi.Plataform.Domain.ViewModel.Faturamento;
+using WebZi.Plataform.Domain.ViewModel.Generic;
 using WebZi.Plataform.Domain.Views.Faturamento;
 using Z.EntityFramework.Plus;
 using static WebZi.Plataform.Data.WsBoleto.WsBoletoSoapClient;
@@ -41,9 +42,9 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 .FirstOrDefaultAsync();
         }
 
-        public BoletoResultView GetUltimoBoleto(int FaturamentoId, int UsuarioId)
+        public ImageViewModel GetBoletoNaoCancelado(int FaturamentoId, int UsuarioId)
         {
-            BoletoResultView BoletoResultView = new();
+            ImageViewModel ResultView = new();
 
             List<string> erros = new();
 
@@ -59,55 +60,58 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             if (erros.Count > 0)
             {
-                BoletoResultView.Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.BadRequest;
+                ResultView.Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.BadRequest;
 
                 foreach (var erro in erros)
                 {
-                    BoletoResultView.Mensagem.AvisosImpeditivos.Add(erro);
+                    ResultView.Mensagem.AvisosImpeditivos.Add(erro);
                 }
 
-                return BoletoResultView;
+                return ResultView;
             }
 
             if (!new UsuarioService(_context).IsUserActive(UsuarioId))
             {
-                BoletoResultView.Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.Unauthorized;
+                ResultView.Mensagem = MensagemViewHelper.GetUnauthorized();
 
-                BoletoResultView.Mensagem.AvisosImpeditivos.Add("Usuário sem permissão de acesso ou inexistente");
-
-                return BoletoResultView;
+                return ResultView;
             }
 
             FaturamentoModel Faturamento = _context.Faturamento
                 .Include(i => i.FaturamentoBoletos.Where(w => w.Status != "C"))
                 .Include(i => i.TipoMeioCobranca)
+                .Include(i => i.Atendimento)
+                .ThenInclude(t => t.Grv)
                 .Where(w => w.FaturamentoId == FaturamentoId)
                 .AsNoTracking()
                 .FirstOrDefault();
 
-            if (Faturamento == null)
+            if (Faturamento != null)
             {
-                BoletoResultView.Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.NotFound;
+                if (!new GrvService(_context, _mapper).UserCanAccessGrv(Faturamento.Atendimento.Grv, UsuarioId))
+                {
+                    ResultView.Mensagem = MensagemViewHelper.GetUnauthorized("Usuário sem permissão de acesso ao GRV ou GRV inexistente");
 
-                BoletoResultView.Mensagem.AvisosImpeditivos.Add("Faturamento não encontrado");
+                    return ResultView;
+                }
+            }
+            else if (Faturamento == null)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound("Faturamento não encontrado");
 
-                return BoletoResultView;
+                return ResultView;
             }
             else if (Faturamento.TipoMeioCobranca.Alias != "BOL" && Faturamento.TipoMeioCobranca.Alias != "BOLESP")
             {
-                BoletoResultView.Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.BadRequest;
+                ResultView.Mensagem = MensagemViewHelper.GetBadRequest($"Esse Faturamento está cadastrado em outra Forma de Pagamento: {Faturamento.TipoMeioCobranca.Descricao}");
 
-                BoletoResultView.Mensagem.AvisosImpeditivos.Add($"Esse Faturamento está cadastrado em outra Forma de Pagamento: {Faturamento.TipoMeioCobranca.Descricao}");
-
-                return BoletoResultView;
+                return ResultView;
             }
             else if (Faturamento.FaturamentoBoletos?.Count == null)
             {
-                BoletoResultView.Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.NotFound;
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound("Boleto foi cancelado ou inexistente");
 
-                BoletoResultView.Mensagem.AvisosImpeditivos.Add("Boleto foi cancelado ou inexistente");
-
-                return BoletoResultView;
+                return ResultView;
             }
 
             BucketArquivoModel BucketArquivo = _context.BucketArquivo
@@ -118,11 +122,11 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             if (BucketArquivo != null)
             {
-                BoletoResultView.Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.Ok;
+                ResultView.Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.Ok;
 
-                BoletoResultView.Boleto = HttpClientHelper.DownloadFile(BucketArquivo.Url);
+                ResultView.Imagem = HttpClientHelper.DownloadFile(BucketArquivo.Url);
 
-                return BoletoResultView;
+                return ResultView;
             }
             else
             {
@@ -135,36 +139,116 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
                 if (FaturamentoBoletoImagem != null)
                 {
-                    BoletoResultView.Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.Ok;
+                    ResultView.Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.Ok;
 
-                    BoletoResultView.Boleto = FaturamentoBoletoImagem.Imagem;
+                    ResultView.Imagem = FaturamentoBoletoImagem.Imagem;
 
-                    return BoletoResultView;
+                    return ResultView;
                 }
                 else
                 {
-                    BoletoResultView.Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.NotFound;
+                    ResultView.Mensagem = MensagemViewHelper.GetNotFound("A imagem do Boleto não foi gerado ou foi excluído");
 
-                    BoletoResultView.Mensagem.AvisosImpeditivos.Add("A imagem do Boleto não foi gerado ou foi excluído");
-
-                    return BoletoResultView;
+                    return ResultView;
                 }
             }
         }
 
-        public byte[] Gerar(GrvModel Grv, FaturamentoModel Faturamento, int UsuarioCadastroId, TipoMeioCobrancaModel TipoMeioCobranca = null, List<FaturamentoRegraModel> FaturamentoRegras = null)
+        public ImageViewModel Create(int FaturamentoId, int UsuarioId)
         {
-            if (TipoMeioCobranca == null)
+            ImageViewModel ResultView = new();
+
+            List<string> erros = new();
+
+            if (FaturamentoId <= 0)
             {
-                TipoMeioCobranca = _context.TipoMeioCobranca
-                    .Where(w => w.TipoMeioCobrancaId == Faturamento.TipoMeioCobrancaId)
-                    .AsNoTracking()
-                    .FirstOrDefault();
+                erros.Add("Identificador do Faturamento inválido");
             }
 
-            if (TipoMeioCobranca.CodigoERP != "D" || Faturamento.ValorFaturado <= 0)
+            if (UsuarioId <= 0)
             {
-                return null;
+                erros.Add("Identificador do Usuário inválido");
+            }
+
+            if (erros.Count > 0)
+            {
+                ResultView.Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.BadRequest;
+
+                foreach (var erro in erros)
+                {
+                    ResultView.Mensagem.AvisosImpeditivos.Add(erro);
+                }
+
+                return ResultView;
+            }
+
+            if (!new UsuarioService(_context).IsUserActive(UsuarioId))
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetUnauthorized();
+
+                return ResultView;
+            }
+
+            FaturamentoModel Faturamento = _context.Faturamento
+                .Include(i => i.TipoMeioCobranca)
+                .Include(i => i.Atendimento)
+                .ThenInclude(t => t.Grv)
+                .Where(w => w.FaturamentoId == FaturamentoId)
+                .AsNoTracking()
+                .FirstOrDefault();
+
+            if (Faturamento != null)
+            {
+                if (!new GrvService(_context, _mapper).UserCanAccessGrv(Faturamento.Atendimento.Grv, UsuarioId))
+                {
+                    ResultView.Mensagem = MensagemViewHelper.GetUnauthorized("Usuário sem permissão de acesso ao GRV ou GRV inexistente");
+
+                    return ResultView;
+                }
+            }
+            else if (Faturamento == null)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound("Faturamento não encontrado");
+
+                return ResultView;
+            }
+            else if (Faturamento.TipoMeioCobranca.Alias != "BOL" && Faturamento.TipoMeioCobranca.Alias != "BOLESP")
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetBadRequest($"Esse Faturamento está cadastrado em outra Forma de Pagamento: {Faturamento.TipoMeioCobranca.Descricao}");
+
+                return ResultView;
+            }
+            else if (Faturamento.ValorFaturado <= 0)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetBadRequest($"Esse Faturamento está com o valor zerado");
+
+                return ResultView;
+            }
+
+            TipoMeioCobrancaModel TipoMeioCobranca = _context.TipoMeioCobranca
+                .Where(w => w.TipoMeioCobrancaId == Faturamento.TipoMeioCobrancaId)
+                .AsNoTracking()
+                .FirstOrDefault();
+
+            if (TipoMeioCobranca == null)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound("Forma de Pagamento inexistente");
+
+                return ResultView;
+            }
+            else if (TipoMeioCobranca.Alias != "BOL" && TipoMeioCobranca.Alias != "BOLESP")
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetBadRequest($"Esse Faturamento está cadastrado com outra Forma de Pagamento: {TipoMeioCobranca.Descricao}");
+
+                return ResultView;
+            }
+
+            // TODO: Ver o que é isso
+            if (TipoMeioCobranca.CodigoERP != "D")
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError("TipoMeioCobranca.CodigoERP != \"D\"");
+
+                return ResultView;
             }
 
             ViewFaturamentoBoletoModel ViewBoleto = _context.ViewFaturamentoBoleto
@@ -172,7 +256,9 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             if (ViewBoleto == null)
             {
-                throw new Exception("Dados para impressão do Boleto não encontrado");
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound("Dados para a geração do Boleto não encontrados");
+
+                return ResultView;
             }
 
             Cancelar(Faturamento.FaturamentoId);
@@ -228,14 +314,11 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             if (TipoMeioCobranca.Alias.Equals("BOLESP"))
             {
-                if (FaturamentoRegras == null)
-                {
-                    FaturamentoRegras = _context.FaturamentoRegra
-                        .Include(i => i.FaturamentoRegraTipo)
-                        .Where(w => w.ClienteId == Grv.ClienteId && w.DepositoId == Grv.DepositoId)
-                        .AsNoTracking()
-                        .ToList();
-                }
+                List<FaturamentoRegraModel> FaturamentoRegras = _context.FaturamentoRegra
+                    .Include(i => i.FaturamentoRegraTipo)
+                    .Where(w => w.ClienteId == Faturamento.Atendimento.Grv.ClienteId && w.DepositoId == Faturamento.Atendimento.Grv.DepositoId)
+                    .AsNoTracking()
+                    .ToList();
 
                 if (FaturamentoRegras?.Count > 0)
                 {
@@ -293,7 +376,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
                         BoletoId = BoletoGerado.BoletoId,
 
-                        UsuarioCadastroId = UsuarioCadastroId,
+                        UsuarioCadastroId = UsuarioId,
 
                         SequenciaEmissao = 1,
 
@@ -308,7 +391,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
                     _context.SaveChanges();
 
-                    new BucketArquivoService(_context).SendFile("FATURAMENBOLETO", FaturamentoBoleto.FaturamentoBoletoId, UsuarioCadastroId, BoletoGerado.Boleto);
+                    new BucketArquivoService(_context).SendFile("FATURAMENBOLETO", FaturamentoBoleto.FaturamentoBoletoId, UsuarioId, BoletoGerado.Boleto);
 
                     transaction.Commit();
                 }
@@ -321,7 +404,11 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             }
             #endregion Cadastro do Boleto e da Imagem
 
-            return BoletoGerado.Boleto;
+            ResultView.Imagem = BoletoGerado.Boleto;
+
+            ResultView.Mensagem = MensagemViewHelper.GetOk("Boleto gerado com sucesso");
+
+            return ResultView;
         }
 
         public void Cancelar(int FaturamentoId)

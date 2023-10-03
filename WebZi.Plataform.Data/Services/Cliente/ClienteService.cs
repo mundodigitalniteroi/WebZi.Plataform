@@ -1,40 +1,109 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using WebZi.Plataform.Data.Database;
+using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Domain.Models.Cliente;
+using WebZi.Plataform.Domain.ViewModel.Cliente;
 
 namespace WebZi.Plataform.Data.Services.Cliente
 {
     public class ClienteService
     {
         private readonly AppDbContext _context;
+        private readonly IMapper _mapper;
 
-        public ClienteService(AppDbContext context)
+        public ClienteService(AppDbContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
-        public async Task<List<ClienteModel>> List()
+        public async Task<ClienteViewModelList> GetById(int ClienteId)
         {
-            return await _context.Cliente
-                .OrderBy(o => o.Nome)
+            ClienteViewModelList ResultView = new();
+
+            if (ClienteId <= 0)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetBadRequest("Identificador do Cliente inválido");
+
+                return ResultView;
+            }
+
+            ClienteModel result = await _context.Cliente
+                .Where(w => w.ClienteId == ClienteId)
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
+
+            if (result != null)
+            {
+                ResultView.Clientes.Add(_mapper.Map<ClienteViewModel>(result));
+
+                ResultView.Mensagem = MensagemViewHelper.GetOkFound();
+            }
+            else
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+            }
+
+            return ResultView;
+        }
+        
+        public async Task<ClienteViewModelList> GetByName(string Name)
+        {
+            ClienteViewModelList ResultView = new();
+
+            if (string.IsNullOrWhiteSpace(Name))
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetBadRequest("Primeiro é necessário informar o Nome do Cliente");
+
+                return ResultView;
+            }
+
+            List<ClienteModel> result = await _context.Cliente
+                .Where(w => w.Nome.ToUpper().Contains(Name.ToUpper().Trim()))
                 .AsNoTracking()
                 .ToListAsync();
+
+            if (result?.Count > 0)
+            {
+                result = result.OrderBy(o => o.Nome).ToList();
+
+                ResultView.Mensagem = MensagemViewHelper.GetOkFound();
+
+                ResultView.Clientes = _mapper.Map<List<ClienteViewModel>>(result);
+            }
+            else
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+            }
+
+            return ResultView;
         }
 
-        public async Task<ClienteModel> GetById(int id)
+        public async Task<ClienteViewModelList> List()
         {
-            return await _context.Cliente
-                .Where(w => w.ClienteId == id)
-                .AsNoTracking()
-                .FirstOrDefaultAsync();
-        }
+            ClienteViewModelList ResultView = new();
 
-        public async Task<ClienteModel> GetByName(string Name)
-        {
-            return await _context.Cliente
-                .Where(w => w.Nome.Contains(Name))
+            List<ClienteModel> result = await _context.Cliente
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .ToListAsync();
+
+            if (result?.Count > 0)
+            {
+                result = result
+                    .OrderBy(o => o.Nome)
+                    .ToList();
+
+                ResultView.Clientes = _mapper.Map<List<ClienteViewModel>>(result);
+
+                ResultView.Mensagem = MensagemViewHelper.GetOkFound();
+            }
+            else
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+            }
+
+            return ResultView;
         }
     }
 }

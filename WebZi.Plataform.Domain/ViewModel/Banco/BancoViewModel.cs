@@ -8,6 +8,6 @@
 
         public string Nome { get; set; }
 
-        public string FlagAtivo { get; set; } = "S";
+        public string FlagAtivo { get; set; }
     }
 }

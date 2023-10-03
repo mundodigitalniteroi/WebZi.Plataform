@@ -1,6 +1,4 @@
-﻿using WebZi.Plataform.Domain.ViewModel;
-
-namespace WebZi.Plataform.Domain.ViewModel.Atendimento
+﻿namespace WebZi.Plataform.Domain.ViewModel.Atendimento
 {
     public class AtendimentoViewModel
     {
@@ -100,13 +98,13 @@ namespace WebZi.Plataform.Domain.ViewModel.Atendimento
 
         public int TotalImpressoes { get; set; } = 1;
 
-        public string StatusCadastroERP { get; set; } = "N";
+        public string StatusCadastroERP { get; set; }
 
-        public string StatusCadastroOrdensVendaERP { get; set; } = "N";
+        public string StatusCadastroOrdensVendaERP { get; set; }
 
-        public string FlagPagamentoFinanciado { get; set; } = "N";
+        public string FlagPagamentoFinanciado { get; set; }
 
-        public string FlagAtendimentoWs { get; set; } = "N";
+        public string FlagAtendimentoWs { get; set; }
 
         public DateTime? DataHoraInicioAtendimento { get; set; }
 
@@ -114,6 +112,6 @@ namespace WebZi.Plataform.Domain.ViewModel.Atendimento
 
         public DateTime? DataAlteracao { get; set; }
 
-        public MensagemViewModel Mensagem { get; set; } = new MensagemViewModel();
+        public MensagemViewModel Mensagem { get; set; } = new();
     }
 }

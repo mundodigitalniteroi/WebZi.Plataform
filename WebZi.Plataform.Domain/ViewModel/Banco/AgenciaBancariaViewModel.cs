@@ -14,6 +14,6 @@
 
         public string SacadoCarteira { get; set; }
 
-        public string FlagAtivo { get; set; } = "S";
+        public string FlagAtivo { get; set; }
     }
 }

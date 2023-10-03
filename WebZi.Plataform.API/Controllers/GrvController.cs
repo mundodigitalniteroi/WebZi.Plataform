@@ -1,14 +1,6 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System.Text;
-using WebZi.Plataform.Data.Database;
-using WebZi.Plataform.Data.Services.Cliente;
-using WebZi.Plataform.Data.Services.Deposito;
+﻿using Microsoft.AspNetCore.Mvc;
+using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.GRV;
-using WebZi.Plataform.Domain.Models.Cliente;
-using WebZi.Plataform.Domain.Models.Deposito;
-using WebZi.Plataform.Domain.Models.GRV;
 using WebZi.Plataform.Domain.Services.GRV;
 using WebZi.Plataform.Domain.ViewModel.GRV;
 
@@ -18,137 +10,116 @@ namespace WebZi.Plataform.API.Controllers
     [ApiController]
     public class GrvController : ControllerBase
     {
-        private readonly AppDbContext _context;
         private readonly IServiceProvider _provider;
-        private readonly IMapper _mapper;
 
-        public GrvController(AppDbContext context, IServiceProvider provider, IMapper mapper)
+        public GrvController(IServiceProvider provider)
         {
-            _context = context;
             _provider = provider;
-            _mapper = mapper;
         }
 
         [HttpGet("SelecionarPorId")]
         public async Task<ActionResult<GrvViewModel>> SelecionarPorId(int GrvId, int UsuarioId)
         {
-            StringBuilder erros = new();
+            GrvViewModelList ResultView = new();
 
-            if (GrvId <= 0)
+            try
             {
-                erros.AppendLine("Identificador do GRV inválido");
-            }
+                ResultView = await _provider
+                    .GetService<GrvService>()
+                    .GetById(GrvId, UsuarioId);
 
-            if (UsuarioId <= 0)
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
             {
-                erros.AppendLine("Identificador do Usuário inválido");
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
-
-            if (!string.IsNullOrWhiteSpace(erros.ToString()))
-            {
-                return BadRequest(erros.ToString());
-            }
-
-            //if (!await _provider.GetService<UsuarioService>().IsUserActive(UsuarioId))
-            //{
-            //    return BadRequest("Usuário sem permissão de acesso ou inexistente");
-            //}
-
-            GrvModel result = await _provider
-                .GetService<GrvService>()
-                .GetById(GrvId, UsuarioId);
-
-            return result != null ? _mapper.Map<GrvViewModel>(result) : NotFound("GRV sem permissão de acesso ou inexistente");
         }
 
         [HttpGet("SelecionarPorProcesso")]
-        public async Task<ActionResult<GrvViewModel>> SelecionarPorProcesso(string NumeroProcesso, int ClienteId, int DepositoId, int UsuarioId)
+        public async Task<ActionResult<GrvViewModelList>> SelecionarPorProcesso(string NumeroProcesso, int ClienteId, int DepositoId, int UsuarioId)
         {
-            StringBuilder erros = new();
+            GrvViewModelList ResultView = new();
 
-            if (string.IsNullOrWhiteSpace(NumeroProcesso))
+            try
             {
-                erros.AppendLine("Informe o Número do Processo");
-            }
+                ResultView = await _provider
+                    .GetService<GrvService>()
+                    .GetByNumeroFormularioGrv(NumeroProcesso, ClienteId, DepositoId, UsuarioId);
 
-            if (ClienteId <= 0)
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
             {
-                erros.AppendLine("Identificador do Cliente inválido");
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
-
-            if (DepositoId <= 0)
-            {
-                erros.AppendLine("Identificador do Depósito inválido ");
-            }
-
-            if (UsuarioId <= 0)
-            {
-                erros.AppendLine("Identificador do Usuário inválido");
-            }
-
-            if (!string.IsNullOrWhiteSpace(erros.ToString()))
-            {
-                return BadRequest(erros.ToString());
-            }
-
-            //if (!await _provider.GetService<UsuarioService>().IsUserActive(UsuarioId))
-            //{
-            //    return BadRequest("Usuário sem permissão de acesso ou inexistente");
-            //}
-
-            ClienteModel Cliente = await _provider
-                .GetService<ClienteService>()
-                .GetById(ClienteId);
-
-            if (Cliente == null)
-            {
-                return NotFound("Cliente inexistente");
-            }
-
-            DepositoModel Deposito = await _provider
-                .GetService<DepositoService>()
-                .GetById(DepositoId);
-
-            if (Deposito == null)
-            {
-                return NotFound("Depósito inexistente");
-            }
-
-            GrvModel result = await _provider
-                .GetService<GrvService>()
-                .GetByNumeroFormularioGrv(NumeroProcesso, ClienteId, DepositoId, UsuarioId);
-
-            return result != null ? _mapper.Map<GrvViewModel>(result) : NotFound("GRV sem permissão de acesso ou inexistente");
         }
 
         [HttpGet("ListarStatusOperacao")]
-        public async Task<ActionResult<List<StatusOperacaoModel>>> ListarStatusOperacao()
+        public async Task<ActionResult<StatusOperacaoViewModelList>> ListarStatusOperacao()
         {
-            List<StatusOperacaoModel> result = await _provider
-                .GetService<StatusOperacaoService>()
-                .List();
+            StatusOperacaoViewModelList ResultView = new();
 
-            return result?.Count > 0 ? Ok(result) : NotFound("Status Operação não encontrado");
+            try
+            {
+                ResultView = await _provider
+                    .GetService<StatusOperacaoService>()
+                    .List();
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
         }
 
-        //[HttpGet("ListarLacres")]
-        //public async Task<ActionResult<LacreResultViewModel>> ListarLacres(int GrvId, int UsuarioId)
-        //{
-        //    LacreResultViewModelList result = await _provider
-        //        .GetService<LacreService>()
-        //        .List(GrvId, UsuarioId);
+        [HttpGet("ListarLacres")]
+        public async Task<ActionResult<LacreViewModelList>> ListarLacres(int GrvId, int UsuarioId)
+        {
+            LacreViewModelList ResultView = new();
 
-        //    return StatusCode((int)result.Mensagem.HtmlStatusCode, result);
-        //}
+            try
+            {
+                ResultView = await _provider
+                    .GetService<LacreService>()
+                    .List(GrvId, UsuarioId);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
 
         [HttpGet("ListarMotivosApreensoes")]
-        public async Task<ActionResult<List<MotivoApreensaoModel>>> ListarMotivosApreensoes()
+        public async Task<ActionResult<MotivoApreensaoViewModelList>> ListarMotivosApreensoes()
         {
-            List<MotivoApreensaoModel> result = await _context.MotivoApreensao
-                .AsNoTracking()
-                .ToListAsync();
+            MotivoApreensaoViewModelList ResultView = new();
 
-            return result?.Count > 0 ? Ok(result.OrderBy(o => o.Descricao).ToList()) : NotFound("Motivos de Apreensões não encontrados");
+            try
+            {
+                ResultView = await _provider
+                    .GetService<MotivoApreensaoService>()
+                    .List();
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
         }
     }
 }

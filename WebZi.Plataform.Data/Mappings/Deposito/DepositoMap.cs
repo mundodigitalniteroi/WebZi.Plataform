@@ -30,7 +30,7 @@ namespace WebZi.Plataform.Data.Mappings.Deposito
                 .HasColumnType("smalldatetime")
                 .HasColumnName("data_cadastro");
 
-            builder.Property(e => e.Descricao)
+            builder.Property(e => e.Nome)
                 .IsRequired()
                 .HasMaxLength(50)
                 .IsUnicode(false)

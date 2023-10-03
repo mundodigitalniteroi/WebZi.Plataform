@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
+using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Deposito;
-using WebZi.Plataform.Domain.Models.Deposito;
+using WebZi.Plataform.Domain.ViewModel.Deposito;
 
 namespace WebZi.Plataform.API.Controllers
 {
@@ -16,52 +16,67 @@ namespace WebZi.Plataform.API.Controllers
             _provider = provider;
         }
 
-        [HttpGet("Listar")]
-        public async Task<ActionResult<List<object>>> Listar()
-        {
-            return Ok(await _provider
-                .GetService<DepositoService>()
-                .List());
-        }
-
         [HttpGet("SelecionarPorId")]
-        public async Task<ActionResult<object>> SelecionarPorId(int DepositoId)
+        public async Task<ActionResult<DepositoViewModelList>> SelecionarPorId(int DepositoId)
         {
-            if (DepositoId <= 0)
+            DepositoViewModelList ResultView = new();
+
+            try
             {
-                return BadRequest("Identificador do Depósito inválido");
+                ResultView = await _provider
+                    .GetService<DepositoService>()
+                    .GetById(DepositoId);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
-
-            DepositoModel result = await _provider
-                .GetService<DepositoService>()
-                .GetById(DepositoId);
-
-            if (result == null)
+            catch (Exception ex)
             {
-                return NotFound("Depósito não encontrado");
-            }
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
 
-            return Ok(JsonConvert.SerializeObject(result));
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
         }
 
         [HttpGet("SelecionarPorNome")]
-        public async Task<ActionResult<object>> SelecionarPorNome(string Name)
+        public async Task<ActionResult<DepositoViewModelList>> SelecionarPorNome(string Nome)
         {
-            if (string.IsNullOrEmpty(Name))
+            DepositoViewModelList ResultView = new();
+
+            try
             {
-                return BadRequest("Primeiro é necessário informar o Nome do Depósito");
+                ResultView = await _provider
+                    .GetService<DepositoService>()
+                    .GetByName(Nome);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
-
-            DepositoModel result = await _provider
-                .GetService<DepositoService>()
-                .GetByName(Name.ToUpper().Trim());
-
-            if (result == null)
+            catch (Exception ex)
             {
-                return NotFound("Depósito não encontrado");
-            }
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
 
-            return Ok(JsonConvert.SerializeObject(result));
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
+
+        [HttpGet("Listar")]
+        public async Task<ActionResult<DepositoViewModelList>> Listar()
+        {
+            DepositoViewModelList ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<DepositoService>()
+                    .List();
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
         }
 
         [HttpGet("GetDateTimeById")]

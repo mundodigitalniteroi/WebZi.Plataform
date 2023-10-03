@@ -214,11 +214,6 @@ namespace WebZi.Plataform.Data.Mappings.Cliente
             builder.Property(e => e.PixChave)
                 .HasMaxLength(100)
                 .IsUnicode(false);
-
-            builder.Property(e => e.TipoPix)
-                .HasMaxLength(1)
-                .IsUnicode(false)
-                .IsFixedLength();
         }
     }
 }

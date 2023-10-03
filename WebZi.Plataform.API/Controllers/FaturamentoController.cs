@@ -1,15 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Text;
 using WebZi.Plataform.Data.Database;
-using WebZi.Plataform.Data.Services.Banco;
+using WebZi.Plataform.Data.Helper;
+using WebZi.Plataform.Data.Services.Cliente;
 using WebZi.Plataform.Data.Services.Faturamento;
-using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Faturamento;
-using WebZi.Plataform.Domain.Models.Faturamento.Boleto;
-using WebZi.Plataform.Domain.Services.Usuario;
 using WebZi.Plataform.Domain.ViewModel;
-using WebZi.Plataform.Domain.ViewModel.Faturamento;
+using WebZi.Plataform.Domain.ViewModel.Cliente;
+using WebZi.Plataform.Domain.ViewModel.Generic;
 
 namespace WebZi.Plataform.API.Controllers
 {
@@ -35,77 +33,66 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("GerarBoleto")]
-        public async Task<ActionResult<byte[]>> GerarBoleto(int FaturamentoId, int UsuarioId)
+        public ActionResult<ImageViewModel> GerarBoleto(int FaturamentoId, int UsuarioId)
         {
-            if (FaturamentoId <= 0)
+            ImageViewModel ResultView = new();
+
+            try
             {
-                return BadRequest("Identificador do Faturamento inválido");
+                ResultView = _provider
+                    .GetService<FaturamentoBoletoService>()
+                    .Create(FaturamentoId, UsuarioId);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
-
-            //if (!await _provider.GetService<UsuarioService>().IsUserActive(UsuarioId))
-            //{
-            //    return BadRequest("Usuário sem permissão de acesso ou inexistente");
-            //}
-
-            FaturamentoModel Faturamento = await _context.Faturamento
-                .Include(i => i.Atendimento)
-                .ThenInclude(t => t.Grv)
-                .Where(w => w.FaturamentoId == FaturamentoId)
-                .AsNoTracking()
-                .FirstOrDefaultAsync();
-
-            if (Faturamento == null)
+            catch (Exception ex)
             {
-                return NotFound("Faturamento não encontrado");
-            }
-            else if (Faturamento.Status == "C")
-            {
-                return BadRequest("Esse Faturamento está cancelado");
-            }
-            else if (Faturamento.Status == "P")
-            {
-                return BadRequest("Esse Faturamento já foi pago");
-            }
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
 
-            TipoMeioCobrancaModel TipoMeioCobranca = await _context.TipoMeioCobranca
-                .Where(w => w.TipoMeioCobrancaId == Faturamento.TipoMeioCobrancaId)
-                .AsNoTracking()
-                .FirstOrDefaultAsync();
-
-            if (TipoMeioCobranca == null)
-            {
-                return BadRequest("Forma de Pagamento inexistente");
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
-            else if (TipoMeioCobranca.Alias != "BOL" && TipoMeioCobranca.Alias != "BOLESP")
-            {
-                return BadRequest($"Esse Faturamento está cadastrado com outra Forma de Pagamento: {TipoMeioCobranca.Descricao}");
-            }
-
-            byte[] result = _provider
-                .GetService<FaturamentoBoletoService>()
-                .Gerar(Faturamento.Atendimento.Grv, Faturamento, UsuarioId, null, null);
-
-            return result != null ? Ok(result) : NotFound("Não foi possível gerar o Boleto");
         }
 
         [HttpGet("SelecionarBoleto")]
-        public ActionResult<BoletoResultView> SelecionarBoleto(int FaturamentoId, int UsuarioId)
+        public ActionResult<ImageViewModel> SelecionarBoleto(int FaturamentoId, int UsuarioId)
         {
-            BoletoResultView result = _provider
-                .GetService<FaturamentoBoletoService>()
-                .GetUltimoBoleto(FaturamentoId, UsuarioId);
+            ImageViewModel ResultView = new();
 
-            return StatusCode((int)result.Mensagem.HtmlStatusCode, result);
+            try
+            {
+                ResultView = _provider
+                    .GetService<FaturamentoBoletoService>()
+                    .GetBoletoNaoCancelado(FaturamentoId, UsuarioId);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
         }
 
         [HttpGet("AlterarFormaPagamento")]
         public ActionResult<MensagemViewModel> AlterarFormaPagamento(int FaturamentoId, byte NovaFormaPagamentoId, int UsuarioId)
         {
-            MensagemViewModel result = _provider
-                .GetService<FaturamentoService>()
-                .AlterarFormaPagamento(FaturamentoId, NovaFormaPagamentoId, UsuarioId);
+            MensagemViewModel ResultView;
 
-            return StatusCode(((int)result.HtmlStatusCode), result);
+            try
+            {
+                ResultView = _provider
+                    .GetService<FaturamentoService>()
+                    .AlterarFormaPagamento(FaturamentoId, NovaFormaPagamentoId, UsuarioId);
+
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
         }
     }
 }

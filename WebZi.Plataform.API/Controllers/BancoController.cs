@@ -1,6 +1,5 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.Mvc;
-using System.Text;
+﻿using Microsoft.AspNetCore.Mvc;
+using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Banco;
 using WebZi.Plataform.Domain.ViewModel.Banco;
 
@@ -11,71 +10,94 @@ namespace WebZi.Plataform.API.Controllers
     public class BancoController : ControllerBase
     {
         private readonly IServiceProvider _provider;
-        private readonly IMapper _mapper;
 
-        public BancoController(IServiceProvider provider, IMapper mapper)
+        public BancoController(IServiceProvider provider)
         {
             _provider = provider;
-            _mapper = mapper;
         }
 
         [HttpGet("SelecionarPorId")]
-        public async Task<ActionResult<BancoViewModel>> SelecionarPorId(short BancoId)
+        public async Task<ActionResult<BancoViewModelList>> SelecionarPorId(short BancoId)
         {
-            StringBuilder erros = new();
+            BancoViewModelList ResultView = new();
 
-            if (BancoId <= 0)
+            try
             {
-                erros.AppendLine("Identificador do Banco inválido");
-            }
+                ResultView = await _provider
+                    .GetService<BancoService>()
+                    .GetById(BancoId);
 
-            if (!string.IsNullOrWhiteSpace(erros.ToString()))
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
             {
-                return BadRequest(erros.ToString());
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
-
-            var result = await _provider
-                .GetService<BancoService>()
-                .GetById(BancoId);
-
-            return result != null ? _mapper.Map<BancoViewModel>(result) : NotFound("Banco não encontrado");
         }
 
-        [HttpGet("ListarBancos")]
-        public async Task<ActionResult<List<BancoViewModel>>> ListarBancos()
+        [HttpGet("SelecionarPorNome")]
+        public async Task<ActionResult<BancoViewModelList>> SelecionarPorNome(string Nome)
         {
-            var result = await _provider
-                .GetService<BancoService>()
-                .List();
+            BancoViewModelList ResultView = new();
 
-            return result?.Count > 0 ? _mapper.Map<List<BancoViewModel>>(result) : NotFound("Banco não encontrado");
+            try
+            {
+                ResultView = await _provider
+                    .GetService<BancoService>()
+                    .GetByName(Nome);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
+
+        [HttpGet("Listar")]
+        public async Task<ActionResult<BancoViewModelList>> Listar()
+        {
+            BancoViewModelList ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<BancoService>()
+                    .List();
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
         }
 
         [HttpGet("ListarAgenciasBancarias")]
-        public async Task<ActionResult<List<AgenciaBancariaViewModel>>> ListarAgenciasBancarias(short BancoId)
+        public async Task<ActionResult<AgenciaBancariaViewModelList>> ListarAgenciasBancarias(short BancoId)
         {
-            StringBuilder erros = new();
+            AgenciaBancariaViewModelList ResultView = new();
 
-            if (BancoId <= 0)
+            try
             {
-                erros.AppendLine("Identificador do Banco inválido");
-            }
+                ResultView = await _provider
+                    .GetService<AgenciaBancariaService>()
+                    .List(BancoId);
 
-            if (!string.IsNullOrWhiteSpace(erros.ToString()))
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
             {
-                return BadRequest(erros.ToString());
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
-
-            var result = await _provider
-                .GetService<AgenciaBancariaService>()
-                .List(BancoId);
-
-            if (result == null)
-            {
-                return NotFound("Banco não encontrado");
-            }
-
-            return result.AgenciasBancarias.Count > 0 ? _mapper.Map<List<AgenciaBancariaViewModel>>(result.AgenciasBancarias) : NotFound("Agência Bancária não encontrada");
         }
     }
 }

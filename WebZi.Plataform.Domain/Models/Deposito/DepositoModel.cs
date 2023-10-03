@@ -24,7 +24,7 @@ namespace WebZi.Plataform.Domain.Models.Deposito
 
         public int? UsuarioAlteracaoId { get; set; }
 
-        public string Descricao { get; set; }
+        public string Nome { get; set; }
 
         public string Logradouro { get; set; }
 

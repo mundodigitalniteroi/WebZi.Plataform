@@ -1,44 +1,113 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using WebZi.Plataform.CrossCutting.Date;
 using WebZi.Plataform.Data.Database;
+using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Localizacao;
 using WebZi.Plataform.Domain.Models.Deposito;
 using WebZi.Plataform.Domain.Models.Localizacao;
 using WebZi.Plataform.Domain.Models.Sistema;
+using WebZi.Plataform.Domain.ViewModel.Deposito;
 
 namespace WebZi.Plataform.Data.Services.Deposito
 {
     public class DepositoService
     {
         private readonly AppDbContext _context;
+        private readonly IMapper _mapper;
 
-        public DepositoService(AppDbContext context)
+        public DepositoService(AppDbContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
-        public async Task<List<DepositoModel>> List()
+        public async Task<DepositoViewModelList> GetById(int DepositoId)
         {
-            return await _context.Deposito
-                .OrderBy(o => o.Descricao)
+            DepositoViewModelList ResultView = new();
+
+            if (DepositoId <= 0)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetBadRequest("Identificador do Depósito inválido");
+
+                return ResultView;
+            }
+
+            DepositoModel result = await _context.Deposito
+                .Where(w => w.DepositoId == DepositoId)
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
+
+            if (result != null)
+            {
+                ResultView.Depositos.Add(_mapper.Map<DepositoViewModel>(result));
+
+                ResultView.Mensagem = MensagemViewHelper.GetOkFound();
+            }
+            else
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+            }
+
+            return ResultView;
+        }
+
+        public async Task<DepositoViewModelList> GetByName(string Name)
+        {
+            DepositoViewModelList ResultView = new();
+
+            if (string.IsNullOrWhiteSpace(Name))
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetBadRequest("Primeiro é necessário informar o Nome do Depósito");
+
+                return ResultView;
+            }
+
+            List<DepositoModel> result = await _context.Deposito
+                .Where(w => w.Nome.ToUpper().Contains(Name.ToUpper().Trim()))
                 .AsNoTracking()
                 .ToListAsync();
+
+            if (result?.Count > 0)
+            {
+                result = result.OrderBy(o => o.Nome).ToList();
+
+                ResultView.Depositos = _mapper.Map<List<DepositoViewModel>>(result);
+
+                ResultView.Mensagem = MensagemViewHelper.GetOkFound();
+            }
+            else
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+            }
+
+            return ResultView;
         }
 
-        public async Task<DepositoModel> GetById(int id)
+        public async Task<DepositoViewModelList> List()
         {
-            return await _context.Deposito
-                .Where(w => w.DepositoId == id)
-                .AsNoTracking()
-                .FirstOrDefaultAsync();
-        }
+            DepositoViewModelList ResultView = new();
 
-        public async Task<DepositoModel> GetByName(string Name)
-        {
-            return await _context.Deposito
-                .Where(w => w.Descricao == Name)
+            List<DepositoModel> result = await _context.Deposito
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .ToListAsync();
+
+            if (result?.Count > 0)
+            {
+                result = result
+                    .OrderBy(o => o.Nome)
+                    .ToList();
+
+                ResultView.Depositos = _mapper.Map<List<DepositoViewModel>>(result);
+
+                ResultView.Mensagem = MensagemViewHelper.GetOkFound();
+            }
+            else
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+            }
+
+            return ResultView;
         }
 
         public async Task<DateTime> GetDataHoraPorDeposito(int DepositoId)

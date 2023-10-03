@@ -1,10 +1,8 @@
 ﻿namespace WebZi.Plataform.Domain.ViewModel.GRV
 {
-    public class LacreResultViewModel
+    public class LacreViewModel
     {
         public int LacreId { get; set; }
-
-        public int GrvId { get; set; }
 
         public byte? LacreMotivoDesassociacaoId { get; set; }
 

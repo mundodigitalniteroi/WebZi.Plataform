@@ -1,12 +1,6 @@
-﻿using WebZi.Plataform.Domain.Models.Banco;
-using WebZi.Plataform.Domain.Models.Faturamento;
-using WebZi.Plataform.Domain.Models.GRV;
-using WebZi.Plataform.Domain.Models.Servico;
-using WebZi.Plataform.Domain.Models.Usuario;
-
-namespace WebZi.Plataform.Domain.Models.Cliente
+﻿namespace WebZi.Plataform.Domain.ViewModel.Cliente
 {
-    public class ClienteModel
+    public class ClienteViewModel
     {
         public int ClienteId { get; set; }
 
@@ -21,10 +15,6 @@ namespace WebZi.Plataform.Domain.Models.Cliente
         public byte? TipoMeioCobrancaId { get; set; }
 
         public int? EmpresaId { get; set; }
-
-        public int UsuarioCadastroId { get; set; }
-
-        public int? UsuarioAlteracaoId { get; set; }
 
         public string Nome { get; set; }
 
@@ -53,10 +43,6 @@ namespace WebZi.Plataform.Domain.Models.Cliente
         public string CodigoSap { get; set; }
 
         public string LabelClienteCodigoIdentificacao { get; set; }
-
-        public DateTime DataCadastro { get; set; }
-
-        public DateTime? DataAlteracao { get; set; }
 
         public string FlagUsarHoraDiaria { get; set; }
 
@@ -91,39 +77,5 @@ namespace WebZi.Plataform.Domain.Models.Cliente
         public string FlagPossuiPixDinamico { get; set; }
 
         public string FlagPossuiPix { get; set; }
-
-        public virtual TipoMeioCobrancaModel TipoMeioCobranca { get; set; }
-
-        public virtual AgenciaBancariaModel AgenciaBancaria { get; set; }
-
-        //public virtual OrgaoExecutivoTransito OrgaoExecutivoTransito { get; set; }
-
-        public virtual UsuarioModel UsuarioCadastro { get; set; }
-
-        public virtual UsuarioModel UsuarioAlteracao { get; set; }
-
-        //public virtual ICollection<AlterdataContaBancarium> AlterdataContaBancaria { get; set; }
-
-        //public virtual ICollection<ClienteRegra> ClienteRegras { get; set; }
-
-        //public virtual ICollection<ClientesDeposito> ClientesDepositos { get; set; }
-
-        public virtual ICollection<FaturamentoRegraModel> FaturamentoRegras { get; set; }
-
-        public virtual ICollection<FaturamentoServicoAssociadoModel> FaturamentoServicosAssociados { get; set; }
-
-        public virtual ICollection<GrvModel> Grvs { get; set; }
-
-        //public virtual ICollection<Gtv> GtvIdClienteEnvioNavigations { get; set; }
-
-        //public virtual ICollection<Gtv> GtvIdClienteRecebimentoNavigations { get; set; }
-
-        //public virtual ICollection<PixDinamicoConfiguracao> PixDinamicoConfiguracaos { get; set; }
-
-        public virtual ICollection<ReboqueModel> Reboques { get; set; }
-
-        public virtual ICollection<ReboquistaModel> Reboquistas { get; set; }
-
-        public virtual ICollection<UsuarioClienteModel> UsuariosClientes { get; set; }
     }
 }

@@ -1,6 +1,4 @@
-﻿using WebZi.Plataform.Domain.ViewModel;
-
-namespace WebZi.Plataform.Domain.ViewModel.Atendimento
+﻿namespace WebZi.Plataform.Domain.ViewModel.Atendimento
 {
     public class AtendimentoCadastroResultViewModel
     {

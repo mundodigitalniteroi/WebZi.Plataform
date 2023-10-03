@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
+using WebZi.Plataform.Data.Helper;
+using WebZi.Plataform.Data.Services.Banco;
 using WebZi.Plataform.Data.Services.Cliente;
-using WebZi.Plataform.Domain.Models.Cliente;
+using WebZi.Plataform.Domain.ViewModel.Banco;
+using WebZi.Plataform.Domain.ViewModel.Cliente;
 
 namespace WebZi.Plataform.API.Controllers
 {
@@ -17,33 +19,66 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("SelecionarPorId")]
-        public async Task<ActionResult<ClienteModel>> SelecionarPorId(int ClienteId)
+        public async Task<ActionResult<ClienteViewModelList>> SelecionarPorId(int ClienteId)
         {
-            if (ClienteId <= 0)
+            ClienteViewModelList ResultView = new();
+
+            try
             {
-                return BadRequest("Identificador do Cliente inválido");
+                ResultView = await _provider
+                    .GetService<ClienteService>()
+                    .GetById(ClienteId);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
 
-            ClienteModel result = await _provider
-                .GetService<ClienteService>()
-                .GetById(ClienteId);
-
-            return result != null ? Ok(JsonConvert.SerializeObject(result)) : NotFound("Cliente não encontrado");
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
         }
 
         [HttpGet("SelecionarPorNome")]
-        public async Task<ActionResult<ClienteModel>> SelecionarPorNome(string Name)
+        public async Task<ActionResult<ClienteViewModelList>> SelecionarPorNome(string Nome)
         {
-            if (string.IsNullOrEmpty(Name))
+            ClienteViewModelList ResultView = new();
+
+            try
             {
-                return BadRequest("Primeiro é necessário informar o Nome do Cliente");
+                ResultView = await _provider
+                    .GetService<ClienteService>()
+                    .GetByName(Nome);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
 
-            ClienteModel result = await _provider
-                .GetService<ClienteService>()
-                .GetByName(Name.ToUpper().Trim());
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
 
-            return result != null ? Ok(JsonConvert.SerializeObject(result)) : NotFound("Cliente não encontrado");
+        [HttpGet("Listar")]
+        public async Task<ActionResult<ClienteViewModelList>> Listar()
+        {
+            ClienteViewModelList ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<ClienteService>()
+                    .List();
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
         }
     }
 }

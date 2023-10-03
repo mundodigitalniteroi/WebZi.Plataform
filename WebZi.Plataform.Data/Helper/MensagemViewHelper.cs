@@ -18,7 +18,22 @@ namespace WebZi.Plataform.Data.Helper
             return Mensagem;
         }
 
-        public static MensagemViewModel GetOkFound(string Message = "Registro encontrado com sucesso")
+        public static MensagemViewModel GetOk(List<string> Messages)
+        {
+            MensagemViewModel Mensagem = new()
+            {
+                HtmlStatusCode = HtmlStatusCodeEnum.Ok
+            };
+
+            foreach (string Message in Messages)
+            {
+                Mensagem.AvisosInformativos.Add(Message);
+            }
+
+            return Mensagem;
+        }
+
+        public static MensagemViewModel GetOkFound(string Message = "Registro(s) encontrado(s) com sucesso")
         {
             MensagemViewModel Mensagem = new()
             {
@@ -42,7 +57,7 @@ namespace WebZi.Plataform.Data.Helper
             return Mensagem;
         }
 
-        public static MensagemViewModel GetUnauthorized(string Message)
+        public static MensagemViewModel GetUnauthorized(string Message = "Usuário desativado ou inexistente")
         {
             MensagemViewModel Mensagem = new()
             {
@@ -50,6 +65,21 @@ namespace WebZi.Plataform.Data.Helper
             };
 
             Mensagem.AvisosImpeditivos.Add(Message);
+
+            return Mensagem;
+        }
+
+        public static MensagemViewModel GetUnauthorized(List<string> Messages)
+        {
+            MensagemViewModel Mensagem = new()
+            {
+                HtmlStatusCode = HtmlStatusCodeEnum.Unauthorized
+            };
+
+            foreach (string Message in Messages)
+            {
+                Mensagem.AvisosImpeditivos.Add(Message);
+            }
 
             return Mensagem;
         }
@@ -66,6 +96,36 @@ namespace WebZi.Plataform.Data.Helper
             return Mensagem;
         }
 
+        public static MensagemViewModel GetBadRequest(List<string> Messages)
+        {
+            MensagemViewModel Mensagem = new()
+            {
+                HtmlStatusCode = HtmlStatusCodeEnum.BadRequest
+            };
+
+            foreach (string Message in Messages)
+            {
+                Mensagem.AvisosImpeditivos.Add(Message);
+            }
+
+            return Mensagem;
+        }
+
+        public static MensagemViewModel GetInternalServerError(string Message)
+        {
+            MensagemViewModel Mensagem = new()
+            {
+                HtmlStatusCode = HtmlStatusCodeEnum.InternalServerError
+            };
+
+            if (!string.IsNullOrWhiteSpace(Message))
+            {
+                Mensagem.Erros.Add(Message);
+            }
+
+            return Mensagem;
+        }
+
         public static MensagemViewModel GetInternalServerError(string Message, Exception ex)
         {
             MensagemViewModel Mensagem = new()
@@ -77,6 +137,25 @@ namespace WebZi.Plataform.Data.Helper
             {
                 Mensagem.Erros.Add(Message);
             }
+
+            Mensagem.Erros.Add(ex.Message);
+
+            if (ex.InnerException != null)
+            {
+                Mensagem.Erros.Add(ex.InnerException.Message);
+            }
+
+            return Mensagem;
+        }
+
+        public static MensagemViewModel GetInternalServerError(Exception ex)
+        {
+            MensagemViewModel Mensagem = new()
+            {
+                HtmlStatusCode = HtmlStatusCodeEnum.InternalServerError
+            };
+
+            Mensagem.Erros.Add("Ocorreu um erro interno");
 
             Mensagem.Erros.Add(ex.Message);
 
