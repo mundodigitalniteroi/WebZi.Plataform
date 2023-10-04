@@ -26,7 +26,7 @@ namespace WebZi.Plataform.Data.Services.GRV
                 return ResultView;
             }
 
-            var result = await _context.StatusOperacao
+            StatusOperacaoModel result = await _context.StatusOperacao
                 .Where(w => w.StatusOperacaoId == StatusOperacaoId.ToUpper().Trim())
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
@@ -61,7 +61,7 @@ namespace WebZi.Plataform.Data.Services.GRV
 
                 ResultView.StatusOperacoes = result;
 
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound();
+                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
             }
             else
             {

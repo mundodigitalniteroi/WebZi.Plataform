@@ -56,7 +56,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             if (erros.Count > 0)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNewMessage(erros, MensagemTipoAvisoEnum.Impeditivo);
+                ResultView.Mensagem = MensagemViewHelper.GetBadRequest(erros);
 
                 return ResultView;
             }
@@ -243,14 +243,14 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             if (ResultView != null)
             {
-                foreach (var item in ResultView.AvisosInformativos)
+                foreach (string item in ResultView.AvisosInformativos)
                 {
                     ResultView.AvisosInformativos.Add(item);
                 }
 
                 if (ResultView.Erros.Count > 0)
                 {
-                    return MensagemViewHelper.GetNewMessage(ResultView.Erros, MensagemTipoAvisoEnum.Erro);
+                    return MensagemViewHelper.GetBadRequest(ResultView.Erros);
                 }
             }
             else
@@ -742,6 +742,10 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             // TODO:
             // GerarFormaPagamento(ParametrosCalculoFaturamento);
 
+            AtendimentoCadastroResultView.AtendimentoId = ParametrosCalculoFaturamento.Atendimento.AtendimentoId;
+
+            AtendimentoCadastroResultView.Mensagem = MensagemViewHelper.GetOkCreate();
+
             return AtendimentoCadastroResultView;
         }
 
@@ -867,7 +871,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             if (erros.Count > 0)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNewMessage(erros, MensagemTipoAvisoEnum.Impeditivo);
+                ResultView.Mensagem = MensagemViewHelper.GetBadRequest(erros);
 
                 return ResultView;
             }

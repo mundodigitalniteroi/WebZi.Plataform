@@ -1,12 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
-using WebZi.Plataform.Data.Services.Cliente;
 using WebZi.Plataform.Data.Services.Faturamento;
-using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.ViewModel;
-using WebZi.Plataform.Domain.ViewModel.Cliente;
+using WebZi.Plataform.Domain.ViewModel.Faturamento;
 using WebZi.Plataform.Domain.ViewModel.Generic;
 
 namespace WebZi.Plataform.API.Controllers
@@ -15,21 +11,32 @@ namespace WebZi.Plataform.API.Controllers
     [ApiController]
     public class FaturamentoController : ControllerBase
     {
-        private readonly AppDbContext _context;
         private readonly IServiceProvider _provider;
 
-        public FaturamentoController(AppDbContext context, IServiceProvider provider)
+        public FaturamentoController(IServiceProvider provider)
         {
-            _context = context;
             _provider = provider;
         }
 
         [HttpGet("ListarTipoMeioCobranca")]
-        public async Task<ActionResult<List<TipoMeioCobrancaModel>>> ListarTipoMeioCobranca()
+        public ActionResult<TipoMeioCobrancaViewModel> ListarTipoMeioCobranca()
         {
-            return Ok(await _provider
-                .GetService<TipoMeioCobrancaService>()
-                .List());
+            TipoMeioCobrancaViewModel ResultView = new();
+
+            try
+            {
+                ResultView = _provider
+                    .GetService<TipoMeioCobrancaService>()
+                    .List();
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
         }
 
         [HttpGet("GerarBoleto")]

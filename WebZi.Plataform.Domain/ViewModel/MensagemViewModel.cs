@@ -6,6 +6,8 @@ namespace WebZi.Plataform.Domain.ViewModel
     {
         public HtmlStatusCodeEnum HtmlStatusCode { get; set; }
 
+        public int QuantidadeRegistros { get; set; } = 1;
+
         public List<string> AvisosInformativos { get; set; } = new List<string>();
 
         public List<string> AvisosImpeditivos { get; set; } = new List<string>();

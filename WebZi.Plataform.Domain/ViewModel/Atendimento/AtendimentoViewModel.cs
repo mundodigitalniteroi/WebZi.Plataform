@@ -2,6 +2,8 @@
 {
     public class AtendimentoViewModel
     {
+        public MensagemViewModel Mensagem { get; set; } = new();
+
         public int AtendimentoId { get; set; }
 
         public int GrvId { get; set; }
@@ -111,7 +113,5 @@
         public DateTime DataCadastro { get; set; }
 
         public DateTime? DataAlteracao { get; set; }
-
-        public MensagemViewModel Mensagem { get; set; } = new();
     }
 }

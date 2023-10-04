@@ -69,9 +69,9 @@ namespace WebZi.Plataform.Data.Services.Banco
             {
                 result = result.OrderBy(o => o.Nome).ToList();
 
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound();
-
                 ResultView.Bancos = _mapper.Map<List<BancoViewModel>>(result);
+
+                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
             }
             else
             {
@@ -95,9 +95,9 @@ namespace WebZi.Plataform.Data.Services.Banco
                     .OrderBy(o => o.Nome)
                     .ToList();
 
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound();
-
                 ResultView.Bancos = _mapper.Map<List<BancoViewModel>>(result);
+
+                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
             }
             else
             {

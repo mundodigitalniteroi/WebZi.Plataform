@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using WebZi.Plataform.Data.Database;
+using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Domain.Models.Usuario;
 using WebZi.Plataform.Domain.ViewModel.Usuario;
 
@@ -22,34 +23,54 @@ namespace WebZi.Plataform.Domain.Services.Usuario
             _mapper = mapper;
         }
 
-        public UsuarioViewModel GetById(int UsuarioId)
+        public async Task<UsuarioViewModel> GetById(int UsuarioId)
         {
-            UsuarioModel Usuario = _context.Usuario
+            UsuarioViewModel ResultView = new();
+
+            UsuarioModel result = await _context.Usuario
                 .Where(w => w.UsuarioId == UsuarioId)
                 .AsNoTracking()
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
 
-            if (Usuario == null)
+            if (result != null)
             {
-                return null;
-            }
+                ResultView = _mapper.Map<UsuarioViewModel>(result);
 
-            return _mapper.Map<UsuarioViewModel>(Usuario);
+                ResultView.Mensagem = MensagemViewHelper.GetOkFound();
+
+                return ResultView;
+            }
+            else
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+
+                return ResultView;
+            }
         }
 
-        public UsuarioViewModel GetByLogin(string Login)
+        public async Task<UsuarioViewModel> GetByLogin(string Login)
         {
-            UsuarioModel Usuario = _context.Usuario
-                .Where(w => w.Login == Login)
+            UsuarioViewModel ResultView = new();
+
+            UsuarioModel result = await _context.Usuario
+                .Where(w => w.Login.Contains(Login.ToUpper().Trim()))
                 .AsNoTracking()
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
 
-            if (Usuario == null)
+            if (result != null)
             {
-                return null;
-            }
+                ResultView = _mapper.Map<UsuarioViewModel>(result);
 
-            return _mapper.Map<UsuarioViewModel>(Usuario);
+                ResultView.Mensagem = MensagemViewHelper.GetOkFound();
+
+                return ResultView;
+            }
+            else
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+
+                return ResultView;
+            }
         }
 
         public bool IsUserActive(int UsuarioId)

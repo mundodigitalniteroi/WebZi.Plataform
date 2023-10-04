@@ -8,6 +8,7 @@ using WebZi.Plataform.Domain.Models.Bucket;
 using WebZi.Plataform.Domain.Models.Cliente;
 using WebZi.Plataform.Domain.Models.ClienteDeposito;
 using WebZi.Plataform.Domain.Models.Deposito;
+using WebZi.Plataform.Domain.Models.Documento;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.Faturamento.Boleto;
 using WebZi.Plataform.Domain.Models.GRV;
@@ -57,6 +58,8 @@ namespace WebZi.Plataform.Data.Database
         public DbSet<AtendimentoModel> Atendimento { get; set; }
 
         public DbSet<AtendimentoFotoResponsavelModel> AtendimentoFotoResponsavel { get; set; }
+
+        public DbSet<AutoridadeResponsavelModel> AutoridadeResponsavel { get; set; }
 
         public DbSet<BancoModel> Banco { get; set; }
 
@@ -164,7 +167,7 @@ namespace WebZi.Plataform.Data.Database
         public DbSet<LiberacaoLeilaoModel> LiberacaoLeilao { get; set; }
         #endregion
 
-        #region Localização
+        #region Global
         public DbSet<BairroModel> Bairro { get; set; }
 
         public DbSet<CEPModel> CEP { get; set; }
@@ -184,6 +187,8 @@ namespace WebZi.Plataform.Data.Database
         public DbSet<TipoLogradouroModel> TipoLogradouro { get; set; }
 
         public DbSet<UTCModel> UTC { get; set; }
+
+        public DbSet<OrgaoEmissorModel> OrgaoEmissor { get; set; }
         #endregion Localização
 
         #endregion DbSets

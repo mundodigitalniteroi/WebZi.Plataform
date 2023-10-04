@@ -82,8 +82,8 @@ namespace WebZi.Plataform.API.Controllers
             }
         }
 
-        [HttpGet("ListarQualificacaoResponsavel")]
-        public async Task<ActionResult<QualificacaoResponsavelViewModelList>> ListarQualificacaoResponsavel()
+        [HttpGet("ListarQualificacoesResponsaveis")]
+        public async Task<ActionResult<QualificacaoResponsavelViewModelList>> ListarQualificacoesResponsaveis()
         {
             QualificacaoResponsavelViewModelList ResultView = new();
 
@@ -152,10 +152,6 @@ namespace WebZi.Plataform.API.Controllers
                 ResultView = await _provider
                     .GetService<AtendimentoService>()
                     .Cadastrar(Atendimento);
-
-                ResultView.Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.Ok;
-
-                ResultView.Mensagem.AvisosInformativos.Add("Cadastro concluído com sucesso");
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView.Mensagem);
             }

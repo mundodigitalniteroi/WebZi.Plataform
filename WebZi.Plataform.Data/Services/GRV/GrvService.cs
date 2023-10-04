@@ -37,7 +37,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             GrvViewModelList ResultView = new();
 
-            if (!string.IsNullOrWhiteSpace(erros.ToString()))
+            if (erros.Count > 0)
             {
                 ResultView.Mensagem = MensagemViewHelper.GetBadRequest(erros);
 
@@ -95,7 +95,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             GrvViewModelList ResultView = new();
 
-            if (!string.IsNullOrWhiteSpace(erros.ToString()))
+            if (erros.Count > 0)
             {
                 ResultView.Mensagem = MensagemViewHelper.GetBadRequest(erros);
                 

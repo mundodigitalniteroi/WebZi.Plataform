@@ -9,6 +9,7 @@ using WebZi.Plataform.Data.Services.Faturamento;
 using WebZi.Plataform.Data.Services.GRV;
 using WebZi.Plataform.Data.Services.Leilao;
 using WebZi.Plataform.Data.Services.Localizacao;
+using WebZi.Plataform.Data.Services.Servico;
 using WebZi.Plataform.Data.Services.Sistema;
 using WebZi.Plataform.Domain.Services.GRV;
 using WebZi.Plataform.Domain.Services.Usuario;
@@ -25,11 +26,11 @@ namespace WebZi.Plataform.Data.Services
 
             services.AddScoped<AtendimentoService, AtendimentoService>();
 
+            services.AddScoped<AutoridadeResponsavelService, AutoridadeResponsavelService>();
+
             services.AddScoped<BancoService, BancoService>();
 
             services.AddScoped<BucketArquivoService, BucketArquivoService>();
-
-            services.AddScoped<FaturamentoBoletoService, FaturamentoBoletoService>();
 
             services.AddScoped<CalculoDiariasService, CalculoDiariasService>();
 
@@ -40,6 +41,10 @@ namespace WebZi.Plataform.Data.Services
             services.AddScoped<ConfiguracaoService, ConfiguracaoService>();
 
             services.AddScoped<DepositoService, DepositoService>();
+
+            services.AddScoped<FaturamentoBoletoService, FaturamentoBoletoService>();
+
+            services.AddScoped<FaturamentoGuiaPagamentoReboqueEstadiaService, FaturamentoGuiaPagamentoReboqueEstadiaService>();
 
             services.AddScoped<FaturamentoService, FaturamentoService>();
 
@@ -52,6 +57,10 @@ namespace WebZi.Plataform.Data.Services
             services.AddScoped<LeilaoService, LeilaoService>();
 
             services.AddScoped<QualificacaoResponsavelService, QualificacaoResponsavelService>();
+
+            services.AddScoped<ReboqueService, ReboqueService>();
+
+            services.AddScoped<ReboquistaService, ReboquistaService>();
 
             services.AddScoped<StatusOperacaoService, StatusOperacaoService>();
 

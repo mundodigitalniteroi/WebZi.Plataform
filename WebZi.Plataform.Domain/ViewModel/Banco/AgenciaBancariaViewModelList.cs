@@ -2,8 +2,8 @@
 {
     public class AgenciaBancariaViewModelList
     {
-        public List<AgenciaBancariaViewModel> AgenciasBancarias { get; set; }
-
         public MensagemViewModel Mensagem { get; set; } = new();
+
+        public List<AgenciaBancariaViewModel> AgenciasBancarias { get; set; } = new();
     }
 }

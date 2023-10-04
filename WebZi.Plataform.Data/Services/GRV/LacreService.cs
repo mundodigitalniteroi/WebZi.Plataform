@@ -2,12 +2,10 @@
 using Microsoft.EntityFrameworkCore;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
-using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.GRV;
 using WebZi.Plataform.Domain.Services.GRV;
 using WebZi.Plataform.Domain.Services.Usuario;
 using WebZi.Plataform.Domain.ViewModel.GRV;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace WebZi.Plataform.Data.Services.GRV
 {
@@ -75,15 +73,13 @@ namespace WebZi.Plataform.Data.Services.GRV
                 .AsNoTracking()
                 .ToListAsync();
 
-            if (result.Count > 0)
+            if (result?.Count > 0)
             {
-                result = result
+                ResultView.Lacres = _mapper.Map<List<LacreViewModel>>(result
                     .OrderBy(o => o.Lacre)
-                    .ToList();
+                    .ToList());
 
-                ResultView.Lacres = _mapper.Map<List<LacreViewModel>>(result);
-
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound();
+                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
             }
             else
             {

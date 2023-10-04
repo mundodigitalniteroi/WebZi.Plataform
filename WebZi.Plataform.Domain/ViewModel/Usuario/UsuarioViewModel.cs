@@ -2,6 +2,8 @@
 {
     public class UsuarioViewModel
     {
+        public MensagemViewModel Mensagem { get; set; } = new();
+
         public int UsuarioId { get; set; }
 
         public string Login { get; set; }

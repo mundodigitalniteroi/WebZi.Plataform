@@ -33,11 +33,75 @@ namespace WebZi.Plataform.Data.Helper
             return Mensagem;
         }
 
-        public static MensagemViewModel GetOkFound(string Message = "Registro(s) encontrado(s) com sucesso")
+        public static MensagemViewModel GetOkCreate(string Message = "Cadastro concluído com sucesso")
+        {
+            return GetOkCreate(1, Message);
+        }
+
+        public static MensagemViewModel GetOkCreate(int QuantidadeRegistros, string Message = "Cadastro concluído com sucesso")
         {
             MensagemViewModel Mensagem = new()
             {
-                HtmlStatusCode = HtmlStatusCodeEnum.Ok
+                HtmlStatusCode = HtmlStatusCodeEnum.Ok,
+
+                QuantidadeRegistros = QuantidadeRegistros
+            };
+
+            Mensagem.AvisosInformativos.Add(Message);
+
+            return Mensagem;
+        }
+
+        public static MensagemViewModel GetOkUpdate(string Message = "Alteração concluída com sucesso")
+        {
+            return GetOkUpdate(1, Message);
+        }
+
+        public static MensagemViewModel GetOkUpdate(int QuantidadeRegistros, string Message = "Alteração concluída com sucesso")
+        {
+            MensagemViewModel Mensagem = new()
+            {
+                HtmlStatusCode = HtmlStatusCodeEnum.Ok,
+
+                QuantidadeRegistros = QuantidadeRegistros
+            };
+
+            Mensagem.AvisosInformativos.Add(Message);
+
+            return Mensagem;
+        }
+
+        public static MensagemViewModel GetOkDelete(string Message = "Exclusão concluída com sucesso")
+        {
+            return GetOkDelete(1, Message);
+        }
+
+        public static MensagemViewModel GetOkDelete(int QuantidadeRegistros, string Message = "Exclusão concluída com sucesso")
+        {
+            MensagemViewModel Mensagem = new()
+            {
+                HtmlStatusCode = HtmlStatusCodeEnum.Ok,
+
+                QuantidadeRegistros = QuantidadeRegistros
+            };
+
+            Mensagem.AvisosInformativos.Add(Message);
+
+            return Mensagem;
+        }
+
+        public static MensagemViewModel GetOkFound(string Message = "Registro(s) encontrado(s) com sucesso")
+        {
+            return GetOkFound(1, Message);
+        }
+
+        public static MensagemViewModel GetOkFound(int QuantidadeRegistros, string Message = "Registro(s) encontrado(s) com sucesso")
+        {
+            MensagemViewModel Mensagem = new()
+            {
+                HtmlStatusCode = HtmlStatusCodeEnum.Ok,
+
+                QuantidadeRegistros = QuantidadeRegistros
             };
 
             Mensagem.AvisosInformativos.Add(Message);
@@ -49,7 +113,9 @@ namespace WebZi.Plataform.Data.Helper
         {
             MensagemViewModel Mensagem = new()
             {
-                HtmlStatusCode = HtmlStatusCodeEnum.NotFound
+                HtmlStatusCode = HtmlStatusCodeEnum.NotFound,
+
+                QuantidadeRegistros = 0
             };
 
             Mensagem.AvisosImpeditivos.Add(Message);
@@ -59,21 +125,16 @@ namespace WebZi.Plataform.Data.Helper
 
         public static MensagemViewModel GetUnauthorized(string Message = "Usuário desativado ou inexistente")
         {
-            MensagemViewModel Mensagem = new()
-            {
-                HtmlStatusCode = HtmlStatusCodeEnum.Unauthorized
-            };
-
-            Mensagem.AvisosImpeditivos.Add(Message);
-
-            return Mensagem;
+            return GetUnauthorized(new List<string>() { Message });
         }
 
         public static MensagemViewModel GetUnauthorized(List<string> Messages)
         {
             MensagemViewModel Mensagem = new()
             {
-                HtmlStatusCode = HtmlStatusCodeEnum.Unauthorized
+                HtmlStatusCode = HtmlStatusCodeEnum.Unauthorized,
+
+                QuantidadeRegistros = 0
             };
 
             foreach (string Message in Messages)
@@ -86,21 +147,16 @@ namespace WebZi.Plataform.Data.Helper
 
         public static MensagemViewModel GetBadRequest(string Message)
         {
-            MensagemViewModel Mensagem = new()
-            {
-                HtmlStatusCode = HtmlStatusCodeEnum.BadRequest
-            };
-
-            Mensagem.AvisosImpeditivos.Add(Message);
-
-            return Mensagem;
+            return GetBadRequest(new List<string>() { Message });
         }
 
         public static MensagemViewModel GetBadRequest(List<string> Messages)
         {
             MensagemViewModel Mensagem = new()
             {
-                HtmlStatusCode = HtmlStatusCodeEnum.BadRequest
+                HtmlStatusCode = HtmlStatusCodeEnum.BadRequest,
+
+                QuantidadeRegistros = 0
             };
 
             foreach (string Message in Messages)
@@ -113,84 +169,51 @@ namespace WebZi.Plataform.Data.Helper
 
         public static MensagemViewModel GetInternalServerError(string Message)
         {
-            MensagemViewModel Mensagem = new()
-            {
-                HtmlStatusCode = HtmlStatusCodeEnum.InternalServerError
-            };
+            return GetInternalServerError(Message, null);
+        }
 
-            if (!string.IsNullOrWhiteSpace(Message))
-            {
-                Mensagem.Erros.Add(Message);
-            }
-
-            return Mensagem;
+        public static MensagemViewModel GetInternalServerError(Exception ex)
+        {
+            return GetInternalServerError(string.Empty, ex);
         }
 
         public static MensagemViewModel GetInternalServerError(string Message, Exception ex)
         {
             MensagemViewModel Mensagem = new()
             {
-                HtmlStatusCode = HtmlStatusCodeEnum.InternalServerError
+                HtmlStatusCode = HtmlStatusCodeEnum.InternalServerError,
+
+                QuantidadeRegistros = 0
             };
 
             if (!string.IsNullOrWhiteSpace(Message))
             {
                 Mensagem.Erros.Add(Message);
             }
-
-            Mensagem.Erros.Add(ex.Message);
-
-            if (ex.InnerException != null)
+            else
             {
-                Mensagem.Erros.Add(ex.InnerException.Message);
+                Mensagem.Erros.Add("Ocorreu um erro interno");
+            }
+
+            if (ex != null)
+            {
+                Mensagem.Erros.Add(ex.Message);
+
+                if (ex.InnerException != null)
+                {
+                    Mensagem.Erros.Add(ex.InnerException.Message);
+                }
             }
 
             return Mensagem;
         }
 
-        public static MensagemViewModel GetInternalServerError(Exception ex)
+        public static MensagemViewModel GetNewMessage(string Message, MensagemTipoAvisoEnum TipoAviso, HtmlStatusCodeEnum HtmlStatusCode)
         {
-            MensagemViewModel Mensagem = new()
-            {
-                HtmlStatusCode = HtmlStatusCodeEnum.InternalServerError
-            };
-
-            Mensagem.Erros.Add("Ocorreu um erro interno");
-
-            Mensagem.Erros.Add(ex.Message);
-
-            if (ex.InnerException != null)
-            {
-                Mensagem.Erros.Add(ex.InnerException.Message);
-            }
-
-            return Mensagem;
+            return GetNewMessage(new List<string>() { Message }, TipoAviso, HtmlStatusCode);
         }
 
-        public static MensagemViewModel GetNewMessage(string Message, MensagemTipoAvisoEnum TipoAviso, HtmlStatusCodeEnum HtmlStatusCode = HtmlStatusCodeEnum.BadRequest)
-        {
-            MensagemViewModel Mensagem = new()
-            {
-                HtmlStatusCode = HtmlStatusCode
-            };
-
-            if (TipoAviso == MensagemTipoAvisoEnum.Informativo)
-            {
-                Mensagem.AvisosInformativos.Add(Message);
-            }
-            else if (TipoAviso == MensagemTipoAvisoEnum.Impeditivo)
-            {
-                Mensagem.AvisosImpeditivos.Add(Message);
-            }
-            else if (TipoAviso == MensagemTipoAvisoEnum.Erro)
-            {
-                Mensagem.Erros.Add(Message);
-            }
-
-            return Mensagem;
-        }
-
-        public static MensagemViewModel GetNewMessage(List<string> Messages, MensagemTipoAvisoEnum TipoAviso, HtmlStatusCodeEnum HtmlStatusCode = HtmlStatusCodeEnum.BadRequest)
+        public static MensagemViewModel GetNewMessage(List<string> Messages, MensagemTipoAvisoEnum TipoAviso, HtmlStatusCodeEnum HtmlStatusCode)
         {
             MensagemViewModel Mensagem = new()
             {

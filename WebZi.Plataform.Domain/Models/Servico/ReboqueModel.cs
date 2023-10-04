@@ -1,4 +1,6 @@
 ﻿using WebZi.Plataform.Domain.Models.Cliente;
+using WebZi.Plataform.Domain.Models.Deposito;
+using WebZi.Plataform.Domain.Models.Usuario;
 
 namespace WebZi.Plataform.Domain.Models.Servico
 {
@@ -35,6 +37,12 @@ namespace WebZi.Plataform.Domain.Models.Servico
         public string FlagAtivo { get; set; } = "S";
 
         public virtual ClienteModel Cliente { get; set; }
+
+        public virtual DepositoModel Deposito { get; set; }
+
+        public virtual UsuarioModel UsuarioCadastro { get; set; }
+
+        public virtual UsuarioModel UsuarioAlteracao { get; set; }
 
         //public virtual ICollection<ReboquesTerceirizado> ReboquesTerceirizados { get; set; } = new List<ReboquesTerceirizado>();
 

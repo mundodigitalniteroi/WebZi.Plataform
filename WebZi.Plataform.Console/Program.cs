@@ -32,7 +32,7 @@ class Program
 
         try
         {
-            var result = _context.FaturamentoServicoGrv
+            WebZi.Plataform.Domain.Models.Faturamento.FaturamentoServicoGrvModel result = _context.FaturamentoServicoGrv
                 .Include(i => i.Grv)
                 .Include(i => i.FaturamentoServicoTipoVeiculo)
                 .ThenInclude(i => i.FaturamentoServicoAssociado)
@@ -58,7 +58,7 @@ class Program
             //    .Where(w => w.FaturamentoServicosTiposVeiculos.)
             //    .ToList();
 
-            var foo = _context.FaturamentoServicoAssociado
+            List<WebZi.Plataform.Domain.Models.Faturamento.FaturamentoServicoAssociadoModel> foo = _context.FaturamentoServicoAssociado
 
                 .Take(1)
 

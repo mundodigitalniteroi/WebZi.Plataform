@@ -113,9 +113,9 @@ namespace WebZi.Plataform.Data.Services.Banco
                     .ThenBy(t => t.ContaCorrente)
                     .ToList();
 
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound();
-
                 ResultView.AgenciasBancarias = _mapper.Map<List<AgenciaBancariaViewModel>>(result);
+
+                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
             }
             else
             {

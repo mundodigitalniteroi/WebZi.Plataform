@@ -159,7 +159,7 @@ namespace WebZi.Plataform.Domain.Models.GRV
 
         public virtual FaturamentoProdutoModel FaturamentoProduto { get; set; }
 
-        //public virtual AutoridadesResponsavei IdAutoridadeResponsavelNavigation { get; set; }
+        public virtual AutoridadeResponsavelModel AutoridadeResponsavel { get; set; }
 
         public virtual ClienteModel Cliente { get; set; }
 

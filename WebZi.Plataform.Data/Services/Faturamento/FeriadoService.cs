@@ -33,7 +33,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                                  (w.MunicipioId == MunicipioId)))
                     .ToList();
 
-                foreach (var item in Feriados)
+                foreach (FeriadoModel item in Feriados)
                 {
                     if (item.Ano == null)
                     {

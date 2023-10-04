@@ -58,39 +58,37 @@ namespace WebZi.Plataform.Domain.Models.Cliente
 
         public DateTime? DataAlteracao { get; set; }
 
-        public string FlagUsarHoraDiaria { get; set; }
+        public string FlagUsarHoraDiaria { get; set; } = "S";
 
-        public string FlagEmissaoNotaFiscal { get; set; }
+        public string FlagEmissaoNotaFiscal { get; set; } = "S";
 
-        public string FlagCadastrarQuilometragem { get; set; }
+        public string FlagCadastrarQuilometragem { get; set; } = "S";
 
-        public string FlagCobrarDiariasDiasCorridos { get; set; }
+        public string FlagCobrarDiariasDiasCorridos { get; set; } = "N";
 
-        public string FlagClienteRealizaFaturamentoArrecadacao { get; set; }
+        public string FlagClienteRealizaFaturamentoArrecadacao { get; set; } = "N";
 
-        public string FlagEnderecoCadastroManual { get; set; }
+        public string FlagEnderecoCadastroManual { get; set; } = "N";
 
-        public string FlagPermiteAlteracaoTipoVeiculo { get; set; }
+        public string FlagPermiteAlteracaoTipoVeiculo { get; set; } = "N";
 
-        public string FlagLancarIpvaMultas { get; set; }
+        public string FlagLancarIpvaMultas { get; set; } = "N";
 
-        public string FlagPossuiClienteCodigoIdentificacao { get; set; }
+        public string FlagPossuiClienteCodigoIdentificacao { get; set; } = "N";
 
-        public string FlagAtivo { get; set; }
+        public string FlagAtivo { get; set; } = "S";
 
         public int? OrgaoExecutivoTransitoId { get; set; }
 
         public string CodigoOrgao { get; set; }
 
-        public string FlagPossuiPixEstatico { get; set; }
+        public string FlagPossuiPixEstatico { get; set; } = "N";
 
         public byte? PixTipoChaveId { get; set; }
 
         public string PixChave { get; set; }
 
-        public string FlagPossuiPixDinamico { get; set; }
-
-        public string FlagPossuiPix { get; set; }
+        public string FlagPossuiPixDinamico { get; set; } = "N";
 
         public virtual TipoMeioCobrancaModel TipoMeioCobranca { get; set; }
 

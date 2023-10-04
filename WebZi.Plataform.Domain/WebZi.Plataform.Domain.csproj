@@ -10,7 +10,6 @@
     <Folder Include="Models\Liberacao\" />
     <Folder Include="Models\Nfe\" />
     <Folder Include="Models\Pagamento\" />
-    <Folder Include="ViewModel\Faturamento\" />
   </ItemGroup>
 
   <ItemGroup>

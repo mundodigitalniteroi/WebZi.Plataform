@@ -17,28 +17,28 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
         public async Task<QualificacaoResponsavelViewModelList> ListAsync()
         {
-            QualificacaoResponsavelViewModelList result = new()
+            QualificacaoResponsavelViewModelList ResultView = new()
             {
                 QualificacoesResponsaveis = await _context.QualificacaoResponsavel
                 .AsNoTracking()
                 .ToListAsync()
             };
 
-            if (result.QualificacoesResponsaveis?.Count > 0)
+            if (ResultView.QualificacoesResponsaveis?.Count > 0)
             {
-                result.QualificacoesResponsaveis = result.QualificacoesResponsaveis
+                ResultView.QualificacoesResponsaveis = ResultView.QualificacoesResponsaveis
                     .OrderBy(o => o.Descricao)
                     .ToList();
 
-                result.Mensagem = MensagemViewHelper.GetOkFound();
+                ResultView.Mensagem = MensagemViewHelper.GetOkFound(ResultView.QualificacoesResponsaveis.Count);
 
-                return result;
+                return ResultView;
             }
             else
             {
-                result.Mensagem = MensagemViewHelper.GetNotFound();
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
 
-                return result;
+                return ResultView;
             }
         }
     }

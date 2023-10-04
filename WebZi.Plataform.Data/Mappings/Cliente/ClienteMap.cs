@@ -118,11 +118,6 @@ namespace WebZi.Plataform.Data.Mappings.Cliente
                 .IsFixedLength()
                 .HasColumnName("flag_possui_cliente_codigo_identificacao");
 
-            builder.Property(e => e.FlagPossuiPix)
-                .HasMaxLength(1)
-                .IsUnicode(false)
-                .IsFixedLength();
-
             builder.Property(e => e.FlagPossuiPixDinamico)
                 .IsRequired()
                 .HasMaxLength(1)

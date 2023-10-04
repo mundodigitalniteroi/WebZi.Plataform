@@ -31,7 +31,7 @@ namespace WebZi.Plataform.Data.Services.GRV
 
                 ResultView.MotivosApreensoes = result;
 
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound();
+                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
             }
             else
             {

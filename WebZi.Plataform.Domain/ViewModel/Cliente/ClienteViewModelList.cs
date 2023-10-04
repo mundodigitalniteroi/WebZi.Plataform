@@ -2,8 +2,8 @@
 {
     public class ClienteViewModelList
     {
-        public List<ClienteViewModel> Clientes { get; set; }
-
         public MensagemViewModel Mensagem { get; set; } = new();
+
+        public List<ClienteViewModel> Clientes { get; set; } = new();
     }
 }

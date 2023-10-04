@@ -2,8 +2,8 @@
 {
     public class ImageViewModel
     {
-        public byte[] Imagem { get; set; }
-
         public MensagemViewModel Mensagem { get; set; } = new MensagemViewModel();
+
+        public byte[] Imagem { get; set; }
     }
 }

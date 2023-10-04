@@ -34,15 +34,17 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             _mapper = mapper;
         }
 
-        public async Task<FaturamentoBoletoModel> GetBoletoNaoPago(int FaturamentoId)
+        public ImageViewModel GetBoletoNaoPago(int FaturamentoId, int UsuarioId)
         {
-            return await _context.FaturamentoBoleto
-                .Where(w => w.FaturamentoId == FaturamentoId && w.Status == "N")
-                .AsNoTracking()
-                .FirstOrDefaultAsync();
+            return GetBoleto(FaturamentoId, UsuarioId, "N");
         }
 
         public ImageViewModel GetBoletoNaoCancelado(int FaturamentoId, int UsuarioId)
+        {
+            return GetBoleto(FaturamentoId, UsuarioId);
+        }
+
+        private ImageViewModel GetBoleto(int FaturamentoId, int UsuarioId, string StatusBoleto = "")
         {
             ImageViewModel ResultView = new();
 
@@ -62,7 +64,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             {
                 ResultView.Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.BadRequest;
 
-                foreach (var erro in erros)
+                foreach (string erro in erros)
                 {
                     ResultView.Mensagem.AvisosImpeditivos.Add(erro);
                 }
@@ -77,14 +79,32 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 return ResultView;
             }
 
-            FaturamentoModel Faturamento = _context.Faturamento
-                .Include(i => i.FaturamentoBoletos.Where(w => w.Status != "C"))
-                .Include(i => i.TipoMeioCobranca)
-                .Include(i => i.Atendimento)
-                .ThenInclude(t => t.Grv)
-                .Where(w => w.FaturamentoId == FaturamentoId)
-                .AsNoTracking()
-                .FirstOrDefault();
+            FaturamentoModel Faturamento = new();
+
+            if (!string.IsNullOrWhiteSpace(StatusBoleto))
+            {
+                Faturamento = _context.Faturamento
+                    .Include(i => i.FaturamentoBoletos.Where(w => w.Status == StatusBoleto))
+                    .Include(i => i.TipoMeioCobranca)
+                    .Include(i => i.Atendimento)
+                    .ThenInclude(t => t.Grv)
+                    .Where(w => w.FaturamentoId == FaturamentoId)
+                    .OrderByDescending(o => o.DataCadastro)
+                    .AsNoTracking()
+                    .FirstOrDefault();
+            }
+            else
+            {
+                Faturamento = _context.Faturamento
+                    .Include(i => i.FaturamentoBoletos.Where(w => w.Status != "C"))
+                    .Include(i => i.TipoMeioCobranca)
+                    .Include(i => i.Atendimento)
+                    .ThenInclude(t => t.Grv)
+                    .Where(w => w.FaturamentoId == FaturamentoId)
+                    .OrderByDescending(o => o.DataCadastro)
+                    .AsNoTracking()
+                    .FirstOrDefault();
+            }
 
             if (Faturamento != null)
             {
@@ -107,7 +127,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
                 return ResultView;
             }
-            else if (Faturamento.FaturamentoBoletos?.Count == null)
+            else if (Faturamento.FaturamentoBoletos?.Count == 0)
             {
                 ResultView.Mensagem = MensagemViewHelper.GetNotFound("Boleto foi cancelado ou inexistente");
 
@@ -174,7 +194,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             {
                 ResultView.Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.BadRequest;
 
-                foreach (var erro in erros)
+                foreach (string erro in erros)
                 {
                     ResultView.Mensagem.AvisosImpeditivos.Add(erro);
                 }
@@ -214,7 +234,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             }
             else if (Faturamento.TipoMeioCobranca.Alias != "BOL" && Faturamento.TipoMeioCobranca.Alias != "BOLESP")
             {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest($"Esse Faturamento está cadastrado em outra Forma de Pagamento: {Faturamento.TipoMeioCobranca.Descricao}");
+                ResultView.Mensagem = MensagemViewHelper
+                    .GetBadRequest($"Esse Faturamento está cadastrado em outra Forma de Pagamento: {Faturamento.TipoMeioCobranca.Descricao}");
 
                 return ResultView;
             }
@@ -230,23 +251,10 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 .AsNoTracking()
                 .FirstOrDefault();
 
-            if (TipoMeioCobranca == null)
+            if (TipoMeioCobranca.Alias != "BOL" && TipoMeioCobranca.Alias != "BOLESP")
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound("Forma de Pagamento inexistente");
-
-                return ResultView;
-            }
-            else if (TipoMeioCobranca.Alias != "BOL" && TipoMeioCobranca.Alias != "BOLESP")
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest($"Esse Faturamento está cadastrado com outra Forma de Pagamento: {TipoMeioCobranca.Descricao}");
-
-                return ResultView;
-            }
-
-            // TODO: Ver o que é isso
-            if (TipoMeioCobranca.CodigoERP != "D")
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError("TipoMeioCobranca.CodigoERP != \"D\"");
+                ResultView.Mensagem = MensagemViewHelper
+                    .GetBadRequest($"Esse Faturamento está cadastrado com outra Forma de Pagamento: {TipoMeioCobranca.Descricao}");
 
                 return ResultView;
             }
@@ -264,7 +272,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             Cancelar(Faturamento.FaturamentoId);
 
             #region Preenchimento do Modelo
-            BoletoTodos boletoTodos = new()
+            BoletoTodos DadosBoleto = new()
             {
                 cedente_agencia = ViewBoleto.CedenteAgencia,
 
@@ -332,7 +340,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
                         BoletoGerado.DataVencimento = DateTimeHelper.AddDays(BoletoGerado.DataVencimento, BoletoGerado.DiasConfiguracaoDataVencimento);
 
-                        boletoTodos.vencimento = BoletoGerado.DataVencimento.ToString("dd/MM/yyyy");
+                        DadosBoleto.vencimento = BoletoGerado.DataVencimento.ToString("dd/MM/yyyy");
                     }
                 }
             }
@@ -351,7 +359,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             string url;
 
             BoletoGerado.Boleto = new WsBoletoSoapClient(EndpointConfiguration.WsBoletoSoap, WebServiceUrl.WsUrl).BoletoBancosRetornoLinha(
-                boleto: boletoTodos,
+                boleto: DadosBoleto,
                 login: WebServiceUrl.WsUsername,
                 senha: WebServiceUrl.WsPassword,
                 Tipo: "img",

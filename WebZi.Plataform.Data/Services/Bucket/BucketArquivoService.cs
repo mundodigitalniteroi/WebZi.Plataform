@@ -83,7 +83,7 @@ namespace WebZi.Plataform.Data.Services.Bucket
             return BucketArquivo;
         }
 
-        public async Task<byte[]> DownloadFile(string CodigoTabelaOrigem, int TabelaOrigemId)
+        public byte[] DownloadFile(string CodigoTabelaOrigem, int TabelaOrigemId)
         {
             BucketArquivoModel BucketArquivo = _context.BucketArquivo
                 .Include(i => i.BucketNomeTabelaOrigem)
@@ -91,12 +91,7 @@ namespace WebZi.Plataform.Data.Services.Bucket
                 .AsNoTracking()
                 .FirstOrDefault();
 
-            if (BucketArquivo == null)
-            {
-                return null;
-            }
-
-            return await HttpClientHelper.DownloadFileAsync(BucketArquivo.Url);
+            return BucketArquivo != null ? HttpClientHelper.DownloadFile(BucketArquivo.Url) : null;
         }
 
         public BucketMensagemRetornoModel DeleteFile(string CodigoTabelaOrigem, int TabelaOrigemId)

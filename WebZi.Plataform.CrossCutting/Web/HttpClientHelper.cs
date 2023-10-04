@@ -108,7 +108,7 @@ namespace WebZi.Plataform.CrossCutting.Web
 
             InitializeHttpClient(url);
 
-            using var response = await httpClient.GetAsync(url);
+            using HttpResponseMessage response = await httpClient.GetAsync(url);
 
             return await response.Content
                 .ReadAsByteArrayAsync()

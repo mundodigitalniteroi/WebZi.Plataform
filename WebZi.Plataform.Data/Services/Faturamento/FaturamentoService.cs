@@ -759,11 +759,11 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 erros.Add("Identificador do Usuário inválido");
             }
 
-            if (!string.IsNullOrWhiteSpace(erros.ToString()))
+            if (erros.Count > 0)
             {
                 Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.BadRequest;
 
-                foreach (var erro in erros)
+                foreach (string erro in erros)
                 {
                     Mensagem.AvisosImpeditivos.Add(erro);
                 }

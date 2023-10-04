@@ -299,7 +299,7 @@ namespace WebZi.Plataform.CrossCutting.Date
                     // Connect to the server (at port 13) and get the response
                     string serverResponse = string.Empty;
 
-                    using (var reader = new StreamReader(new System.Net.Sockets.TcpClient(server, 13).GetStream()))
+                    using (StreamReader reader = new StreamReader(new System.Net.Sockets.TcpClient(server, 13).GetStream()))
                     {
                         serverResponse = reader.ReadToEnd();
                     }
@@ -494,7 +494,7 @@ namespace WebZi.Plataform.CrossCutting.Date
             {
                 if (date2 < date1)
                 {
-                    var sub = date1;
+                    DateTime sub = date1;
                     date1 = date2;
                     date2 = sub;
                 }
@@ -540,7 +540,7 @@ namespace WebZi.Plataform.CrossCutting.Date
                             if (current.AddDays(days + 1) > date2)
                             {
                                 current = current.AddDays(days);
-                                var timespan = date2 - current;
+                                TimeSpan timespan = date2 - current;
                                 span = new DateTimeSpan(years, months, days, timespan.Hours, timespan.Minutes, timespan.Seconds, timespan.Milliseconds);
                                 phase = Phase.Done;
                             }
@@ -679,7 +679,7 @@ namespace WebZi.Plataform.CrossCutting.Date
 
         public static bool IsBiggerThenNow(string inputDateTime)
         {
-            var dateTime = new DateTime();
+            DateTime dateTime = new DateTime();
 
             if (dateTime.Date > DateTime.Now.Date)
             {

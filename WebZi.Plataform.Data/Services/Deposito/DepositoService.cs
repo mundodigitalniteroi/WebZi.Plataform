@@ -74,7 +74,7 @@ namespace WebZi.Plataform.Data.Services.Deposito
 
                 ResultView.Depositos = _mapper.Map<List<DepositoViewModel>>(result);
 
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound();
+                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
             }
             else
             {
@@ -100,7 +100,7 @@ namespace WebZi.Plataform.Data.Services.Deposito
 
                 ResultView.Depositos = _mapper.Map<List<DepositoViewModel>>(result);
 
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound();
+                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
             }
             else
             {

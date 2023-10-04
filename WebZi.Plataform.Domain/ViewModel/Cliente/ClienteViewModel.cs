@@ -75,7 +75,5 @@
         public string PixChave { get; set; }
 
         public string FlagPossuiPixDinamico { get; set; }
-
-        public string FlagPossuiPix { get; set; }
     }
 }

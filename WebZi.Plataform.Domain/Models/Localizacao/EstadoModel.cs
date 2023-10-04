@@ -1,4 +1,6 @@
-﻿namespace WebZi.Plataform.Domain.Models.Localizacao
+﻿using WebZi.Plataform.Domain.Models.Documento;
+
+namespace WebZi.Plataform.Domain.Models.Localizacao
 {
     public class EstadoModel
     {
@@ -24,10 +26,10 @@
 
         public virtual RegiaoModel Regiao { get; set; }
 
-        // public virtual ICollection<OrgaosEmissore> TbGloDocOrgaosEmissores { get; set; }
-
         public virtual ICollection<FeriadoModel> Feriados { get; set; }
 
         public virtual ICollection<MunicipioModel> Municipios { get; set; }
+
+        // public virtual ICollection<OrgaoEmissorModel> OrgaosEmissores { get; set; }
     }
 }
