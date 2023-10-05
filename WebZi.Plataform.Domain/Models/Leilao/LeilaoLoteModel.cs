@@ -32,7 +32,7 @@ namespace WebZi.Plataform.Domain.Models.Leilao
 
         public string Municipio { get; set; }
 
-        public string Uf { get; set; }
+        public string UF { get; set; }
 
         public string Cor { get; set; }
 

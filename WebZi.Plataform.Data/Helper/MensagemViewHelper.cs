@@ -90,7 +90,7 @@ namespace WebZi.Plataform.Data.Helper
             return Mensagem;
         }
 
-        public static MensagemViewModel GetOkFound(string Message = "Registro(s) encontrado(s) com sucesso")
+        public static MensagemViewModel GetOkFound(string Message = "Registro encontrado com sucesso")
         {
             return GetOkFound(1, Message);
         }
@@ -104,7 +104,14 @@ namespace WebZi.Plataform.Data.Helper
                 QuantidadeRegistros = QuantidadeRegistros
             };
 
-            Mensagem.AvisosInformativos.Add(Message);
+            if (QuantidadeRegistros == 1)
+            {
+                Mensagem.AvisosInformativos.Add("Registro encontrado com sucesso");
+            }
+            else
+            {
+                Mensagem.AvisosInformativos.Add(Message);
+            }
 
             return Mensagem;
         }

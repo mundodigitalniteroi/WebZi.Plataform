@@ -1,5 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using WebZi.Plataform.Data.Database;
+using WebZi.Plataform.Domain.Models.Faturamento;
+using WebZi.Plataform.Domain.Models.GRV;
+using Z.EntityFramework.Plus;
 
 class Program
 {
@@ -14,19 +17,41 @@ class Program
         //    .Where(w => w.Nome.Equals("COPACABANA"))
         //    .FirstOrDefault();
 
-        //ContinenteModel result = _context.Continentes
-        //    .Include(i => i.Paises.Where(w => w.PaisNumcode.Equals("076")))
-        //    .ThenInclude(t => t.Estados.Where(w => w.Uf.Equals("RJ")))
-        //    .ThenInclude(t => t.Regiao)
-        //    .ThenInclude(t => t.Estados.Where(w => w.Uf.Equals("RJ")))
-        //    .ThenInclude(t => t.Municipios.Where(w => w.Nome.Equals("RIO DE JANEIRO")))
-        //    .ThenInclude(t => t.Bairros.Where(w => w.Nome.Equals("COPACABANA")))
-        //    .ThenInclude(t => t.CEP)
-        //    .ThenInclude(t => t.TipoLogradouro)
-        //    .Where(w => w.ContinenteId.Equals("ASU"))
+        FaturamentoModel Faturamento = _context.Faturamento
+            .Where(w => w.FaturamentoId == 909674)
+            .AsNoTracking()
+            .FirstOrDefault();
+
+        GrvModel Grv = _context.Grv
+            .Include(i => i.Cliente)
+            .ThenInclude(t => t.Endereco)
+            .Include(i => i.Deposito)
+            .ThenInclude(t => t.Endereco)
+            .Include(i => i.Reboque)
+            .Include(i => i.Reboquista)
+            .Include(i => i.MarcaModelo)
+            .Include(i => i.Cor)
+            .Include(i => i.TipoVeiculo)
+            .Include(i => i.Atendimento)
+            .ThenInclude(t => t.Faturamentos.Where(w => w.FaturamentoId == Faturamento.FaturamentoId))
+            .Include(i => i.Atendimento)
+            .ThenInclude(t => t.QualificacaoResponsavel)
+            .Where(w => w.Atendimento.AtendimentoId == Faturamento.AtendimentoId)
+            .AsNoTracking()
+            .FirstOrDefault();
+
+        if (true)
+        {
+
+        }
+
+        //GrvModel Grv = _context.Grv
+        //    .Include(i => i.Atendimento)
+        //    .ThenInclude(t => t.Faturamentos.Where(w => w.FaturamentoId == FaturamentoId))
+        //    .Include(t => t.Atendimento)
+        //    .AsNoTracking()
         //    .FirstOrDefault();
 
-        // public async Task<string> Cadastrar(AtendimentoViewModel AtendimentoInput)
 
         int GrvId = 375251;
 
@@ -51,13 +76,6 @@ class Program
 
             }
 
-            //var FaturamentosServicosTiposVeiculos = _context
-            //    .FaturamentoServicosTiposVeiculos
-            //    .Include(i => i.FaturamentoServicosGrvs.Where(w => w.GrvId == GrvId))
-            //    .Take(10)
-            //    .Where(w => w.FaturamentoServicosTiposVeiculos.)
-            //    .ToList();
-
             List<WebZi.Plataform.Domain.Models.Faturamento.FaturamentoServicoAssociadoModel> foo = _context.FaturamentoServicoAssociado
 
                 .Take(1)
@@ -69,14 +87,6 @@ class Program
                 .ThenInclude(t => t.TipoMeioCobranca)
 
                 .Include(i => i.Deposito)
-
-                //.Include(i => i.FaturamentoRegra)
-                //.ThenInclude(t => t.FaturamentoRegraTipo)
-
-                //.Where(w => w.FaturamentoServicoTipo.FaturamentoProduto.FaturamentoProdutoId == FaturamentoProdutoId &&
-                //            (FlagSelecionarSomenteServicosAtivos ? w.DataVigenciaFinal == null : (w.DataVigenciaFinal == null || w.DataVigenciaFinal != null)) &&
-                //            (!string.IsNullOrWhiteSpace(FlagTributacao) ? w.FaturamentoServicoTipo.FlagTributacao == FlagTributacao : w.FaturamentoServicoTipo.FlagTributacao != null)
-                //)
 
                 .AsNoTracking()
                 .ToList();

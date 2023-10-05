@@ -86,7 +86,7 @@ namespace WebZi.Plataform.Data.Mappings.Faturamento.View
                 .IsUnicode(false)
                 .HasColumnName("sacado_carteira");
             
-            builder.Property(e => e.SacadoCep)
+            builder.Property(e => e.SacadoCEP)
                 .HasMaxLength(9)
                 .IsUnicode(false)
                 .IsFixedLength()
@@ -118,7 +118,7 @@ namespace WebZi.Plataform.Data.Mappings.Faturamento.View
                 .IsUnicode(false)
                 .HasColumnName("sacado_nome");
             
-            builder.Property(e => e.SacadoUf)
+            builder.Property(e => e.SacadoUF)
                 .HasMaxLength(2)
                 .IsUnicode(false)
                 .IsFixedLength()

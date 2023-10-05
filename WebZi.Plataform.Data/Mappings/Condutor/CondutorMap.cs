@@ -22,7 +22,7 @@ namespace WebZi.Plataform.Data.Mappings.Condutor
                 .IsFixedLength()
                 .HasColumnName("celular");
             
-            builder.Property(e => e.CelularDdd)
+            builder.Property(e => e.CelularDDD)
                 .HasMaxLength(2)
                 .IsUnicode(false)
                 .IsFixedLength()
@@ -116,7 +116,7 @@ namespace WebZi.Plataform.Data.Mappings.Condutor
                 .IsFixedLength()
                 .HasColumnName("telefone");
             
-            builder.Property(e => e.TelefoneDdd)
+            builder.Property(e => e.TelefoneDDD)
                 .HasMaxLength(2)
                 .IsUnicode(false)
                 .IsFixedLength()

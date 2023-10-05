@@ -11,8 +11,10 @@ using WebZi.Plataform.Domain.ViewModel.Banco;
 using WebZi.Plataform.Domain.ViewModel.Cliente;
 using WebZi.Plataform.Domain.ViewModel.Deposito;
 using WebZi.Plataform.Domain.ViewModel.GRV;
+using WebZi.Plataform.Domain.ViewModel.Localizacao;
 using WebZi.Plataform.Domain.ViewModel.Servico;
 using WebZi.Plataform.Domain.ViewModel.Usuario;
+using WebZi.Plataform.Domain.Views.Localizacao;
 
 namespace WebZi.Plataform.Data.Services.AutoMapper
 {
@@ -33,6 +35,8 @@ namespace WebZi.Plataform.Data.Services.AutoMapper
             CreateMap<ClienteModel, ClienteViewModel>();
 
             CreateMap<DepositoModel, DepositoViewModel>();
+
+            CreateMap<ViewEnderecoCompletoModel, EnderecoViewModel>();
 
             CreateMap<GrvModel, GrvViewModel>();
 

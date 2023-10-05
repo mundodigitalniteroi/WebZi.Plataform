@@ -27,7 +27,7 @@ namespace WebZi.Plataform.Data.Mappings.Leilao
                 .IsUnicode(false)
                 .HasColumnName("bairro");
             
-            builder.Property(e => e.Cep)
+            builder.Property(e => e.CEP)
                 .HasMaxLength(8)
                 .IsUnicode(false)
                 .IsFixedLength()
@@ -162,7 +162,7 @@ namespace WebZi.Plataform.Data.Mappings.Leilao
                 .IsUnicode(false)
                 .HasColumnName("ordem_interna_matriz");
             
-            builder.Property(e => e.Uf)
+            builder.Property(e => e.UF)
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("uf");

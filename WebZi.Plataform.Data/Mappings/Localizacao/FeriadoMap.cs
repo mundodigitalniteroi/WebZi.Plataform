@@ -60,7 +60,7 @@ namespace WebZi.Plataform.Data.Mappings.Localizacao
                 .HasColumnName("flag_feriado_nacional");
 
             builder.HasOne(d => d.Estado).WithMany(p => p.Feriados)
-                .HasPrincipalKey(p => p.Uf)
+                .HasPrincipalKey(p => p.UF)
                 .HasForeignKey(d => d.UF)
                 .HasConstraintName("fk_tb_glo_loc_feriados1");
 

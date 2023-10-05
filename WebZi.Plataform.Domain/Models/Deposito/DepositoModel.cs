@@ -1,8 +1,8 @@
 ﻿using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.GRV;
-using WebZi.Plataform.Domain.Models.Localizacao;
 using WebZi.Plataform.Domain.Models.Servico;
 using WebZi.Plataform.Domain.Models.Usuario;
+using WebZi.Plataform.Domain.Views.Localizacao;
 
 namespace WebZi.Plataform.Domain.Models.Deposito
 {
@@ -12,7 +12,7 @@ namespace WebZi.Plataform.Domain.Models.Deposito
 
         public int? EmpresaId { get; set; }
 
-        public int? CepId { get; set; }
+        public int? CEPId { get; set; }
 
         public byte? TipoLogradouroId { get; set; }
 
@@ -28,9 +28,9 @@ namespace WebZi.Plataform.Domain.Models.Deposito
 
         public string Logradouro { get; set; }
 
-        public string Numero { get; set; }
+        public string NumeroEndereco { get; set; }
 
-        public string Complemento { get; set; }
+        public string ComplementoEndereco { get; set; }
 
         public string EmailNfe { get; set; }
 
@@ -56,7 +56,7 @@ namespace WebZi.Plataform.Domain.Models.Deposito
 
         public string FlagVirtual { get; set; }
 
-        public virtual CEPModel CEP { get; set; }
+        public virtual ViewEnderecoCompletoModel Endereco { get; set; }
 
         public virtual UsuarioModel UsuarioCadastro { get; set; }
 

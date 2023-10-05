@@ -8,6 +8,7 @@ using WebZi.Plataform.Domain.Models.Deposito;
 using WebZi.Plataform.Domain.Models.Localizacao;
 using WebZi.Plataform.Domain.Models.Sistema;
 using WebZi.Plataform.Domain.ViewModel.Deposito;
+using WebZi.Plataform.Domain.Views.Localizacao;
 
 namespace WebZi.Plataform.Data.Services.Deposito
 {
@@ -110,17 +111,17 @@ namespace WebZi.Plataform.Data.Services.Deposito
             return ResultView;
         }
 
-        public async Task<DateTime> GetDataHoraPorDeposito(int DepositoId)
+        public DateTime GetDataHoraPorDeposito(int DepositoId)
         {
-            DepositoModel Deposito = await _context.Deposito
-                .Include(i => i.CEP)
+            DepositoModel Deposito = _context.Deposito
+                .Include(i => i.Endereco)
                 .Where(w => w.DepositoId == DepositoId)
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefault();
 
-            ConfiguracaoModel Configuracao = await _context.Configuracao
+            ConfiguracaoModel Configuracao = _context.Configuracao
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefault();
 
             DateTime DataHoraAtual = DateTime.Now;
 
@@ -129,16 +130,18 @@ namespace WebZi.Plataform.Data.Services.Deposito
                 return DataHoraAtual;
             }
 
-            CEPModel CEP = await new CEPService(_context)
-                .GetById(Deposito.CepId.Value);
-
-            List<EstadoModel> Estados = await _context.Estado
+            ViewEnderecoCompletoModel CEP = _context.Endereco
+                .Where(w => w.CEPId == Deposito.CEPId)
                 .AsNoTracking()
-                .ToListAsync();
+                .FirstOrDefault();
 
-            EstadoModel EstadoPrincipal = Estados.Find(s => s.Uf == "RJ");
+            List<EstadoModel> Estados = _context.Estado
+                .AsNoTracking()
+                .ToList();
 
-            EstadoModel Estado = Estados.Find(s => s.Uf == CEP.Municipio.Estado.Uf);
+            EstadoModel EstadoPrincipal = Estados.Find(s => s.UF == "RJ");
+
+            EstadoModel Estado = Estados.Find(s => s.UF == CEP.UF);
 
             DateTime DataInicioHorarioVerao = DateTimeHelper.GetBrazilFirstDaylightSavingDay(DataHoraAtual.Year);
 

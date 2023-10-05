@@ -38,11 +38,11 @@ namespace WebZi.Plataform.Domain.Models.Atendimento
 
         public string ResponsavelMunicipio { get; set; }
 
-        public string ResponsavelUf { get; set; }
+        public string ResponsavelUF { get; set; }
 
-        public string ResponsavelCep { get; set; }
+        public string ResponsavelCEP { get; set; }
 
-        public string ResponsavelDdd { get; set; }
+        public string ResponsavelDDD { get; set; }
 
         public string ResponsavelTelefone { get; set; }
 
@@ -56,9 +56,9 @@ namespace WebZi.Plataform.Domain.Models.Atendimento
 
         public string FormaLiberacaoNome { get; set; }
 
-        public string FormaLiberacaoCnh { get; set; }
+        public string FormaLiberacaoCNH { get; set; }
 
-        public string FormaLiberacaoCpf { get; set; }
+        public string FormaLiberacaoCPF { get; set; }
 
         public string FormaLiberacaoPlaca { get; set; }
 
@@ -72,11 +72,11 @@ namespace WebZi.Plataform.Domain.Models.Atendimento
 
         public string ProprietarioMunicipio { get; set; }
 
-        public string ProprietarioUf { get; set; }
+        public string ProprietarioUF { get; set; }
 
-        public string ProprietarioCep { get; set; }
+        public string ProprietarioCEP { get; set; }
 
-        public string ProprietarioDdd { get; set; }
+        public string ProprietarioDDD { get; set; }
 
         public string ProprietarioTelefone { get; set; }
 
@@ -94,11 +94,11 @@ namespace WebZi.Plataform.Domain.Models.Atendimento
 
         public string NotaFiscalMunicipio { get; set; }
 
-        public string NotaFiscalUf { get; set; }
+        public string NotaFiscalUF { get; set; }
 
-        public string NotaFiscalCep { get; set; }
+        public string NotaFiscalCEP { get; set; }
 
-        public string NotaFiscalDdd { get; set; }
+        public string NotaFiscalDDD { get; set; }
 
         public string NotaFiscalTelefone { get; set; }
 

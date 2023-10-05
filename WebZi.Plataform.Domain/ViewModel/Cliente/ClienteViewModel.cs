@@ -6,7 +6,7 @@
 
         public short AgenciaBancariaId { get; set; }
 
-        public int CepId { get; set; }
+        public int CEPId { get; set; }
 
         public byte? TipoLogradouroId { get; set; }
 
@@ -18,7 +18,7 @@
 
         public string Nome { get; set; }
 
-        public string Cnpj { get; set; }
+        public string CNPJ { get; set; }
 
         public string Logradouro { get; set; }
 
@@ -39,8 +39,6 @@
         public short MaximoDiariasParaCobranca { get; set; }
 
         public short MaximoDiasVencimento { get; set; }
-
-        public string CodigoSap { get; set; }
 
         public string LabelClienteCodigoIdentificacao { get; set; }
 
@@ -68,12 +66,12 @@
 
         public string CodigoOrgao { get; set; }
 
-        public string FlagPossuiPixEstatico { get; set; }
+        public string FlagPossuiPIXEstatico { get; set; }
 
-        public byte? PixTipoChaveId { get; set; }
+        public byte? PIXTipoChaveId { get; set; }
 
-        public string PixChave { get; set; }
+        public string PIXChave { get; set; }
 
-        public string FlagPossuiPixDinamico { get; set; }
+        public string FlagPossuiPIXDinamico { get; set; }
     }
 }

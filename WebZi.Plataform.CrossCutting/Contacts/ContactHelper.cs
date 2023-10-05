@@ -1,4 +1,6 @@
-﻿namespace WebZi.Plataform.CrossCutting.Contacts
+﻿using WebZi.Plataform.CrossCutting.Number;
+
+namespace WebZi.Plataform.CrossCutting.Contacts
 {
     public abstract class ContactHelper
     {
@@ -10,7 +12,7 @@
             {
                 return false;
             }
-            else if (!Strings.StringHelper.IsNumber(telephone))
+            else if (!NumberHelper.IsNumber(telephone))
             {
                 return false;
             }
@@ -30,7 +32,7 @@
             {
                 return false;
             }
-            else if (!Strings.StringHelper.IsNumber(cellphone))
+            else if (!NumberHelper.IsNumber(cellphone))
             {
                 return false;
             }
@@ -50,7 +52,7 @@
             {
                 return false;
             }
-            else if (!Strings.StringHelper.IsNumber(ddd))
+            else if (!NumberHelper.IsNumber(ddd))
             {
                 return false;
             }

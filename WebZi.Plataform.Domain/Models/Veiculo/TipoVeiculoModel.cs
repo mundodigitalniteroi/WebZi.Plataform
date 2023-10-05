@@ -29,8 +29,6 @@ namespace WebZi.Plataform.Domain.Models.Veiculo
 
         public virtual ICollection<FaturamentoServicoTipoVeiculoModel> FaturamentoServicosTiposVeiculos { get; set; }
 
-        public virtual ICollection<GrvModel> Grvs { get; set; }
-
         //public virtual ICollection<SolicitacaoReboquePsv> SolicitacaoReboquePsvs { get; set; }
 
         //public virtual ICollection<TarifasTipoVeiculo> TarifasTipoVeiculos { get; set; }

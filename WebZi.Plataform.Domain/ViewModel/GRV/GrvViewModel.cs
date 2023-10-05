@@ -20,15 +20,26 @@
 
         public int? CorOstentadaId { get; set; }
 
-        public int? DetranMarcaModeloId { get; set; }
+        public int? MarcaModeloId { get; set; }
 
-        public int? CepId { get; set; }
+        public int? AgenteId { get; set; }
 
         public byte? MotivoApreensaoId { get; set; }
 
         public string StatusOperacaoId { get; set; }
 
         public int? LiberacaoId { get; set; }
+
+        public int UsuarioCadastroId { get; set; }
+
+        public int? UsuarioAlteracaoId { get; set; }
+
+        public int? UsuarioEdicaoId { get; set; }
+
+        /// <summary>
+        /// ID do Usuário que realizou o cadastro das informações do GGV
+        /// </summary>
+        public int? UsuarioCadastroGgvId { get; set; }
 
         public string NumeroFormularioGrv { get; set; }
 
@@ -48,21 +59,23 @@
 
         public string Rfid { get; set; }
 
-        public string Logradouro { get; set; }
+        public int? EnderecoLocalizacaoVeiculoCEPId { get; set; }
 
-        public string Numero { get; set; }
+        public string EnderecoLocalizacaoVeiculoLogradouro { get; set; }
 
-        public string Complemento { get; set; }
+        public string EnderecoLocalizacaoVeiculoNumero { get; set; }
 
-        public string Bairro { get; set; }
+        public string EnderecoLocalizacaoVeiculoComplemento { get; set; }
 
-        public string Municipio { get; set; }
+        public string EnderecoLocalizacaoVeiculoBairro { get; set; }
 
-        public string Uf { get; set; }
+        public string EnderecoLocalizacaoVeiculoMunicipio { get; set; }
 
-        public string Referencia { get; set; }
+        public string EnderecoLocalizacaoVeiculoUF { get; set; }
 
-        public string PontoReferencia { get; set; }
+        public string EnderecoLocalizacaoVeiculoReferencia { get; set; }
+
+        public string EnderecoLocalizacaoVeiculoPontoReferencia { get; set; }
 
         public string NumeroChave { get; set; }
 
@@ -88,11 +101,27 @@
 
         public string MatriculaComandante { get; set; }
 
-        public DateTime? DataOficio { get; set; }
+        public string TermoDetran { get; set; }
+
+        public string VeiculoUF { get; set; }
 
         public DateTime DataHoraRemocao { get; set; }
 
         public DateTime DataHoraGuarda { get; set; }
+
+        public DateTime? DataOficio { get; set; }
+
+        public DateTime? DataTransbordo { get; set; }
+
+        public DateTime DataCadastro { get; set; }
+
+        public DateTime? DataAlteracao { get; set; }
+
+        public string LatitudeAcautelamento { get; set; }
+
+        public string LongitudeAcautelamento { get; set; }
+
+        public decimal? DistanciaAteAcautelamento { get; set; }
 
         public string FlagComboio { get; set; }
 
@@ -108,26 +137,15 @@
 
         public string FlagVeiculoMesmasCondicoes { get; set; }
 
+        /// <summary>
+        /// Flag que identifica se o GGV já foi cadastrado
+        /// </summary>
         public string FlagGgv { get; set; }
 
         public string FlagVistoria { get; set; }
 
-        public string TermoDetran { get; set; }
-
         public string FlagVeiculoNaoOstentaPlaca { get; set; }
 
         public string FlagTransbordo { get; set; }
-
-        public DateTime? DataTransbordo { get; set; }
-
-        public int? AgenteId { get; set; }
-
-        public string LongitudeAcautelamento { get; set; }
-
-        public string LatitudeAcautelamento { get; set; }
-
-        public decimal? DistanciaAteAcautelamento { get; set; }
-
-        public string VeiculoUf { get; set; }
     }
 }

@@ -4,6 +4,7 @@ using WebZi.Plataform.Domain.Models.Condutor;
 using WebZi.Plataform.Domain.Models.Deposito;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.Servico;
+using WebZi.Plataform.Domain.Models.Sistema;
 using WebZi.Plataform.Domain.Models.Usuario;
 using WebZi.Plataform.Domain.Models.Veiculo;
 
@@ -29,9 +30,9 @@ namespace WebZi.Plataform.Domain.Models.GRV
 
         public int? CorOstentadaId { get; set; }
 
-        public int? DetranMarcaModeloId { get; set; }
+        public int? MarcaModeloId { get; set; }
 
-        public int? CepId { get; set; }
+        public int? AgenteId { get; set; }
 
         public byte? MotivoApreensaoId { get; set; }
 
@@ -68,21 +69,23 @@ namespace WebZi.Plataform.Domain.Models.GRV
 
         public string Rfid { get; set; }
 
-        public string Logradouro { get; set; }
+        public int? EnderecoLocalizacaoVeiculoCEPId { get; set; }
 
-        public string Numero { get; set; }
+        public string EnderecoLocalizacaoVeiculoLogradouro { get; set; }
 
-        public string Complemento { get; set; }
+        public string EnderecoLocalizacaoVeiculoNumero { get; set; }
 
-        public string Bairro { get; set; }
+        public string EnderecoLocalizacaoVeiculoComplemento { get; set; }
 
-        public string Municipio { get; set; }
+        public string EnderecoLocalizacaoVeiculoBairro { get; set; }
 
-        public string Uf { get; set; }
+        public string EnderecoLocalizacaoVeiculoMunicipio { get; set; }
 
-        public string Referencia { get; set; }
+        public string EnderecoLocalizacaoVeiculoUF { get; set; }
 
-        public string PontoReferencia { get; set; }
+        public string EnderecoLocalizacaoVeiculoReferencia { get; set; }
+
+        public string EnderecoLocalizacaoVeiculoPontoReferencia { get; set; }
 
         public string NumeroChave { get; set; }
 
@@ -108,54 +111,52 @@ namespace WebZi.Plataform.Domain.Models.GRV
 
         public string MatriculaComandante { get; set; }
 
-        public DateTime? DataOficio { get; set; }
+        public string TermoDetran { get; set; }
+
+        public string VeiculoUF { get; set; }
 
         public DateTime DataHoraRemocao { get; set; }
 
         public DateTime DataHoraGuarda { get; set; }
 
+        public DateTime? DataOficio { get; set; }
+
+        public DateTime? DataTransbordo { get; set; }
+
         public DateTime DataCadastro { get; set; }
 
         public DateTime? DataAlteracao { get; set; }
 
-        public string FlagComboio { get; set; }
+        public string LatitudeAcautelamento { get; set; }
 
-        public string FlagVeiculoNaoIdentificado { get; set; }
+        public string LongitudeAcautelamento { get; set; }
 
-        public string FlagVeiculoSemRegistro { get; set; }
+        public decimal? DistanciaAteAcautelamento { get; set; }
 
-        public string FlagVeiculoRoubadoFurtado { get; set; }
+        public string FlagComboio { get; set; } = "N";
 
-        public string FlagChaveDeposito { get; set; }
+        public string FlagVeiculoNaoIdentificado { get; set; } = "N";
 
-        public string FlagEstadoLacre { get; set; }
+        public string FlagVeiculoSemRegistro { get; set; } = "N";
 
-        public string FlagVeiculoMesmasCondicoes { get; set; }
+        public string FlagVeiculoRoubadoFurtado { get; set; } = "N";
+
+        public string FlagChaveDeposito { get; set; } = "N";
+
+        public string FlagEstadoLacre { get; set; } = "N";
+
+        public string FlagVeiculoMesmasCondicoes { get; set; } = "N";
 
         /// <summary>
         /// Flag que identifica se o GGV já foi cadastrado
         /// </summary>
-        public string FlagGgv { get; set; }
+        public string FlagGgv { get; set; } = "N";
 
-        public string FlagVistoria { get; set; }
+        public string FlagVistoria { get; set; } = "N";
 
-        public string TermoDetran { get; set; }
+        public string FlagVeiculoNaoOstentaPlaca { get; set; } = "N";
 
-        public string FlagVeiculoNaoOstentaPlaca { get; set; }
-
-        public string FlagTransbordo { get; set; }
-
-        public DateTime? DataTransbordo { get; set; }
-
-        public int? AgenteId { get; set; }
-
-        public string LongitudeAcautelamento { get; set; }
-
-        public string LatitudeAcautelamento { get; set; }
-
-        public decimal? DistanciaAteAcautelamento { get; set; }
-
-        public string VeiculoUf { get; set; }
+        public string FlagTransbordo { get; set; } = "N";
 
         public virtual FaturamentoProdutoModel FaturamentoProduto { get; set; }
 
@@ -164,8 +165,6 @@ namespace WebZi.Plataform.Domain.Models.GRV
         public virtual ClienteModel Cliente { get; set; }
 
         public virtual DepositoModel Deposito { get; set; }
-
-        //public virtual Liberacao IdLiberacaoNavigation { get; set; }
 
         public virtual MotivoApreensaoModel MotivoApreensao { get; set; }
 
@@ -185,50 +184,56 @@ namespace WebZi.Plataform.Domain.Models.GRV
 
         public virtual UsuarioModel UsuarioCadastroGgv { get; set; }
 
-        //public virtual ICollection<AlterdataErro> AlterdataErros { get; set; } = new List<AlterdataErro>();
-
-        //public virtual Alterdatum Alterdatum { get; set; }
-
         public virtual AtendimentoModel Atendimento { get; set; }
 
         public virtual CondutorModel Condutor { get; set; }
 
-        //public virtual ICollection<CondutorEquipamentosOpcionai> CondutorEquipamentosOpcionais { get; set; } = new List<CondutorEquipamentosOpcionai>();
+        public virtual CorModel Cor { get; set; }
 
-        //public virtual ICollection<DetranGrvStatusTransacao> DetranGrvStatusTransacaos { get; set; } = new List<DetranGrvStatusTransacao>();
-
-        //public virtual DetroGrv DetroGrv { get; set; }
-
-        public virtual ICollection<FaturamentoServicoGrvModel> FaturamentosServicosGrvs { get; set; }
-
-        //public virtual ICollection<GrvBloqueio> GrvBloqueios { get; set; } = new List<GrvBloqueio>();
-
-        //public virtual GrvClientesCodigoIdentificacao GrvClientesCodigoIdentificacao { get; set; }
-
-        //public virtual ICollection<GrvCobrancasLegai> GrvCobrancasLegais { get; set; } = new List<GrvCobrancasLegai>();
-
-        //public virtual ICollection<GrvDocumento> GrvDocumentos { get; set; } = new List<GrvDocumento>();
-
-        //public virtual GrvDrfa GrvDrfa { get; set; }
+        public virtual MarcaModeloModel MarcaModelo { get; set; }
 
         public virtual ICollection<EnquadramentoInfracaoModel> EnquadramentosInfracoes { get; set; }
 
-        //public virtual ICollection<GrvFoto> GrvFotos { get; set; } = new List<GrvFoto>();
+        public virtual ICollection<FaturamentoServicoGrvModel> FaturamentosServicosGrvs { get; set; }
 
         public virtual ICollection<LacreModel> Lacres { get; set; } = new List<LacreModel>();
 
-        //public virtual ICollection<GrvVistorium> GrvVistoria { get; set; } = new List<GrvVistorium>();
+        //public virtual Alterdatum Alterdatum { get; set; }
 
-        //public virtual ICollection<GtvGrv> GtvGrvs { get; set; } = new List<GtvGrv>();
+        //public virtual DetroGrv DetroGrv { get; set; }
+
+        //public virtual GrvClientesCodigoIdentificacao GrvClientesCodigoIdentificacao { get; set; }
+
+        //public virtual GrvDrfa GrvDrfa { get; set; }
+
+        //public virtual Liberacao IdLiberacaoNavigation { get; set; }
 
         //public virtual LiberacaoEspecial LiberacaoEspecial { get; set; }
 
         //public virtual LiberacaoLeilao LiberacaoLeilao { get; set; }
 
+        //public virtual SolicitacaoReboque SolicitacaoReboque { get; set; }
+
+        //public virtual ICollection<AlterdataErro> AlterdataErros { get; set; } = new List<AlterdataErro>();
+
+        //public virtual ICollection<CondutorEquipamentosOpcionai> CondutorEquipamentosOpcionais { get; set; } = new List<CondutorEquipamentosOpcionai>();
+
+        //public virtual ICollection<DetranGrvStatusTransacao> DetranGrvStatusTransacaos { get; set; } = new List<DetranGrvStatusTransacao>();
+
+        //public virtual ICollection<GrvBloqueio> GrvBloqueios { get; set; } = new List<GrvBloqueio>();
+
+        //public virtual ICollection<GrvCobrancasLegai> GrvCobrancasLegais { get; set; } = new List<GrvCobrancasLegai>();
+
+        //public virtual ICollection<GrvDocumento> GrvDocumentos { get; set; } = new List<GrvDocumento>();
+
+        //public virtual ICollection<GrvFoto> GrvFotos { get; set; } = new List<GrvFoto>();
+
+        //public virtual ICollection<GrvVistorium> GrvVistoria { get; set; } = new List<GrvVistorium>();
+
+        //public virtual ICollection<GtvGrv> GtvGrvs { get; set; } = new List<GtvGrv>();
+
         //public virtual ICollection<NfeWsErro> NfeWsErros { get; set; } = new List<NfeWsErro>();
 
         //public virtual ICollection<Nfe> Nves { get; set; } = new List<Nfe>();
-
-        //public virtual SolicitacaoReboque SolicitacaoReboque { get; set; }
     }
 }

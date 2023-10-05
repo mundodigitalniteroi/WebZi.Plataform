@@ -7,6 +7,7 @@ using WebZi.Plataform.CrossCutting.Number;
 using WebZi.Plataform.CrossCutting.Strings;
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
+using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Services.Usuario;
 using WebZi.Plataform.Domain.ViewModel;
@@ -400,7 +401,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     ValorFaturado,
                     ParametrosCalculoFaturamento.Atendimento.NotaFiscalDocumento,
                     ParametrosCalculoFaturamento.Atendimento.NotaFiscalMunicipio,
-                    ParametrosCalculoFaturamento.Atendimento.NotaFiscalUf);
+                    ParametrosCalculoFaturamento.Atendimento.NotaFiscalUF);
 
                 if (Tributacoes != null)
                 {
@@ -584,9 +585,9 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             return FaturamentoComposicao;
         }
 
-        private static List<CalculoTributacaoModel> CalcularTributacao(AppDbContext _context, CalculoFaturamentoParametroModel ParametrosCalculoFaturamento, decimal valorCalculado, string notaFiscalCnpj, string notaFiscalMunicipio, string notaFiscalUf)
+        private static List<CalculoTributacaoModel> CalcularTributacao(AppDbContext _context, CalculoFaturamentoParametroModel ParametrosCalculoFaturamento, decimal valorCalculado, string notaFiscalCnpj, string notaFiscalMunicipio, string notaFiscalUF)
         {
-            if (valorCalculado <= 0 && string.IsNullOrWhiteSpace(notaFiscalCnpj) || string.IsNullOrWhiteSpace(notaFiscalMunicipio) || string.IsNullOrWhiteSpace(notaFiscalUf))
+            if (valorCalculado <= 0 && string.IsNullOrWhiteSpace(notaFiscalCnpj) || string.IsNullOrWhiteSpace(notaFiscalMunicipio) || string.IsNullOrWhiteSpace(notaFiscalUF))
             {
                 return null;
             }
@@ -607,8 +608,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 return null;
             }
 
-            ViewEnderecoCompletoModel Endereco = _context.ViewEnderecoCompleto
-                .Where(w => w.CepId == ParametrosCalculoFaturamento.Grv.Deposito.CepId)
+            ViewEnderecoCompletoModel Endereco = _context.Endereco
+                .Where(w => w.CEPId == ParametrosCalculoFaturamento.Grv.Deposito.CEPId)
                 .AsNoTracking()
                 .FirstOrDefault();
 
@@ -617,7 +618,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 return null;
             }
 
-            if (StringHelper.Normalize(notaFiscalMunicipio) != StringHelper.Normalize(Endereco.Municipio) || notaFiscalUf != Endereco.UF)
+            if (StringHelper.Normalize(notaFiscalMunicipio) != StringHelper.Normalize(Endereco.Municipio) || notaFiscalUF != Endereco.UF)
             {
                 return null;
             }
@@ -761,12 +762,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             if (erros.Count > 0)
             {
-                Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.BadRequest;
-
-                foreach (string erro in erros)
-                {
-                    Mensagem.AvisosImpeditivos.Add(erro);
-                }
+                Mensagem = MensagemViewHelper.GetBadRequest(erros);
 
                 return Mensagem;
             }

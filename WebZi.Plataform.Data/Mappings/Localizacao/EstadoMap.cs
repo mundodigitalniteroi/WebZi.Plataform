@@ -15,7 +15,7 @@ namespace WebZi.Plataform.Data.Mappings.Localizacao
             builder.Property(e => e.EstadoId)
                 .HasColumnName("EstadoId");
 
-            builder.Property(e => e.Uf)
+            builder.Property(e => e.UF)
                 .IsRequired()
                 .HasMaxLength(2)
                 .IsUnicode(false)

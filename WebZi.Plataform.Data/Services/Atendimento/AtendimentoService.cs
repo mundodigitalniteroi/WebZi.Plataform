@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 using WebZi.Plataform.CrossCutting.Contacts;
 using WebZi.Plataform.CrossCutting.Documents;
 using WebZi.Plataform.CrossCutting.Localizacao;
+using WebZi.Plataform.CrossCutting.Number;
 using WebZi.Plataform.CrossCutting.Strings;
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
@@ -110,7 +111,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             {
                 erros.Add("Informe o Número do Processo");
             }
-            else if (!StringHelper.IsNumber(NumeroProcesso) || Convert.ToInt64(NumeroProcesso) <= 0)
+            else if (!NumberHelper.IsNumber(NumeroProcesso) || Convert.ToInt64(NumeroProcesso) <= 0)
             {
                 erros.Add("Número do Processo inválido");
             }
@@ -289,13 +290,13 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             #endregion Dados do Responsável
 
             #region Endereço do Responsável
-            if (string.IsNullOrWhiteSpace(Atendimento.ResponsavelCep))
+            if (string.IsNullOrWhiteSpace(Atendimento.ResponsavelCEP))
             {
                 ResultView.AvisosImpeditivos.Add("Primeiro é necessário informar o CEP do Responsável");
             }
-            else if (!LocalizacaoHelper.IsCEP(Atendimento.ResponsavelCep))
+            else if (!LocalizacaoHelper.IsCEP(Atendimento.ResponsavelCEP))
             {
-                ResultView.Erros.Add($"CEP do Responsável inválido: {Atendimento.ResponsavelCep}");
+                ResultView.Erros.Add($"CEP do Responsável inválido: {Atendimento.ResponsavelCEP}");
             }
 
             if (string.IsNullOrWhiteSpace(Atendimento.ResponsavelEndereco))
@@ -318,11 +319,11 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 ResultView.AvisosImpeditivos.Add("Primeiro é necessário informar Município do Responsável");
             }
 
-            if (string.IsNullOrWhiteSpace(Atendimento.ResponsavelUf))
+            if (string.IsNullOrWhiteSpace(Atendimento.ResponsavelUF))
             {
                 ResultView.AvisosImpeditivos.Add("Primeiro é necessário informar a Unidade Federativa do Responsável");
             }
-            else if (!LocalizacaoHelper.IsUF(Atendimento.ResponsavelUf))
+            else if (!LocalizacaoHelper.IsUF(Atendimento.ResponsavelUF))
             {
                 ResultView.Erros.Add("Unidade Federativa do Responsável inválida");
             }
@@ -336,13 +337,13 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                     ResultView.AvisosImpeditivos.Add($"Telefone/Celular do Responsável é inválido: {Atendimento.ResponsavelTelefone}");
                 }
 
-                if (string.IsNullOrWhiteSpace(Atendimento.ResponsavelDdd))
+                if (string.IsNullOrWhiteSpace(Atendimento.ResponsavelDDD))
                 {
                     ResultView.Erros.Add("Ao informar o Número do Telefone/Celular do Responsável também é preciso informar o DDD");
                 }
-                else if (!ContactHelper.IsDDD(Atendimento.ResponsavelDdd))
+                else if (!ContactHelper.IsDDD(Atendimento.ResponsavelDDD))
                 {
-                    ResultView.AvisosImpeditivos.Add($"DDD do Número do Telefone/Celular do Responsável é inválido: {Atendimento.ResponsavelDdd}");
+                    ResultView.AvisosImpeditivos.Add($"DDD do Número do Telefone/Celular do Responsável é inválido: {Atendimento.ResponsavelDDD}");
                 }
             }
             #endregion DDD + Telefone/Celular do Responsável
@@ -413,13 +414,13 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 #endregion Receptor da Nota Fiscal
 
                 #region Endereço do Receptor da Nota Fiscal
-                if (string.IsNullOrWhiteSpace(Atendimento.NotaFiscalCep))
+                if (string.IsNullOrWhiteSpace(Atendimento.NotaFiscalCEP))
                 {
                     ResultView.AvisosImpeditivos.Add("Primeiro é necessário informar o CEP do Receptor da Nota Fiscal");
                 }
-                else if (!LocalizacaoHelper.IsCEP(Atendimento.NotaFiscalCep))
+                else if (!LocalizacaoHelper.IsCEP(Atendimento.NotaFiscalCEP))
                 {
-                    ResultView.Erros.Add($"CEP do Receptor da Nota Fiscal é inválido: {Atendimento.NotaFiscalCep}");
+                    ResultView.Erros.Add($"CEP do Receptor da Nota Fiscal é inválido: {Atendimento.NotaFiscalCEP}");
                 }
 
                 if (string.IsNullOrWhiteSpace(Atendimento.NotaFiscalEndereco))
@@ -442,13 +443,13 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                     ResultView.AvisosImpeditivos.Add("Primeiro é necessário informar o Município do Receptor da Nota Fiscal");
                 }
 
-                if (string.IsNullOrWhiteSpace(Atendimento.NotaFiscalUf))
+                if (string.IsNullOrWhiteSpace(Atendimento.NotaFiscalUF))
                 {
                     ResultView.AvisosImpeditivos.Add("Primeiro é necessário informar a UF do Receptor da Nota Fiscal");
                 }
-                else if (!LocalizacaoHelper.IsUF(Atendimento.NotaFiscalUf))
+                else if (!LocalizacaoHelper.IsUF(Atendimento.NotaFiscalUF))
                 {
-                    ResultView.Erros.Add($"Unidade Federativa do Receptor da Nota Fiscal inválida: {Atendimento.NotaFiscalUf}");
+                    ResultView.Erros.Add($"Unidade Federativa do Receptor da Nota Fiscal inválida: {Atendimento.NotaFiscalUF}");
                 }
                 #endregion Endereço do Receptor da Nota Fiscal
 
@@ -462,13 +463,13 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                     ResultView.Erros.Add($"Número do Telefone/Celular do Receptor da Nota Fiscal é inválido: {Atendimento.NotaFiscalTelefone}");
                 }
 
-                if (string.IsNullOrWhiteSpace(Atendimento.NotaFiscalDdd))
+                if (string.IsNullOrWhiteSpace(Atendimento.NotaFiscalDDD))
                 {
                     ResultView.AvisosImpeditivos.Add("Primeiro é necessário informar o DDD do Telefone/Celular do Receptor da Nota Fiscal");
                 }
-                else if (!ContactHelper.IsDDD(Atendimento.NotaFiscalDdd))
+                else if (!ContactHelper.IsDDD(Atendimento.NotaFiscalDDD))
                 {
-                    ResultView.Erros.Add($"DDD do Número do Telefone/Celular do Receptor da Nota Fiscal é inválido: {Atendimento.NotaFiscalDdd}");
+                    ResultView.Erros.Add($"DDD do Número do Telefone/Celular do Receptor da Nota Fiscal é inválido: {Atendimento.NotaFiscalDDD}");
                 }
 
                 if (!string.IsNullOrWhiteSpace(Atendimento.NotaFiscalEmail) && !EmailHelper.IsEmail(Atendimento.NotaFiscalEmail))
@@ -596,7 +597,8 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
 
-            DateTime DataHoraPorDeposito = await GetDataHoraPorDeposito(Grv.DepositoId);
+            DateTime DataHoraPorDeposito = new DepositoService(_context, _mapper)
+                .GetDataHoraPorDeposito(Grv.DepositoId);
             #endregion Consultas
 
             #region Dados do Atendimento
@@ -632,11 +634,11 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
                 ResponsavelMunicipio = AtendimentoInput.ResponsavelMunicipio.ToUpper(),
 
-                ResponsavelUf = AtendimentoInput.ResponsavelUf.ToUpper(),
+                ResponsavelUF = AtendimentoInput.ResponsavelUF.ToUpper(),
 
-                ResponsavelCep = AtendimentoInput.ResponsavelCep.Replace("-", ""),
+                ResponsavelCEP = AtendimentoInput.ResponsavelCEP.Replace("-", ""),
 
-                ResponsavelDdd = AtendimentoInput.ResponsavelDdd,
+                ResponsavelDDD = AtendimentoInput.ResponsavelDDD,
 
                 ResponsavelTelefone = AtendimentoInput.ResponsavelTelefone.Replace("-", ""),
 
@@ -656,11 +658,11 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
                 ProprietarioMunicipio = AtendimentoInput.ProprietarioMunicipio.ToUpper(),
 
-                ProprietarioUf = AtendimentoInput.ProprietarioUf.ToUpper(),
+                ProprietarioUF = AtendimentoInput.ProprietarioUF.ToUpper(),
 
-                ProprietarioCep = AtendimentoInput.ProprietarioCep.Replace("-", ""),
+                ProprietarioCEP = AtendimentoInput.ProprietarioCEP.Replace("-", ""),
 
-                ProprietarioDdd = AtendimentoInput.ProprietarioDdd,
+                ProprietarioDDD = AtendimentoInput.ProprietarioDDD,
 
                 ProprietarioTelefone = AtendimentoInput.ProprietarioTelefone.Replace("-", "")
             };
@@ -681,11 +683,11 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
                 Atendimento.NotaFiscalMunicipio = AtendimentoInput.NotaFiscalMunicipio.ToUpper();
 
-                Atendimento.NotaFiscalUf = AtendimentoInput.NotaFiscalUf.ToUpper();
+                Atendimento.NotaFiscalUF = AtendimentoInput.NotaFiscalUF.ToUpper();
 
-                Atendimento.NotaFiscalCep = AtendimentoInput.NotaFiscalCep.Replace("-", "");
+                Atendimento.NotaFiscalCEP = AtendimentoInput.NotaFiscalCEP.Replace("-", "");
 
-                Atendimento.NotaFiscalDdd = AtendimentoInput.NotaFiscalDdd;
+                Atendimento.NotaFiscalDDD = AtendimentoInput.NotaFiscalDDD;
 
                 Atendimento.NotaFiscalTelefone = AtendimentoInput.NotaFiscalTelefone.Replace("-", "");
 
@@ -747,12 +749,6 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             AtendimentoCadastroResultView.Mensagem = MensagemViewHelper.GetOkCreate();
 
             return AtendimentoCadastroResultView;
-        }
-
-        private async Task<DateTime> GetDataHoraPorDeposito(int DepositoId)
-        {
-            return await new DepositoService(_context, _mapper)
-                .GetDataHoraPorDeposito(DepositoId);
         }
 
         private async Task<CalculoFaturamentoParametroModel> ConfigurarParametrosCalculoFaturamento(GrvModel Grv, AtendimentoModel Atendimento, int TipoMeioCobrancaId, DateTime DataHoraPorDeposito)

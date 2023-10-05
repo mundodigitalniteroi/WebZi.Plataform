@@ -40,7 +40,7 @@ namespace WebZi.Plataform.Data.Services.Leilao
 
             if (LeilaoLote != null)
             {
-                DateTime DataHoraPorDeposito = await new DepositoService(_context, _mapper)
+                DateTime DataHoraPorDeposito = new DepositoService(_context, _mapper)
                     .GetDataHoraPorDeposito(LeilaoLote.Grv.DepositoId);
 
                 DateTime dataLeilao = DateTime.ParseExact(LeilaoLote.Leilao.DataLeilao, "dd/MM/yyyy", CultureInfo.InvariantCulture);

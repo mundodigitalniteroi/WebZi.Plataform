@@ -10,7 +10,7 @@
 
         public int MunicipioId { get; set; }
 
-        public string Uf { get; set; }
+        public string UF { get; set; }
 
 
         public short MaximoDiariasParaCobranca { get; set; }

@@ -38,7 +38,7 @@ namespace WebZi.Plataform.Data.Mappings.Localizacao
                 .IsUnicode(false)
                 .HasColumnName("nome_ptbr");
             
-            builder.Property(e => e.Uf)
+            builder.Property(e => e.UF)
                 .IsRequired()
                 .HasMaxLength(2)
                 .IsUnicode(false)

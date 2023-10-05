@@ -22,7 +22,7 @@ namespace WebZi.Plataform.Domain.Models.Condutor
 
         public string Telefone { get; set; }
 
-        public string TelefoneDdd { get; set; }
+        public string TelefoneDDD { get; set; }
 
         public string Email { get; set; }
 
@@ -56,7 +56,7 @@ namespace WebZi.Plataform.Domain.Models.Condutor
 
         public string Celular { get; set; }
 
-        public string CelularDdd { get; set; }
+        public string CelularDDD { get; set; }
 
         public virtual EnquadramentoInfracaoModel EnquadramentoInfracao { get; set; }
 

@@ -6,7 +6,7 @@
 
         public int? EmpresaId { get; set; }
 
-        public int? CepId { get; set; }
+        public int? CEPId { get; set; }
 
         public byte? TipoLogradouroId { get; set; }
 

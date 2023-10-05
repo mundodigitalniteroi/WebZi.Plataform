@@ -53,12 +53,12 @@ namespace WebZi.Plataform.Data.Mappings.Atendimento
                 .IsFixedLength()
                 .HasColumnName("forma_liberacao");
 
-            builder.Property(e => e.FormaLiberacaoCnh)
+            builder.Property(e => e.FormaLiberacaoCNH)
                 .HasMaxLength(11)
                 .IsUnicode(false)
                 .HasColumnName("forma_liberacao_cnh");
 
-            builder.Property(e => e.FormaLiberacaoCpf)
+            builder.Property(e => e.FormaLiberacaoCPF)
                 .HasMaxLength(11)
                 .IsUnicode(false)
                 .HasColumnName("forma_liberacao_cpf");
@@ -100,7 +100,7 @@ namespace WebZi.Plataform.Data.Mappings.Atendimento
                 .IsUnicode(false)
                 .HasColumnName("nota_fiscal_bairro");
 
-            builder.Property(e => e.NotaFiscalCep)
+            builder.Property(e => e.NotaFiscalCEP)
                 .HasMaxLength(8)
                 .IsUnicode(false)
                 .IsFixedLength()
@@ -116,7 +116,7 @@ namespace WebZi.Plataform.Data.Mappings.Atendimento
                 .IsUnicode(false)
                 .HasColumnName("nota_fiscal_cpf");
 
-            builder.Property(e => e.NotaFiscalDdd)
+            builder.Property(e => e.NotaFiscalDDD)
                 .HasMaxLength(2)
                 .IsUnicode(false)
                 .IsFixedLength()
@@ -157,7 +157,7 @@ namespace WebZi.Plataform.Data.Mappings.Atendimento
                 .IsUnicode(false)
                 .HasColumnName("nota_fiscal_telefone");
 
-            builder.Property(e => e.NotaFiscalUf)
+            builder.Property(e => e.NotaFiscalUF)
                 .HasMaxLength(2)
                 .IsUnicode(false)
                 .IsFixedLength()
@@ -168,7 +168,7 @@ namespace WebZi.Plataform.Data.Mappings.Atendimento
                 .IsUnicode(false)
                 .HasColumnName("proprietario_bairro");
 
-            builder.Property(e => e.ProprietarioCep)
+            builder.Property(e => e.ProprietarioCEP)
                 .HasMaxLength(8)
                 .IsUnicode(false)
                 .IsFixedLength()
@@ -179,7 +179,7 @@ namespace WebZi.Plataform.Data.Mappings.Atendimento
                 .IsUnicode(false)
                 .HasColumnName("proprietario_complemento");
 
-            builder.Property(e => e.ProprietarioDdd)
+            builder.Property(e => e.ProprietarioDDD)
                 .HasMaxLength(2)
                 .IsUnicode(false)
                 .IsFixedLength()
@@ -217,7 +217,7 @@ namespace WebZi.Plataform.Data.Mappings.Atendimento
                 .IsUnicode(false)
                 .HasColumnName("proprietario_telefone");
 
-            builder.Property(e => e.ProprietarioUf)
+            builder.Property(e => e.ProprietarioUF)
                 .HasMaxLength(2)
                 .IsUnicode(false)
                 .IsFixedLength()
@@ -228,7 +228,7 @@ namespace WebZi.Plataform.Data.Mappings.Atendimento
                 .IsUnicode(false)
                 .HasColumnName("responsavel_bairro");
 
-            builder.Property(e => e.ResponsavelCep)
+            builder.Property(e => e.ResponsavelCEP)
                 .HasMaxLength(8)
                 .IsUnicode(false)
                 .IsFixedLength()
@@ -244,7 +244,7 @@ namespace WebZi.Plataform.Data.Mappings.Atendimento
                 .IsUnicode(false)
                 .HasColumnName("responsavel_complemento");
 
-            builder.Property(e => e.ResponsavelDdd)
+            builder.Property(e => e.ResponsavelDDD)
                 .HasMaxLength(2)
                 .IsUnicode(false)
                 .IsFixedLength()
@@ -281,7 +281,7 @@ namespace WebZi.Plataform.Data.Mappings.Atendimento
                 .IsUnicode(false)
                 .HasColumnName("responsavel_telefone");
 
-            builder.Property(e => e.ResponsavelUf)
+            builder.Property(e => e.ResponsavelUF)
                 .HasMaxLength(2)
                 .IsUnicode(false)
                 .IsFixedLength()

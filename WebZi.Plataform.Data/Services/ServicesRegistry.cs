@@ -34,7 +34,7 @@ namespace WebZi.Plataform.Data.Services
 
             services.AddScoped<CalculoDiariasService, CalculoDiariasService>();
 
-            services.AddScoped<CEPService, CEPService>();
+            services.AddScoped<EnderecoService>();
 
             services.AddScoped<ClienteService, ClienteService>();
 

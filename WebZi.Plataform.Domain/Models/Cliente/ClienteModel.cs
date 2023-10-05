@@ -1,8 +1,10 @@
 ﻿using WebZi.Plataform.Domain.Models.Banco;
+using WebZi.Plataform.Domain.Models.Empresa;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.GRV;
 using WebZi.Plataform.Domain.Models.Servico;
 using WebZi.Plataform.Domain.Models.Usuario;
+using WebZi.Plataform.Domain.Views.Localizacao;
 
 namespace WebZi.Plataform.Domain.Models.Cliente
 {
@@ -12,7 +14,7 @@ namespace WebZi.Plataform.Domain.Models.Cliente
 
         public short AgenciaBancariaId { get; set; }
 
-        public int CepId { get; set; }
+        public int CEPId { get; set; }
 
         public byte? TipoLogradouroId { get; set; }
 
@@ -28,13 +30,13 @@ namespace WebZi.Plataform.Domain.Models.Cliente
 
         public string Nome { get; set; }
 
-        public string Cnpj { get; set; }
+        public string CNPJ { get; set; }
 
         public string Logradouro { get; set; }
 
-        public string Numero { get; set; }
+        public string NumeroEndereco { get; set; }
 
-        public string Complemento { get; set; }
+        public string ComplementoEndereco { get; set; }
 
         public decimal? GpsLatitude { get; set; }
 
@@ -90,21 +92,17 @@ namespace WebZi.Plataform.Domain.Models.Cliente
 
         public string FlagPossuiPixDinamico { get; set; } = "N";
 
-        public virtual TipoMeioCobrancaModel TipoMeioCobranca { get; set; }
-
         public virtual AgenciaBancariaModel AgenciaBancaria { get; set; }
 
-        //public virtual OrgaoExecutivoTransito OrgaoExecutivoTransito { get; set; }
+        public virtual EmpresaModel Empresa { get; set; }
+
+        public virtual ViewEnderecoCompletoModel Endereco { get; set; }
+
+        public virtual TipoMeioCobrancaModel TipoMeioCobranca { get; set; }
 
         public virtual UsuarioModel UsuarioCadastro { get; set; }
 
         public virtual UsuarioModel UsuarioAlteracao { get; set; }
-
-        //public virtual ICollection<AlterdataContaBancarium> AlterdataContaBancaria { get; set; }
-
-        //public virtual ICollection<ClienteRegra> ClienteRegras { get; set; }
-
-        //public virtual ICollection<ClientesDeposito> ClientesDepositos { get; set; }
 
         public virtual ICollection<FaturamentoRegraModel> FaturamentoRegras { get; set; }
 
@@ -112,16 +110,24 @@ namespace WebZi.Plataform.Domain.Models.Cliente
 
         public virtual ICollection<GrvModel> Grvs { get; set; }
 
-        //public virtual ICollection<Gtv> GtvIdClienteEnvioNavigations { get; set; }
-
-        //public virtual ICollection<Gtv> GtvIdClienteRecebimentoNavigations { get; set; }
-
-        //public virtual ICollection<PixDinamicoConfiguracao> PixDinamicoConfiguracaos { get; set; }
-
         public virtual ICollection<ReboqueModel> Reboques { get; set; }
 
         public virtual ICollection<ReboquistaModel> Reboquistas { get; set; }
 
         public virtual ICollection<UsuarioClienteModel> UsuariosClientes { get; set; }
+
+        //public virtual OrgaoExecutivoTransito OrgaoExecutivoTransito { get; set; }
+
+        //public virtual ICollection<AlterdataContaBancaria> AlterdataContaBancaria { get; set; }
+
+        //public virtual ICollection<ClienteRegra> ClienteRegras { get; set; }
+
+        //public virtual ICollection<ClientesDeposito> ClientesDepositos { get; set; }
+
+        //public virtual ICollection<Gtv> GtvIdClienteEnvio { get; set; }
+
+        //public virtual ICollection<Gtv> GtvIdClienteRecebimento { get; set; }
+
+        //public virtual ICollection<PixDinamicoConfiguracao> PixDinamicoConfiguracaos { get; set; }
     }
 }

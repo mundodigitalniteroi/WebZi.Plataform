@@ -26,7 +26,7 @@ namespace WebZi.Plataform.Data.Mappings.GRV
             builder.Property(e => e.AgenteId)
                 .HasColumnName("AgenteID");
 
-            builder.Property(e => e.Bairro)
+            builder.Property(e => e.EnderecoLocalizacaoVeiculoBairro)
                 .HasMaxLength(150)
                 .IsUnicode(false)
                 .HasColumnName("bairro");
@@ -36,7 +36,7 @@ namespace WebZi.Plataform.Data.Mappings.GRV
                 .IsUnicode(false)
                 .HasColumnName("chassi");
 
-            builder.Property(e => e.Complemento)
+            builder.Property(e => e.EnderecoLocalizacaoVeiculoComplemento)
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("complemento");
@@ -201,27 +201,38 @@ namespace WebZi.Plataform.Data.Mappings.GRV
                 .IsFixedLength()
                 .HasColumnName("flag_vistoria");
 
-            builder.Property(e => e.AutoridadeResponsavelId).HasColumnName("id_autoridade_responsavel");
+            builder.Property(e => e.AutoridadeResponsavelId)
+                .HasColumnName("id_autoridade_responsavel");
 
-            builder.Property(e => e.CepId).HasColumnName("id_cep");
+            builder.Property(e => e.EnderecoLocalizacaoVeiculoCEPId)
+                .HasColumnName("id_cep");
 
-            builder.Property(e => e.ClienteId).HasColumnName("id_cliente");
+            builder.Property(e => e.ClienteId)
+                .HasColumnName("id_cliente");
 
-            builder.Property(e => e.CorId).HasColumnName("id_cor");
+            builder.Property(e => e.CorId)
+                .HasColumnName("id_cor");
 
-            builder.Property(e => e.CorOstentadaId).HasColumnName("id_cor_ostentada");
+            builder.Property(e => e.CorOstentadaId)
+                .HasColumnName("id_cor_ostentada");
 
-            builder.Property(e => e.DepositoId).HasColumnName("id_deposito");
+            builder.Property(e => e.DepositoId)
+                .HasColumnName("id_deposito");
 
-            builder.Property(e => e.DetranMarcaModeloId).HasColumnName("id_detran_marca_modelo");
+            builder.Property(e => e.MarcaModeloId)
+                .HasColumnName("id_detran_marca_modelo");
 
-            builder.Property(e => e.LiberacaoId).HasColumnName("id_liberacao");
+            builder.Property(e => e.LiberacaoId)
+                .HasColumnName("id_liberacao");
 
-            builder.Property(e => e.MotivoApreensaoId).HasColumnName("id_motivo_apreensao");
+            builder.Property(e => e.MotivoApreensaoId)
+                .HasColumnName("id_motivo_apreensao");
 
-            builder.Property(e => e.ReboqueId).HasColumnName("id_reboque");
+            builder.Property(e => e.ReboqueId)
+                .HasColumnName("id_reboque");
 
-            builder.Property(e => e.ReboquistaId).HasColumnName("id_reboquista");
+            builder.Property(e => e.ReboquistaId)
+                .HasColumnName("id_reboquista");
 
             builder.Property(e => e.StatusOperacaoId)
                 .IsRequired()
@@ -256,7 +267,7 @@ namespace WebZi.Plataform.Data.Mappings.GRV
                 .HasMaxLength(15)
                 .IsUnicode(false);
 
-            builder.Property(e => e.Logradouro)
+            builder.Property(e => e.EnderecoLocalizacaoVeiculoLogradouro)
                 .HasMaxLength(150)
                 .IsUnicode(false)
                 .HasColumnName("logradouro");
@@ -280,7 +291,7 @@ namespace WebZi.Plataform.Data.Mappings.GRV
                 .IsUnicode(false)
                 .HasColumnName("matricula_comandante");
 
-            builder.Property(e => e.Municipio)
+            builder.Property(e => e.EnderecoLocalizacaoVeiculoMunicipio)
                 .HasMaxLength(75)
                 .IsUnicode(false)
                 .HasColumnName("municipio");
@@ -290,7 +301,7 @@ namespace WebZi.Plataform.Data.Mappings.GRV
                 .IsUnicode(false)
                 .HasColumnName("nome_autoridade_responsavel");
 
-            builder.Property(e => e.Numero)
+            builder.Property(e => e.EnderecoLocalizacaoVeiculoNumero)
                 .HasMaxLength(15)
                 .IsUnicode(false)
                 .HasColumnName("numero");
@@ -322,12 +333,12 @@ namespace WebZi.Plataform.Data.Mappings.GRV
                 .IsUnicode(false)
                 .HasColumnName("placa_ostentada");
 
-            builder.Property(e => e.PontoReferencia)
+            builder.Property(e => e.EnderecoLocalizacaoVeiculoPontoReferencia)
                 .HasMaxLength(30)
                 .IsUnicode(false)
                 .HasColumnName("ponto_referencia");
 
-            builder.Property(e => e.Referencia)
+            builder.Property(e => e.EnderecoLocalizacaoVeiculoReferencia)
                 .HasMaxLength(30)
                 .IsUnicode(false)
                 .HasColumnName("referencia");
@@ -347,16 +358,20 @@ namespace WebZi.Plataform.Data.Mappings.GRV
                 .IsUnicode(false)
                 .HasColumnName("termo_detran");
 
-            builder.Property(e => e.Uf)
+            builder.Property(e => e.EnderecoLocalizacaoVeiculoUF)
                 .HasMaxLength(2)
                 .IsUnicode(false)
                 .IsFixedLength()
                 .HasColumnName("uf");
 
-            builder.Property(e => e.VeiculoUf)
+            builder.Property(e => e.VeiculoUF)
                 .HasMaxLength(2)
                 .IsUnicode(false)
                 .IsFixedLength();
+
+            //builder.HasOne(d => d.MarcaModelo).WithMany(p => p.Grvs)
+            //    .HasForeignKey(d => d.MarcaModeloId)
+            //    .OnDelete(DeleteBehavior.NoAction);
 
             builder.HasOne(d => d.UsuarioCadastro).WithMany(p => p.UsuarioCadastroGrvs)
                 .HasForeignKey(d => d.UsuarioCadastroId)

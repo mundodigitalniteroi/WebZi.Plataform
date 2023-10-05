@@ -40,9 +40,9 @@
 
         public string SacadoCidade { get; set; }
 
-        public string SacadoUf { get; set; }
+        public string SacadoUF { get; set; }
 
-        public string SacadoCep { get; set; }
+        public string SacadoCEP { get; set; }
 
         public string SacadoInstrucoes { get; set; }
     }

@@ -1,10 +1,9 @@
-﻿using WebZi.Plataform.Domain.Models.Cliente;
-using WebZi.Plataform.Domain.Models.Deposito;
-
-namespace WebZi.Plataform.Domain.Views.Localizacao
+﻿namespace WebZi.Plataform.Domain.ViewModel.Localizacao
 {
-    public class ViewEnderecoCompletoModel
+    public class EnderecoViewModel
     {
+        public MensagemViewModel Mensagem { get; set; } = new();
+
         public int CEPId { get; set; }
 
         public int MunicipioId { get; set; }
@@ -16,8 +15,6 @@ namespace WebZi.Plataform.Domain.Views.Localizacao
         public string CEP { get; set; }
 
         public string TipoLogradouro { get; set; }
-
-        public string CodigoLogradouro { get; set; }
 
         public string Logradouro { get; set; }
 
@@ -42,11 +39,5 @@ namespace WebZi.Plataform.Domain.Views.Localizacao
         public string Regiao { get; set; }
 
         public string RegiaoNome { get; set; }
-
-        public string FlagNormalizado { get; set; } = "N";
-
-        public virtual ICollection<ClienteModel> Clientes { get; set; }
-
-        public virtual ICollection<DepositoModel> Depositos { get; set; }
     }
 }

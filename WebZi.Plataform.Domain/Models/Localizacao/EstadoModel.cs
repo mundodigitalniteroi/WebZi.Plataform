@@ -6,7 +6,7 @@ namespace WebZi.Plataform.Domain.Models.Localizacao
     {
         public byte EstadoId { get; set; }
 
-        public string Uf { get; set; }
+        public string UF { get; set; }
 
         public string PaisNumcode { get; set; }
 

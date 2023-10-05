@@ -97,7 +97,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             CalculoDiarias.DataHoraOntem = new DateTime(CalculoDiarias.DataHoraOntem.Year, CalculoDiarias.DataHoraOntem.Month, CalculoDiarias.DataHoraOntem.Day, 23, 59, 59);
 
             CalculoDiarias.Feriados = new FeriadoService(_context)
-                .SelecionarDatasFeriados(CalculoDiarias.Uf, CalculoDiarias.MunicipioId, CalculoDiarias.DataHoraInicialParaCalculo.Date.Year, CalculoDiarias.DataHoraDiaria.Date.AddDays(10).Year);
+                .SelecionarDatasFeriados(CalculoDiarias.UF, CalculoDiarias.MunicipioId, CalculoDiarias.DataHoraInicialParaCalculo.Date.Year, CalculoDiarias.DataHoraDiaria.Date.AddDays(10).Year);
 
             CalculoDiarias.QuantidadeDiariasPagas = QuantidadeDiariasPagas(CalculoDiarias);
 
@@ -219,7 +219,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
         private CalculoDiariasModel SelecionarLocalizacaoDeposito(CalculoDiariasModel CalculoDiarias)
         {
             DepositoModel Deposito = _context.Deposito
-                .Include(i => i.CEP)
+                .Include(i => i.Endereco)
                 .ThenInclude(t => t.Municipio)
                 .Where(w => w.DepositoId == CalculoDiarias.DepositoId)
                 .AsNoTracking()
@@ -227,9 +227,9 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             if (Deposito != null)
             {
-                CalculoDiarias.Uf = Deposito.CEP.Municipio.Uf;
+                CalculoDiarias.UF = Deposito.Endereco.UF;
 
-                CalculoDiarias.MunicipioId = Deposito.CEP.Municipio.MunicipioId;
+                CalculoDiarias.MunicipioId = Deposito.Endereco.MunicipioId;
             }
 
             return CalculoDiarias;

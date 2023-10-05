@@ -16,7 +16,7 @@ namespace WebZi.Plataform.Data.Mappings.Cliente
                 .HasColumnName("id_cliente")
                 .ValueGeneratedOnAdd();
 
-            builder.Property(e => e.Cnpj)
+            builder.Property(e => e.CNPJ)
                 .IsRequired()
                 .HasMaxLength(14)
                 .IsUnicode(false)
@@ -32,7 +32,7 @@ namespace WebZi.Plataform.Data.Mappings.Cliente
                 .IsUnicode(false)
                 .HasColumnName("codigo_sap");
 
-            builder.Property(e => e.Complemento)
+            builder.Property(e => e.ComplementoEndereco)
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("complemento");
@@ -159,7 +159,7 @@ namespace WebZi.Plataform.Data.Mappings.Cliente
 
             builder.Property(e => e.BairroId).HasColumnName("id_bairro");
 
-            builder.Property(e => e.CepId).HasColumnName("id_cep");
+            builder.Property(e => e.CEPId).HasColumnName("id_cep");
 
             builder.Property(e => e.EmpresaId).HasColumnName("id_empresa");
 
@@ -201,7 +201,7 @@ namespace WebZi.Plataform.Data.Mappings.Cliente
                 .IsUnicode(false)
                 .HasColumnName("nome");
 
-            builder.Property(e => e.Numero)
+            builder.Property(e => e.NumeroEndereco)
                 .HasMaxLength(15)
                 .IsUnicode(false)
                 .HasColumnName("numero");
@@ -209,6 +209,10 @@ namespace WebZi.Plataform.Data.Mappings.Cliente
             builder.Property(e => e.PixChave)
                 .HasMaxLength(100)
                 .IsUnicode(false);
+
+            builder.HasOne(d => d.Endereco).WithMany(p => p.Clientes)
+                .HasForeignKey(d => d.CEPId)
+                .OnDelete(DeleteBehavior.NoAction);
         }
     }
 }

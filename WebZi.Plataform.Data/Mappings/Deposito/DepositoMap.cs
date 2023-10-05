@@ -16,7 +16,7 @@ namespace WebZi.Plataform.Data.Mappings.Deposito
                 .HasColumnName("id_deposito")
                 .ValueGeneratedOnAdd();
 
-            builder.Property(e => e.Complemento)
+            builder.Property(e => e.ComplementoEndereco)
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("complemento");
@@ -79,7 +79,7 @@ namespace WebZi.Plataform.Data.Mappings.Deposito
             builder.Property(e => e.BairroId)
                 .HasColumnName("id_bairro");
 
-            builder.Property(e => e.CepId)
+            builder.Property(e => e.CEPId)
                 .HasColumnName("id_cep");
 
             builder.Property(e => e.EmpresaId)
@@ -112,7 +112,7 @@ namespace WebZi.Plataform.Data.Mappings.Deposito
                 .IsUnicode(false)
                 .HasColumnName("longitude");
 
-            builder.Property(e => e.Numero)
+            builder.Property(e => e.NumeroEndereco)
                 .HasMaxLength(15)
                 .IsUnicode(false)
                 .HasColumnName("numero");
@@ -121,6 +121,10 @@ namespace WebZi.Plataform.Data.Mappings.Deposito
                 .HasMaxLength(20)
                 .IsUnicode(false)
                 .HasColumnName("telefone_mob");
+
+            builder.HasOne(d => d.Endereco).WithMany(p => p.Depositos)
+                .HasForeignKey(d => d.CEPId)
+                .OnDelete(DeleteBehavior.NoAction);
         }
     }
 }

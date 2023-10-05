@@ -31,7 +31,7 @@ namespace WebZi.Plataform.Domain.Models.GRV
 
         // public virtual ICollection<TbDepAgente> TbDepAgentes { get; set; } = new List<TbDepAgente>();
 
-        public virtual ICollection<GrvModel> Grvs { get; set; }
+        // public virtual GrvModel Grv { get; set; }
 
         // public virtual ICollection<TbDepSolicitacaoReboqueGrv> TbDepSolicitacaoReboqueGrvs { get; set; } = new List<TbDepSolicitacaoReboqueGrv>();
     }

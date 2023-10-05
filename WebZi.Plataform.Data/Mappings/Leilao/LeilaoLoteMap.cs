@@ -301,7 +301,7 @@ namespace WebZi.Plataform.Data.Mappings.LeilaoLote
                 .IsUnicode(false)
                 .HasColumnName("trava_eletrica");
             
-            builder.Property(e => e.Uf)
+            builder.Property(e => e.UF)
                 .HasMaxLength(2)
                 .IsUnicode(false)
                 .HasColumnName("uf");

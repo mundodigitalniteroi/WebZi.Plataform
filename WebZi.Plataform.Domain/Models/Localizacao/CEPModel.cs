@@ -2,7 +2,7 @@
 {
     public class CEPModel
     {
-        public int CepId { get; set; }
+        public int CEPId { get; set; }
 
         public int MunicipioId { get; set; }
 
@@ -10,7 +10,7 @@
 
         public byte? TipoLogradouroId { get; set; }
 
-        public string Cep { get; set; }
+        public string CEP { get; set; }
 
         public string Logradouro { get; set; }
 

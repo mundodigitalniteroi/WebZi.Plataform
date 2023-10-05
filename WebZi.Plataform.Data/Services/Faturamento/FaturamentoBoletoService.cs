@@ -62,12 +62,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             if (erros.Count > 0)
             {
-                ResultView.Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.BadRequest;
-
-                foreach (string erro in erros)
-                {
-                    ResultView.Mensagem.AvisosImpeditivos.Add(erro);
-                }
+                ResultView.Mensagem = MensagemViewHelper.GetBadRequest(erros);
 
                 return ResultView;
             }
@@ -192,12 +187,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             if (erros.Count > 0)
             {
-                ResultView.Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.BadRequest;
-
-                foreach (string erro in erros)
-                {
-                    ResultView.Mensagem.AvisosImpeditivos.Add(erro);
-                }
+                ResultView.Mensagem = MensagemViewHelper.GetBadRequest(erros);
 
                 return ResultView;
             }
@@ -294,7 +284,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
                 sacado_bairro = ViewBoleto.SacadoBairro,
 
-                sacado_cep = ViewBoleto.SacadoCep,
+                sacado_cep = ViewBoleto.SacadoCEP,
 
                 sacado_cidade = ViewBoleto.SacadoCidade,
 
@@ -304,7 +294,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
                 sacado_nome = StringHelper.Normalize(ViewBoleto.SacadoNome ?? string.Empty),
 
-                sacado_uf = ViewBoleto.SacadoUf,
+                sacado_uf = ViewBoleto.SacadoUF,
 
                 valor_boleto = ViewBoleto.ValorBoleto,
 

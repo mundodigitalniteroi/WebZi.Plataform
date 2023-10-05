@@ -80,18 +80,27 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("GetDateTimeById")]
-        public async Task<ActionResult<DateTime>> GetDateTimeById(int DepositoId)
+        public ActionResult<DateTime> GetDateTimeById(int DepositoId)
         {
             if (DepositoId <= 0)
             {
                 return BadRequest("Identificador do Depósito inválido");
             }
 
-            DateTime result = await _provider
-                .GetService<DepositoService>()
-                .GetDataHoraPorDeposito(DepositoId);
+            try
+            {
+                DateTime result = _provider
+                    .GetService<DepositoService>()
+                    .GetDataHoraPorDeposito(DepositoId);
 
-            return Ok(result);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                var Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)Mensagem.HtmlStatusCode, Mensagem);
+            }
         }
     }
 }

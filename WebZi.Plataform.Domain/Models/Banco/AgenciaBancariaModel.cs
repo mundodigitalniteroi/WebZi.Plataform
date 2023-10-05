@@ -1,4 +1,5 @@
-﻿using WebZi.Plataform.Domain.Models.Usuario;
+﻿using WebZi.Plataform.Domain.Models.Cliente;
+using WebZi.Plataform.Domain.Models.Usuario;
 
 namespace WebZi.Plataform.Domain.Models.Banco
 {
@@ -34,7 +35,7 @@ namespace WebZi.Plataform.Domain.Models.Banco
 
         public virtual BancoModel Banco { get; set; }
 
-        //public virtual ICollection<Cliente> Clientes { get; set; } = new List<Cliente>();
+        public virtual ICollection<ClienteModel> Clientes { get; set; }
 
         //public virtual ICollection<ContasTemporaria> ContasTemporaria { get; set; } = new List<ContasTemporaria>();
     }

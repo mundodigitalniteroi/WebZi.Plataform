@@ -5,22 +5,6 @@ namespace WebZi.Plataform.CrossCutting.Strings
 {
     public abstract class StringHelper
     {
-        public static bool IsNumber(string input)
-        {
-            input = input.Trim();
-
-            if (string.IsNullOrWhiteSpace(input))
-            {
-                return false;
-            }
-            else if (!Regex.IsMatch(input, @"^\d+$"))
-            {
-                return false;
-            }
-
-            return true;
-        }
-
         public static string Left(string input, int lengh)
         {
             return input[..lengh];
@@ -54,6 +38,37 @@ namespace WebZi.Plataform.CrossCutting.Strings
             }
 
             return input.PadLeft(lenght, Caracter);
+        }
+        
+        public static string TitleCase(string input)
+        {
+            if (input == null)
+            {
+                return input;
+            }
+
+            string[] words = input.Split(' ');
+
+            for (int i = 0; i < words.Length; i++)
+            {
+                if (words[i].Length == 0)
+                {
+                    continue;
+                }
+
+                char firstChar = char.ToUpper(words[i][0]);
+
+                string rest = string.Empty;
+
+                if (words[i].Length > 1)
+                {
+                    rest = words[i].Substring(1).ToLower();
+                }
+
+                words[i] = firstChar + rest;
+            }
+
+            return string.Join(" ", words);
         }
     }
 }

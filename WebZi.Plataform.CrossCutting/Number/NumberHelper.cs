@@ -1,4 +1,6 @@
-﻿namespace WebZi.Plataform.CrossCutting.Number
+﻿using System.Text.RegularExpressions;
+
+namespace WebZi.Plataform.CrossCutting.Number
 {
     public abstract class NumberHelper
     {
@@ -16,6 +18,22 @@
             percentage = (100 - percentage) / 100;
 
             return value * percentage;
+        }
+
+        public static bool IsNumber(string input)
+        {
+            input = input.Trim();
+
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                return false;
+            }
+            else if (!Regex.IsMatch(input, @"^\d+$"))
+            {
+                return false;
+            }
+
+            return true;
         }
     }
 }

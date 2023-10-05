@@ -9,8 +9,20 @@ namespace WebZi.Plataform.Data.Mappings.Localizacao.View
         public void Configure(EntityTypeBuilder<ViewEnderecoCompletoModel> builder)
         {
             builder
-                .HasNoKey()
-                .ToView("vw_glo_consultar_endereco_completo");
+                .ToView("vw_glo_consultar_endereco_completo", "dbo")
+                .HasKey(t => t.CEPId);
+
+            builder.Property(e => e.CEPId)
+                .HasColumnName("id_cep");
+
+            builder.Property(e => e.BairroId)
+                .HasColumnName("id_bairro");
+
+            builder.Property(e => e.MunicipioId)
+                .HasColumnName("id_municipio");
+
+            builder.Property(e => e.TipoLogradouroId)
+                .HasColumnName("id_tipo_logradouro");
 
             builder.Property(e => e.Bairro)
                 .HasMaxLength(150)
@@ -22,7 +34,7 @@ namespace WebZi.Plataform.Data.Mappings.Localizacao.View
                 .IsUnicode(false)
                 .HasColumnName("bairro_ptbr");
             
-            builder.Property(e => e.Cep)
+            builder.Property(e => e.CEP)
                 .IsRequired()
                 .HasMaxLength(8)
                 .IsUnicode(false)
@@ -63,18 +75,6 @@ namespace WebZi.Plataform.Data.Mappings.Localizacao.View
                 .IsUnicode(false)
                 .IsFixedLength()
                 .HasColumnName("flag_sanitizado");
-            
-            builder.Property(e => e.BairroId)
-                .HasColumnName("id_bairro");
-            
-            builder.Property(e => e.CepId)
-                .HasColumnName("id_cep");
-            
-            builder.Property(e => e.MunicipioId)
-                .HasColumnName("id_municipio");
-            
-            builder.Property(e => e.TipoLogradouroId)
-                .HasColumnName("id_tipo_logradouro");
             
             builder.Property(e => e.Logradouro)
                 .HasMaxLength(150)

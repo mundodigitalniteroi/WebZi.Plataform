@@ -18,24 +18,24 @@ namespace WebZi.Plataform.API.Controllers
             _provider = provider;
         }
 
-        [HttpGet("ListarTipoMeioCobranca")]
-        public ActionResult<TipoMeioCobrancaViewModel> ListarTipoMeioCobranca()
+        [HttpGet("AlterarFormaPagamento")]
+        public ActionResult<MensagemViewModel> AlterarFormaPagamento(int FaturamentoId, byte NovaFormaPagamentoId, int UsuarioId)
         {
-            TipoMeioCobrancaViewModel ResultView = new();
+            MensagemViewModel ResultView;
 
             try
             {
                 ResultView = _provider
-                    .GetService<TipoMeioCobrancaService>()
-                    .List();
+                    .GetService<FaturamentoService>()
+                    .AlterarFormaPagamento(FaturamentoId, NovaFormaPagamentoId, UsuarioId);
 
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
             }
             catch (Exception ex)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+                ResultView = MensagemViewHelper.GetInternalServerError(ex);
 
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
             }
         }
 
@@ -49,6 +49,48 @@ namespace WebZi.Plataform.API.Controllers
                 ResultView = _provider
                     .GetService<FaturamentoBoletoService>()
                     .Create(FaturamentoId, UsuarioId);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
+
+        [HttpGet("GerarGuiaPagamentoReboqueEstadia")]
+        public ActionResult<GerarPagamentoReboqueEstadiaViewModel> GerarGuiaPagamentoReboqueEstadia(int FaturamentoId, int UsuarioId)
+        {
+            GerarPagamentoReboqueEstadiaViewModel ResultView = new();
+
+            try
+            {
+                ResultView = _provider
+                    .GetService<FaturamentoGuiaPagamentoReboqueEstadiaService>()
+                    .GetGuiaPagamentoReboqueEstadia(FaturamentoId, UsuarioId);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
+
+        [HttpGet("ListarTipoMeioCobranca")]
+        public ActionResult<TipoMeioCobrancaViewModel> ListarTipoMeioCobranca()
+        {
+            TipoMeioCobrancaViewModel ResultView = new();
+
+            try
+            {
+                ResultView = _provider
+                    .GetService<TipoMeioCobrancaService>()
+                    .List();
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -78,27 +120,6 @@ namespace WebZi.Plataform.API.Controllers
                 ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-        }
-
-        [HttpGet("AlterarFormaPagamento")]
-        public ActionResult<MensagemViewModel> AlterarFormaPagamento(int FaturamentoId, byte NovaFormaPagamentoId, int UsuarioId)
-        {
-            MensagemViewModel ResultView;
-
-            try
-            {
-                ResultView = _provider
-                    .GetService<FaturamentoService>()
-                    .AlterarFormaPagamento(FaturamentoId, NovaFormaPagamentoId, UsuarioId);
-
-                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
-            }
-            catch (Exception ex)
-            {
-                ResultView = MensagemViewHelper.GetInternalServerError(ex);
-
-                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
             }
         }
     }

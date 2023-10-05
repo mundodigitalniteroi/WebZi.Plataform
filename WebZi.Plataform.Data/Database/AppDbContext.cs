@@ -1,5 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Castle.Components.DictionaryAdapter.Xml;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Data.Common;
 using System.Reflection;
 using WebZi.Plataform.CrossCutting.Configuration;
 using WebZi.Plataform.Domain.Models.Atendimento;
@@ -9,6 +11,7 @@ using WebZi.Plataform.Domain.Models.Cliente;
 using WebZi.Plataform.Domain.Models.ClienteDeposito;
 using WebZi.Plataform.Domain.Models.Deposito;
 using WebZi.Plataform.Domain.Models.Documento;
+using WebZi.Plataform.Domain.Models.Empresa;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.Faturamento.Boleto;
 using WebZi.Plataform.Domain.Models.GRV;
@@ -22,6 +25,7 @@ using WebZi.Plataform.Domain.Models.Veiculo;
 using WebZi.Plataform.Domain.Views.Faturamento;
 using WebZi.Plataform.Domain.Views.Localizacao;
 using WebZi.Plataform.Domain.Views.Usuario;
+using Z.EntityFramework.Extensions;
 
 namespace WebZi.Plataform.Data.Database
 {
@@ -44,6 +48,23 @@ namespace WebZi.Plataform.Data.Database
                 .LogTo(Console.WriteLine, LogLevel.Information) // Exibe as queries executadas no BD pelo EF
                 .EnableSensitiveDataLogging(); // Configura o EF para exibir os dados
         }
+        
+        //public override void ReaderExecuting(DbCommand command, DbCommandInterceptionContext<DbDataReader> interceptionContext)
+        //{
+        //    // Here, I can just replace the CommandText on the DbCommand - but remember I
+        //    // want to only do it on MyContext
+        //    var context = contexts.FirstOrDefault() as AppDbContext;
+            
+        //    if (context != null)
+        //    {
+        //        command.CommandText = command.CommandText
+        //            .Replace("[dbo].[ReplaceMe1]", "[Database1].[dbo].[Customers]")
+        //            .Replace("[dbo].[ReplaceMe2]", "[Database2].[dbo].[Addresses]")
+        //            .Replace("[dbo].[ReplaceMe3]", "[Database3].[dbo].[Sales]");
+        //    }
+
+        //    base.ReaderExecuting(command, interceptionContext);
+        //}
 
         public void SetUserContextInfo(int UsuarioId)
         {
@@ -73,7 +94,11 @@ namespace WebZi.Plataform.Data.Database
 
         public DbSet<ConfiguracaoModel> Configuracao { get; set; }
 
+        public DbSet<CorModel> Cor { get; set; }
+
         public DbSet<DepositoModel> Deposito { get; set; }
+
+        public DbSet<EmpresaModel> Empresa { get; set; }
 
         public DbSet<EnquadramentoInfracaoModel> EnquadramentoInfracoe { get; set; }
 
@@ -117,6 +142,8 @@ namespace WebZi.Plataform.Data.Database
 
         public DbSet<LacreModel> Lacre { get; set; }
 
+        public DbSet<MarcaModeloModel> MarcaModelo { get; set; }
+
         public DbSet<ReboqueModel> Reboque { get; set; }
 
         public DbSet<ReboquistaModel> Reboquista { get; set; }
@@ -152,7 +179,7 @@ namespace WebZi.Plataform.Data.Database
 
         public DbSet<ViewFaturamentoServicoAssociadoVeiculoModel> ViewFaturamentoServicoAssociadoVeiculo { get; set; }
 
-        public DbSet<ViewEnderecoCompletoModel> ViewEnderecoCompleto { get; set; }
+        public DbSet<ViewEnderecoCompletoModel> Endereco { get; set; }
         #endregion Views
 
         #region Leilão

@@ -10,13 +10,13 @@ namespace WebZi.Plataform.Data.Mappings.Localizacao
         {
             builder
                 .ToTable("tb_glo_loc_cep", "dbo")
-                .HasKey(e => e.CepId);
+                .HasKey(e => e.CEPId);
 
-            builder.Property(e => e.CepId)
+            builder.Property(e => e.CEPId)
                 .HasColumnName("id_cep")
                 .ValueGeneratedOnAdd();
 
-            builder.Property(e => e.Cep)
+            builder.Property(e => e.CEP)
                 .IsRequired()
                 .HasMaxLength(8)
                 .IsUnicode(false)
