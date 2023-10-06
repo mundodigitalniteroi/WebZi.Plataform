@@ -4,6 +4,7 @@ using WebZi.Plataform.Data.Services.GRV;
 using WebZi.Plataform.Data.Services.Servico;
 using WebZi.Plataform.Domain.Services.GRV;
 using WebZi.Plataform.Domain.ViewModel.GRV;
+using WebZi.Plataform.Domain.ViewModel.GRV.Pesquisa;
 using WebZi.Plataform.Domain.ViewModel.Servico;
 
 namespace WebZi.Plataform.API.Controllers
@@ -17,6 +18,27 @@ namespace WebZi.Plataform.API.Controllers
         public GrvController(IServiceProvider provider)
         {
             _provider = provider;
+        }
+
+        [HttpPost("Pesquisar")]
+        public async Task<ActionResult<GrvViewModelList>> Pesquisar(GrvPesquisaInputViewModel ParametrosPesquisa)
+        {
+            GrvPesquisaResultViewModelList ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<GrvService>()
+                    .Pesquisar(ParametrosPesquisa);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
         }
 
         [HttpGet("SelecionarPorId")]

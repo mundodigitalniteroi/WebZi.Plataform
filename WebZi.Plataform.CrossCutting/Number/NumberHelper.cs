@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Globalization;
+using System.Text.RegularExpressions;
 
 namespace WebZi.Plataform.CrossCutting.Number
 {
@@ -20,15 +21,25 @@ namespace WebZi.Plataform.CrossCutting.Number
             return value * percentage;
         }
 
-        public static bool IsNumber(string input)
+        public static string FormatMoney(decimal value)
         {
-            input = input.Trim();
+            return value.ToString("C2", CultureInfo.GetCultureInfo("pt-br"));
+        }
 
-            if (string.IsNullOrWhiteSpace(input))
+        public static string FormatNumber(decimal value)
+        {
+            return value.ToString("0.00", CultureInfo.GetCultureInfo("pt-br"));
+        }
+
+        public static bool IsNumber(string value)
+        {
+            value = value.Trim();
+
+            if (string.IsNullOrWhiteSpace(value))
             {
                 return false;
             }
-            else if (!Regex.IsMatch(input, @"^\d+$"))
+            else if (!Regex.IsMatch(value, @"^\d+$"))
             {
                 return false;
             }

@@ -142,7 +142,7 @@ namespace WebZi.Plataform.Data.Services.Localizacao
                 Endereco.Append(" - " + input.Municipio);
             }
 
-            Endereco.Append(" - " + input.UF);
+            Endereco.Append("/" + input.UF);
 
 
             return Endereco.ToString();

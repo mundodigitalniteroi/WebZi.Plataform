@@ -40,12 +40,6 @@
 
         public string QualificacaoResponsavel { get; set; }
 
-        public int id_tarifa_tipo_veiculo { get; set; }
-
-        public int id_tarifa { get; set; }
-
-        public string tarifas_descricao { get; set; }
-
         public string AtendimentoResponsavelNome { get; set; }
 
         public string AtendimentoResponsavelDocumento { get; set; }
@@ -80,39 +74,35 @@
 
 
         // FATURAMENTO
-        public string faturamento_numero_identificacao { get; set; }
+        public string FaturamentoNumeroIdentificacao { get; set; }
 
-        public string faturamento_data_vencimento { get; set; }
-
-        public string faturamento_prazo_retirar_veiculo { get; set; }
+        public string FaturamentoDataVencimento { get; set; }
 
 
-        public int faturamento_quantidade_estadias { get; set; }
+        public int QuantidadeEstadias { get; set; }
 
-        public string faturamento_quantidade_quilometragem { get; set; }
-
-
-        public string faturamento_preco_estadias { get; set; }
-
-        public string faturamento_preco_reboque { get; set; }
-
-        public string faturamento_preco_quilometragem { get; set; }
+        public string QuantidadeQuilometragem { get; set; }
 
 
-        public string faturamento_valor_faturado { get; set; }
+        public string PrecoEstadias { get; set; }
 
-        public string faturamento_valor_pagamento { get; set; }
+        public string PrecoReboque { get; set; }
 
-        public string faturamento_valor_faturado_estadias { get; set; }
-
-        public string faturamento_valor_faturado_reboque { get; set; }
-
-        public string faturamento_valor_faturado_quilometragem { get; set; }
-
-        public string faturamento_valor_outros_servicos { get; set; }
+        public string PrecoQuilometragem { get; set; }
 
 
-        public string faturamento_valor_a_pagar { get; set; }
+        public string FaturamentoValorFaturado { get; set; }
+
+        public string ValorFaturadoEstadias { get; set; }
+
+        public string ValorFaturadoReboque { get; set; }
+
+        public string ValorFaturadoQuilometragem { get; set; }
+
+        public string ValorDemaisServicos { get; set; }
+
+
+        public string FaturamentoValorPagar { get; set; }
 
 
         public string DataHoraAtual { get; set; }
@@ -123,7 +113,7 @@
 
         public DateTime DataHoraAtualDateTime { get; set; }
 
-        public string rodape { get; set; }
+        public string Rodape { get; set; }
 
         public byte[] Logo { get; set; }
 

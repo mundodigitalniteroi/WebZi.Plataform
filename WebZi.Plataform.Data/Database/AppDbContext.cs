@@ -17,6 +17,7 @@ using WebZi.Plataform.Domain.Models.Faturamento.Boleto;
 using WebZi.Plataform.Domain.Models.GRV;
 using WebZi.Plataform.Domain.Models.Leilao;
 using WebZi.Plataform.Domain.Models.Localizacao;
+using WebZi.Plataform.Domain.Models.Pessoa;
 using WebZi.Plataform.Domain.Models.Pessoa.Documento;
 using WebZi.Plataform.Domain.Models.Servico;
 using WebZi.Plataform.Domain.Models.Sistema;
@@ -48,13 +49,13 @@ namespace WebZi.Plataform.Data.Database
                 .LogTo(Console.WriteLine, LogLevel.Information) // Exibe as queries executadas no BD pelo EF
                 .EnableSensitiveDataLogging(); // Configura o EF para exibir os dados
         }
-        
+
         //public override void ReaderExecuting(DbCommand command, DbCommandInterceptionContext<DbDataReader> interceptionContext)
         //{
         //    // Here, I can just replace the CommandText on the DbCommand - but remember I
         //    // want to only do it on MyContext
         //    var context = contexts.FirstOrDefault() as AppDbContext;
-            
+
         //    if (context != null)
         //    {
         //        command.CommandText = command.CommandText
@@ -93,6 +94,8 @@ namespace WebZi.Plataform.Data.Database
         public DbSet<ClienteDepositoModel> ClienteDeposito { get; set; }
 
         public DbSet<ConfiguracaoModel> Configuracao { get; set; }
+
+        public DbSet<ConfiguracaoLogoModel> ConfiguracaoLogoModel { get; set; }
 
         public DbSet<CorModel> Cor { get; set; }
 
@@ -208,6 +211,8 @@ namespace WebZi.Plataform.Data.Database
         public DbSet<MunicipioModel> Municipio { get; set; }
 
         public DbSet<PaisModel> Pais { get; set; }
+
+        public DbSet<PessoaModel> Pessoa { get; set; }
 
         public DbSet<RegiaoModel> Regiao { get; set; }
 

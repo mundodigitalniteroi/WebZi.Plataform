@@ -21,10 +21,6 @@ namespace WebZi.Plataform.Data.Mappings.Atendimento
 
             builder.Property(e => e.Foto)
                 .HasColumnName("foto");
-
-            //builder.HasOne(d => d.AtendimentoId).with.WithMany(p => p.TbDepAtendimentoFotosResponsaveis)
-            //    .HasForeignKey(d => d.IdAtendimento)
-            //    .OnDelete(DeleteBehavior.NoAction);
         }
     }
 }

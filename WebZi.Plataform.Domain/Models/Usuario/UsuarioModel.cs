@@ -1,5 +1,6 @@
 ﻿using WebZi.Plataform.Domain.Models.Atendimento;
 using WebZi.Plataform.Domain.Models.GRV;
+using WebZi.Plataform.Domain.Models.Pessoa;
 using WebZi.Plataform.Domain.Models.Veiculo;
 
 namespace WebZi.Plataform.Domain.Models.Usuario
@@ -51,6 +52,8 @@ namespace WebZi.Plataform.Domain.Models.Usuario
         public byte? TipoOperadorId { get; set; }
 
         public int? FuncionarioId { get; set; }
+
+        public virtual PessoaModel Pessoa { get; set; }
 
         public virtual ICollection<GrvModel> UsuarioCadastroGrvs { get; set; }
 
