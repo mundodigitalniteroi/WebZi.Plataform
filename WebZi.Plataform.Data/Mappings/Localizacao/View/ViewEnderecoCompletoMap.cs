@@ -93,14 +93,14 @@ namespace WebZi.Plataform.Data.Mappings.Localizacao.View
                 .IsUnicode(false)
                 .HasColumnName("municipio_ptbr");
             
-            builder.Property(e => e.Regiao)
+            builder.Property(e => e.SiglaRegiao)
                 .IsRequired()
                 .HasMaxLength(2)
                 .IsUnicode(false)
                 .IsFixedLength()
                 .HasColumnName("regiao");
             
-            builder.Property(e => e.RegiaoNome)
+            builder.Property(e => e.Regiao)
                 .IsRequired()
                 .HasMaxLength(15)
                 .IsUnicode(false)

@@ -272,7 +272,9 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 .Include(i => i.Cliente)
                 .Include(i => i.Deposito)
                 .Include(i => i.StatusOperacao)
-                .Where(w => (w.DataHoraRemocao.Date >= GrvPesquisa.DataInicialRemocao.Value.Date && w.DataHoraRemocao.Date <= GrvPesquisa.DataFinalRemocao.Value.Date) &&
+                .Include(i => i.UsuarioClienteDepositoGrvModel)
+                .Where(w => w.UsuarioClienteDepositoGrvModel.UsuarioId == GrvPesquisa.UsuarioId && w.UsuarioClienteDepositoGrvModel.FaturamentoProdutoId == w.FaturamentoProdutoId &&
+                            (w.DataHoraRemocao.Date >= GrvPesquisa.DataInicialRemocao.Value.Date && w.DataHoraRemocao.Date <= GrvPesquisa.DataFinalRemocao.Value.Date) &&
                             (GrvPesquisa.ListaCodigoProduto.Count > 0 ? GrvPesquisa.ListaCodigoProduto.Contains(w.FaturamentoProdutoId) : true) &&
                             (GrvPesquisa.ListaStatusOperacao.Count > 0 ? GrvPesquisa.ListaStatusOperacao.Contains(w.StatusOperacaoId) : true) &&
                             (!string.IsNullOrWhiteSpace(GrvPesquisa.NumeroProcesso) ? w.NumeroFormularioGrv == GrvPesquisa.NumeroProcesso : true) &&
@@ -281,8 +283,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
                             (!string.IsNullOrWhiteSpace(GrvPesquisa.FlagVeiculoNaoIdentificado) ? w.FlagVeiculoNaoIdentificado == GrvPesquisa.FlagVeiculoNaoIdentificado : true) &&
                             (GrvPesquisa.ClienteId > 0 ? w.ClienteId == GrvPesquisa.ClienteId : true) &&
                             (GrvPesquisa.DepositoId > 0 ? w.DepositoId == GrvPesquisa.DepositoId : true))
-                .Take(100)
                 .OrderBy(o => Convert.ToInt64(o.NumeroFormularioGrv))
+                .Take(100)
                 .AsNoTracking()
                 .ToListAsync();
 

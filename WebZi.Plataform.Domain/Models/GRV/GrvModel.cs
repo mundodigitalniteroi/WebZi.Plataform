@@ -7,6 +7,7 @@ using WebZi.Plataform.Domain.Models.Servico;
 using WebZi.Plataform.Domain.Models.Sistema;
 using WebZi.Plataform.Domain.Models.Usuario;
 using WebZi.Plataform.Domain.Models.Veiculo;
+using WebZi.Plataform.Domain.Views.Usuario;
 
 namespace WebZi.Plataform.Domain.Models.GRV
 {
@@ -158,39 +159,41 @@ namespace WebZi.Plataform.Domain.Models.GRV
 
         public string FlagTransbordo { get; set; } = "N";
 
-        public virtual FaturamentoProdutoModel FaturamentoProduto { get; set; }
-
+        public virtual AtendimentoModel Atendimento { get; set; }
+        
         public virtual AutoridadeResponsavelModel AutoridadeResponsavel { get; set; }
-
+        
         public virtual ClienteModel Cliente { get; set; }
-
+        
+        public virtual CondutorModel Condutor { get; set; }
+        
+        public virtual CorModel Cor { get; set; }
+        
         public virtual DepositoModel Deposito { get; set; }
-
+        
+        public virtual FaturamentoProdutoModel FaturamentoProduto { get; set; }
+        
+        public virtual MarcaModeloModel MarcaModelo { get; set; }
+        
         public virtual MotivoApreensaoModel MotivoApreensao { get; set; }
-
+        
         public virtual ReboqueModel Reboque { get; set; }
-
+        
         public virtual ReboquistaModel Reboquista { get; set; }
-
+        
         public virtual StatusOperacaoModel StatusOperacao { get; set; }
-
+        
         public virtual TipoVeiculoModel TipoVeiculo { get; set; }
-
-        public virtual UsuarioModel UsuarioCadastro { get; set; }
-
+        
         public virtual UsuarioModel UsuarioAlteracao { get; set; }
-
+        
+        public virtual UsuarioModel UsuarioCadastro { get; set; }
+        
+        public virtual UsuarioModel UsuarioCadastroGgv { get; set; }
+        
         public virtual UsuarioModel UsuarioEdicao { get; set; }
 
-        public virtual UsuarioModel UsuarioCadastroGgv { get; set; }
-
-        public virtual AtendimentoModel Atendimento { get; set; }
-
-        public virtual CondutorModel Condutor { get; set; }
-
-        public virtual CorModel Cor { get; set; }
-
-        public virtual MarcaModeloModel MarcaModelo { get; set; }
+        public virtual ViewUsuarioClienteDepositoGrvModel UsuarioClienteDepositoGrvModel { get; set; }
 
         public virtual ICollection<EnquadramentoInfracaoModel> EnquadramentosInfracoes { get; set; }
 

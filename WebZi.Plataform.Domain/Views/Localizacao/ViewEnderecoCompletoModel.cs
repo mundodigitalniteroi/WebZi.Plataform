@@ -39,9 +39,9 @@ namespace WebZi.Plataform.Domain.Views.Localizacao
 
         public string UF { get; set; }
 
-        public string Regiao { get; set; }
+        public string SiglaRegiao { get; set; }
 
-        public string RegiaoNome { get; set; }
+        public string Regiao { get; set; }
 
         public string FlagNormalizado { get; set; } = "N";
 

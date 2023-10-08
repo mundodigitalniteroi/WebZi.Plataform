@@ -173,6 +173,7 @@ namespace WebZi.Plataform.Data.Database
         #endregion Depósito Público
 
         #region Views
+        public DbSet<ViewUsuarioClienteDepositoGrvModel> ViewUsuarioClienteDepositoGrv { get; set; }
 
         public DbSet<ViewUsuarioClienteDepositoModel> ViewUsuarioClienteDeposito { get; set; }
 

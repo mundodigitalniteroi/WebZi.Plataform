@@ -36,8 +36,8 @@
 
         public string UF { get; set; }
 
-        public string Regiao { get; set; }
+        public string SiglaRegiao { get; set; }
 
-        public string RegiaoNome { get; set; }
+        public string Regiao { get; set; }
     }
 }

@@ -1,5 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using System.Reflection.Emit;
+using System.Reflection.Metadata;
 using WebZi.Plataform.Domain.Models.GRV;
 
 namespace WebZi.Plataform.Data.Mappings.GRV
@@ -391,6 +393,9 @@ namespace WebZi.Plataform.Data.Mappings.GRV
 
             builder.HasOne(d => d.FaturamentoProduto).WithMany(p => p.Grvs)
                 .HasForeignKey(d => d.FaturamentoProdutoId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+            builder.HasOne(d => d.UsuarioClienteDepositoGrvModel).WithOne(p => p.Grv)
                 .OnDelete(DeleteBehavior.NoAction);
         }
     }
