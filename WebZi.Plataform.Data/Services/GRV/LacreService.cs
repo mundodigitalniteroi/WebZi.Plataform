@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
+using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.GRV;
 using WebZi.Plataform.Domain.Services.GRV;
 using WebZi.Plataform.Domain.Services.Usuario;
@@ -26,12 +27,12 @@ namespace WebZi.Plataform.Data.Services.GRV
 
             if (GrvId <= 0)
             {
-                erros.Add("Identificador do GRV inválido");
+                erros.Add(MensagemPadrao.IdentificadorGrvInvalido);
             }
 
             if (UsuarioId <= 0)
             {
-                erros.Add("Identificador do GRV inválido");
+                erros.Add(MensagemPadrao.IdentificadorGrvInvalido);
             }
 
             LacreViewModelList ResultView = new();
@@ -57,13 +58,13 @@ namespace WebZi.Plataform.Data.Services.GRV
 
             if (Grv == null)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound("GRV não encontrado");
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadrao.GrvNaoEncontrado);
 
                 return ResultView;
             }
             else if (!new GrvService(_context, _mapper).UserCanAccessGrv(Grv, UsuarioId))
             {
-                ResultView.Mensagem = MensagemViewHelper.GetUnauthorized("Usuário sem permissão de acesso ao GRV");
+                ResultView.Mensagem = MensagemViewHelper.GetUnauthorized(MensagemPadrao.UsuarioSemPermissaoAcessoGrv);
 
                 return ResultView;
             }

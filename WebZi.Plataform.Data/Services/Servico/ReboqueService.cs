@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using WebZi.Plataform.CrossCutting.Veiculo;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
+using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Cliente;
 using WebZi.Plataform.Domain.Models.Deposito;
 using WebZi.Plataform.Domain.Models.Servico;
@@ -57,7 +58,7 @@ namespace WebZi.Plataform.Data.Services.Servico
 
             if (string.IsNullOrWhiteSpace(Placa))
             {
-                erros.Add("Primeiro é necessário informar a Placa");
+                erros.Add("Informe a Placa");
             }
             else if (!VeiculoHelper.IsPlaca(Placa))
             {
@@ -66,12 +67,12 @@ namespace WebZi.Plataform.Data.Services.Servico
 
             if (ClienteId <= 0)
             {
-                erros.Add("Identificador do Cliente inválido");
+                erros.Add(MensagemPadrao.IdentificadorClienteInvalido);
             }
 
             if (DepositoId <= 0)
             {
-                erros.Add("Identificador do Depósito inválido");
+                erros.Add(MensagemPadrao.IdentificadorDepositoInvalido);
             }
 
             ReboqueViewModelList ResultView = new();
@@ -90,7 +91,7 @@ namespace WebZi.Plataform.Data.Services.Servico
 
             if (Cliente == null)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound("Cliente não encontrado");
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadrao.ClienteNaoEncontrado);
 
                 return ResultView;
             }
@@ -102,7 +103,7 @@ namespace WebZi.Plataform.Data.Services.Servico
 
             if (Cliente == null)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound("Depósito não encontrado");
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadrao.DepositoNaoEncontrado);
 
                 return ResultView;
             }
@@ -132,12 +133,12 @@ namespace WebZi.Plataform.Data.Services.Servico
 
             if (ClienteId <= 0)
             {
-                erros.Add("Identificador do Cliente inválido");
+                erros.Add(MensagemPadrao.IdentificadorClienteInvalido);
             }
 
             if (DepositoId <= 0)
             {
-                erros.Add("Identificador do Depósito inválido");
+                erros.Add(MensagemPadrao.IdentificadorDepositoInvalido);
             }
 
             ReboqueViewModelList ResultView = new();
@@ -156,7 +157,7 @@ namespace WebZi.Plataform.Data.Services.Servico
 
             if (Cliente == null)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound("Cliente não encontrado");
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadrao.ClienteNaoEncontrado);
 
                 return ResultView;
             }
@@ -168,7 +169,7 @@ namespace WebZi.Plataform.Data.Services.Servico
 
             if (Cliente == null)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound("Depósito não encontrado");
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadrao.DepositoNaoEncontrado);
 
                 return ResultView;
             }

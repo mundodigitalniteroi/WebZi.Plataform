@@ -1,4 +1,5 @@
 ﻿using WebZi.Plataform.Domain.Models.Banco;
+using WebZi.Plataform.Domain.Models.Banco.PIX.Dinamico;
 using WebZi.Plataform.Domain.Models.Empresa;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.GRV;
@@ -98,6 +99,8 @@ namespace WebZi.Plataform.Domain.Models.Cliente
 
         public virtual ViewEnderecoCompletoModel Endereco { get; set; }
 
+        public virtual PixDinamicoConfiguracaoModel PixDinamicoConfiguracao { get; set; }
+
         public virtual TipoMeioCobrancaModel TipoMeioCobranca { get; set; }
 
         public virtual UsuarioModel UsuarioCadastro { get; set; }
@@ -128,6 +131,6 @@ namespace WebZi.Plataform.Domain.Models.Cliente
 
         //public virtual ICollection<Gtv> GtvIdClienteRecebimento { get; set; }
 
-        //public virtual ICollection<PixDinamicoConfiguracao> PixDinamicoConfiguracaos { get; set; }
+        
     }
 }

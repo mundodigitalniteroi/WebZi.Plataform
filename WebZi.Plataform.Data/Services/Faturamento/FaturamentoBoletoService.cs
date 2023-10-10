@@ -9,6 +9,7 @@ using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Bucket;
 using WebZi.Plataform.Data.WsBoleto;
+using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Bucket;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.Faturamento.Boleto;
@@ -52,12 +53,12 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             if (FaturamentoId <= 0)
             {
-                erros.Add("Identificador do Faturamento inválido");
+                erros.Add(MensagemPadrao.IdentificadorFaturamentoInvalido);
             }
 
             if (UsuarioId <= 0)
             {
-                erros.Add("Identificador do Usuário inválido");
+                erros.Add(MensagemPadrao.IdentificadorUsuarioInvalido);
             }
 
             if (erros.Count > 0)
@@ -105,20 +106,32 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             {
                 if (!new GrvService(_context, _mapper).UserCanAccessGrv(Faturamento.Atendimento.Grv, UsuarioId))
                 {
-                    ResultView.Mensagem = MensagemViewHelper.GetUnauthorized("Usuário sem permissão de acesso ao GRV ou GRV inexistente");
+                    ResultView.Mensagem = MensagemViewHelper.GetUnauthorized(MensagemPadrao.UsuarioSemPermissaoAcessoGrv);
 
                     return ResultView;
                 }
             }
             else if (Faturamento == null)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound("Faturamento não encontrado");
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadrao.FaturamentoNaoEncontrado);
 
                 return ResultView;
             }
             else if (Faturamento.TipoMeioCobranca.Alias != "BOL" && Faturamento.TipoMeioCobranca.Alias != "BOLESP")
             {
                 ResultView.Mensagem = MensagemViewHelper.GetBadRequest($"Esse Faturamento está cadastrado em outra Forma de Pagamento: {Faturamento.TipoMeioCobranca.Descricao}");
+
+                return ResultView;
+            }
+            else if (Faturamento.Status == "C")
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetBadRequest($"Esse Faturamento foi cancelado");
+
+                return ResultView;
+            }
+            else if (Faturamento.Status == "P")
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetBadRequest($"Esse Faturamento já foi pago");
 
                 return ResultView;
             }
@@ -177,12 +190,12 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             if (FaturamentoId <= 0)
             {
-                erros.Add("Identificador do Faturamento inválido");
+                erros.Add(MensagemPadrao.IdentificadorFaturamentoInvalido);
             }
 
             if (UsuarioId <= 0)
             {
-                erros.Add("Identificador do Usuário inválido");
+                erros.Add(MensagemPadrao.IdentificadorUsuarioInvalido);
             }
 
             if (erros.Count > 0)
@@ -211,14 +224,14 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             {
                 if (!new GrvService(_context, _mapper).UserCanAccessGrv(Faturamento.Atendimento.Grv, UsuarioId))
                 {
-                    ResultView.Mensagem = MensagemViewHelper.GetUnauthorized("Usuário sem permissão de acesso ao GRV ou GRV inexistente");
+                    ResultView.Mensagem = MensagemViewHelper.GetUnauthorized(MensagemPadrao.UsuarioSemPermissaoAcessoGrv);
 
                     return ResultView;
                 }
             }
             else if (Faturamento == null)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound("Faturamento não encontrado");
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadrao.FaturamentoNaoEncontrado);
 
                 return ResultView;
             }
@@ -229,22 +242,21 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
                 return ResultView;
             }
-            else if (Faturamento.ValorFaturado <= 0)
+            else if (Faturamento.Status == "C")
             {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest($"Esse Faturamento está com o valor zerado");
+                ResultView.Mensagem = MensagemViewHelper.GetBadRequest($"Esse Faturamento foi cancelado");
 
                 return ResultView;
             }
-
-            TipoMeioCobrancaModel TipoMeioCobranca = _context.TipoMeioCobranca
-                .Where(w => w.TipoMeioCobrancaId == Faturamento.TipoMeioCobrancaId)
-                .AsNoTracking()
-                .FirstOrDefault();
-
-            if (TipoMeioCobranca.Alias != "BOL" && TipoMeioCobranca.Alias != "BOLESP")
+            else if (Faturamento.Status == "P")
             {
-                ResultView.Mensagem = MensagemViewHelper
-                    .GetBadRequest($"Esse Faturamento está cadastrado com outra Forma de Pagamento: {TipoMeioCobranca.Descricao}");
+                ResultView.Mensagem = MensagemViewHelper.GetBadRequest($"Esse Faturamento já foi pago");
+
+                return ResultView;
+            }
+            else if (Faturamento.ValorFaturado <= 0)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetBadRequest($"Esse Faturamento não possui valor");
 
                 return ResultView;
             }
@@ -310,7 +322,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 DataVencimento = DateTimeHelper.GetDateTime(ViewBoleto.Vencimento[..10], "dd/MM/yyyy")
             };
 
-            if (TipoMeioCobranca.Alias.Equals("BOLESP"))
+            if (Faturamento.TipoMeioCobranca.Alias.Equals("BOLESP"))
             {
                 List<FaturamentoRegraModel> FaturamentoRegras = _context.FaturamentoRegra
                     .Include(i => i.FaturamentoRegraTipo)

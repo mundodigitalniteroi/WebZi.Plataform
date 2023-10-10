@@ -8,7 +8,6 @@
 
   <ItemGroup>
     <Folder Include="Models\Liberacao\" />
-    <Folder Include="Models\Banco\PIX\" />
     <Folder Include="Models\Banco\Nfe\" />
     <Folder Include="Models\Pagamento\" />
   </ItemGroup>

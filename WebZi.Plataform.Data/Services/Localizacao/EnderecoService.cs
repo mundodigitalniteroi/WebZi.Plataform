@@ -56,7 +56,7 @@ namespace WebZi.Plataform.Data.Services.Localizacao
 
             if (string.IsNullOrWhiteSpace(CEP))
             {
-                erros.Add("Primeiro é necessário informar o CEP");
+                erros.Add("Informe o CEP");
             }
             else if (!LocalizacaoHelper.IsCEP(CEP))
             {

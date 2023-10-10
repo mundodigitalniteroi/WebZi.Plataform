@@ -4,6 +4,7 @@ using WebZi.Plataform.CrossCutting.Date;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Localizacao;
+using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Deposito;
 using WebZi.Plataform.Domain.Models.Localizacao;
 using WebZi.Plataform.Domain.Models.Sistema;
@@ -29,7 +30,7 @@ namespace WebZi.Plataform.Data.Services.Deposito
 
             if (DepositoId <= 0)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest("Identificador do Depósito inválido");
+                ResultView.Mensagem = MensagemViewHelper.GetBadRequest(MensagemPadrao.IdentificadorDepositoInvalido);
 
                 return ResultView;
             }
@@ -59,7 +60,7 @@ namespace WebZi.Plataform.Data.Services.Deposito
 
             if (string.IsNullOrWhiteSpace(Name))
             {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest("Primeiro é necessário informar o Nome do Depósito");
+                ResultView.Mensagem = MensagemViewHelper.GetBadRequest("Informe o Nome do Depósito");
 
                 return ResultView;
             }

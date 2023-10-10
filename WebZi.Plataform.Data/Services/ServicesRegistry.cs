@@ -2,6 +2,7 @@
 using WebZi.Plataform.Data.Services.Atendimento;
 using WebZi.Plataform.Data.Services.AutoMapper;
 using WebZi.Plataform.Data.Services.Banco;
+using WebZi.Plataform.Data.Services.Banco.PIX;
 using WebZi.Plataform.Data.Services.Bucket;
 using WebZi.Plataform.Data.Services.Cliente;
 using WebZi.Plataform.Data.Services.Deposito;
@@ -22,51 +23,53 @@ namespace WebZi.Plataform.Data.Services
         {
             services.AddAutoMapper(typeof(AutoMapperService));
 
-            services.AddScoped<AgenciaBancariaService, AgenciaBancariaService>();
+            services.AddScoped<AgenciaBancariaService>();
 
-            services.AddScoped<AtendimentoService, AtendimentoService>();
+            services.AddScoped<AtendimentoService>();
 
-            services.AddScoped<AutoridadeResponsavelService, AutoridadeResponsavelService>();
+            services.AddScoped<AutoridadeResponsavelService>();
 
-            services.AddScoped<BancoService, BancoService>();
+            services.AddScoped<BancoService>();
 
-            services.AddScoped<BucketArquivoService, BucketArquivoService>();
+            services.AddScoped<BucketArquivoService >();
 
-            services.AddScoped<CalculoDiariasService, CalculoDiariasService>();
+            services.AddScoped<CalculoDiariasService>();
 
             services.AddScoped<EnderecoService>();
 
-            services.AddScoped<ClienteService, ClienteService>();
+            services.AddScoped<ClienteService>();
 
-            services.AddScoped<ConfiguracaoService, ConfiguracaoService>();
+            services.AddScoped<ConfiguracaoService>();
 
-            services.AddScoped<DepositoService, DepositoService>();
+            services.AddScoped<DepositoService>();
 
-            services.AddScoped<FaturamentoBoletoService, FaturamentoBoletoService>();
+            services.AddScoped<FaturamentoBoletoService>();
 
-            services.AddScoped<FaturamentoGuiaPagamentoReboqueEstadiaService, FaturamentoGuiaPagamentoReboqueEstadiaService>();
+            services.AddScoped<FaturamentoGuiaPagamentoReboqueEstadiaService>();
 
-            services.AddScoped<FaturamentoService, FaturamentoService>();
+            services.AddScoped<FaturamentoService>();
 
-            services.AddScoped<FeriadoService, FeriadoService>();
+            services.AddScoped<FeriadoService>();
 
-            services.AddScoped<GrvService, GrvService>();
+            services.AddScoped<GrvService>();
 
-            services.AddScoped<LacreService, LacreService>();
+            services.AddScoped<LacreService>();
 
-            services.AddScoped<LeilaoService, LeilaoService>();
+            services.AddScoped<LeilaoService>();
 
-            services.AddScoped<QualificacaoResponsavelService, QualificacaoResponsavelService>();
+            services.AddScoped<PixEstaticoService>();
 
-            services.AddScoped<ReboqueService, ReboqueService>();
+            services.AddScoped<QualificacaoResponsavelService>();
 
-            services.AddScoped<ReboquistaService, ReboquistaService>();
+            services.AddScoped<ReboqueService>();
 
-            services.AddScoped<StatusOperacaoService, StatusOperacaoService>();
+            services.AddScoped<ReboquistaService>();
 
-            services.AddScoped<TipoMeioCobrancaService, TipoMeioCobrancaService>();
+            services.AddScoped<StatusOperacaoService>();
 
-            services.AddScoped<UsuarioService, UsuarioService>();
+            services.AddScoped<TipoMeioCobrancaService>();
+
+            services.AddScoped<UsuarioService>();
         }
     }
 }

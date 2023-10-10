@@ -25,7 +25,7 @@ namespace WebZi.Plataform.Data.Services.GRV
 
             if (string.IsNullOrWhiteSpace(UF))
             {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest("Primeiro é necessário informar a Unidade Federativa");
+                ResultView.Mensagem = MensagemViewHelper.GetBadRequest("Informe a Unidade Federativa");
 
                 return ResultView;
             }

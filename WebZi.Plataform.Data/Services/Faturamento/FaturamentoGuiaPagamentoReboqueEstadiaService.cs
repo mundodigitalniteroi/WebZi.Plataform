@@ -9,6 +9,7 @@ using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Bucket;
 using WebZi.Plataform.Data.Services.Deposito;
 using WebZi.Plataform.Data.Services.Localizacao;
+using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Atendimento;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.GRV;
@@ -39,12 +40,12 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             if (FaturamentoId <= 0)
             {
-                erros.Add("Identificador do Faturamento inválido");
+                erros.Add(MensagemPadrao.IdentificadorFaturamentoInvalido);
             }
 
             if (UsuarioId <= 0)
             {
-                erros.Add("Identificador do Usuário inválido");
+                erros.Add(MensagemPadrao.IdentificadorUsuarioInvalido);
             }
 
             if (erros.Count > 0)
@@ -73,7 +74,25 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             if (Faturamento == null)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound("Faturamento não encontrado");
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadrao.FaturamentoNaoEncontrado);
+
+                return ResultView;
+            }
+            else if (Faturamento.Status == "C")
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetBadRequest("Esse Faturamento foi cancelado");
+
+                return ResultView;
+            }
+            else if (Faturamento.Status == "P")
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetBadRequest("Esse Faturamento já foi pago");
+
+                return ResultView;
+            }
+            else if (Faturamento.TipoMeioCobranca.DocumentoImpressao == null || !Faturamento.TipoMeioCobranca.DocumentoImpressao.Equals("GuiaPagamentoEstadiaReboque.rdlc"))
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetBadRequest($"Esse Faturamento está cadastrado em uma Forma de Pagamento que não está configurado para imprimir a Guia de Pagamento de Reboque e Estadia: {Faturamento.TipoMeioCobranca.Descricao}");
 
                 return ResultView;
             }
@@ -100,16 +119,15 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 .AsNoTracking()
                 .FirstOrDefault();
 
-            if (!new GrvService(_context, _mapper).UserCanAccessGrv(Grv, UsuarioId))
+            if (Grv == null)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetUnauthorized("Usuário sem permissão de acesso ao GRV ou GRV inexistente");
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadrao.GrvNaoEncontrado);
 
                 return ResultView;
             }
-
-            if (Faturamento.TipoMeioCobranca.DocumentoImpressao == null || !Faturamento.TipoMeioCobranca.DocumentoImpressao.Equals("GuiaPagamentoEstadiaReboque.rdlc"))
+            else if (!new GrvService(_context, _mapper).UserCanAccessGrv(Grv, UsuarioId))
             {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest($"Esse Faturamento está cadastrado em uma Forma de Pagamento que não está configurado para imprimir a Guia de Pagamento de Reboque e Estadia: {Faturamento.TipoMeioCobranca.Descricao}");
+                ResultView.Mensagem = MensagemViewHelper.GetUnauthorized(MensagemPadrao.UsuarioSemPermissaoAcessoGrv);
 
                 return ResultView;
             }

@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
+using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Cliente;
 using WebZi.Plataform.Domain.ViewModel.Cliente;
 
@@ -24,7 +25,7 @@ namespace WebZi.Plataform.Data.Services.Cliente
 
             if (ClienteId <= 0)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest("Identificador do Cliente inválido");
+                ResultView.Mensagem = MensagemViewHelper.GetBadRequest(MensagemPadrao.IdentificadorClienteInvalido);
 
                 return ResultView;
             }
@@ -54,7 +55,7 @@ namespace WebZi.Plataform.Data.Services.Cliente
 
             if (string.IsNullOrWhiteSpace(Name))
             {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest("Primeiro é necessário informar o Nome do Cliente");
+                ResultView.Mensagem = MensagemViewHelper.GetBadRequest("Informe o Nome do Cliente");
 
                 return ResultView;
             }

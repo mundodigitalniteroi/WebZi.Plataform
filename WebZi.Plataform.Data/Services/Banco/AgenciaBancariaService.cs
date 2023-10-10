@@ -61,7 +61,7 @@ namespace WebZi.Plataform.Data.Services.Banco
 
             if (string.IsNullOrWhiteSpace(Agencia))
             {
-                erros.Add("Primeiro é necessário informar o Código da Agência");
+                erros.Add("Informe o Código da Agência");
             }
 
             if (erros.Count > 0)

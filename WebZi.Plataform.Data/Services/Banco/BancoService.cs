@@ -55,7 +55,7 @@ namespace WebZi.Plataform.Data.Services.Banco
 
             if (string.IsNullOrWhiteSpace(Name))
             {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest("Primeiro é necessário informar o Nome do Banco");
+                ResultView.Mensagem = MensagemViewHelper.GetBadRequest("Informe o Nome do Banco");
 
                 return ResultView;
             }

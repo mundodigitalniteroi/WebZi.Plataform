@@ -6,6 +6,8 @@ using System.Reflection;
 using WebZi.Plataform.CrossCutting.Configuration;
 using WebZi.Plataform.Domain.Models.Atendimento;
 using WebZi.Plataform.Domain.Models.Banco;
+using WebZi.Plataform.Domain.Models.Banco.PIX;
+using WebZi.Plataform.Domain.Models.Banco.PIX.Dinamico;
 using WebZi.Plataform.Domain.Models.Bucket;
 using WebZi.Plataform.Domain.Models.Cliente;
 using WebZi.Plataform.Domain.Models.ClienteDeposito;
@@ -146,6 +148,20 @@ namespace WebZi.Plataform.Data.Database
         public DbSet<LacreModel> Lacre { get; set; }
 
         public DbSet<MarcaModeloModel> MarcaModelo { get; set; }
+
+        public DbSet<PixModel> Pix { get; set; }
+
+        public DbSet<PixDinamicoModel> PixDinamico { get; set; }
+
+        public DbSet<PixDinamicoConfiguracaoModel> PixDinamicoConfiguracao { get; set; }
+
+        public DbSet<PixDinamicoConsultaModel> PixDinamicoConsulta { get; set; }
+
+        public DbSet<PixDinamicoSenhaConfirmacaoTranferenciaModel> PixDinamicoSenhaConfirmacaoTranferencia { get; set; }
+
+        public DbSet<PixDinamicoTipoStatusGeracaoModel> PixDinamicoTipoStatusGeracao { get; set; }
+
+        public DbSet<PixDinamicoUrlModel> PixDinamicoUrl { get; set; }
 
         public DbSet<ReboqueModel> Reboque { get; set; }
 

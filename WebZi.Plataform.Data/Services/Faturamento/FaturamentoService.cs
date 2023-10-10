@@ -8,6 +8,7 @@ using WebZi.Plataform.CrossCutting.Strings;
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
+using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Services.Usuario;
 using WebZi.Plataform.Domain.ViewModel;
@@ -739,41 +740,35 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             return dataVencimento;
         }
 
-        public MensagemViewModel AlterarFormaPagamento(int FaturamentoId, byte FormaPagamentoId, int UsuarioId)
+        public MensagemViewModel AlterarFormaPagamento(int FaturamentoId, byte TipoMeioCobrancaId, int UsuarioId)
         {
-            MensagemViewModel Mensagem = new();
+            MensagemViewModel ResultView = new();
 
             List<string> erros = new();
 
             if (FaturamentoId <= 0)
             {
-                erros.Add("Identificador do Faturamento inválido");
+                erros.Add(MensagemPadrao.IdentificadorFaturamentoInvalido);
             }
 
-            if (FormaPagamentoId <= 0)
+            if (TipoMeioCobrancaId <= 0)
             {
-                erros.Add("Identificador da Forma de Pagamento inválido");
+                erros.Add(MensagemPadrao.IdentificadorFormaPagamentoInvalido);
             }
 
             if (UsuarioId <= 0)
             {
-                erros.Add("Identificador do Usuário inválido");
+                erros.Add(MensagemPadrao.IdentificadorUsuarioInvalido);
             }
 
             if (erros.Count > 0)
             {
-                Mensagem = MensagemViewHelper.GetBadRequest(erros);
-
-                return Mensagem;
+                return MensagemViewHelper.GetBadRequest(erros);
             }
 
             if (!new UsuarioService(_context).IsUserActive(UsuarioId))
             {
-                Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.Unauthorized;
-
-                Mensagem.AvisosImpeditivos.Add("Usuário sem permissão de acesso ou inexistente");
-
-                return Mensagem;
+                return MensagemViewHelper.GetUnauthorized();
             }
 
             FaturamentoModel Faturamento = _context.Faturamento
@@ -784,57 +779,36 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             if (Faturamento == null)
             {
-                Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.NotFound;
-
-                Mensagem.AvisosImpeditivos.Add("Faturamento não encontrado");
-
-                return Mensagem;
+                return MensagemViewHelper.GetNotFound(MensagemPadrao.FaturamentoNaoEncontrado);
             }
             else if (Faturamento.Status == "C")
             {
-                Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.BadRequest;
-
-                Mensagem.AvisosImpeditivos.Add("Esse Faturamento está cancelado");
-
-                return Mensagem;
+                return MensagemViewHelper.GetBadRequest("Esse Faturamento foi cancelado");
             }
             else if (Faturamento.Status == "P")
             {
-                Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.BadRequest;
-
-                Mensagem.AvisosImpeditivos.Add("Esse Faturamento já foi pago");
-
-                return Mensagem;
+                return MensagemViewHelper.GetBadRequest("Esse Faturamento já foi pago");
             }
-
-            if (Faturamento.TipoMeioCobrancaId == FormaPagamentoId)
+            else if (Faturamento.TipoMeioCobrancaId == TipoMeioCobrancaId)
             {
-                Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.BadRequest;
-
-                Mensagem.AvisosImpeditivos.Add("Forma de Pagamento já selecionado");
-
-                return Mensagem;
+                return MensagemViewHelper.GetBadRequest("Forma de Pagamento já selecionado");
             }
 
             TipoMeioCobrancaModel TipoMeioCobranca = _context.TipoMeioCobranca
-                .Where(w => w.TipoMeioCobrancaId == FormaPagamentoId)
+                .Where(w => w.TipoMeioCobrancaId == TipoMeioCobrancaId)
                 .AsNoTracking()
                 .FirstOrDefault();
 
             if (TipoMeioCobranca == null)
             {
-                Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.NotFound;
-
-                Mensagem.AvisosImpeditivos.Add("Forma de Pagamento inexistente");
-
-                return Mensagem;
+                return MensagemViewHelper.GetBadRequest($"Forma de Pagamento inexistente");
             }
 
             FaturamentoModel FaturamentoUpdate = _context.Faturamento
                 .Where(w => w.FaturamentoId == FaturamentoId)
                 .FirstOrDefault();
 
-            FaturamentoUpdate.TipoMeioCobrancaId = FormaPagamentoId;
+            FaturamentoUpdate.TipoMeioCobrancaId = TipoMeioCobrancaId;
 
             using IDbContextTransaction transaction = _context.Database.BeginTransaction();
             
@@ -856,23 +830,10 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             {
                 transaction.Rollback();
 
-                Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.InternalServerError;
-
-                Mensagem.Erros.Add(ex.Message);
-
-                if (ex.InnerException != null)
-                {
-                    Mensagem.Erros.Add(ex.InnerException.Message);
-                }
-            }
-            finally
-            {
-                Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.Ok;
-
-                Mensagem.AvisosInformativos.Add("Forma de Pagamento alterada com sucesso");
+                return MensagemViewHelper.GetInternalServerError("Ocorreu um erro ao alterar a Forma de Pagamento", ex);
             }
 
-            return Mensagem;
+            return MensagemViewHelper.GetOk("Forma de Pagamento alterado com sucesso");
         }
     }
 }
