@@ -1,4 +1,6 @@
 ﻿using WebZi.Plataform.Domain.Models.Atendimento;
+using WebZi.Plataform.Domain.Models.Banco.PIX;
+using WebZi.Plataform.Domain.Models.Banco.PIX.Dinamico;
 using WebZi.Plataform.Domain.Models.Faturamento.Boleto;
 using WebZi.Plataform.Domain.Models.Usuario;
 
@@ -82,8 +84,8 @@ namespace WebZi.Plataform.Domain.Models.Faturamento
 
         //public virtual ICollection<PixDinamicoSenhaConfirmacaoTranferencium> PixDinamicoSenhaConfirmacaoTranferencia { get; set; }
 
-        //public virtual ICollection<PixDinamico> PixDinamicos { get; set; }
+        public virtual ICollection<PixModel> PixEstaticos { get; set; }
 
-        //public virtual ICollection<Pix> Pixes { get; set; }
+        public virtual ICollection<PixDinamicoModel> PixDinamicos { get; set; }
     }
 }

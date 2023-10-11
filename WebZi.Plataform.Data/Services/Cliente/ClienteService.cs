@@ -25,7 +25,7 @@ namespace WebZi.Plataform.Data.Services.Cliente
 
             if (ClienteId <= 0)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest(MensagemPadrao.IdentificadorClienteInvalido);
+                ResultView.Mensagem = MensagemViewHelper.GetBadRequest(MensagemPadraoEnum.IdentificadorClienteInvalido);
 
                 return ResultView;
             }

@@ -3,6 +3,7 @@ using System.Data;
 using WebZi.Plataform.CrossCutting.Date;
 using WebZi.Plataform.CrossCutting.Strings;
 using WebZi.Plataform.Data.Database;
+using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Deposito;
 using WebZi.Plataform.Domain.Models.Faturamento;
 
@@ -101,7 +102,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             CalculoDiarias.QuantidadeDiariasPagas = QuantidadeDiariasPagas(CalculoDiarias);
 
-            CalculoDiarias.CobrarTodasDiarias = RegrasFaturamento?.Count > 0 && RegrasFaturamento.Any(w => w.FaturamentoRegraTipo.Codigo == "CALCDIASNAOCOBRADAS");
+            CalculoDiarias.CobrarTodasDiarias = RegrasFaturamento?.Count > 0 &&
+                RegrasFaturamento.Any(w => w.FaturamentoRegraTipo.Codigo == FaturamentoRegraTipoEnum.CalculoDiasNaoCobradas);
 
             if (CalculoDiarias.MaximoDiariasParaCobranca > 0 &&
                 CalculoDiarias.QuantidadeDiariasPagas > 0 &&
@@ -311,7 +313,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             if (FaturamentosRegras?.Count > 0)
             {
                 FaturamentoRegraModel FaturamentoRegra = FaturamentosRegras
-                    .Find(s => s.FaturamentoRegraTipo.Codigo == "HRLIBDIAUTIL");
+                    .Find(s => s.FaturamentoRegraTipo.Codigo == FaturamentoRegraTipoEnum.HoraLiberacaoPrimeiroDiaUtil);
 
                 if (FaturamentoRegra != null)
                 {
@@ -358,7 +360,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             if (FaturamentoRegras?.Count > 0)
             {
                 FaturamentoRegraModel FaturamentoRegra = FaturamentoRegras
-                    .Find(s => s.FaturamentoRegraTipo.Codigo == "MAXDIASFATADICIONAL");
+                    .Find(s => s.FaturamentoRegraTipo.Codigo == FaturamentoRegraTipoEnum.MaximoDiariasCobrancaFaturaAdicional);
 
                 if (FaturamentoRegra != null)
                 {
@@ -380,7 +382,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 CalculoDiarias.FlagPrimeiroFaturamento == "S" &&
                 FaturamentoRegras?.Count > 0 &&
                 dias > 1 &&
-                FaturamentoRegras.Any(w => w.FaturamentoRegraTipo.Codigo == "NAOCOBRARDIARIAATUAL") &&
+                FaturamentoRegras.Any(w => w.FaturamentoRegraTipo.Codigo == FaturamentoRegraTipoEnum.NaoCobrarDiariaDiaAtualQuandoQuantidadeDiariasMaiorQueUm) &&
                 IsDiaUtil(CalculoDiarias.DataHoraFinalParaCalculo.Value, Feriados) &&
                 CalculoDiarias.DataHoraFinalParaCalculo.Value.Hour > CalculoDiarias.DataHoraDiaria.Hour &&
                 (CalculoDiarias.MaximoDiariasParaCobranca > 0 && CalculoDiarias.MaximoDiariasParaCobranca >= totalRealDias))
@@ -396,7 +398,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             if (CalculoDiarias.FlagComboio == "N" &&
                 CalculoDiarias.FlagPrimeiroFaturamento == "S" &&
                 FaturamentoRegras?.Count > 0
-                && FaturamentoRegras.Any(w => w.FaturamentoRegraTipo.Codigo == "NAOCOBRPRIMEIRDIARIA"))
+                && FaturamentoRegras.Any(w => w.FaturamentoRegraTipo.Codigo == FaturamentoRegraTipoEnum.NaoCobrarPrimeiraDiaria))
             {
                 dias--;
             }

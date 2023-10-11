@@ -1,12 +1,10 @@
-﻿using WebZi.Plataform.Domain.Models.Faturamento;
-
-namespace WebZi.Plataform.Domain.Models.Banco.PIX
+﻿namespace WebZi.Plataform.Domain.ViewModel.Banco.PIX
 {
-    public class PixModel
+    public class PixEstaticoGeradoViewModel
     {
-        public int PixId { get; set; }
+        public MensagemViewModel Mensagem { get; set; } = new();
 
-        public int FaturamentoId { get; set; }
+        public int PixId { get; set; }
 
         public string Chave { get; set; }
 
@@ -21,9 +19,5 @@ namespace WebZi.Plataform.Domain.Models.Banco.PIX
         public string QRString { get; set; }
 
         public string QRCode { get; set; }
-
-        public DateTime DataCadastro { get; set; }
-
-        public virtual FaturamentoModel Faturamento { get; set; }
     }
 }

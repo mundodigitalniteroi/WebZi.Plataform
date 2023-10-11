@@ -35,12 +35,12 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (GrvId <= 0)
             {
-                erros.Add(MensagemPadrao.IdentificadorGrvInvalido);
+                erros.Add(MensagemPadraoEnum.IdentificadorGrvInvalido);
             }
 
             if (UsuarioId <= 0)
             {
-                erros.Add(MensagemPadrao.IdentificadorUsuarioInvalido);
+                erros.Add(MensagemPadraoEnum.IdentificadorUsuarioInvalido);
             }
 
             GrvViewModelList ResultView = new();
@@ -59,13 +59,13 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (Grv == null)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadrao.GrvNaoEncontrado);
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadraoEnum.GrvNaoEncontrado);
 
                 return ResultView;
             }
             else if (!new GrvService(_context, _mapper).UserCanAccessGrv(Grv, UsuarioId))
             {
-                ResultView.Mensagem = MensagemViewHelper.GetUnauthorized(MensagemPadrao.UsuarioSemPermissaoAcessoGrv);
+                ResultView.Mensagem = MensagemViewHelper.GetUnauthorized(MensagemPadraoEnum.UsuarioSemPermissaoAcessoGrv);
 
                 return ResultView;
             }
@@ -83,16 +83,16 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (string.IsNullOrWhiteSpace(NumeroFormularioGrv))
             {
-                erros.Add(MensagemPadrao.InformeNumeroProcesso);
+                erros.Add(MensagemPadraoEnum.InformeNumeroProcesso);
             }
             else if (!NumberHelper.IsNumber(NumeroFormularioGrv) || Convert.ToInt64(NumeroFormularioGrv) <= 0)
             {
-                erros.Add(MensagemPadrao.NumeroProcessoInvalido);
+                erros.Add(MensagemPadraoEnum.NumeroProcessoInvalido);
             }
 
             if (ClienteId <= 0)
             {
-                erros.Add(MensagemPadrao.IdentificadorClienteInvalido);
+                erros.Add(MensagemPadraoEnum.IdentificadorClienteInvalido);
             }
 
             if (DepositoId <= 0)
@@ -102,7 +102,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (UsuarioId <= 0)
             {
-                erros.Add(MensagemPadrao.IdentificadorUsuarioInvalido);
+                erros.Add(MensagemPadraoEnum.IdentificadorUsuarioInvalido);
             }
 
             GrvViewModelList ResultView = new();
@@ -121,7 +121,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (Cliente == null)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadrao.ClienteNaoEncontrado);
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadraoEnum.ClienteNaoEncontrado);
 
                 return ResultView;
             }
@@ -133,7 +133,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (Deposito == null)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadrao.DepositoNaoEncontrado);
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadraoEnum.DepositoNaoEncontrado);
 
                 return ResultView;
             }
@@ -145,13 +145,13 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (Grv == null)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadrao.GrvNaoEncontrado);
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadraoEnum.GrvNaoEncontrado);
 
                 return ResultView;
             }
             else if (!new GrvService(_context, _mapper).UserCanAccessGrv(Grv, UsuarioId))
             {
-                ResultView.Mensagem = MensagemViewHelper.GetUnauthorized(MensagemPadrao.UsuarioSemPermissaoAcessoGrv);
+                ResultView.Mensagem = MensagemViewHelper.GetUnauthorized(MensagemPadraoEnum.UsuarioSemPermissaoAcessoGrv);
 
                 return ResultView;
             }
@@ -163,7 +163,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             return ResultView;
         }
 
-        public async Task<GrvPesquisaResultViewModelList> Pesquisar(GrvPesquisaInputViewModel GrvPesquisa)
+        public async Task<GrvPesquisaResultViewModelList> Search(GrvPesquisaInputViewModel GrvPesquisa)
         {
             List<string> erros = new();
 
@@ -204,7 +204,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             if (!string.IsNullOrWhiteSpace(GrvPesquisa.NumeroProcesso) &&
                 (!NumberHelper.IsNumber(GrvPesquisa.NumeroProcesso) || Convert.ToInt64(GrvPesquisa.NumeroProcesso) <= 0))
             {
-                erros.Add(MensagemPadrao.NumeroProcessoInvalido);
+                erros.Add(MensagemPadraoEnum.NumeroProcessoInvalido);
             }
 
             if (!string.IsNullOrWhiteSpace(GrvPesquisa.Placa) && !VeiculoHelper.IsPlaca(GrvPesquisa.Placa))
@@ -219,22 +219,22 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (!string.IsNullOrWhiteSpace(GrvPesquisa.FlagVeiculoNaoIdentificado) && GrvPesquisa.FlagVeiculoNaoIdentificado != "S" && GrvPesquisa.FlagVeiculoNaoIdentificado != "N")
             {
-                erros.Add("Flag do Veículo não identificado, informe \"S\" ou \"N\" (sem aspas)");
+                erros.Add("Flag do Veículo não identificado inválido, informe \"S\" ou \"N\" (sem aspas)");
             }
 
             if (GrvPesquisa.ClienteId < 0)
             {
-                erros.Add(MensagemPadrao.IdentificadorClienteInvalido);
+                erros.Add(MensagemPadraoEnum.IdentificadorClienteInvalido);
             }
 
             if (GrvPesquisa.DepositoId < 0)
             {
-                erros.Add(MensagemPadrao.IdentificadorDepositoInvalido);
+                erros.Add(MensagemPadraoEnum.IdentificadorDepositoInvalido);
             }
 
             if (GrvPesquisa.UsuarioId <= 0)
             {
-                erros.Add(MensagemPadrao.IdentificadorUsuarioInvalido);
+                erros.Add(MensagemPadraoEnum.IdentificadorUsuarioInvalido);
             }
 
             if (!GrvPesquisa.DataInicialRemocao.HasValue)
@@ -250,10 +250,6 @@ namespace WebZi.Plataform.Domain.Services.GRV
             if (GrvPesquisa.DataInicialRemocao.Value.Date > GrvPesquisa.DataFinalRemocao.Value.Date)
             {
                 erros.Add("A Data Inicial não pode ser maior do que a Data Final");
-            }
-            else if (GrvPesquisa.DataFinalRemocao.Value.Date > DateTime.Now.Date)
-            {
-                erros.Add("A Data Final não pode ser maior do que a Data Atual");
             }
             else if ((GrvPesquisa.DataFinalRemocao.Value.Date - GrvPesquisa.DataInicialRemocao.Value.Date).Days > 30)
             {
@@ -291,7 +287,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (Grvs?.Count == 0)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound("A pesquisa não retornou registros");
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound("A pesquisa não retornou registro");
 
                 return ResultView;
             }

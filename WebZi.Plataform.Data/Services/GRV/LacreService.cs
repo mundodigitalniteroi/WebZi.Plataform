@@ -27,12 +27,12 @@ namespace WebZi.Plataform.Data.Services.GRV
 
             if (GrvId <= 0)
             {
-                erros.Add(MensagemPadrao.IdentificadorGrvInvalido);
+                erros.Add(MensagemPadraoEnum.IdentificadorGrvInvalido);
             }
 
             if (UsuarioId <= 0)
             {
-                erros.Add(MensagemPadrao.IdentificadorGrvInvalido);
+                erros.Add(MensagemPadraoEnum.IdentificadorGrvInvalido);
             }
 
             LacreViewModelList ResultView = new();
@@ -58,13 +58,13 @@ namespace WebZi.Plataform.Data.Services.GRV
 
             if (Grv == null)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadrao.GrvNaoEncontrado);
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadraoEnum.GrvNaoEncontrado);
 
                 return ResultView;
             }
             else if (!new GrvService(_context, _mapper).UserCanAccessGrv(Grv, UsuarioId))
             {
-                ResultView.Mensagem = MensagemViewHelper.GetUnauthorized(MensagemPadrao.UsuarioSemPermissaoAcessoGrv);
+                ResultView.Mensagem = MensagemViewHelper.GetUnauthorized(MensagemPadraoEnum.UsuarioSemPermissaoAcessoGrv);
 
                 return ResultView;
             }

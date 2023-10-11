@@ -43,17 +43,15 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             TipoMeioCobrancaViewModel ResultView = new();
 
             List<TipoMeioCobrancaModel> result = _context.TipoMeioCobranca
-                .Where(w => w.FlagAtivo.Equals("S"))
+                .Where(w => w.FlagAtivo == "S")
                 .AsNoTracking()
                 .ToList();
 
             if (result?.Count > 0)
             {
-                result = result
+                ResultView.TiposMeiosCobrancas = result
                     .OrderBy(o => o.Descricao)
                     .ToList();
-
-                ResultView.TiposMeiosCobrancas = result;
 
                 ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
             }

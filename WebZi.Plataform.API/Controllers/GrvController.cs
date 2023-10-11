@@ -29,7 +29,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<GrvService>()
-                    .Pesquisar(ParametrosPesquisa);
+                    .Search(ParametrosPesquisa);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }

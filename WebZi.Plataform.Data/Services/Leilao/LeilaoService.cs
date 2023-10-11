@@ -31,8 +31,8 @@ namespace WebZi.Plataform.Data.Services.Leilao
                 .Include(i => i.Leilao)
                 .Include(i => i.Leilao.LeilaoStatus)
                 .Include(i => i.Grv)
-                .Where(w => w.GrvId.Equals(GrvId))
-                //.OrderByDescending(o => o.Leilao.DataLeilao) // TODO: Ver como converter o campo para DATETIME
+                .Where(w => w.GrvId == GrvId)
+                .OrderByDescending(o => Convert.ToDateTime(o.Leilao.DataLeilao))
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
 

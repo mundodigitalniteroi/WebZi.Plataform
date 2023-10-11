@@ -5,7 +5,6 @@ using System.Data;
 using WebZi.Plataform.CrossCutting.Date;
 using WebZi.Plataform.CrossCutting.Number;
 using WebZi.Plataform.CrossCutting.Strings;
-using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Domain.Enums;
@@ -14,6 +13,7 @@ using WebZi.Plataform.Domain.Services.Usuario;
 using WebZi.Plataform.Domain.ViewModel;
 using WebZi.Plataform.Domain.Views.Faturamento;
 using WebZi.Plataform.Domain.Views.Localizacao;
+using Z.EntityFramework.Plus;
 
 namespace WebZi.Plataform.Data.Services.Faturamento
 {
@@ -346,7 +346,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 }
                 else if (FaturamentoServicoGrv.TipoCobranca == "V")
                 {
-                    if (FaturamentoServicoGrv.FlagPermiteAlteracaoValor.Equals("N") && (FaturamentoServicoGrv.PrecoPadrao > 0) && (FaturamentoServicoGrv.Valor == 0))
+                    if (FaturamentoServicoGrv.FlagPermiteAlteracaoValor == "N" && (FaturamentoServicoGrv.PrecoPadrao > 0) && (FaturamentoServicoGrv.Valor == 0))
                     {
                         FaturamentoServicoGrv.Valor = 1;
                     }
@@ -481,7 +481,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             {
                 return false;
             }
-            else if (FaturamentoServicoGrv.FlagPermiteAlteracaoValor.Equals("S") &&
+            else if (FaturamentoServicoGrv.FlagPermiteAlteracaoValor == "S" &&
                      FaturamentoServicoGrv.Valor <= 0)
             {
                 return false;
@@ -511,7 +511,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 return false;
             }
             else if (FaturamentoServicoGrv.FaturamentoRegraTipoCodigo != null &&
-                     FaturamentoServicoGrv.FaturamentoRegraTipoCodigo.Equals("COBRATARIFABANCARIA") &&
+                     FaturamentoServicoGrv.FaturamentoRegraTipoCodigo == FaturamentoRegraTipoEnum.CobrarTarifaBancaria &&
                      !ParametrosCalculoFaturamento.TipoMeioCobranca.TipoMeioCobrancaId.Equals(1))
             {
                 // Se o serviço tiver a regra "Cobrança de Tarifa Bancária" e se o Tipo do Meio de Cobrança for Boleto
@@ -629,7 +629,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 .Include(i => i.FaturamentoRegraTipo)
                 .Where(w => w.ClienteId == ParametrosCalculoFaturamento.Grv.ClienteId &&
                             w.DepositoId == ParametrosCalculoFaturamento.Grv.DepositoId &&
-                            w.FaturamentoRegraTipo.Codigo == "DESCONTOISS")
+                            w.FaturamentoRegraTipo.Codigo == FaturamentoRegraTipoEnum.DescontoISS)
                 .AsNoTracking()
                 .FirstOrDefault();
 
@@ -645,7 +645,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             foreach (ViewFaturamentoServicoAssociadoVeiculoModel item in ServicosTributados)
             {
-                if (item.FaturamentoRegraTipoCodigo.Equals("DESCONTOISS"))
+                if (item.FaturamentoRegraTipoCodigo == FaturamentoRegraTipoEnum.DescontoISS)
                 {
                     continue;
                 }
@@ -748,17 +748,17 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             if (FaturamentoId <= 0)
             {
-                erros.Add(MensagemPadrao.IdentificadorFaturamentoInvalido);
+                erros.Add(MensagemPadraoEnum.IdentificadorFaturamentoInvalido);
             }
 
             if (TipoMeioCobrancaId <= 0)
             {
-                erros.Add(MensagemPadrao.IdentificadorFormaPagamentoInvalido);
+                erros.Add(MensagemPadraoEnum.IdentificadorFormaPagamentoInvalido);
             }
 
             if (UsuarioId <= 0)
             {
-                erros.Add(MensagemPadrao.IdentificadorUsuarioInvalido);
+                erros.Add(MensagemPadraoEnum.IdentificadorUsuarioInvalido);
             }
 
             if (erros.Count > 0)
@@ -773,13 +773,16 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             FaturamentoModel Faturamento = _context.Faturamento
                 .Include(i => i.TipoMeioCobranca)
+                .Include(i => i.Atendimento)
+                .ThenInclude(t => t.Grv)
+                .ThenInclude(t => t.Cliente)
                 .Where(w => w.FaturamentoId == FaturamentoId)
                 .AsNoTracking()
                 .FirstOrDefault();
 
             if (Faturamento == null)
             {
-                return MensagemViewHelper.GetNotFound(MensagemPadrao.FaturamentoNaoEncontrado);
+                return MensagemViewHelper.GetNotFound(MensagemPadraoEnum.FaturamentoNaoEncontrado);
             }
             else if (Faturamento.Status == "C")
             {
@@ -801,7 +804,17 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             if (TipoMeioCobranca == null)
             {
-                return MensagemViewHelper.GetBadRequest($"Forma de Pagamento inexistente");
+                return MensagemViewHelper.GetBadRequest($"Forma de Pagamento inexistente: {TipoMeioCobrancaId}");
+            }
+            else if (TipoMeioCobranca.Alias == TipoMeioCobrancaAliasEnum.PixEstatico &&
+                     Faturamento.Atendimento.Grv.Cliente.FlagPossuiPixEstatico == "N")
+            {
+                return MensagemViewHelper.GetBadRequest("Este Cliente não está configurado para emitir a Forma de Pagamento PIX Estático");
+            }
+            else if (TipoMeioCobranca.Alias == TipoMeioCobrancaAliasEnum.PixDinamico &&
+                     Faturamento.Atendimento.Grv.Cliente.FlagPossuiPixDinamico == "N")
+            {
+                return MensagemViewHelper.GetBadRequest("Este Cliente não está configurado para emitir a Forma de Pagamento PIX Dinâmico");
             }
 
             FaturamentoModel FaturamentoUpdate = _context.Faturamento
@@ -814,13 +827,9 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             
             try
             {
-                if (TipoMeioCobranca.Alias == "BOL" || TipoMeioCobranca.Alias == "BOLESP")
-                {
-                    new FaturamentoBoletoService(_context, _mapper).Cancelar(FaturamentoId);
-                }
+                ExcluirTipoMeioCobrancaAtual(FaturamentoId, Faturamento.TipoMeioCobranca);
 
-                _context.Faturamento
-                    .Update(FaturamentoUpdate);
+                _context.Faturamento.Update(FaturamentoUpdate);
 
                 _context.SaveChanges();
 
@@ -834,6 +843,28 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             }
 
             return MensagemViewHelper.GetOk("Forma de Pagamento alterado com sucesso");
+        }
+
+        private void ExcluirTipoMeioCobrancaAtual(int FaturamentoId, TipoMeioCobrancaModel TipoMeioCobrancaAtual)
+        {
+            if (TipoMeioCobrancaAtual.Alias == TipoMeioCobrancaAliasEnum.Boleto ||
+                TipoMeioCobrancaAtual.Alias == TipoMeioCobrancaAliasEnum.BoletoEspecial)
+            {
+                new FaturamentoBoletoService(_context, _mapper)
+                    .Cancel(FaturamentoId);
+            }
+            else if (TipoMeioCobrancaAtual.Alias == TipoMeioCobrancaAliasEnum.PixEstatico)
+            {
+                _context.PixEstatico
+                    .Where(w => w.FaturamentoId == FaturamentoId)
+                    .Delete();
+            }
+            else if (TipoMeioCobrancaAtual.Alias == TipoMeioCobrancaAliasEnum.PixDinamico)
+            {
+                _context.PixDinamico
+                    .Where(w => w.FaturamentoId == FaturamentoId)
+                    .Delete();
+            }
         }
     }
 }

@@ -6,8 +6,6 @@
 
         public string SolicitacaoPagador { get; set; }
 
-        public string InfoAdicionais { get; set; }
-
         public PixEstaticoEnvioValorModel Valor { get; set; } = new PixEstaticoEnvioValorModel();
 
         public PixEstaticoEnvioMerchantModel Merchant { get; set; } = new PixEstaticoEnvioMerchantModel();

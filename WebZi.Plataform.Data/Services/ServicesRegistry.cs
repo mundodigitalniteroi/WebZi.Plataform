@@ -57,6 +57,8 @@ namespace WebZi.Plataform.Data.Services
 
             services.AddScoped<LeilaoService>();
 
+            services.AddScoped<PixDinamicoService>();
+
             services.AddScoped<PixEstaticoService>();
 
             services.AddScoped<QualificacaoResponsavelService>();

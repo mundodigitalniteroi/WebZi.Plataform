@@ -1,7 +1,5 @@
-﻿using Castle.Components.DictionaryAdapter.Xml;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Data.Common;
 using System.Reflection;
 using WebZi.Plataform.CrossCutting.Configuration;
 using WebZi.Plataform.Domain.Models.Atendimento;
@@ -28,7 +26,6 @@ using WebZi.Plataform.Domain.Models.Veiculo;
 using WebZi.Plataform.Domain.Views.Faturamento;
 using WebZi.Plataform.Domain.Views.Localizacao;
 using WebZi.Plataform.Domain.Views.Usuario;
-using Z.EntityFramework.Extensions;
 
 namespace WebZi.Plataform.Data.Database
 {
@@ -149,7 +146,7 @@ namespace WebZi.Plataform.Data.Database
 
         public DbSet<MarcaModeloModel> MarcaModelo { get; set; }
 
-        public DbSet<PixModel> Pix { get; set; }
+        public DbSet<PixModel> PixEstatico { get; set; }
 
         public DbSet<PixDinamicoModel> PixDinamico { get; set; }
 

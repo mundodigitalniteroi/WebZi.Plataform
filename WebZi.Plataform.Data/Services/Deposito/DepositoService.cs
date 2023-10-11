@@ -30,7 +30,7 @@ namespace WebZi.Plataform.Data.Services.Deposito
 
             if (DepositoId <= 0)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest(MensagemPadrao.IdentificadorDepositoInvalido);
+                ResultView.Mensagem = MensagemViewHelper.GetBadRequest(MensagemPadraoEnum.IdentificadorDepositoInvalido);
 
                 return ResultView;
             }

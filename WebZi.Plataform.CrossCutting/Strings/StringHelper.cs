@@ -25,6 +25,9 @@ namespace WebZi.Plataform.CrossCutting.Strings
             return input.Substring(index);
         }
 
+        /// <summary>
+        /// Remove acentuações
+        /// </summary>
         public static string Normalize(string input)
         {
             return Regex.Replace(input.Normalize(NormalizationForm.FormD), @"\p{Mn}", string.Empty);

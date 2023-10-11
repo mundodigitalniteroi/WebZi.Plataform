@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using WebZi.Plataform.Data.Helper;
+using WebZi.Plataform.Data.Services.Banco.PIX;
 using WebZi.Plataform.Data.Services.Faturamento;
 using WebZi.Plataform.Domain.ViewModel;
+using WebZi.Plataform.Domain.ViewModel.Banco.PIX;
 using WebZi.Plataform.Domain.ViewModel.Faturamento;
 using WebZi.Plataform.Domain.ViewModel.Generic;
 
@@ -48,6 +50,48 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = _provider
                     .GetService<FaturamentoBoletoService>()
+                    .Create(FaturamentoId, UsuarioId);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
+
+        [HttpGet("GerarPixEstatico")]
+        public ActionResult<PixEstaticoGeradoViewModel> GerarPixEstatico(int FaturamentoId, int UsuarioId)
+        {
+            PixEstaticoGeradoViewModel ResultView = new();
+
+            try
+            {
+                ResultView = _provider
+                    .GetService<PixEstaticoService>()
+                    .Create(FaturamentoId, UsuarioId);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
+
+        [HttpGet("GerarPixDinamico")]
+        public ActionResult<PixEstaticoGeradoViewModel> GerarPixDinamico(int FaturamentoId, int UsuarioId)
+        {
+            PixEstaticoGeradoViewModel ResultView = new();
+
+            try
+            {
+                ResultView = _provider
+                    .GetService<PixDinamicoService>()
                     .Create(FaturamentoId, UsuarioId);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);

@@ -215,6 +215,47 @@ namespace WebZi.Plataform.Data.Helper
             return Mensagem;
         }
 
+        public static MensagemViewModel GetServiceUnavailable(string Message)
+        {
+            return GetServiceUnavailable(Message, null);
+        }
+
+        public static MensagemViewModel GetServiceUnavailable(Exception ex)
+        {
+            return GetServiceUnavailable(string.Empty, ex);
+        }
+
+        public static MensagemViewModel GetServiceUnavailable(string Message, Exception ex)
+        {
+            MensagemViewModel Mensagem = new()
+            {
+                HtmlStatusCode = HtmlStatusCodeEnum.ServiceUnavailable,
+
+                QuantidadeRegistros = 0
+            };
+
+            if (!string.IsNullOrWhiteSpace(Message))
+            {
+                Mensagem.Erros.Add(Message);
+            }
+            else
+            {
+                Mensagem.Erros.Add("O Serviço requisitado está inoperante ou indisponível");
+            }
+
+            if (ex != null)
+            {
+                Mensagem.Erros.Add(ex.Message);
+
+                if (ex.InnerException != null)
+                {
+                    Mensagem.Erros.Add(ex.InnerException.Message);
+                }
+            }
+
+            return Mensagem;
+        }
+
         public static MensagemViewModel GetNewMessage(string Message, MensagemTipoAvisoEnum TipoAviso, HtmlStatusCodeEnum HtmlStatusCode)
         {
             return GetNewMessage(new List<string>() { Message }, TipoAviso, HtmlStatusCode);

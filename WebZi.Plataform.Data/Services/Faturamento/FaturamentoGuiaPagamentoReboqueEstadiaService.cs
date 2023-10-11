@@ -40,12 +40,12 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             if (FaturamentoId <= 0)
             {
-                erros.Add(MensagemPadrao.IdentificadorFaturamentoInvalido);
+                erros.Add(MensagemPadraoEnum.IdentificadorFaturamentoInvalido);
             }
 
             if (UsuarioId <= 0)
             {
-                erros.Add(MensagemPadrao.IdentificadorUsuarioInvalido);
+                erros.Add(MensagemPadraoEnum.IdentificadorUsuarioInvalido);
             }
 
             if (erros.Count > 0)
@@ -74,7 +74,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             if (Faturamento == null)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadrao.FaturamentoNaoEncontrado);
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadraoEnum.FaturamentoNaoEncontrado);
 
                 return ResultView;
             }
@@ -90,9 +90,11 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
                 return ResultView;
             }
-            else if (Faturamento.TipoMeioCobranca.DocumentoImpressao == null || !Faturamento.TipoMeioCobranca.DocumentoImpressao.Equals("GuiaPagamentoEstadiaReboque.rdlc"))
+            else if (Faturamento.TipoMeioCobranca.DocumentoImpressao == null || Faturamento.TipoMeioCobranca.DocumentoImpressao != "GuiaPagamentoEstadiaReboque.rdlc")
             {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest($"Esse Faturamento está cadastrado em uma Forma de Pagamento que não está configurado para imprimir a Guia de Pagamento de Reboque e Estadia: {Faturamento.TipoMeioCobranca.Descricao}");
+                ResultView.Mensagem = MensagemViewHelper
+                    .GetBadRequest($"Esse Faturamento está cadastrado em uma Forma de Pagamento que não está configurada para imprimir a " +
+                    $"Guia de Pagamento de Reboque e Estadia. Forma de Pagamento atual: {Faturamento.TipoMeioCobranca.Descricao}");
 
                 return ResultView;
             }
@@ -121,13 +123,13 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             if (Grv == null)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadrao.GrvNaoEncontrado);
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadraoEnum.GrvNaoEncontrado);
 
                 return ResultView;
             }
             else if (!new GrvService(_context, _mapper).UserCanAccessGrv(Grv, UsuarioId))
             {
-                ResultView.Mensagem = MensagemViewHelper.GetUnauthorized(MensagemPadrao.UsuarioSemPermissaoAcessoGrv);
+                ResultView.Mensagem = MensagemViewHelper.GetUnauthorized(MensagemPadraoEnum.UsuarioSemPermissaoAcessoGrv);
 
                 return ResultView;
             }

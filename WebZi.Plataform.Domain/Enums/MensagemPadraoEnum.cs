@@ -1,6 +1,6 @@
 ﻿namespace WebZi.Plataform.Domain.Enums
 {
-    public static class MensagemPadrao
+    public static class MensagemPadraoEnum
     {
         public static readonly string AtendimentoNaoEncontrado = "Atendimento não encontrado";
         public static readonly string ClienteNaoEncontrado = "Cliente não encontrado";
