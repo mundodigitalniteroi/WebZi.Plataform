@@ -16,6 +16,9 @@ namespace WebZi.Plataform.Data.Mappings.Condutor
                 .HasColumnName("id_condutor")
                 .ValueGeneratedOnAdd();
 
+            builder.Property(e => e.GrvId)
+                .HasColumnName("id_grv");
+
             builder.Property(e => e.Celular)
                 .HasMaxLength(9)
                 .IsUnicode(false)
@@ -37,12 +40,6 @@ namespace WebZi.Plataform.Data.Mappings.Condutor
                 .HasMaxLength(150)
                 .IsUnicode(false)
                 .HasColumnName("email");
-            
-            builder.Property(e => e.EnquadramentoInfracaoId)
-                .HasColumnType("numeric(4, 0)")
-                .HasColumnName("id_enquadramento_infracao");
-            
-            builder.Property(e => e.GrvId).HasColumnName("id_grv");
             
             builder.Property(e => e.PessoaId).HasColumnName("id_pessoa");
             
@@ -75,31 +72,6 @@ namespace WebZi.Plataform.Data.Mappings.Condutor
                 .HasMaxLength(10)
                 .IsUnicode(false)
                 .HasColumnName("orgao_expedidor");
-            
-            builder.Property(e => e.OutrosEquipamentos1)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("outros_equipamentos1");
-            
-            builder.Property(e => e.OutrosEquipamentos2)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("outros_equipamentos2");
-            
-            builder.Property(e => e.OutrosEquipamentos3)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("outros_equipamentos3");
-            
-            builder.Property(e => e.OutrosEquipamentos4)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("outros_equipamentos4");
-            
-            builder.Property(e => e.OutrosEquipamentos5)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("outros_equipamentos5");
             
             builder.Property(e => e.StatusAssinaturaCondutor)
                 .IsRequired()

@@ -176,24 +176,24 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             return ResultView;
         }
 
-        public async Task<MensagemViewModel> ValidarInformacoesParaCadastro(AtendimentoCadastroInputViewModel AtendimentoCadastroInput)
+        public async Task<MensagemViewModel> ValidarInformacoesParaCadastro(AtendimentoCadastroInputViewModel AtendimentoCadastro)
         {
             MensagemViewModel ResultView = new();
 
             #region Validações de IDs
             List<string> erros = new();
 
-            if (AtendimentoCadastroInput.GrvId <= 0)
+            if (AtendimentoCadastro.GrvId <= 0)
             {
                 erros.Add(MensagemPadraoEnum.IdentificadorGrvInvalido);
             }
 
-            if (AtendimentoCadastroInput.TipoMeioCobrancaId <= 0)
+            if (AtendimentoCadastro.TipoMeioCobrancaId <= 0)
             {
                 ResultView.AvisosImpeditivos.Add("Identificador da Forma de Pagamento inválido");
             }
 
-            if (AtendimentoCadastroInput.UsuarioId <= 0)
+            if (AtendimentoCadastro.UsuarioId <= 0)
             {
                 erros.Add(MensagemPadraoEnum.IdentificadorUsuarioInvalido);
             }
@@ -207,7 +207,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             #endregion Validações de IDs
 
             #region Validações do Usuário
-            if (!new UsuarioService(_context).IsUserActive(AtendimentoCadastroInput.UsuarioId))
+            if (!new UsuarioService(_context).IsUserActive(AtendimentoCadastro.UsuarioId))
             {
                 return MensagemViewHelper.GetUnauthorized();
             }
@@ -219,7 +219,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 .Include(i => i.Deposito)
                 .Include(i => i.StatusOperacao)
                 .Include(i => i.Atendimento)
-                .Where(w => w.GrvId == AtendimentoCadastroInput.GrvId)
+                .Where(w => w.GrvId == AtendimentoCadastro.GrvId)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
 
@@ -227,7 +227,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             {
                 return MensagemViewHelper.GetNotFound(MensagemPadraoEnum.GrvNaoEncontrado);
             }
-            else if (!new GrvService(_context, _mapper).UserCanAccessGrv(Grv, AtendimentoCadastroInput.UsuarioId))
+            else if (!new GrvService(_context, _mapper).UserCanAccessGrv(Grv, AtendimentoCadastro.UsuarioId))
             {
                 return MensagemViewHelper.GetUnauthorized(MensagemPadraoEnum.UsuarioSemPermissaoAcessoGrv);
             }
@@ -265,135 +265,135 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             #endregion Leilão
 
             #region Dados do Responsável
-            if (AtendimentoCadastroInput.QualificacaoResponsavelId <= 0)
+            if (AtendimentoCadastro.QualificacaoResponsavelId <= 0)
             {
                 ResultView.AvisosImpeditivos.Add("Informe a Qualificação do Responsável");
             }
 
-            if (string.IsNullOrWhiteSpace(AtendimentoCadastroInput.ResponsavelNome))
+            if (string.IsNullOrWhiteSpace(AtendimentoCadastro.ResponsavelNome))
             {
                 ResultView.AvisosImpeditivos.Add("Informe o Nome do Responsável");
             }
 
-            if (string.IsNullOrWhiteSpace(AtendimentoCadastroInput.ResponsavelDocumento))
+            if (string.IsNullOrWhiteSpace(AtendimentoCadastro.ResponsavelDocumento))
             {
                 ResultView.AvisosImpeditivos.Add("Informe o CPF do Responsável");
             }
-            else if (!DocumentHelper.IsCPF(AtendimentoCadastroInput.ResponsavelDocumento))
+            else if (!DocumentHelper.IsCPF(AtendimentoCadastro.ResponsavelDocumento))
             {
-                ResultView.AvisosImpeditivos.Add($"CPF do Responsável inválido: {AtendimentoCadastroInput.ResponsavelDocumento}");
+                ResultView.AvisosImpeditivos.Add($"CPF do Responsável inválido: {AtendimentoCadastro.ResponsavelDocumento}");
             }
 
-            if (!string.IsNullOrWhiteSpace(AtendimentoCadastroInput.ResponsavelCnh))
+            if (!string.IsNullOrWhiteSpace(AtendimentoCadastro.ResponsavelCnh))
             {
-                if (!DocumentHelper.IsCNH(AtendimentoCadastroInput.ResponsavelCnh))
+                if (!DocumentHelper.IsCNH(AtendimentoCadastro.ResponsavelCnh))
                 {
-                    ResultView.AvisosImpeditivos.Add($"CNH do Responsável inválido: {AtendimentoCadastroInput.ResponsavelCnh}");
+                    ResultView.AvisosImpeditivos.Add($"CNH do Responsável inválido: {AtendimentoCadastro.ResponsavelCnh}");
                 }
             }
             #endregion Dados do Responsável
 
             #region Endereço do Responsável
-            if (string.IsNullOrWhiteSpace(AtendimentoCadastroInput.ResponsavelCEP))
+            if (string.IsNullOrWhiteSpace(AtendimentoCadastro.ResponsavelCEP))
             {
                 ResultView.AvisosImpeditivos.Add("Informe o CEP do Responsável");
             }
-            else if (!LocalizacaoHelper.IsCEP(AtendimentoCadastroInput.ResponsavelCEP))
+            else if (!LocalizacaoHelper.IsCEP(AtendimentoCadastro.ResponsavelCEP))
             {
-                ResultView.AvisosImpeditivos.Add($"CEP do Responsável inválido: {AtendimentoCadastroInput.ResponsavelCEP}");
+                ResultView.AvisosImpeditivos.Add($"CEP do Responsável inválido: {AtendimentoCadastro.ResponsavelCEP}");
             }
 
-            if (string.IsNullOrWhiteSpace(AtendimentoCadastroInput.ResponsavelEndereco))
+            if (string.IsNullOrWhiteSpace(AtendimentoCadastro.ResponsavelEndereco))
             {
                 ResultView.AvisosImpeditivos.Add("Informe o Logradouro do Responsável");
             }
 
-            if (string.IsNullOrWhiteSpace(AtendimentoCadastroInput.ResponsavelNumero))
+            if (string.IsNullOrWhiteSpace(AtendimentoCadastro.ResponsavelNumero))
             {
                 ResultView.AvisosImpeditivos.Add("Informe o Número do Logradouro do Responsável");
             }
 
-            if (string.IsNullOrWhiteSpace(AtendimentoCadastroInput.ResponsavelBairro))
+            if (string.IsNullOrWhiteSpace(AtendimentoCadastro.ResponsavelBairro))
             {
                 ResultView.AvisosImpeditivos.Add("Informe o Bairro do Responsável");
             }
 
-            if (string.IsNullOrWhiteSpace(AtendimentoCadastroInput.ResponsavelMunicipio))
+            if (string.IsNullOrWhiteSpace(AtendimentoCadastro.ResponsavelMunicipio))
             {
                 ResultView.AvisosImpeditivos.Add("Informe Município do Responsável");
             }
 
-            if (string.IsNullOrWhiteSpace(AtendimentoCadastroInput.ResponsavelUF))
+            if (string.IsNullOrWhiteSpace(AtendimentoCadastro.ResponsavelUF))
             {
                 ResultView.AvisosImpeditivos.Add("Informe a Unidade Federativa do Responsável");
             }
-            else if (!LocalizacaoHelper.IsUF(AtendimentoCadastroInput.ResponsavelUF))
+            else if (!LocalizacaoHelper.IsUF(AtendimentoCadastro.ResponsavelUF))
             {
                 ResultView.AvisosImpeditivos.Add("Unidade Federativa do Responsável inválida");
             }
             #endregion Endereço do Responsável
 
             #region DDD + Telefone/Celular do Responsável
-            if (!string.IsNullOrWhiteSpace(AtendimentoCadastroInput.ResponsavelTelefone))
+            if (!string.IsNullOrWhiteSpace(AtendimentoCadastro.ResponsavelTelefone))
             {
-                if ((!ContactHelper.IsTelephone(AtendimentoCadastroInput.ResponsavelTelefone) && !ContactHelper.IsCellphone(AtendimentoCadastroInput.ResponsavelTelefone)))
+                if ((!ContactHelper.IsTelephone(AtendimentoCadastro.ResponsavelTelefone) && !ContactHelper.IsCellphone(AtendimentoCadastro.ResponsavelTelefone)))
                 {
-                    ResultView.AvisosImpeditivos.Add($"Telefone/Celular do Responsável inválido: {AtendimentoCadastroInput.ResponsavelTelefone}");
+                    ResultView.AvisosImpeditivos.Add($"Telefone/Celular do Responsável inválido: {AtendimentoCadastro.ResponsavelTelefone}");
                 }
 
-                if (string.IsNullOrWhiteSpace(AtendimentoCadastroInput.ResponsavelDDD))
+                if (string.IsNullOrWhiteSpace(AtendimentoCadastro.ResponsavelDDD))
                 {
                     ResultView.AvisosImpeditivos.Add("Ao informar o Número do Telefone/Celular do Responsável também é preciso informar o DDD");
                 }
-                else if (!ContactHelper.IsDDD(AtendimentoCadastroInput.ResponsavelDDD))
+                else if (!ContactHelper.IsDDD(AtendimentoCadastro.ResponsavelDDD))
                 {
-                    ResultView.AvisosImpeditivos.Add($"DDD do Número do Telefone/Celular do Responsável inválido: {AtendimentoCadastroInput.ResponsavelDDD}");
+                    ResultView.AvisosImpeditivos.Add($"DDD do Número do Telefone/Celular do Responsável inválido: {AtendimentoCadastro.ResponsavelDDD}");
                 }
             }
             #endregion DDD + Telefone/Celular do Responsável
 
             #region Dados do Proprietário
-            if (string.IsNullOrWhiteSpace(AtendimentoCadastroInput.ProprietarioNome))
+            if (string.IsNullOrWhiteSpace(AtendimentoCadastro.ProprietarioNome))
             {
                 ResultView.AvisosImpeditivos.Add("Informe o Nome do Proprietário");
             }
 
-            if (AtendimentoCadastroInput.ProprietarioTipoDocumentoId <= 0)
+            if (AtendimentoCadastro.ProprietarioTipoDocumentoId <= 0)
             {
                 ResultView.AvisosImpeditivos.Add("Informe o Tipo do Documento do Proprietário");
             }
 
-            if (string.IsNullOrWhiteSpace(AtendimentoCadastroInput.ProprietarioDocumento))
+            if (string.IsNullOrWhiteSpace(AtendimentoCadastro.ProprietarioDocumento))
             {
                 ResultView.AvisosImpeditivos.Add("Informe o Documento do Proprietário");
             }
 
-            if (AtendimentoCadastroInput.ProprietarioTipoDocumentoId > 0)
+            if (AtendimentoCadastro.ProprietarioTipoDocumentoId > 0)
             {
                 TipoDocumentoIdentificacaoModel TipoDocumentoIdentificacao = await _context.TipoDocumentoIdentificacao
-                    .Where(w => w.TipoDocumentoIdentificacaoId == AtendimentoCadastroInput.ProprietarioTipoDocumentoId)
+                    .Where(w => w.TipoDocumentoIdentificacaoId == AtendimentoCadastro.ProprietarioTipoDocumentoId)
                     .AsNoTracking()
                     .FirstOrDefaultAsync();
 
                 if (TipoDocumentoIdentificacao == null)
                 {
-                    ResultView.AvisosImpeditivos.Add($"Tipo do Documento do Proprietário inexistente: {AtendimentoCadastroInput.ProprietarioTipoDocumentoId}");
+                    ResultView.AvisosImpeditivos.Add($"Tipo do Documento do Proprietário inexistente: {AtendimentoCadastro.ProprietarioTipoDocumentoId}");
                 }
                 else if (TipoDocumentoIdentificacao.Codigo != "CPF" && TipoDocumentoIdentificacao.Codigo != "CNPJ")
                 {
                     ResultView.AvisosImpeditivos.Add("O Tipo do Documento do Proprietário precisa ser CPF ou CNPJ");
                 }
                 else if (TipoDocumentoIdentificacao.Codigo == "CPF"
-                    && !string.IsNullOrWhiteSpace(AtendimentoCadastroInput.ProprietarioDocumento)
-                    && !DocumentHelper.IsCPF(AtendimentoCadastroInput.ProprietarioDocumento))
+                    && !string.IsNullOrWhiteSpace(AtendimentoCadastro.ProprietarioDocumento)
+                    && !DocumentHelper.IsCPF(AtendimentoCadastro.ProprietarioDocumento))
                 {
-                    ResultView.AvisosImpeditivos.Add($"O CPF do Proprietário inválido: {AtendimentoCadastroInput.ProprietarioDocumento}");
+                    ResultView.AvisosImpeditivos.Add($"O CPF do Proprietário inválido: {AtendimentoCadastro.ProprietarioDocumento}");
                 }
                 else if (TipoDocumentoIdentificacao.Codigo == "CNPJ"
-                    && !string.IsNullOrWhiteSpace(AtendimentoCadastroInput.ProprietarioDocumento)
-                    && !DocumentHelper.IsCNPJ(AtendimentoCadastroInput.ProprietarioDocumento))
+                    && !string.IsNullOrWhiteSpace(AtendimentoCadastro.ProprietarioDocumento)
+                    && !DocumentHelper.IsCNPJ(AtendimentoCadastro.ProprietarioDocumento))
                 {
-                    ResultView.AvisosImpeditivos.Add($"O CNPJ do Proprietário inválido: {AtendimentoCadastroInput.ProprietarioDocumento}");
+                    ResultView.AvisosImpeditivos.Add($"O CNPJ do Proprietário inválido: {AtendimentoCadastro.ProprietarioDocumento}");
                 }
             }
             #endregion Dados do Proprietário
@@ -402,88 +402,88 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             if (Grv.Cliente.FlagEmissaoNotaFiscal == "S")
             {
                 #region Receptor da Nota Fiscal
-                if (string.IsNullOrWhiteSpace(AtendimentoCadastroInput.NotaFiscalNome))
+                if (string.IsNullOrWhiteSpace(AtendimentoCadastro.NotaFiscalNome))
                 {
                     ResultView.AvisosImpeditivos.Add("Informe o Nome do Receptor da Nota Fiscal");
                 }
 
-                if (string.IsNullOrWhiteSpace(AtendimentoCadastroInput.NotaFiscalDocumento))
+                if (string.IsNullOrWhiteSpace(AtendimentoCadastro.NotaFiscalDocumento))
                 {
                     ResultView.AvisosImpeditivos.Add("Informe o CPF ou CNPJ do Receptor da Nota Fiscal");
                 }
-                else if (!DocumentHelper.IsCPF(AtendimentoCadastroInput.NotaFiscalDocumento) && !DocumentHelper.IsCNPJ(AtendimentoCadastroInput.NotaFiscalDocumento))
+                else if (!DocumentHelper.IsCPF(AtendimentoCadastro.NotaFiscalDocumento) && !DocumentHelper.IsCNPJ(AtendimentoCadastro.NotaFiscalDocumento))
                 {
-                    ResultView.AvisosImpeditivos.Add($"CPF ou CNPJ do Receptor da Nota Fiscal inválido: {AtendimentoCadastroInput.NotaFiscalDocumento}");
+                    ResultView.AvisosImpeditivos.Add($"CPF ou CNPJ do Receptor da Nota Fiscal inválido: {AtendimentoCadastro.NotaFiscalDocumento}");
                 }
                 #endregion Receptor da Nota Fiscal
 
                 #region Endereço do Receptor da Nota Fiscal
-                if (string.IsNullOrWhiteSpace(AtendimentoCadastroInput.NotaFiscalCEP))
+                if (string.IsNullOrWhiteSpace(AtendimentoCadastro.NotaFiscalCEP))
                 {
                     ResultView.AvisosImpeditivos.Add("Informe o CEP do Receptor da Nota Fiscal");
                 }
-                else if (!LocalizacaoHelper.IsCEP(AtendimentoCadastroInput.NotaFiscalCEP))
+                else if (!LocalizacaoHelper.IsCEP(AtendimentoCadastro.NotaFiscalCEP))
                 {
-                    ResultView.AvisosImpeditivos.Add($"CEP do Receptor da Nota Fiscal inválido: {AtendimentoCadastroInput.NotaFiscalCEP}");
+                    ResultView.AvisosImpeditivos.Add($"CEP do Receptor da Nota Fiscal inválido: {AtendimentoCadastro.NotaFiscalCEP}");
                 }
 
-                if (string.IsNullOrWhiteSpace(AtendimentoCadastroInput.NotaFiscalEndereco))
+                if (string.IsNullOrWhiteSpace(AtendimentoCadastro.NotaFiscalEndereco))
                 {
                     ResultView.AvisosImpeditivos.Add("Informe o Endereço do Receptor da Nota Fiscal");
                 }
 
-                if (string.IsNullOrWhiteSpace(AtendimentoCadastroInput.NotaFiscalNumero))
+                if (string.IsNullOrWhiteSpace(AtendimentoCadastro.NotaFiscalNumero))
                 {
                     ResultView.AvisosImpeditivos.Add("Informe o Número do Endereço do Receptor da Nota Fiscal");
                 }
 
-                if (string.IsNullOrWhiteSpace(AtendimentoCadastroInput.NotaFiscalBairro))
+                if (string.IsNullOrWhiteSpace(AtendimentoCadastro.NotaFiscalBairro))
                 {
                     ResultView.AvisosImpeditivos.Add("Informe o Bairro do Receptor da Nota Fiscal");
                 }
 
-                if (string.IsNullOrWhiteSpace(AtendimentoCadastroInput.NotaFiscalMunicipio))
+                if (string.IsNullOrWhiteSpace(AtendimentoCadastro.NotaFiscalMunicipio))
                 {
                     ResultView.AvisosImpeditivos.Add("Informe o Município do Receptor da Nota Fiscal");
                 }
 
-                if (string.IsNullOrWhiteSpace(AtendimentoCadastroInput.NotaFiscalUF))
+                if (string.IsNullOrWhiteSpace(AtendimentoCadastro.NotaFiscalUF))
                 {
                     ResultView.AvisosImpeditivos.Add("Informe a UF do Receptor da Nota Fiscal");
                 }
-                else if (!LocalizacaoHelper.IsUF(AtendimentoCadastroInput.NotaFiscalUF))
+                else if (!LocalizacaoHelper.IsUF(AtendimentoCadastro.NotaFiscalUF))
                 {
-                    ResultView.AvisosImpeditivos.Add($"Unidade Federativa do Receptor da Nota Fiscal inválida: {AtendimentoCadastroInput.NotaFiscalUF}");
+                    ResultView.AvisosImpeditivos.Add($"Unidade Federativa do Receptor da Nota Fiscal inválida: {AtendimentoCadastro.NotaFiscalUF}");
                 }
                 #endregion Endereço do Receptor da Nota Fiscal
 
                 #region Contatos do Receptor da Nota Fiscal
-                if (string.IsNullOrWhiteSpace(AtendimentoCadastroInput.NotaFiscalTelefone))
+                if (string.IsNullOrWhiteSpace(AtendimentoCadastro.NotaFiscalTelefone))
                 {
                     ResultView.AvisosImpeditivos.Add("Informe o Número do Telefone/Celular do Receptor da Nota Fiscal");
                 }
-                else if (!ContactHelper.IsTelephone(AtendimentoCadastroInput.NotaFiscalTelefone) && !ContactHelper.IsCellphone(AtendimentoCadastroInput.NotaFiscalTelefone))
+                else if (!ContactHelper.IsTelephone(AtendimentoCadastro.NotaFiscalTelefone) && !ContactHelper.IsCellphone(AtendimentoCadastro.NotaFiscalTelefone))
                 {
-                    ResultView.AvisosImpeditivos.Add($"Número do Telefone/Celular do Receptor da Nota Fiscal inválido: {AtendimentoCadastroInput.NotaFiscalTelefone}");
+                    ResultView.AvisosImpeditivos.Add($"Número do Telefone/Celular do Receptor da Nota Fiscal inválido: {AtendimentoCadastro.NotaFiscalTelefone}");
                 }
 
-                if (string.IsNullOrWhiteSpace(AtendimentoCadastroInput.NotaFiscalDDD))
+                if (string.IsNullOrWhiteSpace(AtendimentoCadastro.NotaFiscalDDD))
                 {
                     ResultView.AvisosImpeditivos.Add("Informe o DDD do Telefone/Celular do Receptor da Nota Fiscal");
                 }
-                else if (!ContactHelper.IsDDD(AtendimentoCadastroInput.NotaFiscalDDD))
+                else if (!ContactHelper.IsDDD(AtendimentoCadastro.NotaFiscalDDD))
                 {
-                    ResultView.AvisosImpeditivos.Add($"DDD do Número do Telefone/Celular do Receptor da Nota Fiscal inválido: {AtendimentoCadastroInput.NotaFiscalDDD}");
+                    ResultView.AvisosImpeditivos.Add($"DDD do Número do Telefone/Celular do Receptor da Nota Fiscal inválido: {AtendimentoCadastro.NotaFiscalDDD}");
                 }
 
-                if (!string.IsNullOrWhiteSpace(AtendimentoCadastroInput.NotaFiscalEmail) && !EmailHelper.IsEmail(AtendimentoCadastroInput.NotaFiscalEmail))
+                if (!string.IsNullOrWhiteSpace(AtendimentoCadastro.NotaFiscalEmail) && !EmailHelper.IsEmail(AtendimentoCadastro.NotaFiscalEmail))
                 {
-                    ResultView.AvisosImpeditivos.Add($"E-mail do Receptor da Nota Fiscal inválido: {AtendimentoCadastroInput.NotaFiscalEmail}");
+                    ResultView.AvisosImpeditivos.Add($"E-mail do Receptor da Nota Fiscal inválido: {AtendimentoCadastro.NotaFiscalEmail}");
                 }
                 #endregion Contatos do Receptor da Nota Fiscal
 
                 #region Inscrição Municipal do Tomador do Serviço
-                if (!string.IsNullOrWhiteSpace(AtendimentoCadastroInput.NotaFiscalDocumento) && DocumentHelper.IsCNPJ(AtendimentoCadastroInput.NotaFiscalDocumento))
+                if (!string.IsNullOrWhiteSpace(AtendimentoCadastro.NotaFiscalDocumento) && DocumentHelper.IsCNPJ(AtendimentoCadastro.NotaFiscalDocumento))
                 {
                     // Informar a Inscrição Municipal do Tomador do Serviço do Receptor da Nota Fiscal só é obrigatorio
                     // caso o Cliente esteja cadastrado na regra do Faturamento "ATENDINSCRICMUNIC".
@@ -506,13 +506,13 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             #region Forma de Pagamento
             TipoMeioCobrancaModel TipoMeioCobranca = await _context.TipoMeioCobranca
-                .Where(w => w.TipoMeioCobrancaId == AtendimentoCadastroInput.TipoMeioCobrancaId)
+                .Where(w => w.TipoMeioCobrancaId == AtendimentoCadastro.TipoMeioCobrancaId)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
 
             if (TipoMeioCobranca == null)
             {
-                ResultView.AvisosImpeditivos.Add($"Forma de Pagamento inexistente: {AtendimentoCadastroInput.TipoMeioCobrancaId}");
+                ResultView.AvisosImpeditivos.Add($"Forma de Pagamento inexistente: {AtendimentoCadastro.TipoMeioCobrancaId}");
             }
             else if (TipoMeioCobranca.Alias == TipoMeioCobrancaAliasEnum.PixEstatico && Grv.Cliente.FlagPossuiPixEstatico == "N")
             {

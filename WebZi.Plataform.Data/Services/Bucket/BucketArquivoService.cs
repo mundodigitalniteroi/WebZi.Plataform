@@ -18,7 +18,12 @@ namespace WebZi.Plataform.Data.Services.Bucket
             _context = context;
         }
 
-        public BucketArquivoModel SendFile(string CodigoTabelaOrigem, int TabelaOrigemId, int UsuarioCadastroId, byte[] Arquivo, string TipoCadastro = "")
+        public void SendFile(string CodigoTabelaOrigem, int TabelaOrigemId, int UsuarioCadastroId, byte[] File, string TipoCadastro = "")
+        {
+            SendFiles(CodigoTabelaOrigem, TabelaOrigemId, UsuarioCadastroId, new() { File }, TipoCadastro);
+        }
+
+        public void SendFiles(string CodigoTabelaOrigem, int TabelaOrigemId, int UsuarioCadastroId, List<byte[]> Files, string TipoCadastro = "")
         {
             ConfiguracaoModel Configuracao = _context.Configuracao
                 .AsNoTracking()
@@ -29,58 +34,66 @@ namespace WebZi.Plataform.Data.Services.Bucket
                 .AsNoTracking()
                 .FirstOrDefault();
 
-            string NomeArquivo = Guid.NewGuid().ToString() + ".jpg";
+            string NomeArquivo = string.Empty;
 
-            List<BucketArquivoEnvioModel> ArquivosEnvio = new()
+            List<BucketArquivoEnvioModel> ArquivosEnvio = new();
+
+            foreach (byte[] File in Files)
             {
-                new()
+                NomeArquivo = Guid.NewGuid().ToString() + ".jpg";
+
+                ArquivosEnvio = new()
                 {
-                    NomeBucket = Configuracao.RepositorioArquivoNomeBucket,
+                    new()
+                    {
+                        NomeBucket = Configuracao.RepositorioArquivoNomeBucket,
 
-                    NomeArquivo = NomeArquivo,
+                        NomeArquivo = NomeArquivo,
 
-                    ArquivoBase64 = Convert.ToBase64String(Arquivo),
+                        ArquivoBase64 = Convert.ToBase64String(File),
 
-                    NomePasta = BucketNomeTabelaOrigem.DiretorioRemoto,
+                        NomePasta = BucketNomeTabelaOrigem.DiretorioRemoto,
 
-                    NomeArquivoCompleto = NomeArquivo,
+                        NomeArquivoCompleto = NomeArquivo,
 
-                    NomeArquivoOriginal = NomeArquivo,
-                }
-            };
+                        NomeArquivoOriginal = NomeArquivo,
+                    }
+                };
+            }
 
-            BucketArquivoRetornoModel BucketArquivoRetorno = HttpClientHelper.PostBasicAuth<List<BucketArquivoRetornoModel>>
+            List<BucketArquivoRetornoModel> BucketArquivosRetorno = HttpClientHelper.PostBasicAuth<List<BucketArquivoRetornoModel>>
             (
                 url: Configuracao.RepositorioArquivoUrl,
                 username: Configuracao.RepositorioArquivoUsername,
                 password: Configuracao.RepositorioArquivoPassword,
                 obj: ArquivosEnvio
-            ).FirstOrDefault();
+            ).ToList();
 
-            BucketArquivoModel BucketArquivo = new()
+            foreach (BucketArquivoRetornoModel BucketArquivoRetorno in BucketArquivosRetorno)
             {
-                NomeTabelaOrigemId = BucketNomeTabelaOrigem.NomeTabelaOrigemId,
+                BucketArquivoModel BucketArquivo = new()
+                {
+                    NomeTabelaOrigemId = BucketNomeTabelaOrigem.NomeTabelaOrigemId,
 
-                TabelaOrigemId = TabelaOrigemId,
+                    TabelaOrigemId = TabelaOrigemId,
 
-                UsuarioCadastroId = UsuarioCadastroId,
+                    UsuarioCadastroId = UsuarioCadastroId,
 
-                NomeArquivo = BucketArquivoRetorno.NomeArquivo,
+                    NomeArquivo = BucketArquivoRetorno.NomeArquivo,
 
-                TamanhoBytes = BucketArquivoRetorno.TamanhoBytes,
+                    TamanhoBytes = BucketArquivoRetorno.TamanhoBytes,
 
-                Url = BucketArquivoRetorno.Url,
+                    Url = BucketArquivoRetorno.Url,
 
-                PermissaoAcesso = BucketArquivoRetorno.PermissaoAcesso,
+                    PermissaoAcesso = BucketArquivoRetorno.PermissaoAcesso,
 
-                TipoCadastro = TipoCadastro
-            };
+                    TipoCadastro = TipoCadastro
+                };
 
-            _context.BucketArquivo.Add(BucketArquivo);
+                _context.BucketArquivo.Add(BucketArquivo);
 
-            _context.SaveChanges();
-
-            return BucketArquivo;
+                _context.SaveChanges();
+            }
         }
 
         public byte[] DownloadFile(string CodigoTabelaOrigem, int TabelaOrigemId)

@@ -10,8 +10,6 @@ namespace WebZi.Plataform.Domain.Models.Condutor
 
         public long? PessoaId { get; set; }
 
-        public decimal? EnquadramentoInfracaoId { get; set; }
-
         public string Documento { get; set; }
 
         public string Identidade { get; set; }
@@ -32,16 +30,6 @@ namespace WebZi.Plataform.Domain.Models.Condutor
 
         public string InformacoesAdicionais { get; set; }
 
-        public string OutrosEquipamentos1 { get; set; }
-
-        public string OutrosEquipamentos2 { get; set; }
-
-        public string OutrosEquipamentos3 { get; set; }
-
-        public string OutrosEquipamentos4 { get; set; }
-
-        public string OutrosEquipamentos5 { get; set; }
-
         /// <summary>
         /// 1 = ASSINOU;
         /// 2 = AUSENTE;
@@ -57,8 +45,6 @@ namespace WebZi.Plataform.Domain.Models.Condutor
         public string Celular { get; set; }
 
         public string CelularDDD { get; set; }
-
-        public virtual EnquadramentoInfracaoModel EnquadramentoInfracao { get; set; }
 
         public virtual GrvModel Grv { get; set; }
     }

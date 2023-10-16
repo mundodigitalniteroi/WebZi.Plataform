@@ -19,6 +19,66 @@ namespace WebZi.Plataform.API.Controllers
             _provider = provider;
         }
 
+        [HttpPost("Cadastrar")]
+        public async Task<ActionResult<AtendimentoCadastroResultViewModel>> Cadastrar(AtendimentoCadastroInputViewModel Atendimento)
+        {
+            AtendimentoCadastroResultViewModel ResultView = new();
+
+            try
+            {
+                ResultView.Mensagem = await _provider
+                    .GetService<AtendimentoService>()
+                    .ValidarInformacoesParaCadastro(Atendimento);
+
+                if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+                {
+                    return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView.Mensagem);
+                }
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<AtendimentoService>()
+                    .Cadastrar(Atendimento);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView.Mensagem);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
+
+        [HttpGet("ListarQualificacoesResponsaveis")]
+        public async Task<ActionResult<QualificacaoResponsavelViewModelList>> ListarQualificacoesResponsaveis()
+        {
+            QualificacaoResponsavelViewModelList ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<QualificacaoResponsavelService>()
+                    .ListAsync();
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
+
         [HttpGet("SelecionarPorId")]
         public async Task<ActionResult<AtendimentoViewModel>> SelecionarPorId(int AtendimentoId, int UsuarioId)
         {
@@ -82,27 +142,6 @@ namespace WebZi.Plataform.API.Controllers
             }
         }
 
-        [HttpGet("ListarQualificacoesResponsaveis")]
-        public async Task<ActionResult<QualificacaoResponsavelViewModelList>> ListarQualificacoesResponsaveis()
-        {
-            QualificacaoResponsavelViewModelList ResultView = new();
-
-            try
-            {
-                ResultView = await _provider
-                    .GetService<QualificacaoResponsavelService>()
-                    .ListAsync();
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-            catch (Exception ex)
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-        }
-
         [HttpPost("ValidarInformacoesParaCadastro")]
         public async Task<ActionResult<MensagemViewModel>> ValidarInformacoesParaCadastro(AtendimentoCadastroInputViewModel Atendimento)
         {
@@ -121,45 +160,6 @@ namespace WebZi.Plataform.API.Controllers
                 ResultView = MensagemViewHelper.GetInternalServerError(ex);
 
                 return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
-            }
-        }
-
-        [HttpPost("Cadastrar")]
-        public async Task<ActionResult<AtendimentoCadastroResultViewModel>> Cadastrar(AtendimentoCadastroInputViewModel Atendimento)
-        {
-            AtendimentoCadastroResultViewModel ResultView = new();
-
-            try
-            {
-                ResultView.Mensagem = await _provider
-                    .GetService<AtendimentoService>()
-                    .ValidarInformacoesParaCadastro(Atendimento);
-
-                if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
-                {
-                    return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView.Mensagem);
-                }
-            }
-            catch (Exception ex)
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-
-            try
-            {
-                ResultView = await _provider
-                    .GetService<AtendimentoService>()
-                    .Cadastrar(Atendimento);
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView.Mensagem);
-            }
-            catch (Exception ex)
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
         }
     }

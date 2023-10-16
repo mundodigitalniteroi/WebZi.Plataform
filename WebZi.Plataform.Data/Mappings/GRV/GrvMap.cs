@@ -25,9 +25,6 @@ namespace WebZi.Plataform.Data.Mappings.GRV
                 .HasColumnName("id_grv")
                 .ValueGeneratedOnAdd();
 
-            builder.Property(e => e.AgenteId)
-                .HasColumnName("AgenteID");
-
             builder.Property(e => e.EnderecoLocalizacaoVeiculoBairro)
                 .HasMaxLength(150)
                 .IsUnicode(false)

@@ -1,20 +1,27 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Linq;
-using System.Numerics;
+using Microsoft.EntityFrameworkCore.Storage;
+using System.ServiceModel.Channels;
 using WebZi.Plataform.CrossCutting.Number;
 using WebZi.Plataform.CrossCutting.Veiculo;
+using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
+using WebZi.Plataform.Data.Services.Bucket;
+using WebZi.Plataform.Data.Services.Faturamento;
 using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Cliente;
+using WebZi.Plataform.Domain.Models.Condutor;
 using WebZi.Plataform.Domain.Models.Deposito;
-using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.GRV;
+using WebZi.Plataform.Domain.Models.Servico;
+using WebZi.Plataform.Domain.Models.Sistema;
+using WebZi.Plataform.Domain.Models.Veiculo;
+using WebZi.Plataform.Domain.Services.Usuario;
+using WebZi.Plataform.Domain.ViewModel;
 using WebZi.Plataform.Domain.ViewModel.GRV;
+using WebZi.Plataform.Domain.ViewModel.GRV.Cadastro;
 using WebZi.Plataform.Domain.ViewModel.GRV.Pesquisa;
-using WebZi.Plataform.Domain.Views.Usuario;
 
 namespace WebZi.Plataform.Domain.Services.GRV
 {
@@ -345,6 +352,318 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 .Where(w => w.ClienteId == Grv.ClienteId && w.DepositoId == Grv.DepositoId && w.UsuarioId == UsuarioId)
                 .AsNoTracking()
                 .FirstOrDefault() != null;
+        }
+
+        public async Task<MensagemViewModel> SendFiles(GrvFotoViewModel Fotos)
+        {
+            List<string> erros = new();
+
+            if (Fotos.GrvId <= 0)
+            {
+                erros.Add(MensagemPadraoEnum.IdentificadorGrvInvalido);
+            }
+
+            if (Fotos.UsuarioId <= 0)
+            {
+                erros.Add(MensagemPadraoEnum.IdentificadorUsuarioInvalido);
+            }
+
+            if (Fotos.Fotos.Count == 0)
+            {
+                erros.Add("");
+            }
+
+            MensagemViewModel ResultView = new();
+
+            if (erros.Count > 0)
+            {
+                ResultView = MensagemViewHelper.GetBadRequest(erros);
+
+                return ResultView;
+            }
+
+            GrvModel Grv = await _context.Grv
+                .Where(w => w.GrvId == Fotos.GrvId)
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
+
+            if (Grv == null)
+            {
+                ResultView = MensagemViewHelper.GetNotFound(MensagemPadraoEnum.GrvNaoEncontrado);
+
+                return ResultView;
+            }
+            else if (!new GrvService(_context, _mapper).UserCanAccessGrv(Grv, Fotos.UsuarioId))
+            {
+                ResultView = MensagemViewHelper.GetUnauthorized(MensagemPadraoEnum.UsuarioSemPermissaoAcessoGrv);
+
+                return ResultView;
+            }
+
+            new BucketArquivoService(_context)
+                .SendFiles("GRVFOTOSVEICCAD", Fotos.GrvId, Fotos.UsuarioId, Fotos.Fotos);
+
+            return MensagemViewHelper.GetOkCreate(Fotos.Fotos.Count);
+        }
+
+        public async Task<MensagemViewModel> ValidarInformacoesParaCadastro(GrvCadastroViewModel GrvCadastro)
+        {
+            #region Validações de IDs
+            List<string> erros = new();
+
+            if (GrvCadastro.ClienteId <= 0)
+            {
+                erros.Add(MensagemPadraoEnum.IdentificadorClienteInvalido);
+            }
+
+            if (GrvCadastro.DepositoId <= 0)
+            {
+                erros.Add(MensagemPadraoEnum.IdentificadorDepositoInvalido);
+            }
+
+            if (GrvCadastro.TipoVeiculoId <= 0)
+            {
+                erros.Add(MensagemPadraoEnum.IdentificadorTipoVeiculoInvalido);
+            }
+
+            if (GrvCadastro.ReboquistaId <= 0)
+            {
+                erros.Add(MensagemPadraoEnum.IdentificadorReboquistaInvalido);
+            }
+
+            if (GrvCadastro.ReboqueId <= 0)
+            {
+                erros.Add(MensagemPadraoEnum.IdentificadorReboqueInvalido);
+            }
+
+            if (GrvCadastro.AutoridadeResponsavelId <= 0)
+            {
+                erros.Add(MensagemPadraoEnum.IdentificadorAutoridadeResponsavelInvalido);
+            }
+
+            if (GrvCadastro.CorId <= 0)
+            {
+                erros.Add(MensagemPadraoEnum.IdentificadorCorInvalido);
+            }
+
+            if (GrvCadastro.MarcaModeloId <= 0)
+            {
+                erros.Add(MensagemPadraoEnum.IdentificadorMarcaModeloInvalido);
+            }
+
+            if (GrvCadastro.MotivoApreensaoId <= 0)
+            {
+                erros.Add(MensagemPadraoEnum.IdentificadorMotivoApreensaoInvalido);
+            }
+
+            if (GrvCadastro.UsuarioId <= 0)
+            {
+                erros.Add(MensagemPadraoEnum.IdentificadorUsuarioInvalido);
+            }
+
+            if (string.IsNullOrWhiteSpace(GrvCadastro.CodigoProduto))
+            {
+                erros.Add("Informe o Código de Produto");
+            }
+
+            MensagemViewModel ResultView = new();
+
+            if (erros.Count > 0)
+            {
+                ResultView = MensagemViewHelper.GetBadRequest(erros);
+
+                return ResultView;
+            }
+            #endregion Validações de IDs
+
+            #region Validações do Usuário
+            if (!new UsuarioService(_context).IsUserActive(GrvCadastro.UsuarioId))
+            {
+                return MensagemViewHelper.GetUnauthorized();
+            }
+            #endregion Validações do Usuário
+
+            #region Consultas
+            ClienteModel Cliente = await _context.Cliente
+                .Where(w => w.ClienteId == GrvCadastro.ClienteId)
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
+
+            if (Cliente == null)
+            {
+                ResultView.AvisosImpeditivos.Add(MensagemPadraoEnum.ClienteNaoEncontrado);
+            }
+
+            DepositoModel Deposito = await _context.Deposito
+                .Where(w => w.DepositoId == GrvCadastro.DepositoId)
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
+
+            if (Deposito == null)
+            {
+                ResultView.AvisosImpeditivos.Add(MensagemPadraoEnum.DepositoNaoEncontrado);
+            }
+
+            TipoVeiculoModel TipoVeiculo = await _context.TipoVeiculo
+                .Where(w => w.TipoVeiculoId == GrvCadastro.TipoVeiculoId)
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
+
+            if (TipoVeiculo == null)
+            {
+                ResultView.AvisosImpeditivos.Add("Tipo do Veículo não encontrado");
+            }
+
+            ReboquistaModel Reboquista = await _context.Reboquista
+                .Where(w => w.ReboquistaId == GrvCadastro.ReboquistaId)
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
+
+            if (Reboquista == null)
+            {
+                ResultView.AvisosImpeditivos.Add("Reboquista não encontrado");
+            }
+
+            ReboqueModel Reboque = await _context.Reboque
+                .Where(w => w.ReboqueId == GrvCadastro.ReboqueId)
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
+
+            if (Reboque == null)
+            {
+                ResultView.AvisosImpeditivos.Add("Reboque não encontrado");
+            }
+
+            AutoridadeResponsavelModel AutoridadeResponsavel = await _context.AutoridadeResponsavel
+                .Where(w => w.AutoridadeResponsavelId == GrvCadastro.AutoridadeResponsavelId)
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
+
+            if (AutoridadeResponsavel == null)
+            {
+                ResultView.AvisosImpeditivos.Add("Autoridade Responsável não encontrada");
+            }
+
+            CorModel Cor = await _context.Cor
+                .Where(w => w.CorId == GrvCadastro.CorId)
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
+
+            if (Cor == null)
+            {
+                ResultView.AvisosImpeditivos.Add("Cor não encontrada");
+            }
+
+            MarcaModeloModel MarcaModelo = await _context.MarcaModelo
+                .Where(w => w.DetranMarcaModeloId == GrvCadastro.MarcaModeloId)
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
+
+            if (MarcaModelo == null)
+            {
+                ResultView.AvisosImpeditivos.Add("Marca/Modelo não encontrado");
+            }
+
+            MotivoApreensaoModel MotivoApreensao = await _context.MotivoApreensao
+                .Where(w => w.MotivoApreensaoId == GrvCadastro.MotivoApreensaoId)
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
+
+            if (MotivoApreensao == null)
+            {
+                ResultView.AvisosImpeditivos.Add("Motivo de Apreensão não encontrado");
+            }
+
+            var Produtos = await _context.FaturamentoProduto
+                .Where(w => w.FaturamentoProdutoId == GrvCadastro.CodigoProduto)
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
+
+            if (MotivoApreensao == null)
+            {
+                ResultView.AvisosImpeditivos.Add("Código do Produto não encontrado");
+            }
+
+            GrvModel Grv = await _context.Grv
+                .Where(w => w.NumeroFormularioGrv == GrvCadastro.NumeroProcesso && w.ClienteId == GrvCadastro.ClienteId && w.DepositoId == GrvCadastro.DepositoId)
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
+
+            if (Grv != null)
+            {
+                ResultView.AvisosImpeditivos.Add("GRV já cadastrado");
+            }
+            #endregion Consultas
+
+            if (ResultView.AvisosImpeditivos.Count > 0)
+            {
+                ResultView.HtmlStatusCode = HtmlStatusCodeEnum.BadRequest;
+            }
+            else
+            {
+                ResultView.HtmlStatusCode = HtmlStatusCodeEnum.Ok;
+            }
+
+            return ResultView;
+        }
+
+        public GrvCadastradoViewModel Create(GrvCadastroViewModel GrvCadastro)
+        {
+            GrvCadastradoViewModel ResultView = new();
+
+            GrvModel Grv = _mapper.Map<GrvModel>(GrvCadastro);
+
+            Grv.Condutor = _mapper.Map<CondutorModel>(GrvCadastro.Condutor);
+
+            Grv.EnquadramentosInfracoes = _mapper.Map<List<EnquadramentoInfracaoGrvModel>>(GrvCadastro.EnquadramentosInfracoes);
+
+            if (GrvCadastro.EnquadramentosInfracoes.Count > 0)
+            {
+                GrvCadastro.EnquadramentosInfracoes = GrvCadastro.EnquadramentosInfracoes
+                    .OrderBy(x => x)
+                    .ToList();
+            }
+
+            if (GrvCadastro.Lacres.Count > 0)
+            {
+                GrvCadastro.Lacres = GrvCadastro.Lacres
+                    .ConvertAll(d => d.ToUpper())
+                    .ConvertAll(d => d.Trim())
+                    .Distinct()
+                    .OrderBy(x => x)
+                    .ToList();
+
+                foreach (string item in GrvCadastro.Lacres)
+                {
+                    Grv.Lacres.Add(new LacreModel { UsuarioCadastroId = GrvCadastro.UsuarioId, Lacre = item });
+                }
+            }
+
+            using (IDbContextTransaction transaction = _context.Database.BeginTransaction())
+            {
+                try
+                {
+                    _context.Grv.Add(Grv);
+
+                    _context.SaveChanges();
+
+                    transaction.Commit();
+
+                    ResultView.GrvId = Grv.GrvId;
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+
+                    ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+
+                    return ResultView;
+                }
+            }
+
+            ResultView.Mensagem = MensagemViewHelper.GetOkCreate();
+
+            return ResultView;
         }
     }
 }

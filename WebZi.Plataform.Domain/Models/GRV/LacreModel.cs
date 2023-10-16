@@ -20,8 +20,6 @@
 
         public DateTime? DataAlteracao { get; set; }
 
-        public virtual GrvModel Grv { get; set; }
-
         //public virtual GrvLacresMotivosDesassociacao LacreMotivoDesassociacao { get; set; }
 
         //public virtual Usuario UsuarioAlteracaoNavigation { get; set; }

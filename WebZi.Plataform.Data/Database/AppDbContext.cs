@@ -102,7 +102,9 @@ namespace WebZi.Plataform.Data.Database
 
         public DbSet<EmpresaModel> Empresa { get; set; }
 
-        public DbSet<EnquadramentoInfracaoModel> EnquadramentoInfracoe { get; set; }
+        public DbSet<EnquadramentoInfracaoModel> EnquadramentoInfracao { get; set; }
+
+        public DbSet<EnquadramentoInfracaoGrvModel> EnquadramentoInfracaoGrv { get; set; }
 
         public DbSet<FaturamentoModel> Faturamento { get; set; }
 

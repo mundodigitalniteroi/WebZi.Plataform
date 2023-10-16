@@ -101,7 +101,7 @@ namespace WebZi.Plataform.Data.Services.Servico
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
 
-            if (Cliente == null)
+            if (Deposito == null)
             {
                 ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadraoEnum.DepositoNaoEncontrado);
 
@@ -167,7 +167,7 @@ namespace WebZi.Plataform.Data.Services.Servico
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
 
-            if (Cliente == null)
+            if (Deposito == null)
             {
                 ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadraoEnum.DepositoNaoEncontrado);
 

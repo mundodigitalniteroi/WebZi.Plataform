@@ -23,7 +23,7 @@ namespace WebZi.Plataform.Domain.Models.Condutor
 
         public DateTime? DataAtualizacao { get; set; }
 
-        public string FlagPossuiEquipamento { get; set; }
+        public string FlagPossuiEquipamento { get; set; } = "S";
 
         public virtual EquipamentoOpcionalModel EquipamentoOpcional { get; set; }
 

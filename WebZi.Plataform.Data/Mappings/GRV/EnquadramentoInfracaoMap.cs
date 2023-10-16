@@ -10,14 +10,14 @@ namespace WebZi.Plataform.Data.Mappings.GRV
         {
             builder
                 .ToTable("tb_dep_enquadramento_infracoes", "dbo", tb => tb.HasTrigger("tr_log_upd_enquadramento_infracoes"))
-                .HasKey(e => e.IdEnquadramentoInfracao);
+                .HasKey(e => e.EnquadramentoInfracaoId);
 
-            builder.Property(e => e.IdEnquadramentoInfracao)
+            builder.Property(e => e.EnquadramentoInfracaoId)
                 .HasColumnType("numeric(4, 0)")
                 .HasColumnName("id_enquadramento_infracao")
                 .ValueGeneratedOnAdd();
 
-            builder.Property(e => e.IdUsuario)
+            builder.Property(e => e.UsuarioId)
                 .HasColumnName("id_usuario");
 
             builder.Property(e => e.Artigo)

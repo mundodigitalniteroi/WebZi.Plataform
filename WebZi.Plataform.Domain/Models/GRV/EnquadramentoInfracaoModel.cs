@@ -4,9 +4,9 @@ namespace WebZi.Plataform.Domain.Models.GRV
 {
     public class EnquadramentoInfracaoModel
     {
-        public decimal IdEnquadramentoInfracao { get; set; }
+        public decimal EnquadramentoInfracaoId { get; set; }
 
-        public int IdUsuario { get; set; }
+        public int UsuarioId { get; set; }
 
         public string CodigoInfracao { get; set; }
 
@@ -21,9 +21,5 @@ namespace WebZi.Plataform.Domain.Models.GRV
         public string Status { get; set; } = "S";
 
         public virtual UsuarioModel Usuario { get; set; }
-
-        //public virtual ICollection<Condutor> TbDepCondutors { get; set; } = new List<TbDepCondutor>();
-
-        //public virtual ICollection<TbDepGrvEnquadramentoInfraco> TbDepGrvEnquadramentoInfracos { get; set; } = new List<TbDepGrvEnquadramentoInfraco>();
     }
 }

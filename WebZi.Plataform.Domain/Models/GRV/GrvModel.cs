@@ -33,8 +33,6 @@ namespace WebZi.Plataform.Domain.Models.GRV
 
         public int? MarcaModeloId { get; set; }
 
-        public int? AgenteId { get; set; }
-
         public byte? MotivoApreensaoId { get; set; }
 
         public string StatusOperacaoId { get; set; }
@@ -195,9 +193,11 @@ namespace WebZi.Plataform.Domain.Models.GRV
 
         public virtual ViewUsuarioClienteDepositoGrvModel UsuarioClienteDepositoGrvModel { get; set; }
 
-        public virtual ICollection<EnquadramentoInfracaoModel> EnquadramentosInfracoes { get; set; }
+        public virtual ICollection<CondutorEquipamentoOpcionalModel> CondutorEquipamentosOpcionais { get; set; }
 
-        public virtual ICollection<FaturamentoServicoGrvModel> FaturamentosServicosGrvs { get; set; }
+        public virtual ICollection<EnquadramentoInfracaoGrvModel> EnquadramentosInfracoes { get; set; } = new List<EnquadramentoInfracaoGrvModel>();
+
+        public virtual ICollection<FaturamentoServicoGrvModel> Servicos { get; set; }
 
         public virtual ICollection<LacreModel> Lacres { get; set; } = new List<LacreModel>();
 
@@ -219,8 +219,6 @@ namespace WebZi.Plataform.Domain.Models.GRV
 
         //public virtual ICollection<AlterdataErro> AlterdataErros { get; set; } = new List<AlterdataErro>();
 
-        //public virtual ICollection<CondutorEquipamentosOpcionai> CondutorEquipamentosOpcionais { get; set; } = new List<CondutorEquipamentosOpcionai>();
-
         //public virtual ICollection<DetranGrvStatusTransacao> DetranGrvStatusTransacaos { get; set; } = new List<DetranGrvStatusTransacao>();
 
         //public virtual ICollection<GrvBloqueio> GrvBloqueios { get; set; } = new List<GrvBloqueio>();
@@ -228,8 +226,6 @@ namespace WebZi.Plataform.Domain.Models.GRV
         //public virtual ICollection<GrvCobrancasLegai> GrvCobrancasLegais { get; set; } = new List<GrvCobrancasLegai>();
 
         //public virtual ICollection<GrvDocumento> GrvDocumentos { get; set; } = new List<GrvDocumento>();
-
-        //public virtual ICollection<GrvFoto> GrvFotos { get; set; } = new List<GrvFoto>();
 
         //public virtual ICollection<GrvVistorium> GrvVistoria { get; set; } = new List<GrvVistorium>();
 
