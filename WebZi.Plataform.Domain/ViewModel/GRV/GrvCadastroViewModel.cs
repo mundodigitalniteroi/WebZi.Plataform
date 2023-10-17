@@ -68,65 +68,39 @@ namespace WebZi.Plataform.Domain.ViewModel.GRV
 
         public string EstacionamentoNumeroVaga { get; set; }
 
-        public string Divergencia1 { get; set; }
-
-        public string Divergencia2 { get; set; }
-
-        public string Divergencia3 { get; set; }
-
-        public string Divergencia4 { get; set; }
-
-        public string Divergencia5 { get; set; }
-
         public string Latitude { get; set; }
 
         public string Longitude { get; set; }
-
-        public string NumeroOficio { get; set; }
-
-        public string MatriculaComandante { get; set; }
-
-        public string TermoDetran { get; set; }
 
         public string VeiculoUF { get; set; }
 
         public DateTime DataHoraRemocao { get; set; }
 
-        public DateTime? DataOficio { get; set; }
-
-        public DateTime? DataTransbordo { get; set; }
-
         public string LatitudeAcautelamento { get; set; }
 
         public string LongitudeAcautelamento { get; set; }
 
-        public decimal? DistanciaAteAcautelamento { get; set; }
+        public string CodigoIdentificacaoCliente { get; set; }
 
-        public string FlagComboio { get; set; } = "N";
+        public string FlagVeiculoNaoUsouReboque { get; set; }
 
-        public string FlagVeiculoNaoIdentificado { get; set; } = "N";
+        public string FlagVeiculoNaoIdentificado { get; set; }
 
-        public string FlagVeiculoSemRegistro { get; set; } = "N";
+        public string FlagVeiculoSemRegistro { get; set; }
 
-        public string FlagVeiculoRoubadoFurtado { get; set; } = "N";
+        public string FlagVeiculoRoubadoFurtado { get; set; }
 
-        public string FlagChaveDeposito { get; set; } = "N";
+        public string FlagEstadoLacre { get; set; }
 
-        public string FlagEstadoLacre { get; set; } = "N";
-
-        public string FlagVeiculoMesmasCondicoes { get; set; } = "N";
-
-        public string FlagVistoria { get; set; } = "N";
-
-        public string FlagVeiculoNaoOstentaPlaca { get; set; } = "N";
-
-        public string FlagTransbordo { get; set; } = "N";
+        public string FlagVeiculoNaoOstentaPlaca { get; set; }
 
         public CondutorCadastroViewModel Condutor { get; set; }
 
         public List<string> Lacres { get; set;}
 
         public List<EnquadramentoInfracaoGrvCadastroViewModel> EnquadramentosInfracoes { get; set; }
+
+        public List<byte[]> Fotos { get; set; }
 
         // Isso é cadastrado no GGV
         // public ICollection<CondutorEquipamentoOpcionalCadastroViewModel> CondutorEquipamentosOpcionais { get; set; }

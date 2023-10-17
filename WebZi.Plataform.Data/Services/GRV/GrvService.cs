@@ -1,18 +1,25 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using System.Collections.Generic;
+using System.Reflection.Metadata;
 using System.ServiceModel.Channels;
+using WebZi.Plataform.CrossCutting.Contacts;
+using WebZi.Plataform.CrossCutting.Documents;
 using WebZi.Plataform.CrossCutting.Number;
 using WebZi.Plataform.CrossCutting.Veiculo;
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Bucket;
+using WebZi.Plataform.Data.Services.Deposito;
 using WebZi.Plataform.Data.Services.Faturamento;
 using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Cliente;
+using WebZi.Plataform.Domain.Models.ClienteDeposito;
 using WebZi.Plataform.Domain.Models.Condutor;
 using WebZi.Plataform.Domain.Models.Deposito;
+using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.GRV;
 using WebZi.Plataform.Domain.Models.Servico;
 using WebZi.Plataform.Domain.Models.Sistema;
@@ -22,6 +29,8 @@ using WebZi.Plataform.Domain.ViewModel;
 using WebZi.Plataform.Domain.ViewModel.GRV;
 using WebZi.Plataform.Domain.ViewModel.GRV.Cadastro;
 using WebZi.Plataform.Domain.ViewModel.GRV.Pesquisa;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace WebZi.Plataform.Domain.Services.GRV
 {
@@ -317,7 +326,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
                     DataHoraRemocao = Grv.DataHoraRemocao,
 
-                    DataHoraGuarda = Grv.DataHoraGuarda,
+                    DataHoraGuarda = Grv.DataHoraGuarda.Value,
 
                     Cliente = Grv.Cliente.Nome,
 
@@ -354,7 +363,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 .FirstOrDefault() != null;
         }
 
-        public async Task<MensagemViewModel> SendFiles(GrvFotoViewModel Fotos)
+        public MensagemViewModel SendFiles(GrvFotoViewModel Fotos)
         {
             List<string> erros = new();
 
@@ -370,7 +379,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (Fotos.Fotos.Count == 0)
             {
-                erros.Add("");
+                erros.Add("Nenhuma imagem enviada para a API");
             }
 
             MensagemViewModel ResultView = new();
@@ -382,10 +391,10 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 return ResultView;
             }
 
-            GrvModel Grv = await _context.Grv
+            GrvModel Grv = _context.Grv
                 .Where(w => w.GrvId == Fotos.GrvId)
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefault();
 
             if (Grv == null)
             {
@@ -426,19 +435,38 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 erros.Add(MensagemPadraoEnum.IdentificadorTipoVeiculoInvalido);
             }
 
-            if (GrvCadastro.ReboquistaId <= 0)
+            if (GrvCadastro.FlagVeiculoNaoUsouReboque != "S"
+                && GrvCadastro.FlagVeiculoNaoUsouReboque != "N")
             {
-                erros.Add(MensagemPadraoEnum.IdentificadorReboquistaInvalido);
+                erros.Add("Flag do Veículo não usou Reboque inválido, informe \"S\" ou \"N\" (sem aspas)");
+            }
+            else if (GrvCadastro.FlagVeiculoNaoUsouReboque == "N")
+            {
+                if (GrvCadastro.ReboquistaId <= 0)
+                {
+                    erros.Add(MensagemPadraoEnum.IdentificadorReboquistaInvalido);
+                }
+
+                if (GrvCadastro.ReboqueId <= 0)
+                {
+                    erros.Add(MensagemPadraoEnum.IdentificadorReboqueInvalido);
+                }
             }
 
-            if (GrvCadastro.ReboqueId <= 0)
+            if (GrvCadastro.FlagVeiculoNaoOstentaPlaca != "S"
+                && GrvCadastro.FlagVeiculoNaoOstentaPlaca != "N")
             {
-                erros.Add(MensagemPadraoEnum.IdentificadorReboqueInvalido);
+                erros.Add("Flag do Veículo não ostenta Placa inválido, informe \"S\" ou \"N\" (sem aspas)");
             }
 
             if (GrvCadastro.AutoridadeResponsavelId <= 0)
             {
                 erros.Add(MensagemPadraoEnum.IdentificadorAutoridadeResponsavelInvalido);
+            }
+
+            if (string.IsNullOrWhiteSpace(GrvCadastro.MatriculaAutoridadeResponsavel))
+            {
+                erros.Add("Informe a Matrícula da Autoridade Responsável.");
             }
 
             if (GrvCadastro.CorId <= 0)
@@ -466,6 +494,193 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 erros.Add("Informe o Código de Produto");
             }
 
+            if (string.IsNullOrWhiteSpace(GrvCadastro.NumeroProcesso))
+            {
+                erros.Add(MensagemPadraoEnum.InformeNumeroProcesso);
+            }
+            else if (!NumberHelper.IsNumber(GrvCadastro.NumeroProcesso) || Convert.ToInt64(GrvCadastro.NumeroProcesso) <= 0)
+            {
+                erros.Add(MensagemPadraoEnum.NumeroProcessoInvalido);
+            }
+
+            if (GrvCadastro.FlagVeiculoNaoIdentificado != "S"
+                && GrvCadastro.FlagVeiculoNaoIdentificado != "N")
+            {
+                erros.Add("Flag do Veículo não identificado inválido, informe \"S\" ou \"N\" (sem aspas)");
+            }
+            else if (GrvCadastro.FlagVeiculoNaoIdentificado == "S")
+            {
+                if (!string.IsNullOrWhiteSpace(GrvCadastro.Placa) || !string.IsNullOrWhiteSpace(GrvCadastro.Chassi))
+                {
+                    erros.Add("Ao informar que o Veículo não foi identificado, não se deve informar a Placa nem o Chassi");
+                }
+            }
+            else if (GrvCadastro.FlagVeiculoSemRegistro == "S")
+            {
+                if (!string.IsNullOrWhiteSpace(GrvCadastro.Placa))
+                {
+                    erros.Add("Ao informar que o Veículo não possui registro, não se deve informar a Placa");
+                }
+                else if (string.IsNullOrWhiteSpace(GrvCadastro.Chassi))
+                {
+                    erros.Add("Informe o Chassi");
+                }
+                else if (!VeiculoHelper.IsChassi(GrvCadastro.Chassi))
+                {
+                    erros.Add("Chassi inválido");
+                }
+            }
+            else
+            {
+                if (string.IsNullOrWhiteSpace(GrvCadastro.Placa))
+                {
+                    erros.Add("Informe a Placa");
+                }
+                else if (!VeiculoHelper.IsPlaca(GrvCadastro.Placa))
+                {
+                    erros.Add("Placa inválida");
+                }
+
+                if (string.IsNullOrWhiteSpace(GrvCadastro.Chassi))
+                {
+                    erros.Add("Informe o Chassi");
+                }
+                else if (!VeiculoHelper.IsChassi(GrvCadastro.Chassi))
+                {
+                    erros.Add("Chassi inválido");
+                }
+            }
+
+            if (GrvCadastro.FlagVeiculoSemRegistro != "S"
+                && GrvCadastro.FlagVeiculoSemRegistro != "N")
+            {
+                erros.Add("Flag do Veículo sem registro inválido, informe \"S\" ou \"N\" (sem aspas)");
+            }
+            else if (GrvCadastro.FlagVeiculoSemRegistro == "S")
+            {
+                if (string.IsNullOrWhiteSpace(GrvCadastro.Chassi))
+                {
+                    erros.Add("Informe o Chassi");
+                }
+                else
+                {
+                    if (!string.IsNullOrWhiteSpace(GrvCadastro.Chassi) && !VeiculoHelper.IsChassi(GrvCadastro.Chassi))
+                    {
+                        erros.Add("Chassi inválido");
+                    }
+                }
+            }
+
+            if (GrvCadastro.FlagVeiculoRoubadoFurtado != "S"
+                && GrvCadastro.FlagVeiculoRoubadoFurtado != "N")
+            {
+                erros.Add("Flag do Veículo Roubado/Furtado inválido, informe \"S\" ou \"N\" (sem aspas)");
+            }
+
+            if (GrvCadastro.Condutor == null)
+            {
+                erros.Add("Informe os dados do Condutor");
+            }
+            else
+            {
+                if (!string.IsNullOrWhiteSpace(GrvCadastro.Condutor.Email)
+                    && !EmailHelper.IsEmail(GrvCadastro.Condutor.Email))
+                {
+                    erros.Add($"E-mail do Condutor é inválido: {GrvCadastro.Condutor.Email}");
+                }
+
+                if (!string.IsNullOrWhiteSpace(GrvCadastro.Condutor.Documento))
+                {
+                    if (!DocumentHelper.IsCPF(GrvCadastro.Condutor.Documento))
+                    {
+                        erros.Add("CPF do Condutor inválido");
+                    }
+                }
+
+                if (string.IsNullOrWhiteSpace(GrvCadastro.Condutor.StatusAssinaturaCondutor))
+                {
+                    erros.Add("Informe o Status da Assinatura do Condutor");
+                }
+                else if (!new[] { "1", "2", "3", "4" }.Contains(GrvCadastro.Condutor.StatusAssinaturaCondutor))
+                {
+                    erros.Add("Status da Assinatura do Condutor inválido, informe 1, 2, 3 ou 4");
+                }
+
+                if (!string.IsNullOrWhiteSpace(GrvCadastro.Condutor.TelefoneDDD)
+                    && !ContactHelper.IsDDD(GrvCadastro.Condutor.TelefoneDDD))
+                {
+                    erros.Add("DDD do Telefone do Condutor inválido");
+                }
+
+                if (!string.IsNullOrWhiteSpace(GrvCadastro.Condutor.Telefone)
+                    && !ContactHelper.IsTelephoneOrCellphone(GrvCadastro.Condutor.Telefone))
+                {
+                    erros.Add("Telefone do Condutor inválido");
+                }
+
+                if (!string.IsNullOrWhiteSpace(GrvCadastro.Condutor.TelefoneDDD)
+                    && string.IsNullOrWhiteSpace(GrvCadastro.Condutor.Telefone))
+                {
+                    erros.Add("Ao informar o DDD do Telefone do Condutor é necessário informar o Telefone do Condutor");
+                }
+                else if (string.IsNullOrWhiteSpace(GrvCadastro.Condutor.TelefoneDDD)
+                    && !string.IsNullOrWhiteSpace(GrvCadastro.Condutor.Telefone))
+                {
+                    erros.Add("Ao informar o Telefone do Condutor é necessário informar o DDD do Telefone do Condutor");
+                }
+
+                if (GrvCadastro.Condutor.FlagDocumentacaoVeiculo != "S"
+                    && GrvCadastro.Condutor.FlagDocumentacaoVeiculo != "N")
+                {
+                    erros.Add("Flag da Documentação foi deixada no Veículo inválida, informe \"S\" ou \"N\" (sem aspas)");
+                }
+
+                if (GrvCadastro.Condutor.FlagChaveVeiculo != "S"
+                    && GrvCadastro.Condutor.FlagChaveVeiculo != "N")
+                {
+                    erros.Add("Flag da Chave ficou no Veículo inválida, informe \"S\" ou \"N\" (sem aspas)");
+                }
+                else if (GrvCadastro.Condutor.FlagChaveVeiculo == "S"
+                    && string.IsNullOrWhiteSpace(GrvCadastro.Condutor.NumeroChaveVeiculo))
+                {
+                    erros.Add("Ao informar que a Chave ficou no Veículo, é necessário informar o Número/Código da Chave");
+                }
+            }
+
+            if (GrvCadastro.FlagEstadoLacre != "S"
+                    && GrvCadastro.FlagEstadoLacre != "N")
+            {
+                erros.Add("Flag do Status dos Lacres inválido, informe \"S\" ou \"N\" (sem aspas)");
+            }
+
+            if (GrvCadastro?.Lacres.Count == 0)
+            {
+                erros.Add("Informe os Lacres");
+            }
+            else
+            {
+                List<IGrouping<string, string>> Lacres = GrvCadastro.Lacres
+                    .Where(x => !string.IsNullOrWhiteSpace(x))
+                    .GroupBy(x => x)
+                    .Where(x => x.Count() > 1)
+                    .ToList();
+
+                if (Lacres.Count >= 1)
+                {
+                    erros.Add("Existem Lacres duplicados");
+                }
+
+                Lacres = GrvCadastro.Lacres
+                    .Where(x => string.IsNullOrWhiteSpace(x))
+                    .GroupBy(x => x)
+                    .ToList();
+
+                if (Lacres.Count >= 1)
+                {
+                    erros.Add("Existem Lacres não informados");
+                }
+            }
+
             MensagemViewModel ResultView = new();
 
             if (erros.Count > 0)
@@ -485,6 +700,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             #region Consultas
             ClienteModel Cliente = await _context.Cliente
+                .Include(x => x.ClientesDepositos)
                 .Where(w => w.ClienteId == GrvCadastro.ClienteId)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
@@ -492,6 +708,22 @@ namespace WebZi.Plataform.Domain.Services.GRV
             if (Cliente == null)
             {
                 ResultView.AvisosImpeditivos.Add(MensagemPadraoEnum.ClienteNaoEncontrado);
+            }
+            else if (Cliente.FlagClientePossuiCodigoIdentificacao == "S" && string.IsNullOrWhiteSpace(GrvCadastro.CodigoIdentificacaoCliente))
+            {
+                ResultView.AvisosImpeditivos.Add($"Informe o {Cliente.LabelClienteCodigoIdentificacao}");
+            }
+            else if (Cliente.ClientesDepositos != null && Cliente.ClientesDepositos.Count > 0)
+            {
+                if (Cliente.ClientesDepositos.FirstOrDefault().FlagCadastrarGrvBloqueado == "S")
+                {
+                    StatusOperacaoModel StatusOperacao = await _context.StatusOperacao
+                        .Where(w => w.StatusOperacaoId == "B")
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync();
+
+                    ResultView.AvisosInformativos.Add($"Esse GRV receberá o Status de Operação {StatusOperacao.Descricao} devido à configuração do Cliente");
+                }
             }
 
             DepositoModel Deposito = await _context.Deposito
@@ -502,6 +734,18 @@ namespace WebZi.Plataform.Domain.Services.GRV
             if (Deposito == null)
             {
                 ResultView.AvisosImpeditivos.Add(MensagemPadraoEnum.DepositoNaoEncontrado);
+            }
+
+            DateTime DataHoraPorDeposito = new DepositoService(_context, _mapper)
+                .GetDataHoraPorDeposito(GrvCadastro.DepositoId);
+
+            if (GrvCadastro.DataHoraRemocao.Date > DataHoraPorDeposito.Date)
+            {
+                ResultView.AvisosImpeditivos.Add("A Data da Remoção não pode ser maior do que a Data atual");
+            }
+            else if (GrvCadastro.DataHoraRemocao.Hour == 0 && GrvCadastro.DataHoraRemocao.Minute == 0)
+            {
+                ResultView.AvisosImpeditivos.Add("A Hora da Remoção não pode ser igual a 00:00.");
             }
 
             TipoVeiculoModel TipoVeiculo = await _context.TipoVeiculo
@@ -573,8 +817,63 @@ namespace WebZi.Plataform.Domain.Services.GRV
             {
                 ResultView.AvisosImpeditivos.Add("Motivo de Apreensão não encontrado");
             }
+            else if (MotivoApreensao.FlagDefault == "S")
+            {
+                if (GrvCadastro?.EnquadramentosInfracoes.Count == 0)
+                {
+                    ResultView.AvisosImpeditivos.Add("Informe o Enquadramento da Infração");
+                }
+                else
+                {
+                    List<IGrouping<decimal, decimal>> EnquadramentosInfracoes = GrvCadastro.EnquadramentosInfracoes
+                        .Where(x => x.EnquadramentoInfracaoId <= 0)
+                        .Select(x => x.EnquadramentoInfracaoId)
+                        .GroupBy(x => x)
+                        .ToList();
 
-            var Produtos = await _context.FaturamentoProduto
+                    if (EnquadramentosInfracoes.Count >= 1)
+                    {
+                        ResultView.AvisosImpeditivos.Add("Existem Enquadramento da Infração com Identificador inválido");
+                    }
+
+                    EnquadramentosInfracoes = GrvCadastro.EnquadramentosInfracoes
+                        .Where(x => x.EnquadramentoInfracaoId > 0)
+                        .Select(x => x.EnquadramentoInfracaoId)
+                        .GroupBy(x => x)
+                        .Where(x => x.Count() > 1)
+                        .ToList();
+
+                    if (EnquadramentosInfracoes.Count >= 1)
+                    {
+                        ResultView.AvisosImpeditivos.Add("Existem Enquadramento da Infração duplicados");
+                    }
+
+                    List<IGrouping<string, string>> NumeroInfracao = GrvCadastro.EnquadramentosInfracoes
+                        .Where(x => string.IsNullOrWhiteSpace(x.NumeroInfracao.Trim()))
+                        .Select(x => x.NumeroInfracao.Trim())
+                        .GroupBy(x => x)
+                        .ToList();
+
+                    if (NumeroInfracao.Count >= 1)
+                    {
+                        ResultView.AvisosImpeditivos.Add("Existem Número da Infração não informados");
+                    }
+
+                    NumeroInfracao = GrvCadastro.EnquadramentosInfracoes
+                        .Where(x => !string.IsNullOrWhiteSpace(x.NumeroInfracao.Trim()))
+                        .Select(x => x.NumeroInfracao.Trim())
+                        .GroupBy(x => x)
+                        .Where(x => x.Count() > 1)
+                        .ToList();
+
+                    if (NumeroInfracao.Count >= 1)
+                    {
+                        ResultView.AvisosImpeditivos.Add("Existem Número da Infração duplicados");
+                    }
+                }
+            }
+
+            FaturamentoProdutoModel Produtos = await _context.FaturamentoProduto
                 .Where(w => w.FaturamentoProdutoId == GrvCadastro.CodigoProduto)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
@@ -611,25 +910,114 @@ namespace WebZi.Plataform.Domain.Services.GRV
         {
             GrvCadastradoViewModel ResultView = new();
 
-            GrvModel Grv = _mapper.Map<GrvModel>(GrvCadastro);
+            GrvModel Grv = new()
+            {
+                ClienteId = GrvCadastro.ClienteId,
 
-            Grv.Condutor = _mapper.Map<CondutorModel>(GrvCadastro.Condutor);
+                DepositoId = GrvCadastro.DepositoId,
 
-            Grv.EnquadramentosInfracoes = _mapper.Map<List<EnquadramentoInfracaoGrvModel>>(GrvCadastro.EnquadramentosInfracoes);
+                TipoVeiculoId = GrvCadastro.TipoVeiculoId,
 
-            if (GrvCadastro.EnquadramentosInfracoes.Count > 0)
+                ReboquistaId = GrvCadastro.ReboquistaId,
+
+                ReboqueId = GrvCadastro.ReboqueId,
+
+                AutoridadeResponsavelId = GrvCadastro.AutoridadeResponsavelId,
+
+                CorId = GrvCadastro.CorId,
+
+                CorOstentadaId = GrvCadastro.CorOstentadaId,
+
+                MarcaModeloId = GrvCadastro.MarcaModeloId,
+
+                MotivoApreensaoId = GrvCadastro.MotivoApreensaoId,
+
+                UsuarioCadastroId = GrvCadastro.UsuarioId,
+
+                NumeroFormularioGrv = GrvCadastro.NumeroProcesso.Trim(),
+
+                FaturamentoProdutoId = GrvCadastro.CodigoProduto,
+
+                MatriculaAutoridadeResponsavel = GrvCadastro.MatriculaAutoridadeResponsavel.ToUpper().Trim(),
+
+                NomeAutoridadeResponsavel = GrvCadastro.NomeAutoridadeResponsavel.ToUpper().Trim(),
+
+                Placa = GrvCadastro.Placa.ToUpper(),
+
+                PlacaOstentada = GrvCadastro.PlacaOstentada.ToUpper(),
+
+                Chassi = GrvCadastro.Chassi.ToUpper().Trim(),
+
+                Renavam = GrvCadastro.Renavam.ToUpper().Trim(),
+
+                Rfid = GrvCadastro.Rfid.ToUpper().Trim(),
+
+                EnderecoLocalizacaoVeiculoCEPId = GrvCadastro.EnderecoLocalizacaoVeiculoCEPId,
+
+                EnderecoLocalizacaoVeiculoLogradouro = GrvCadastro.EnderecoLocalizacaoVeiculoLogradouro.ToUpper().Trim(),
+
+                EnderecoLocalizacaoVeiculoNumero = GrvCadastro.EnderecoLocalizacaoVeiculoNumero.ToUpper().Trim(),
+
+                EnderecoLocalizacaoVeiculoComplemento = GrvCadastro.EnderecoLocalizacaoVeiculoComplemento.ToUpper().Trim(),
+
+                EnderecoLocalizacaoVeiculoBairro = GrvCadastro.EnderecoLocalizacaoVeiculoBairro.ToUpper().Trim(),
+
+                EnderecoLocalizacaoVeiculoMunicipio = GrvCadastro.EnderecoLocalizacaoVeiculoMunicipio.ToUpper().Trim(),
+
+                EnderecoLocalizacaoVeiculoUF = GrvCadastro.EnderecoLocalizacaoVeiculoUF.ToUpper().Trim(),
+
+                EnderecoLocalizacaoVeiculoReferencia = GrvCadastro.EnderecoLocalizacaoVeiculoReferencia.ToUpper().Trim(),
+
+                EnderecoLocalizacaoVeiculoPontoReferencia = GrvCadastro.EnderecoLocalizacaoVeiculoPontoReferencia.ToUpper().Trim(),
+
+                NumeroChave = GrvCadastro.NumeroChave.ToUpper().Trim(),
+
+                EstacionamentoSetor = GrvCadastro.EstacionamentoSetor.ToUpper().Trim(),
+
+                EstacionamentoNumeroVaga = GrvCadastro.EstacionamentoNumeroVaga.ToUpper().Trim(),
+
+                Latitude = GrvCadastro.Latitude.ToUpper().Trim(),
+
+                Longitude = GrvCadastro.Longitude.ToUpper().Trim(),
+
+                VeiculoUF = GrvCadastro.VeiculoUF.ToUpper().Trim(),
+
+                DataHoraRemocao = GrvCadastro.DataHoraRemocao,
+
+                LatitudeAcautelamento = GrvCadastro.LatitudeAcautelamento.ToUpper().Trim(),
+
+                LongitudeAcautelamento = GrvCadastro.LongitudeAcautelamento.ToUpper().Trim(),
+
+                FlagComboio = GrvCadastro.FlagVeiculoNaoUsouReboque,
+
+                FlagVeiculoNaoIdentificado = GrvCadastro.FlagVeiculoNaoIdentificado,
+
+                FlagVeiculoSemRegistro = GrvCadastro.FlagVeiculoSemRegistro,
+
+                FlagVeiculoRoubadoFurtado = GrvCadastro.FlagVeiculoRoubadoFurtado,
+
+                FlagEstadoLacre = GrvCadastro.FlagEstadoLacre,
+
+                FlagVeiculoNaoOstentaPlaca = GrvCadastro.FlagVeiculoNaoOstentaPlaca,
+
+                Condutor = _mapper.Map<CondutorModel>(GrvCadastro.Condutor),
+
+                EnquadramentosInfracoes = _mapper.Map<List<EnquadramentoInfracaoGrvModel>>(GrvCadastro.EnquadramentosInfracoes)
+            };
+
+            if (GrvCadastro.EnquadramentosInfracoes?.Count > 0)
             {
                 GrvCadastro.EnquadramentosInfracoes = GrvCadastro.EnquadramentosInfracoes
-                    .OrderBy(x => x)
+                    .OrderBy(x => x.NumeroInfracao)
                     .ToList();
+
+                GrvCadastro.EnquadramentosInfracoes.ForEach(x => x.NumeroInfracao = x.NumeroInfracao.ToUpper().Trim());
             }
 
-            if (GrvCadastro.Lacres.Count > 0)
+            if (GrvCadastro.Lacres?.Count > 0)
             {
                 GrvCadastro.Lacres = GrvCadastro.Lacres
-                    .ConvertAll(d => d.ToUpper())
-                    .ConvertAll(d => d.Trim())
-                    .Distinct()
+                    .ConvertAll(x => x.ToUpper().Trim())
                     .OrderBy(x => x)
                     .ToList();
 
@@ -637,6 +1025,17 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 {
                     Grv.Lacres.Add(new LacreModel { UsuarioCadastroId = GrvCadastro.UsuarioId, Lacre = item });
                 }
+            }
+
+            ClienteDepositoModel ClienteDeposito = _context.ClienteDeposito
+                .Where(x => x.ClienteId == GrvCadastro.ClienteId
+                        && x.DepositoId == GrvCadastro.DepositoId)
+                .AsNoTracking()
+                .FirstOrDefault();
+
+            if (ClienteDeposito != null && ClienteDeposito.FlagCadastrarGrvBloqueado == "S")
+            {
+                Grv.StatusOperacaoId = "B";
             }
 
             using (IDbContextTransaction transaction = _context.Database.BeginTransaction())
@@ -649,6 +1048,22 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
                     transaction.Commit();
 
+                    if (ClienteDeposito.Cliente != null && ClienteDeposito.Cliente.FlagClientePossuiCodigoIdentificacao == "S")
+                    {
+                        ClienteCodigoIdentificacaoModel ClienteCodigoIdentificacao = new()
+                        {
+                            GrvId = Grv.GrvId,
+
+                            UsuarioCadastroId = GrvCadastro.UsuarioId,
+
+                            CodigoIdentificacao = GrvCadastro.CodigoIdentificacaoCliente
+                        };
+
+                        _context.ClienteCodigoIdentificacao.Add(ClienteCodigoIdentificacao);
+
+                        _context.SaveChanges();
+                    }
+
                     ResultView.GrvId = Grv.GrvId;
                 }
                 catch (Exception ex)
@@ -659,6 +1074,18 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
                     return ResultView;
                 }
+            }
+
+            if (GrvCadastro.Fotos?.Count > 0)
+            {
+                SendFiles(new()
+                {
+                    GrvId = Grv.GrvId,
+
+                    UsuarioId = Grv.UsuarioCadastroId,
+
+                    Fotos = GrvCadastro.Fotos
+                });
             }
 
             ResultView.Mensagem = MensagemViewHelper.GetOkCreate();

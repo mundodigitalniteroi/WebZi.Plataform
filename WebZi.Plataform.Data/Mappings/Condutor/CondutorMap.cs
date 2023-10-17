@@ -18,18 +18,6 @@ namespace WebZi.Plataform.Data.Mappings.Condutor
 
             builder.Property(e => e.GrvId)
                 .HasColumnName("id_grv");
-
-            builder.Property(e => e.Celular)
-                .HasMaxLength(9)
-                .IsUnicode(false)
-                .IsFixedLength()
-                .HasColumnName("celular");
-            
-            builder.Property(e => e.CelularDDD)
-                .HasMaxLength(2)
-                .IsUnicode(false)
-                .IsFixedLength()
-                .HasColumnName("celular_ddd");
             
             builder.Property(e => e.Documento)
                 .HasMaxLength(20)

@@ -44,6 +44,26 @@ namespace WebZi.Plataform.CrossCutting.Contacts
             return true;
         }
 
+        public static bool IsTelephoneOrCellphone(string phone)
+        {
+            phone = phone.Replace("-", "").Trim();
+
+            if (string.IsNullOrWhiteSpace(phone))
+            {
+                return false;
+            }
+            else if (!NumberHelper.IsNumber(phone))
+            {
+                return false;
+            }
+            else if (phone.Length < 8 || phone.Length > 9)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
         public static bool IsDDD(string ddd)
         {
             ddd = ddd.Trim();

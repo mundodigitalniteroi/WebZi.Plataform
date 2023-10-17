@@ -187,13 +187,13 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             GuiaPagamentoEstadiaReboque.NumeroFormularioGrv = Grv.NumeroFormularioGrv;
 
-            GuiaPagamentoEstadiaReboque.DataHoraRemocao = Grv.DataHoraGuarda.ToString("dd/MM/yyyy HH:mm");
+            GuiaPagamentoEstadiaReboque.DataHoraRemocao = Grv.DataHoraGuarda.Value.ToString("dd/MM/yyyy HH:mm");
 
-            GuiaPagamentoEstadiaReboque.DataHoraGuarda = Grv.DataHoraGuarda.ToString("dd/MM/yyyy HH:mm");
+            GuiaPagamentoEstadiaReboque.DataHoraGuarda = Grv.DataHoraGuarda.Value.ToString("dd/MM/yyyy HH:mm");
 
-            GuiaPagamentoEstadiaReboque.DataGuarda = Grv.DataHoraGuarda.ToString("dd/MM/yyyy");
+            GuiaPagamentoEstadiaReboque.DataGuarda = Grv.DataHoraGuarda.Value.ToString("dd/MM/yyyy");
 
-            GuiaPagamentoEstadiaReboque.HoraGuarda = Grv.DataHoraGuarda.ToString("HH:mm");
+            GuiaPagamentoEstadiaReboque.HoraGuarda = Grv.DataHoraGuarda.Value.ToString("HH:mm");
 
             GuiaPagamentoEstadiaReboque.EstacionamentoSetor = Grv.EstacionamentoSetor;
 

@@ -1,5 +1,6 @@
 ﻿using WebZi.Plataform.Domain.Models.Banco;
 using WebZi.Plataform.Domain.Models.Banco.PIX.Dinamico;
+using WebZi.Plataform.Domain.Models.ClienteDeposito;
 using WebZi.Plataform.Domain.Models.Empresa;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.GRV;
@@ -77,7 +78,7 @@ namespace WebZi.Plataform.Domain.Models.Cliente
 
         public string FlagLancarIpvaMultas { get; set; } = "N";
 
-        public string FlagPossuiClienteCodigoIdentificacao { get; set; } = "N";
+        public string FlagClientePossuiCodigoIdentificacao { get; set; } = "N";
 
         public string FlagAtivo { get; set; } = "S";
 
@@ -125,12 +126,10 @@ namespace WebZi.Plataform.Domain.Models.Cliente
 
         //public virtual ICollection<ClienteRegra> ClienteRegras { get; set; }
 
-        //public virtual ICollection<ClientesDeposito> ClientesDepositos { get; set; }
+        public virtual ICollection<ClienteDepositoModel> ClientesDepositos { get; set; }
 
         //public virtual ICollection<Gtv> GtvIdClienteEnvio { get; set; }
 
         //public virtual ICollection<Gtv> GtvIdClienteRecebimento { get; set; }
-
-        
     }
 }

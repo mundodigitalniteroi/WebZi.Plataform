@@ -1,4 +1,7 @@
-﻿namespace WebZi.Plataform.Domain.Models.ClienteDeposito
+﻿using WebZi.Plataform.Domain.Models.Cliente;
+using WebZi.Plataform.Domain.Models.Deposito;
+
+namespace WebZi.Plataform.Domain.Models.ClienteDeposito
 {
     public class ClienteDepositoModel
     {
@@ -38,9 +41,9 @@
 
         public decimal AliquotaIss { get; set; }
 
-        //public virtual TbDepCliente IdClienteNavigation { get; set; }
+        public virtual ClienteModel Cliente { get; set; }
 
-        //public virtual TbDepDeposito IdDepositoNavigation { get; set; }
+        public virtual DepositoModel Deposito { get; set; }
 
         //public virtual TbDepUsuario IdUsuarioAlteracaoNavigation { get; set; }
 

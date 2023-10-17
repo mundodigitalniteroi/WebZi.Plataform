@@ -90,6 +90,8 @@ namespace WebZi.Plataform.Data.Database
 
         public DbSet<ClienteModel> Cliente { get; set; }
 
+        public DbSet<ClienteCodigoIdentificacaoModel> ClienteCodigoIdentificacao { get; set; }
+
         public DbSet<ClienteDepositoModel> ClienteDeposito { get; set; }
 
         public DbSet<ConfiguracaoModel> Configuracao { get; set; }

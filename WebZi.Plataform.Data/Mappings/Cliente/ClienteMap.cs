@@ -110,7 +110,7 @@ namespace WebZi.Plataform.Data.Mappings.Cliente
                 .IsFixedLength()
                 .HasColumnName("flag_permite_alteracao_tipo_veiculo");
 
-            builder.Property(e => e.FlagPossuiClienteCodigoIdentificacao)
+            builder.Property(e => e.FlagClientePossuiCodigoIdentificacao)
                 .IsRequired()
                 .HasMaxLength(1)
                 .IsUnicode(false)

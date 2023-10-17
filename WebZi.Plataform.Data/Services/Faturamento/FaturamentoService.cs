@@ -189,14 +189,14 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                             // Primeiro filtro, cobrar por todas as vigências encontradas
                             FaturamentoServicosAssociadosVeiculosTodasVigenciasEncontradas = FaturamentoServicosAssociadosVeiculos
                                 .Where(w => w.FaturamentoServicoTipoId == FaturamentoServicoGrv.FaturamentoServicoTipoId &&
-                                           (ParametrosCalculoFaturamento.Grv.DataHoraGuarda.Date >= w.DataVigenciaInicial && ParametrosCalculoFaturamento.Grv.DataHoraGuarda.Date <= w.DataVigenciaFinal) ||
+                                           (ParametrosCalculoFaturamento.Grv.DataHoraGuarda.Value.Date >= w.DataVigenciaInicial && ParametrosCalculoFaturamento.Grv.DataHoraGuarda.Value.Date <= w.DataVigenciaFinal) ||
                                             ParametrosCalculoFaturamento.Grv.DataHoraGuarda <= w.DataVigenciaFinal || w.DataVigenciaFinal == null)
                                 .ToList();
 
                             foreach (ViewFaturamentoServicoAssociadoVeiculoModel FaturamentoServicoAssociadoVeiculoAmbos in FaturamentoServicosAssociadosVeiculosTodasVigenciasEncontradas)
                             {
                                 // Retorna a quantidade de Dias entre as datas
-                                CalculoDiarias.Diarias = RetornarQuantidadeDiasServicoDiarias(FaturamentoServicoAssociadoVeiculoAmbos, ParametrosCalculoFaturamento.Grv.DataHoraGuarda, ParametrosCalculoFaturamento.DataHoraPorDeposito);
+                                CalculoDiarias.Diarias = RetornarQuantidadeDiasServicoDiarias(FaturamentoServicoAssociadoVeiculoAmbos, ParametrosCalculoFaturamento.Grv.DataHoraGuarda.Value, ParametrosCalculoFaturamento.DataHoraPorDeposito);
 
                                 if (CalculoDiarias.Diarias >= DiariasCalculadas)
                                 {
@@ -254,7 +254,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                             // Segundo filtro, cobrar pela Vigência Inicial
                             FaturamentoServicoAssociadoVeiculo = FaturamentoServicosAssociadosVeiculos
                                 .Where(w => w.FaturamentoServicoTipoId == FaturamentoServicoGrv.FaturamentoServicoTipoId)
-                                .Where(w => w.DataVigenciaFinal >= ParametrosCalculoFaturamento.Grv.DataHoraGuarda.Date || w.DataVigenciaFinal == null)
+                                .Where(w => w.DataVigenciaFinal >= ParametrosCalculoFaturamento.Grv.DataHoraGuarda.Value.Date || w.DataVigenciaFinal == null)
                                 .OrderBy(o => o.DataVigenciaInicial)
                                 .FirstOrDefault();
 
@@ -319,7 +319,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                         {
                             FaturamentoServicoAssociadoVeiculo = FaturamentoServicosAssociadosVeiculos
                                 .Where(w => w.FaturamentoServicoTipoId == FaturamentoServicoGrv.FaturamentoServicoTipoId)
-                                .Where(w => w.DataVigenciaFinal >= ParametrosCalculoFaturamento.Grv.DataHoraGuarda.Date || w.DataVigenciaFinal == null)
+                                .Where(w => w.DataVigenciaFinal >= ParametrosCalculoFaturamento.Grv.DataHoraGuarda.Value.Date || w.DataVigenciaFinal == null)
                                 .OrderBy(o => o.DataVigenciaInicial)
                                 .First();
 
@@ -370,7 +370,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 }
                 else if (FaturamentoServicoGrv.TipoCobranca == "T") // Tempo
                 {
-                    if ((Horas = (int)(ParametrosCalculoFaturamento.DataHoraPorDeposito - ParametrosCalculoFaturamento.Grv.DataHoraGuarda).TotalHours) == 0)
+                    if ((Horas = (int)(ParametrosCalculoFaturamento.DataHoraPorDeposito - ParametrosCalculoFaturamento.Grv.DataHoraGuarda.Value).TotalHours) == 0)
                     {
                         Horas++;
                     }

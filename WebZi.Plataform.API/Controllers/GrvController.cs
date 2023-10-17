@@ -69,14 +69,14 @@ namespace WebZi.Plataform.API.Controllers
             return ResultView;
         }
 
-        [HttpPost("EnviarFotos")]
-        public async Task<ActionResult<MensagemViewModel>> CadastrarFotos(GrvFotoViewModel Fotos)
+        [HttpPost("CadastrarFotos")]
+        public ActionResult<MensagemViewModel> CadastrarFotos(GrvFotoViewModel Fotos)
         {
             MensagemViewModel ResultView;
 
             try
             {
-                ResultView = await _provider
+                ResultView = _provider
                     .GetService<GrvService>()
                     .SendFiles(Fotos);
 

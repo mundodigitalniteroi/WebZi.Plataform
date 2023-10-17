@@ -11,5 +11,7 @@
         public string NumeroInfracao { get; set; }
 
         public virtual EnquadramentoInfracaoModel EnquadramentoInfracao { get; set; }
+
+        public virtual GrvModel Grv { get; set; }
     }
 }

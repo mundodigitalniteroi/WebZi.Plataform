@@ -35,7 +35,7 @@ namespace WebZi.Plataform.Domain.Models.GRV
 
         public byte? MotivoApreensaoId { get; set; }
 
-        public string StatusOperacaoId { get; set; }
+        public string StatusOperacaoId { get; set; } = "G";
 
         public int? LiberacaoId { get; set; }
 
@@ -116,7 +116,7 @@ namespace WebZi.Plataform.Domain.Models.GRV
 
         public DateTime DataHoraRemocao { get; set; }
 
-        public DateTime DataHoraGuarda { get; set; }
+        public DateTime? DataHoraGuarda { get; set; }
 
         public DateTime? DataOficio { get; set; }
 
@@ -162,7 +162,9 @@ namespace WebZi.Plataform.Domain.Models.GRV
         public virtual AutoridadeResponsavelModel AutoridadeResponsavel { get; set; }
         
         public virtual ClienteModel Cliente { get; set; }
-        
+
+        public virtual ClienteCodigoIdentificacaoModel ClienteCodigoIdentificacao { get; set; }
+
         public virtual CondutorModel Condutor { get; set; }
         
         public virtual CorModel Cor { get; set; }
@@ -191,15 +193,15 @@ namespace WebZi.Plataform.Domain.Models.GRV
         
         public virtual UsuarioModel UsuarioEdicao { get; set; }
 
-        public virtual ViewUsuarioClienteDepositoGrvModel UsuarioClienteDepositoGrvModel { get; set; }
-
         public virtual ICollection<CondutorEquipamentoOpcionalModel> CondutorEquipamentosOpcionais { get; set; }
 
         public virtual ICollection<EnquadramentoInfracaoGrvModel> EnquadramentosInfracoes { get; set; } = new List<EnquadramentoInfracaoGrvModel>();
 
+        public virtual ICollection<LacreModel> Lacres { get; set; } = new List<LacreModel>();
+
         public virtual ICollection<FaturamentoServicoGrvModel> Servicos { get; set; }
 
-        public virtual ICollection<LacreModel> Lacres { get; set; } = new List<LacreModel>();
+        public virtual ViewUsuarioClienteDepositoGrvModel UsuarioClienteDepositoGrvModel { get; set; }
 
         //public virtual Alterdatum Alterdatum { get; set; }
 

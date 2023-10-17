@@ -42,23 +42,20 @@ namespace WebZi.Plataform.Data.Services.Bucket
             {
                 NomeArquivo = Guid.NewGuid().ToString() + ".jpg";
 
-                ArquivosEnvio = new()
+                ArquivosEnvio.Add(new()
                 {
-                    new()
-                    {
-                        NomeBucket = Configuracao.RepositorioArquivoNomeBucket,
+                    NomeBucket = Configuracao.RepositorioArquivoNomeBucket,
 
-                        NomeArquivo = NomeArquivo,
+                    NomeArquivo = NomeArquivo,
 
-                        ArquivoBase64 = Convert.ToBase64String(File),
+                    ArquivoBase64 = Convert.ToBase64String(File),
 
-                        NomePasta = BucketNomeTabelaOrigem.DiretorioRemoto,
+                    NomePasta = BucketNomeTabelaOrigem.DiretorioRemoto,
 
-                        NomeArquivoCompleto = NomeArquivo,
+                    NomeArquivoCompleto = NomeArquivo,
 
-                        NomeArquivoOriginal = NomeArquivo,
-                    }
-                };
+                    NomeArquivoOriginal = NomeArquivo,
+                });
             }
 
             List<BucketArquivoRetornoModel> BucketArquivosRetorno = HttpClientHelper.PostBasicAuth<List<BucketArquivoRetornoModel>>

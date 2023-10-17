@@ -14,15 +14,9 @@
 
         public string TelefoneDDD { get; set; }
 
-        public string Celular { get; set; }
-
-        public string CelularDDD { get; set; }
-
         public string Email { get; set; }
 
         public string NumeroChaveVeiculo { get; set; }
-
-        public string NumeroInfracao { get; set; }
 
         public string InformacoesAdicionais { get; set; }
 

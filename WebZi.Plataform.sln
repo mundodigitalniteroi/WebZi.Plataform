@@ -19,7 +19,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "4 - CrossCutting", "4 - Cro
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebZi.Plataform.CrossCutting", "WebZi.Plataform.CrossCutting\WebZi.Plataform.CrossCutting.csproj", "{E1F2B7DB-DE7A-457A-AE3C-C9D21C840055}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebZi.Plataform.Console", "WebZi.Plataform.Console\WebZi.Plataform.Console.csproj", "{85B94414-B95E-451D-9104-C34D267B1FAA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebZi.Plataform.Console", "WebZi.Plataform.Console\WebZi.Plataform.Console.csproj", "{85B94414-B95E-451D-9104-C34D267B1FAA}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{DCF6F94B-9983-4EA5-9DCE-2C01DA8EBA1F}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

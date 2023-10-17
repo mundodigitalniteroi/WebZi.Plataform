@@ -32,7 +32,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
                 HoraDiaria = ParametrosCalculoFaturamento.Grv.Cliente.HoraDiaria,
 
-                DataHoraInicialParaCalculo = ParametrosCalculoFaturamento.Grv.DataHoraGuarda,
+                DataHoraInicialParaCalculo = ParametrosCalculoFaturamento.Grv.DataHoraGuarda.Value,
 
                 FlagClienteRealizaFaturamentoArrecadacao = ParametrosCalculoFaturamento.Grv.Cliente.FlagClienteRealizaFaturamentoArrecadacao,
 

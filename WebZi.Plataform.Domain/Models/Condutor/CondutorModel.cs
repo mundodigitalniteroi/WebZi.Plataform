@@ -42,10 +42,6 @@ namespace WebZi.Plataform.Domain.Models.Condutor
 
         public string FlagDocumentacaoVeiculo { get; set; } = "N";
 
-        public string Celular { get; set; }
-
-        public string CelularDDD { get; set; }
-
         public virtual GrvModel Grv { get; set; }
     }
 }

@@ -1,4 +1,5 @@
-﻿using WebZi.Plataform.Domain.Models.Faturamento;
+﻿using WebZi.Plataform.Domain.Models.ClienteDeposito;
+using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.GRV;
 using WebZi.Plataform.Domain.Models.Servico;
 using WebZi.Plataform.Domain.Models.Usuario;
@@ -62,7 +63,7 @@ namespace WebZi.Plataform.Domain.Models.Deposito
 
         public virtual UsuarioModel UsuarioAlteracao { get; set; }
 
-        //public virtual ICollection<ClienteDepositoModel> ClientesDepositos { get; set; }
+        public virtual ICollection<ClienteDepositoModel> ClientesDepositos { get; set; }
 
         public virtual ICollection<FaturamentoRegraModel> FaturamentoRegras { get; set; }
 
