@@ -45,6 +45,193 @@ namespace WebZi.Plataform.Domain.Services.GRV
             _mapper = mapper;
         }
 
+        public GrvCadastradoViewModel Create(GrvCadastroViewModel GrvCadastro)
+        {
+            GrvCadastradoViewModel ResultView = new();
+
+            GrvModel Grv = new()
+            {
+                ClienteId = GrvCadastro.ClienteId,
+
+                DepositoId = GrvCadastro.DepositoId,
+
+                TipoVeiculoId = GrvCadastro.TipoVeiculoId,
+
+                ReboquistaId = GrvCadastro.ReboquistaId,
+
+                ReboqueId = GrvCadastro.ReboqueId,
+
+                AutoridadeResponsavelId = GrvCadastro.AutoridadeResponsavelId,
+
+                CorId = GrvCadastro.CorId,
+
+                CorOstentadaId = GrvCadastro.CorOstentadaId,
+
+                MarcaModeloId = GrvCadastro.MarcaModeloId,
+
+                MotivoApreensaoId = GrvCadastro.MotivoApreensaoId,
+
+                UsuarioCadastroId = GrvCadastro.UsuarioId,
+
+                NumeroFormularioGrv = GrvCadastro.NumeroProcesso.Trim(),
+
+                FaturamentoProdutoId = GrvCadastro.CodigoProduto,
+
+                MatriculaAutoridadeResponsavel = GrvCadastro.MatriculaAutoridadeResponsavel.ToUpper().Trim(),
+
+                NomeAutoridadeResponsavel = GrvCadastro.NomeAutoridadeResponsavel.ToUpper().Trim(),
+
+                Placa = GrvCadastro.Placa.ToUpper(),
+
+                PlacaOstentada = GrvCadastro.PlacaOstentada.ToUpper(),
+
+                Chassi = GrvCadastro.Chassi.ToUpper().Trim(),
+
+                Renavam = GrvCadastro.Renavam.ToUpper().Trim(),
+
+                Rfid = GrvCadastro.Rfid.ToUpper().Trim(),
+
+                EnderecoLocalizacaoVeiculoCEPId = GrvCadastro.EnderecoLocalizacaoVeiculoCEPId,
+
+                EnderecoLocalizacaoVeiculoLogradouro = GrvCadastro.EnderecoLocalizacaoVeiculoLogradouro.ToUpper().Trim(),
+
+                EnderecoLocalizacaoVeiculoNumero = GrvCadastro.EnderecoLocalizacaoVeiculoNumero.ToUpper().Trim(),
+
+                EnderecoLocalizacaoVeiculoComplemento = GrvCadastro.EnderecoLocalizacaoVeiculoComplemento.ToUpper().Trim(),
+
+                EnderecoLocalizacaoVeiculoBairro = GrvCadastro.EnderecoLocalizacaoVeiculoBairro.ToUpper().Trim(),
+
+                EnderecoLocalizacaoVeiculoMunicipio = GrvCadastro.EnderecoLocalizacaoVeiculoMunicipio.ToUpper().Trim(),
+
+                EnderecoLocalizacaoVeiculoUF = GrvCadastro.EnderecoLocalizacaoVeiculoUF.ToUpper().Trim(),
+
+                EnderecoLocalizacaoVeiculoReferencia = GrvCadastro.EnderecoLocalizacaoVeiculoReferencia.ToUpper().Trim(),
+
+                EnderecoLocalizacaoVeiculoPontoReferencia = GrvCadastro.EnderecoLocalizacaoVeiculoPontoReferencia.ToUpper().Trim(),
+
+                NumeroChave = GrvCadastro.NumeroChave.ToUpper().Trim(),
+
+                EstacionamentoSetor = GrvCadastro.EstacionamentoSetor.ToUpper().Trim(),
+
+                EstacionamentoNumeroVaga = GrvCadastro.EstacionamentoNumeroVaga.ToUpper().Trim(),
+
+                Latitude = GrvCadastro.Latitude.ToUpper().Trim(),
+
+                Longitude = GrvCadastro.Longitude.ToUpper().Trim(),
+
+                VeiculoUF = GrvCadastro.VeiculoUF.ToUpper().Trim(),
+
+                DataHoraRemocao = GrvCadastro.DataHoraRemocao,
+
+                LatitudeAcautelamento = GrvCadastro.LatitudeAcautelamento.ToUpper().Trim(),
+
+                LongitudeAcautelamento = GrvCadastro.LongitudeAcautelamento.ToUpper().Trim(),
+
+                FlagComboio = GrvCadastro.FlagVeiculoNaoUsouReboque,
+
+                FlagVeiculoNaoIdentificado = GrvCadastro.FlagVeiculoNaoIdentificado,
+
+                FlagVeiculoSemRegistro = GrvCadastro.FlagVeiculoSemRegistro,
+
+                FlagVeiculoRoubadoFurtado = GrvCadastro.FlagVeiculoRoubadoFurtado,
+
+                FlagEstadoLacre = GrvCadastro.FlagEstadoLacre,
+
+                FlagVeiculoNaoOstentaPlaca = GrvCadastro.FlagVeiculoNaoOstentaPlaca,
+
+                Condutor = _mapper.Map<CondutorModel>(GrvCadastro.Condutor),
+
+                EnquadramentosInfracoes = _mapper.Map<List<EnquadramentoInfracaoGrvModel>>(GrvCadastro.EnquadramentosInfracoes)
+            };
+
+            if (GrvCadastro.EnquadramentosInfracoes?.Count > 0)
+            {
+                GrvCadastro.EnquadramentosInfracoes = GrvCadastro.EnquadramentosInfracoes
+                    .OrderBy(x => x.NumeroInfracao)
+                    .ToList();
+
+                GrvCadastro.EnquadramentosInfracoes.ForEach(x => x.NumeroInfracao = x.NumeroInfracao.ToUpper().Trim());
+            }
+
+            if (GrvCadastro.Lacres?.Count > 0)
+            {
+                GrvCadastro.Lacres = GrvCadastro.Lacres
+                    .ConvertAll(x => x.ToUpper().Trim())
+                    .OrderBy(x => x)
+                    .ToList();
+
+                foreach (string item in GrvCadastro.Lacres)
+                {
+                    Grv.Lacres.Add(new LacreModel { UsuarioCadastroId = GrvCadastro.UsuarioId, Lacre = item });
+                }
+            }
+
+            ClienteDepositoModel ClienteDeposito = _context.ClienteDeposito
+                .Where(x => x.ClienteId == GrvCadastro.ClienteId
+                        && x.DepositoId == GrvCadastro.DepositoId)
+                .AsNoTracking()
+                .FirstOrDefault();
+
+            if (ClienteDeposito != null && ClienteDeposito.FlagCadastrarGrvBloqueado == "S")
+            {
+                Grv.StatusOperacaoId = "B";
+            }
+
+            using (IDbContextTransaction transaction = _context.Database.BeginTransaction())
+            {
+                try
+                {
+                    _context.Grv.Add(Grv);
+
+                    _context.SaveChanges();
+
+                    transaction.Commit();
+
+                    if (ClienteDeposito.Cliente != null && ClienteDeposito.Cliente.FlagClientePossuiCodigoIdentificacao == "S")
+                    {
+                        ClienteCodigoIdentificacaoModel ClienteCodigoIdentificacao = new()
+                        {
+                            GrvId = Grv.GrvId,
+
+                            UsuarioCadastroId = GrvCadastro.UsuarioId,
+
+                            CodigoIdentificacao = GrvCadastro.CodigoIdentificacaoCliente
+                        };
+
+                        _context.ClienteCodigoIdentificacao.Add(ClienteCodigoIdentificacao);
+
+                        _context.SaveChanges();
+                    }
+
+                    ResultView.GrvId = Grv.GrvId;
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+
+                    ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+
+                    return ResultView;
+                }
+            }
+
+            if (GrvCadastro.Fotos?.Count > 0)
+            {
+                SendFiles(new()
+                {
+                    GrvId = Grv.GrvId,
+
+                    UsuarioId = Grv.UsuarioCadastroId,
+
+                    Fotos = GrvCadastro.Fotos
+                });
+            }
+
+            ResultView.Mensagem = MensagemViewHelper.GetOkCreate();
+
+            return ResultView;
+        }
+
         public async Task<GrvViewModelList> GetById(int GrvId, int UsuarioId)
         {
             List<string> erros = new();
@@ -799,7 +986,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             }
 
             MarcaModeloModel MarcaModelo = await _context.MarcaModelo
-                .Where(w => w.DetranMarcaModeloId == GrvCadastro.MarcaModeloId)
+                .Where(w => w.MarcaModeloId == GrvCadastro.MarcaModeloId)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
 
@@ -902,193 +1089,6 @@ namespace WebZi.Plataform.Domain.Services.GRV
             {
                 ResultView.HtmlStatusCode = HtmlStatusCodeEnum.Ok;
             }
-
-            return ResultView;
-        }
-
-        public GrvCadastradoViewModel Create(GrvCadastroViewModel GrvCadastro)
-        {
-            GrvCadastradoViewModel ResultView = new();
-
-            GrvModel Grv = new()
-            {
-                ClienteId = GrvCadastro.ClienteId,
-
-                DepositoId = GrvCadastro.DepositoId,
-
-                TipoVeiculoId = GrvCadastro.TipoVeiculoId,
-
-                ReboquistaId = GrvCadastro.ReboquistaId,
-
-                ReboqueId = GrvCadastro.ReboqueId,
-
-                AutoridadeResponsavelId = GrvCadastro.AutoridadeResponsavelId,
-
-                CorId = GrvCadastro.CorId,
-
-                CorOstentadaId = GrvCadastro.CorOstentadaId,
-
-                MarcaModeloId = GrvCadastro.MarcaModeloId,
-
-                MotivoApreensaoId = GrvCadastro.MotivoApreensaoId,
-
-                UsuarioCadastroId = GrvCadastro.UsuarioId,
-
-                NumeroFormularioGrv = GrvCadastro.NumeroProcesso.Trim(),
-
-                FaturamentoProdutoId = GrvCadastro.CodigoProduto,
-
-                MatriculaAutoridadeResponsavel = GrvCadastro.MatriculaAutoridadeResponsavel.ToUpper().Trim(),
-
-                NomeAutoridadeResponsavel = GrvCadastro.NomeAutoridadeResponsavel.ToUpper().Trim(),
-
-                Placa = GrvCadastro.Placa.ToUpper(),
-
-                PlacaOstentada = GrvCadastro.PlacaOstentada.ToUpper(),
-
-                Chassi = GrvCadastro.Chassi.ToUpper().Trim(),
-
-                Renavam = GrvCadastro.Renavam.ToUpper().Trim(),
-
-                Rfid = GrvCadastro.Rfid.ToUpper().Trim(),
-
-                EnderecoLocalizacaoVeiculoCEPId = GrvCadastro.EnderecoLocalizacaoVeiculoCEPId,
-
-                EnderecoLocalizacaoVeiculoLogradouro = GrvCadastro.EnderecoLocalizacaoVeiculoLogradouro.ToUpper().Trim(),
-
-                EnderecoLocalizacaoVeiculoNumero = GrvCadastro.EnderecoLocalizacaoVeiculoNumero.ToUpper().Trim(),
-
-                EnderecoLocalizacaoVeiculoComplemento = GrvCadastro.EnderecoLocalizacaoVeiculoComplemento.ToUpper().Trim(),
-
-                EnderecoLocalizacaoVeiculoBairro = GrvCadastro.EnderecoLocalizacaoVeiculoBairro.ToUpper().Trim(),
-
-                EnderecoLocalizacaoVeiculoMunicipio = GrvCadastro.EnderecoLocalizacaoVeiculoMunicipio.ToUpper().Trim(),
-
-                EnderecoLocalizacaoVeiculoUF = GrvCadastro.EnderecoLocalizacaoVeiculoUF.ToUpper().Trim(),
-
-                EnderecoLocalizacaoVeiculoReferencia = GrvCadastro.EnderecoLocalizacaoVeiculoReferencia.ToUpper().Trim(),
-
-                EnderecoLocalizacaoVeiculoPontoReferencia = GrvCadastro.EnderecoLocalizacaoVeiculoPontoReferencia.ToUpper().Trim(),
-
-                NumeroChave = GrvCadastro.NumeroChave.ToUpper().Trim(),
-
-                EstacionamentoSetor = GrvCadastro.EstacionamentoSetor.ToUpper().Trim(),
-
-                EstacionamentoNumeroVaga = GrvCadastro.EstacionamentoNumeroVaga.ToUpper().Trim(),
-
-                Latitude = GrvCadastro.Latitude.ToUpper().Trim(),
-
-                Longitude = GrvCadastro.Longitude.ToUpper().Trim(),
-
-                VeiculoUF = GrvCadastro.VeiculoUF.ToUpper().Trim(),
-
-                DataHoraRemocao = GrvCadastro.DataHoraRemocao,
-
-                LatitudeAcautelamento = GrvCadastro.LatitudeAcautelamento.ToUpper().Trim(),
-
-                LongitudeAcautelamento = GrvCadastro.LongitudeAcautelamento.ToUpper().Trim(),
-
-                FlagComboio = GrvCadastro.FlagVeiculoNaoUsouReboque,
-
-                FlagVeiculoNaoIdentificado = GrvCadastro.FlagVeiculoNaoIdentificado,
-
-                FlagVeiculoSemRegistro = GrvCadastro.FlagVeiculoSemRegistro,
-
-                FlagVeiculoRoubadoFurtado = GrvCadastro.FlagVeiculoRoubadoFurtado,
-
-                FlagEstadoLacre = GrvCadastro.FlagEstadoLacre,
-
-                FlagVeiculoNaoOstentaPlaca = GrvCadastro.FlagVeiculoNaoOstentaPlaca,
-
-                Condutor = _mapper.Map<CondutorModel>(GrvCadastro.Condutor),
-
-                EnquadramentosInfracoes = _mapper.Map<List<EnquadramentoInfracaoGrvModel>>(GrvCadastro.EnquadramentosInfracoes)
-            };
-
-            if (GrvCadastro.EnquadramentosInfracoes?.Count > 0)
-            {
-                GrvCadastro.EnquadramentosInfracoes = GrvCadastro.EnquadramentosInfracoes
-                    .OrderBy(x => x.NumeroInfracao)
-                    .ToList();
-
-                GrvCadastro.EnquadramentosInfracoes.ForEach(x => x.NumeroInfracao = x.NumeroInfracao.ToUpper().Trim());
-            }
-
-            if (GrvCadastro.Lacres?.Count > 0)
-            {
-                GrvCadastro.Lacres = GrvCadastro.Lacres
-                    .ConvertAll(x => x.ToUpper().Trim())
-                    .OrderBy(x => x)
-                    .ToList();
-
-                foreach (string item in GrvCadastro.Lacres)
-                {
-                    Grv.Lacres.Add(new LacreModel { UsuarioCadastroId = GrvCadastro.UsuarioId, Lacre = item });
-                }
-            }
-
-            ClienteDepositoModel ClienteDeposito = _context.ClienteDeposito
-                .Where(x => x.ClienteId == GrvCadastro.ClienteId
-                        && x.DepositoId == GrvCadastro.DepositoId)
-                .AsNoTracking()
-                .FirstOrDefault();
-
-            if (ClienteDeposito != null && ClienteDeposito.FlagCadastrarGrvBloqueado == "S")
-            {
-                Grv.StatusOperacaoId = "B";
-            }
-
-            using (IDbContextTransaction transaction = _context.Database.BeginTransaction())
-            {
-                try
-                {
-                    _context.Grv.Add(Grv);
-
-                    _context.SaveChanges();
-
-                    transaction.Commit();
-
-                    if (ClienteDeposito.Cliente != null && ClienteDeposito.Cliente.FlagClientePossuiCodigoIdentificacao == "S")
-                    {
-                        ClienteCodigoIdentificacaoModel ClienteCodigoIdentificacao = new()
-                        {
-                            GrvId = Grv.GrvId,
-
-                            UsuarioCadastroId = GrvCadastro.UsuarioId,
-
-                            CodigoIdentificacao = GrvCadastro.CodigoIdentificacaoCliente
-                        };
-
-                        _context.ClienteCodigoIdentificacao.Add(ClienteCodigoIdentificacao);
-
-                        _context.SaveChanges();
-                    }
-
-                    ResultView.GrvId = Grv.GrvId;
-                }
-                catch (Exception ex)
-                {
-                    transaction.Rollback();
-
-                    ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
-
-                    return ResultView;
-                }
-            }
-
-            if (GrvCadastro.Fotos?.Count > 0)
-            {
-                SendFiles(new()
-                {
-                    GrvId = Grv.GrvId,
-
-                    UsuarioId = Grv.UsuarioCadastroId,
-
-                    Fotos = GrvCadastro.Fotos
-                });
-            }
-
-            ResultView.Mensagem = MensagemViewHelper.GetOkCreate();
 
             return ResultView;
         }

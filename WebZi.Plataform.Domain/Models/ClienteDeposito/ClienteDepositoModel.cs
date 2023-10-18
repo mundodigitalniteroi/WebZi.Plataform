@@ -51,7 +51,7 @@ namespace WebZi.Plataform.Domain.Models.ClienteDeposito
 
         //public virtual TbDepAlterdataConfiguracao TbDepAlterdataConfiguracao { get; set; }
 
-        //public virtual ICollection<TbDepClienteDepositoTiposVeiculo> TbDepClienteDepositoTiposVeiculos { get; set; } = new List<TbDepClienteDepositoTiposVeiculo>();
+        public virtual ICollection<ClienteDepositoTipoVeiculoModel> ClienteDepositoTiposVeiculos { get; set; }
 
         //public virtual ICollection<TbDepComunicacaoEmail> TbDepComunicacaoEmails { get; set; } = new List<TbDepComunicacaoEmail>();
 

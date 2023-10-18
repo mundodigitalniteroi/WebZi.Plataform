@@ -395,7 +395,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             if (Logomarca == null)
             {
-                ConfiguracaoLogoModel ConfiguracaoLogo = _context.ConfiguracaoLogoModel
+                ConfiguracaoLogoModel ConfiguracaoLogo = _context.ConfiguracaoLogo
                     .AsNoTracking()
                     .FirstOrDefault();
 

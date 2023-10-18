@@ -7,10 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Models\Liberacao\" />
+    <Folder Include="Models\GGV\" />
     <Folder Include="Models\Banco\Nfe\" />
     <Folder Include="Models\Pagamento\" />
-    <Folder Include="ViewModel\GGV\" />
   </ItemGroup>
 
   <ItemGroup>

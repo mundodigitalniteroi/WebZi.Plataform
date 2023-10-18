@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using WebZi.Plataform.Data.Database;
-using WebZi.Plataform.Domain.Models.GRV;
 
 class Program
 {
@@ -10,9 +9,24 @@ class Program
 
         AppDbContext _context = new();
 
-        List<GrvModel> result = _context.Grv
-            .Include(i => i.UsuarioClienteDepositoGrvModel)
-            .Where(w => w.UsuarioClienteDepositoGrvModel.UsuarioId == 3190)
+        //var result = _context.Empresa
+        //    .Include(x => x.CEP)
+        //    .ThenInclude(x => x.Bairro)
+        //    .ThenInclude(x => x.Municipio)
+        //    .ThenInclude(x => x.Estado)
+        //    .ThenInclude(x => x.Pais)
+        //    .Include(x => x.CEP)
+        //    .ThenInclude(x => x.Municipio)
+        //    .ThenInclude(x => x.Feriados)
+        //    .Include(x => x.CEP)
+        //    .ThenInclude(x => x.TipoLogradouro)
+        //    .Where(x => x.CNPJ == "27947093000112")
+        //    .ToList();
+
+        var result = _context.Empresa
+            .Include(x => x.Endereco)
+            .Include(x => x.EmpresaClassificacao)
+            .Where(x => x.EmpresaId == 27)
             .ToList();
 
         Console.WriteLine("TOTAL:" + result.Count);

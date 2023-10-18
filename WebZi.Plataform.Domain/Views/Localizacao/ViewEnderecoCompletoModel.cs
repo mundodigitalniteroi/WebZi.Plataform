@@ -1,5 +1,6 @@
 ﻿using WebZi.Plataform.Domain.Models.Cliente;
 using WebZi.Plataform.Domain.Models.Deposito;
+using WebZi.Plataform.Domain.Models.Empresa;
 
 namespace WebZi.Plataform.Domain.Views.Localizacao
 {
@@ -48,5 +49,7 @@ namespace WebZi.Plataform.Domain.Views.Localizacao
         public virtual ICollection<ClienteModel> Clientes { get; set; }
 
         public virtual ICollection<DepositoModel> Depositos { get; set; }
+
+        public virtual ICollection<EmpresaModel> Empresas { get; set; }
     }
 }

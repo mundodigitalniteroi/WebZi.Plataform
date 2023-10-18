@@ -1,4 +1,5 @@
 ﻿using WebZi.Plataform.Domain.Models.Usuario;
+using WebZi.Plataform.Domain.Models.Veiculo;
 
 namespace WebZi.Plataform.Domain.Models.Condutor
 {
@@ -32,6 +33,6 @@ namespace WebZi.Plataform.Domain.Models.Condutor
 
         public virtual UsuarioModel UsuarioAlteracao { get; set; }
 
-        // public virtual ICollection<TipoVeiculoEquipamentoAssociacaoModel> TiposVeiculosEquipamentosAssociacoes { get; set; }
+        public virtual ICollection<TipoVeiculoEquipamentoAssociacaoModel> TiposVeiculosEquipamentosAssociacoes { get; set; }
     }
 }

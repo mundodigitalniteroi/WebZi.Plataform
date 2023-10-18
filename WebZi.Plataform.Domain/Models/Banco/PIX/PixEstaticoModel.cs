@@ -2,7 +2,7 @@
 
 namespace WebZi.Plataform.Domain.Models.Banco.PIX
 {
-    public class PixModel
+    public class PixEstaticoModel
     {
         public int PixId { get; set; }
 

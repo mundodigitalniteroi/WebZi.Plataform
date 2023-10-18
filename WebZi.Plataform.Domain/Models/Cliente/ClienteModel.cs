@@ -4,6 +4,7 @@ using WebZi.Plataform.Domain.Models.ClienteDeposito;
 using WebZi.Plataform.Domain.Models.Empresa;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.GRV;
+using WebZi.Plataform.Domain.Models.Localizacao;
 using WebZi.Plataform.Domain.Models.Servico;
 using WebZi.Plataform.Domain.Models.Usuario;
 using WebZi.Plataform.Domain.Views.Localizacao;
@@ -101,6 +102,8 @@ namespace WebZi.Plataform.Domain.Models.Cliente
         public virtual ViewEnderecoCompletoModel Endereco { get; set; }
 
         public virtual PixDinamicoConfiguracaoModel PixDinamicoConfiguracao { get; set; }
+
+        public virtual TipoLogradouroModel TipoLogradouro { get; set; }
 
         public virtual TipoMeioCobrancaModel TipoMeioCobranca { get; set; }
 

@@ -10,9 +10,9 @@ namespace WebZi.Plataform.Data.Mappings.Veiculo
         {
             builder
                 .ToTable("tb_detran_marca_modelo", "dbo")
-                .HasKey(e => e.DetranMarcaModeloId);
+                .HasKey(e => e.MarcaModeloId);
 
-            builder.Property(e => e.DetranMarcaModeloId)
+            builder.Property(e => e.MarcaModeloId)
                 .HasColumnName("id_detran_marca_modelo")
                 .ValueGeneratedOnAdd();
 
@@ -36,10 +36,6 @@ namespace WebZi.Plataform.Data.Mappings.Veiculo
                 .HasDefaultValueSql("('S')")
                 .IsFixedLength()
                 .HasColumnName("flag_origem_detran");
-            
-            builder.Property(e => e.DetranMarcaModeloId)
-                .ValueGeneratedOnAdd()
-                .HasColumnName("id_detran_marca_modelo");
 
             builder.Property(e => e.DataCadastro)
                 .HasDefaultValueSql("(getdate())")

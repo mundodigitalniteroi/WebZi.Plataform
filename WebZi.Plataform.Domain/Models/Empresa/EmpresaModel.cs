@@ -1,4 +1,7 @@
 ﻿using WebZi.Plataform.Domain.Models.Cliente;
+using WebZi.Plataform.Domain.Models.Governo;
+using WebZi.Plataform.Domain.Models.Localizacao;
+using WebZi.Plataform.Domain.Views.Localizacao;
 
 namespace WebZi.Plataform.Domain.Models.Empresa
 {
@@ -52,30 +55,30 @@ namespace WebZi.Plataform.Domain.Models.Empresa
 
         public string Token { get; set; }
 
-        public string OptanteSimplesNacional { get; set; }
-
-        public DateTime DataCadastro { get; set; }
-
-        public DateTime? DataAlteracao { get; set; }
+        public string FlagOptanteSimplesNacional { get; set; } = "N";
 
         public string FlagIssRetido { get; set; } = "N";
 
         public string FlagAtivo { get; set; } = "S";
 
+        public DateTime DataCadastro { get; set; }
+
+        public DateTime? DataAlteracao { get; set; }
+
         public virtual ClienteModel Cliente { get; set; }
 
-        //public virtual TbGovCnae Cnae { get; set; }
+        public virtual EmpresaClassificacaoModel EmpresaClassificacao { get; set; }
 
-        //public virtual TbGovCnaeListaServico CnaeListaServico { get; set; }
+        public virtual ViewEnderecoCompletoModel Endereco { get; set; }
 
-        //public virtual TbGloLocCep IdCepNavigation { get; set; }
+        public virtual TipoLogradouroModel TipoLogradouro { get; set; }
 
-        //public virtual TbGloEmpEmpresasClassificacao IdEmpresaClassificacaoNavigation { get; set; }
+        public virtual CnaeModel Cnae { get; set; }
 
-        //public virtual TbGloEmpEmpresa IdEmpresaMatrizNavigation { get; set; }
+        public virtual AssociacaoCnaeListaServicoModel CnaeListaServico { get; set; }
 
-        //public virtual TbGloLocTiposLogradouro IdTipoLogradouroNavigation { get; set; }
+        // public virtual EmpresaModel EmpresaMatriz { get; set; }
 
-        //public virtual ICollection<TbGloEmpEmpresa> InverseIdEmpresaMatrizNavigation { get; set; } = new List<TbGloEmpEmpresa>();
+        //public virtual ICollection<TbGloEmpEmpresa> InverseIdEmpresaMatrizNavigation { get; set; }
     }
 }

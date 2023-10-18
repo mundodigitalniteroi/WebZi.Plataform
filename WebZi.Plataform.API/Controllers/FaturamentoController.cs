@@ -62,6 +62,27 @@ namespace WebZi.Plataform.API.Controllers
             }
         }
 
+        [HttpGet("GerarGuiaPagamentoReboqueEstadia")]
+        public ActionResult<GerarPagamentoReboqueEstadiaViewModel> GerarGuiaPagamentoReboqueEstadia(int FaturamentoId, int UsuarioId)
+        {
+            GerarPagamentoReboqueEstadiaViewModel ResultView = new();
+
+            try
+            {
+                ResultView = _provider
+                    .GetService<FaturamentoGuiaPagamentoReboqueEstadiaService>()
+                    .GetGuiaPagamentoReboqueEstadia(FaturamentoId, UsuarioId);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
+
         [HttpGet("GerarPixEstatico")]
         public ActionResult<PixEstaticoGeradoViewModel> GerarPixEstatico(int FaturamentoId, int UsuarioId)
         {
@@ -93,27 +114,6 @@ namespace WebZi.Plataform.API.Controllers
                 ResultView = _provider
                     .GetService<PixDinamicoService>()
                     .Create(FaturamentoId, UsuarioId);
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-            catch (Exception ex)
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-        }
-
-        [HttpGet("GerarGuiaPagamentoReboqueEstadia")]
-        public ActionResult<GerarPagamentoReboqueEstadiaViewModel> GerarGuiaPagamentoReboqueEstadia(int FaturamentoId, int UsuarioId)
-        {
-            GerarPagamentoReboqueEstadiaViewModel ResultView = new();
-
-            try
-            {
-                ResultView = _provider
-                    .GetService<FaturamentoGuiaPagamentoReboqueEstadiaService>()
-                    .GetGuiaPagamentoReboqueEstadia(FaturamentoId, UsuarioId);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }

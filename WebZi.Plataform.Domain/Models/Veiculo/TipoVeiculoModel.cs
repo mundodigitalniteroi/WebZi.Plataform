@@ -1,5 +1,6 @@
-﻿using WebZi.Plataform.Domain.Models.Faturamento;
-using WebZi.Plataform.Domain.Models.GRV;
+﻿using WebZi.Plataform.Domain.Models.ClienteDeposito;
+using WebZi.Plataform.Domain.Models.Faturamento;
+using WebZi.Plataform.Domain.Models.Usuario;
 
 namespace WebZi.Plataform.Domain.Models.Veiculo
 {
@@ -19,23 +20,20 @@ namespace WebZi.Plataform.Domain.Models.Veiculo
 
         public string FlagNaoRequerCnhNaLiberacao { get; set; }
 
-        public string FlagAtivo { get; set; }
+        public string FlagAtivo { get; set; } = "S";
 
-        public virtual Usuario.UsuarioModel UsuarioCadastro { get; set; }
+        public virtual UsuarioModel UsuarioCadastro { get; set; }
 
-        public virtual Usuario.UsuarioModel UsuarioAlteracao { get; set; }
+        public virtual UsuarioModel UsuarioAlteracao { get; set; }
 
-        //public virtual ICollection<ClienteDepositoTiposVeiculo> ClienteDepositoTiposVeiculos { get; set; } = new List<ClienteDepositoTiposVeiculo>();
+        public virtual ICollection<ClienteDepositoTipoVeiculoModel> ClienteDepositoTiposVeiculos { get; set; }
 
         public virtual ICollection<FaturamentoServicoTipoVeiculoModel> FaturamentoServicosTiposVeiculos { get; set; }
 
+        public virtual ICollection<TipoVeiculoClassificacaoModel> TiposVeiculosClassificacoes { get; set; }
+
+        public virtual ICollection<TipoVeiculoEquipamentoAssociacaoModel> TiposVeiculosEquipamentosAssociacoes { get; set; }
+
         //public virtual ICollection<SolicitacaoReboquePsv> SolicitacaoReboquePsvs { get; set; }
-
-        //public virtual ICollection<TarifasTipoVeiculo> TarifasTipoVeiculos { get; set; }
-
-        //public virtual ICollection<TipoVeiculosClassificacao> TipoVeiculosClassificacaos { get; set; }
-
-        // TODO: Implementar o Modelo
-        //public virtual ICollection<TipoVeiculosEquipamentosAssociacao> TipoVeiculosEquipamentosAssociacaos { get; set; }
     }
 }

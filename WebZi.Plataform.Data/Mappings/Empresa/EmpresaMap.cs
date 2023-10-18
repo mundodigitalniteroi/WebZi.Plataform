@@ -22,9 +22,11 @@ namespace WebZi.Plataform.Data.Mappings.Empresa
                 .IsUnicode(false)
                 .HasColumnName("bairro");
             
-            builder.Property(e => e.CnaeId).HasColumnName("CnaeID");
+            builder.Property(e => e.CnaeId)
+                .HasColumnName("CnaeID");
             
-            builder.Property(e => e.CnaeListaServicoId).HasColumnName("CnaeListaServicoID");
+            builder.Property(e => e.CnaeListaServicoId)
+                .HasColumnName("CnaeListaServicoID");
             
             builder.Property(e => e.CNPJ)
                 .IsRequired()
@@ -38,7 +40,8 @@ namespace WebZi.Plataform.Data.Mappings.Empresa
                 .IsUnicode(false)
                 .HasColumnName("codigo_sap");
             
-            builder.Property(e => e.CodigoTributarioMunicipio).HasColumnName("codigo_tributario_municipio");
+            builder.Property(e => e.CodigoTributarioMunicipio)
+                .HasColumnName("codigo_tributario_municipio");
             
             builder.Property(e => e.Complemento)
                 .HasMaxLength(50)
@@ -99,7 +102,7 @@ namespace WebZi.Plataform.Data.Mappings.Empresa
                 .IsUnicode(false)
                 .HasColumnName("numero");
             
-            builder.Property(e => e.OptanteSimplesNacional)
+            builder.Property(e => e.FlagOptanteSimplesNacional)
                 .IsRequired()
                 .HasMaxLength(1)
                 .IsUnicode(false)
@@ -140,6 +143,10 @@ namespace WebZi.Plataform.Data.Mappings.Empresa
                 .HasDefaultValueSql("('S')")
                 .IsFixedLength()
                 .HasColumnName("flag_ativo");
+
+            builder.HasOne(d => d.Endereco).WithMany(p => p.Empresas)
+                .HasForeignKey(d => d.CEPId)
+                .OnDelete(DeleteBehavior.NoAction);
         }
     }
 }

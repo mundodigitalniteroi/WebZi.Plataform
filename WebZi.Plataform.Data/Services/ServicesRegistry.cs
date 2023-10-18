@@ -6,12 +6,16 @@ using WebZi.Plataform.Data.Services.Banco.PIX;
 using WebZi.Plataform.Data.Services.Bucket;
 using WebZi.Plataform.Data.Services.Cliente;
 using WebZi.Plataform.Data.Services.Deposito;
+using WebZi.Plataform.Data.Services.Empresa;
 using WebZi.Plataform.Data.Services.Faturamento;
+using WebZi.Plataform.Data.Services.GGV;
 using WebZi.Plataform.Data.Services.GRV;
 using WebZi.Plataform.Data.Services.Leilao;
 using WebZi.Plataform.Data.Services.Localizacao;
 using WebZi.Plataform.Data.Services.Servico;
 using WebZi.Plataform.Data.Services.Sistema;
+using WebZi.Plataform.Data.Services.Veiculo;
+using WebZi.Plataform.Data.Services.Vistoria;
 using WebZi.Plataform.Domain.Services.GRV;
 using WebZi.Plataform.Domain.Services.Usuario;
 
@@ -31,15 +35,19 @@ namespace WebZi.Plataform.Data.Services
 
             services.AddScoped<BancoService>();
 
-            services.AddScoped<BucketArquivoService >();
+            services.AddScoped<BucketArquivoService>();
 
             services.AddScoped<CalculoDiariasService>();
+
+            services.AddScoped<EmpresaService>();
 
             services.AddScoped<EnderecoService>();
 
             services.AddScoped<ClienteService>();
 
             services.AddScoped<ConfiguracaoService>();
+
+            services.AddScoped<CorService>();
 
             services.AddScoped<DepositoService>();
 
@@ -51,11 +59,15 @@ namespace WebZi.Plataform.Data.Services
 
             services.AddScoped<FeriadoService>();
 
+            services.AddScoped<GgvService>();
+
             services.AddScoped<GrvService>();
 
             services.AddScoped<LacreService>();
 
             services.AddScoped<LeilaoService>();
+
+            services.AddScoped<MarcaModeloService>();
 
             services.AddScoped<PixDinamicoService>();
 
@@ -69,9 +81,17 @@ namespace WebZi.Plataform.Data.Services
 
             services.AddScoped<StatusOperacaoService>();
 
+            services.AddScoped<TabelaGenericaService>();
+
+            services.AddScoped<TipoAvariaService>();
+
             services.AddScoped<TipoMeioCobrancaService>();
 
+            services.AddScoped<TipoVeiculoService>();
+
             services.AddScoped<UsuarioService>();
+
+            services.AddScoped<VistoriaService>();
         }
     }
 }

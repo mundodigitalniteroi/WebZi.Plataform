@@ -1,6 +1,7 @@
 ﻿using WebZi.Plataform.Domain.Models.ClienteDeposito;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.GRV;
+using WebZi.Plataform.Domain.Models.Localizacao;
 using WebZi.Plataform.Domain.Models.Servico;
 using WebZi.Plataform.Domain.Models.Usuario;
 using WebZi.Plataform.Domain.Views.Localizacao;
@@ -62,6 +63,8 @@ namespace WebZi.Plataform.Domain.Models.Deposito
         public virtual UsuarioModel UsuarioCadastro { get; set; }
 
         public virtual UsuarioModel UsuarioAlteracao { get; set; }
+
+        public virtual TipoLogradouroModel TipoLogradouro { get; set; }
 
         public virtual ICollection<ClienteDepositoModel> ClientesDepositos { get; set; }
 

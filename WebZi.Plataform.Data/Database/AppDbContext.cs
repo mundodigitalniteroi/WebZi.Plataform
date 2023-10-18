@@ -14,8 +14,10 @@ using WebZi.Plataform.Domain.Models.Documento;
 using WebZi.Plataform.Domain.Models.Empresa;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.Faturamento.Boleto;
+using WebZi.Plataform.Domain.Models.Governo;
 using WebZi.Plataform.Domain.Models.GRV;
 using WebZi.Plataform.Domain.Models.Leilao;
+using WebZi.Plataform.Domain.Models.Liberacao;
 using WebZi.Plataform.Domain.Models.Localizacao;
 using WebZi.Plataform.Domain.Models.Pessoa;
 using WebZi.Plataform.Domain.Models.Pessoa.Documento;
@@ -23,6 +25,7 @@ using WebZi.Plataform.Domain.Models.Servico;
 using WebZi.Plataform.Domain.Models.Sistema;
 using WebZi.Plataform.Domain.Models.Usuario;
 using WebZi.Plataform.Domain.Models.Veiculo;
+using WebZi.Plataform.Domain.Models.Vistoria;
 using WebZi.Plataform.Domain.Views.Faturamento;
 using WebZi.Plataform.Domain.Views.Localizacao;
 using WebZi.Plataform.Domain.Views.Usuario;
@@ -46,25 +49,8 @@ namespace WebZi.Plataform.Data.Database
             optionsBuilder
                 .UseSqlServer(new AppSettingsHelper().GetConnectionString("DefaultConnection"), providerOptions => providerOptions.CommandTimeout(120))
                 .LogTo(Console.WriteLine, LogLevel.Information) // Exibe as queries executadas no BD pelo EF
-                .EnableSensitiveDataLogging(); // Configura o EF para exibir os dados
+                .EnableSensitiveDataLogging(); // Configura o EF para exibir os dados sensíveis
         }
-
-        //public override void ReaderExecuting(DbCommand command, DbCommandInterceptionContext<DbDataReader> interceptionContext)
-        //{
-        //    // Here, I can just replace the CommandText on the DbCommand - but remember I
-        //    // want to only do it on MyContext
-        //    var context = contexts.FirstOrDefault() as AppDbContext;
-
-        //    if (context != null)
-        //    {
-        //        command.CommandText = command.CommandText
-        //            .Replace("[dbo].[ReplaceMe1]", "[Database1].[dbo].[Customers]")
-        //            .Replace("[dbo].[ReplaceMe2]", "[Database2].[dbo].[Addresses]")
-        //            .Replace("[dbo].[ReplaceMe3]", "[Database3].[dbo].[Sales]");
-        //    }
-
-        //    base.ReaderExecuting(command, interceptionContext);
-        //}
 
         public void SetUserContextInfo(int UsuarioId)
         {
@@ -74,15 +60,11 @@ namespace WebZi.Plataform.Data.Database
         #region DbSets public DbSet<Model> Name { get; set; }
 
         #region Depósito Público
-        public DbSet<AgenciaBancariaModel> AgenciaBancaria { get; set; }
-
         public DbSet<AtendimentoModel> Atendimento { get; set; }
 
         public DbSet<AtendimentoFotoResponsavelModel> AtendimentoFotoResponsavel { get; set; }
 
         public DbSet<AutoridadeResponsavelModel> AutoridadeResponsavel { get; set; }
-
-        public DbSet<BancoModel> Banco { get; set; }
 
         public DbSet<BucketArquivoModel> BucketArquivo { get; set; }
 
@@ -94,20 +76,108 @@ namespace WebZi.Plataform.Data.Database
 
         public DbSet<ClienteDepositoModel> ClienteDeposito { get; set; }
 
+        public DbSet<ClienteDepositoTipoVeiculoModel> ClienteDepositoTipoVeiculo { get; set; }
+
+        public DbSet<ClienteRegraModel> ClienteRegra { get; set; }
+
+        public DbSet<ClienteRegraTipoModel> ClienteRegraTipo { get; set; }
+
         public DbSet<ConfiguracaoModel> Configuracao { get; set; }
 
-        public DbSet<ConfiguracaoLogoModel> ConfiguracaoLogoModel { get; set; }
-
-        public DbSet<CorModel> Cor { get; set; }
+        public DbSet<ConfiguracaoLogoModel> ConfiguracaoLogo { get; set; }
 
         public DbSet<DepositoModel> Deposito { get; set; }
-
-        public DbSet<EmpresaModel> Empresa { get; set; }
 
         public DbSet<EnquadramentoInfracaoModel> EnquadramentoInfracao { get; set; }
 
         public DbSet<EnquadramentoInfracaoGrvModel> EnquadramentoInfracaoGrv { get; set; }
 
+        public DbSet<MotivoApreensaoModel> MotivoApreensao { get; set; }
+
+        public DbSet<QualificacaoResponsavelModel> QualificacaoResponsavel { get; set; }
+
+        public DbSet<GrvModel> Grv { get; set; }
+
+        public DbSet<LacreModel> Lacre { get; set; }
+
+        public DbSet<MarcaModeloModel> MarcaModelo { get; set; }
+
+        public DbSet<ReboqueModel> Reboque { get; set; }
+
+        public DbSet<ReboquistaModel> Reboquista { get; set; }
+
+        public DbSet<StatusOperacaoModel> StatusOperacao { get; set; }
+
+        public DbSet<TabelaGenericaModel> TabelaGenerica { get; set; }
+
+        public DbSet<TipoAvariaModel> TipoAvaria { get; set; }
+
+        public DbSet<TipoVeiculoClassificacaoModel> TipoVeiculoClassificacao { get; set; }
+
+        public DbSet<TipoVeiculoClassificacaoNomeModel> TipoVeiculoClassificacaoNome { get; set; }
+
+        public DbSet<TipoVeiculoEquipamentoAssociacaoModel> TipoVeiculoEquipamentoAssociacao { get; set; }
+
+        public DbSet<TipoMeioCobrancaModel> TipoMeioCobranca { get; set; }
+
+        public DbSet<TipoVeiculoModel> TipoVeiculo { get; set; }
+
+        public DbSet<UsuarioModel> Usuario { get; set; }
+
+        public DbSet<UsuarioClienteModel> UsuarioCliente { get; set; }
+
+        public DbSet<UsuarioDepositoModel> UsuarioDeposito { get; set; }
+
+        public DbSet<UsuarioTipoPermissaoModel> UsuarioTipoPermissao { get; set; }
+
+        public DbSet<UsuarioPermissaoModel> UsuarioPermissao { get; set; }
+
+        public DbSet<WebServiceUrlModel> WebServiceUrl { get; set; }
+        #endregion Depósito Público
+
+        #region Banco
+        public DbSet<AgenciaBancariaModel> AgenciaBancaria { get; set; }
+
+        public DbSet<BancoModel> Banco { get; set; }
+
+        public DbSet<PixEstaticoModel> PixEstatico { get; set; }
+
+        public DbSet<PixDinamicoModel> PixDinamico { get; set; }
+
+        public DbSet<PixDinamicoConfiguracaoModel> PixDinamicoConfiguracao { get; set; }
+
+        public DbSet<PixDinamicoConsultaModel> PixDinamicoConsulta { get; set; }
+
+        public DbSet<PixDinamicoSenhaConfirmacaoTranferenciaModel> PixDinamicoSenhaConfirmacaoTranferencia { get; set; }
+
+        public DbSet<PixDinamicoTipoStatusGeracaoModel> PixDinamicoTipoStatusGeracao { get; set; }
+
+        public DbSet<PixDinamicoUrlModel> PixDinamicoUrl { get; set; }
+        #endregion Banco
+
+        #region Endereço
+        public DbSet<BairroModel> Bairro { get; set; }
+
+        public DbSet<CEPModel> CEP { get; set; }
+
+        public DbSet<ContinenteModel> Continente { get; set; }
+
+        public DbSet<EstadoModel> Estado { get; set; }
+
+        public DbSet<FeriadoModel> Feriado { get; set; }
+
+        public DbSet<MunicipioModel> Municipio { get; set; }
+
+        public DbSet<PaisModel> Pais { get; set; }
+
+        public DbSet<RegiaoModel> Regiao { get; set; }
+
+        public DbSet<TipoLogradouroModel> TipoLogradouro { get; set; }
+
+        public DbSet<UTCModel> UTC { get; set; }
+        #endregion Endereço
+
+        #region Faturamento
         public DbSet<FaturamentoModel> Faturamento { get; set; }
 
         public DbSet<FaturamentoBoletoModel> FaturamentoBoleto { get; set; }
@@ -139,55 +209,60 @@ namespace WebZi.Plataform.Data.Database
         public DbSet<FaturamentoServicoTipoVeiculoModel> FaturamentoServicoTipoVeiculo { get; set; }
 
         public DbSet<FaturamentoTipoComposicaoModel> FaturamentoTipoComposicao { get; set; }
+        #endregion Faturamento
 
-        public DbSet<MotivoApreensaoModel> MotivoApreensao { get; set; }
+        #region Global
+        public DbSet<CorModel> Cor { get; set; }
 
-        public DbSet<QualificacaoResponsavelModel> QualificacaoResponsavel { get; set; }
+        public DbSet<EmpresaClassificacaoModel> EmpresaClassificacao { get; set; }
 
-        public DbSet<GrvModel> Grv { get; set; }
+        public DbSet<EmpresaModel> Empresa { get; set; }
+        #endregion Global
 
-        public DbSet<LacreModel> Lacre { get; set; }
+        #region Governo
+        public DbSet<AssociacaoCnaeListaServicoModel> AssociacaoCnaeListaServico { get; set; }
 
-        public DbSet<MarcaModeloModel> MarcaModelo { get; set; }
+        public DbSet<CnaeModel> Cnae { get; set; }
 
-        public DbSet<PixModel> PixEstatico { get; set; }
+        public DbSet<ListaServicoModel> ListaServico { get; set; }
 
-        public DbSet<PixDinamicoModel> PixDinamico { get; set; }
+        public DbSet<ParametroMunicipioModel> ParametroMunicipio { get; set; }
 
-        public DbSet<PixDinamicoConfiguracaoModel> PixDinamicoConfiguracao { get; set; }
+        #endregion Governo
 
-        public DbSet<PixDinamicoConsultaModel> PixDinamicoConsulta { get; set; }
+        #region Leilão
+        public DbSet<LeilaoModel> Leilao { get; set; }
 
-        public DbSet<PixDinamicoSenhaConfirmacaoTranferenciaModel> PixDinamicoSenhaConfirmacaoTranferencia { get; set; }
+        public DbSet<LeilaoLoteModel> LeilaoLote { get; set; }
 
-        public DbSet<PixDinamicoTipoStatusGeracaoModel> PixDinamicoTipoStatusGeracao { get; set; }
+        public DbSet<LeilaoLoteStatusModel> LeilaoLoteStatus { get; set; }
 
-        public DbSet<PixDinamicoUrlModel> PixDinamicoUrl { get; set; }
+        public DbSet<LeilaoStatusModel> LeilaoStatus { get; set; }
 
-        public DbSet<ReboqueModel> Reboque { get; set; }
+        public DbSet<LiberacaoLeilaoModel> LiberacaoLeilao { get; set; }
+        #endregion
 
-        public DbSet<ReboquistaModel> Reboquista { get; set; }
+        #region Liberação
+        public DbSet<CobrancaLegalModel> CobrancaLegal { get; set; }
 
-        public DbSet<StatusOperacaoModel> StatusOperacao { get; set; }
+        public DbSet<TipoCobrancaLegalModel> TipoCobrancaLegal { get; set; }
+        #endregion Liberação
+
+        #region Pessoa
+        public DbSet<OrgaoEmissorModel> OrgaoEmissor { get; set; }
+
+        public DbSet<PessoaModel> Pessoa { get; set; }
 
         public DbSet<TipoDocumentoIdentificacaoModel> TipoDocumentoIdentificacao { get; set; }
+        #endregion Pessoa
 
-        public DbSet<TipoMeioCobrancaModel> TipoMeioCobranca { get; set; }
+        #region Vistoria
+        public DbSet<VistoriaModel> Vistoria { get; set; }
 
-        public DbSet<TipoVeiculoModel> TipoVeiculo { get; set; }
+        public DbSet<VistoriaSituacaoChassiModel> VistoriaSituacaoChassi { get; set; }
 
-        public DbSet<UsuarioModel> Usuario { get; set; }
-
-        public DbSet<UsuarioClienteModel> UsuarioCliente { get; set; }
-
-        public DbSet<UsuarioDepositoModel> UsuarioDeposito { get; set; }
-
-        public DbSet<UsuarioTipoPermissaoModel> UsuarioTipoPermissao { get; set; }
-
-        public DbSet<UsuarioPermissaoModel> UsuarioPermissao { get; set; }
-
-        public DbSet<WebServiceUrlModel> WebServiceUrl { get; set; }
-        #endregion Depósito Público
+        public DbSet<VistoriaStatusModel> VistoriaStatus { get; set; }
+        #endregion Vistoria
 
         #region Views
         public DbSet<ViewUsuarioClienteDepositoGrvModel> ViewUsuarioClienteDepositoGrv { get; set; }
@@ -202,44 +277,6 @@ namespace WebZi.Plataform.Data.Database
 
         public DbSet<ViewEnderecoCompletoModel> Endereco { get; set; }
         #endregion Views
-
-        #region Leilão
-        public DbSet<LeilaoModel> Leilao { get; set; }
-
-        public DbSet<LeilaoLoteModel> LeilaoLote { get; set; }
-
-        public DbSet<LeilaoLoteStatusModel> LeilaoLoteStatus { get; set; }
-
-        public DbSet<LeilaoStatusModel> LeilaoStatus { get; set; }
-
-        public DbSet<LiberacaoLeilaoModel> LiberacaoLeilao { get; set; }
-        #endregion
-
-        #region Global
-        public DbSet<BairroModel> Bairro { get; set; }
-
-        public DbSet<CEPModel> CEP { get; set; }
-
-        public DbSet<ContinenteModel> Continente { get; set; }
-
-        public DbSet<EstadoModel> Estado { get; set; }
-
-        public DbSet<FeriadoModel> Feriado { get; set; }
-
-        public DbSet<MunicipioModel> Municipio { get; set; }
-
-        public DbSet<PaisModel> Pais { get; set; }
-
-        public DbSet<PessoaModel> Pessoa { get; set; }
-
-        public DbSet<RegiaoModel> Regiao { get; set; }
-
-        public DbSet<TipoLogradouroModel> TipoLogradouro { get; set; }
-
-        public DbSet<UTCModel> UTC { get; set; }
-
-        public DbSet<OrgaoEmissorModel> OrgaoEmissor { get; set; }
-        #endregion Localização
 
         #endregion DbSets
     }

@@ -84,7 +84,7 @@ namespace WebZi.Plataform.Domain.Models.Faturamento
 
         //public virtual ICollection<PixDinamicoSenhaConfirmacaoTranferencium> PixDinamicoSenhaConfirmacaoTranferencia { get; set; }
 
-        public virtual ICollection<PixModel> PixEstaticos { get; set; }
+        public virtual ICollection<PixEstaticoModel> PixEstaticos { get; set; }
 
         public virtual ICollection<PixDinamicoModel> PixDinamicos { get; set; }
     }

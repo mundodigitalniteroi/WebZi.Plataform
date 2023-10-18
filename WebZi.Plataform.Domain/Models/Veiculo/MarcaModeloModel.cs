@@ -2,7 +2,7 @@
 {
     public class MarcaModeloModel
     {
-        public int DetranMarcaModeloId { get; set; }
+        public int MarcaModeloId { get; set; }
 
         public int UsuarioCadastroId { get; set; }
 

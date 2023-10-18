@@ -3,6 +3,7 @@ using WebZi.Plataform.Domain.Models.Cliente;
 using WebZi.Plataform.Domain.Models.Condutor;
 using WebZi.Plataform.Domain.Models.Deposito;
 using WebZi.Plataform.Domain.Models.Faturamento;
+using WebZi.Plataform.Domain.Models.Liberacao;
 using WebZi.Plataform.Domain.Models.Servico;
 using WebZi.Plataform.Domain.Models.Sistema;
 using WebZi.Plataform.Domain.Models.Usuario;
@@ -193,6 +194,8 @@ namespace WebZi.Plataform.Domain.Models.GRV
         
         public virtual UsuarioModel UsuarioEdicao { get; set; }
 
+        public virtual ICollection<CobrancaLegalModel> CobrancasLegais { get; set; }
+
         public virtual ICollection<CondutorEquipamentoOpcionalModel> CondutorEquipamentosOpcionais { get; set; }
 
         public virtual ICollection<EnquadramentoInfracaoGrvModel> EnquadramentosInfracoes { get; set; } = new List<EnquadramentoInfracaoGrvModel>();
@@ -225,7 +228,7 @@ namespace WebZi.Plataform.Domain.Models.GRV
 
         //public virtual ICollection<GrvBloqueio> GrvBloqueios { get; set; } = new List<GrvBloqueio>();
 
-        //public virtual ICollection<GrvCobrancasLegai> GrvCobrancasLegais { get; set; } = new List<GrvCobrancasLegai>();
+        
 
         //public virtual ICollection<GrvDocumento> GrvDocumentos { get; set; } = new List<GrvDocumento>();
 

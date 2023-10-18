@@ -4,6 +4,8 @@ using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Atendimento;
 using WebZi.Plataform.Data.Services.GRV;
 using WebZi.Plataform.Data.Services.Servico;
+using WebZi.Plataform.Data.Services.Sistema;
+using WebZi.Plataform.Data.Services.Veiculo;
 using WebZi.Plataform.Domain.Services.GRV;
 using WebZi.Plataform.Domain.ViewModel;
 using WebZi.Plataform.Domain.ViewModel.Atendimento;
@@ -11,6 +13,8 @@ using WebZi.Plataform.Domain.ViewModel.GRV;
 using WebZi.Plataform.Domain.ViewModel.GRV.Cadastro;
 using WebZi.Plataform.Domain.ViewModel.GRV.Pesquisa;
 using WebZi.Plataform.Domain.ViewModel.Servico;
+using WebZi.Plataform.Domain.ViewModel.Sistema;
+using WebZi.Plataform.Domain.ViewModel.Veiculo;
 
 namespace WebZi.Plataform.API.Controllers
 {
@@ -111,6 +115,27 @@ namespace WebZi.Plataform.API.Controllers
             }
         }
 
+        [HttpGet("ListarCores")]
+        public async Task<ActionResult<CorViewModelList>> ListarCores(string Cor)
+        {
+            CorViewModelList ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<CorService>()
+                    .List(Cor);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
+
         [HttpGet("ListarLacres")]
         public async Task<ActionResult<LacreViewModelList>> ListarLacres(int GrvId, int UsuarioId)
         {
@@ -121,6 +146,48 @@ namespace WebZi.Plataform.API.Controllers
                 ResultView = await _provider
                     .GetService<LacreService>()
                     .List(GrvId, UsuarioId);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
+
+        [HttpGet("ListarMarcaModelo")]
+        public async Task<ActionResult<MarcaModeloViewModelList>> ListarMarcaModelo(string MarcaModelo)
+        {
+            MarcaModeloViewModelList ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<MarcaModeloService>()
+                    .List(MarcaModelo);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
+
+        [HttpGet("ListarMotivosApreensoes")]
+        public async Task<ActionResult<MotivoApreensaoViewModelList>> ListarMotivosApreensoes()
+        {
+            MotivoApreensaoViewModelList ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<MotivoApreensaoService>()
+                    .List();
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -174,15 +241,15 @@ namespace WebZi.Plataform.API.Controllers
             }
         }
 
-        [HttpGet("ListarMotivosApreensoes")]
-        public async Task<ActionResult<MotivoApreensaoViewModelList>> ListarMotivosApreensoes()
+        [HttpGet("ListarStatusOperacoes")]
+        public async Task<ActionResult<StatusOperacaoViewModelList>> ListarStatusOperacoes()
         {
-            MotivoApreensaoViewModelList ResultView = new();
+            StatusOperacaoViewModelList ResultView = new();
 
             try
             {
                 ResultView = await _provider
-                    .GetService<MotivoApreensaoService>()
+                    .GetService<StatusOperacaoService>()
                     .List();
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
@@ -195,15 +262,15 @@ namespace WebZi.Plataform.API.Controllers
             }
         }
 
-        [HttpGet("ListarStatusOperacoes")]
-        public async Task<ActionResult<StatusOperacaoViewModelList>> ListarStatusOperacoes()
+        [HttpGet("ListarTiposVeiculos")]
+        public async Task<ActionResult<TipoVeiculoViewModelList>> ListarTiposVeiculos()
         {
-            StatusOperacaoViewModelList ResultView = new();
+            TipoVeiculoViewModelList ResultView = new();
 
             try
             {
                 ResultView = await _provider
-                    .GetService<StatusOperacaoService>()
+                    .GetService<TipoVeiculoService>()
                     .List();
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);

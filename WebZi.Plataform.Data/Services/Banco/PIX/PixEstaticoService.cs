@@ -161,7 +161,7 @@ namespace WebZi.Plataform.Data.Services.Banco.PIX
                 }
             }
 
-            PixModel Pix = new()
+            PixEstaticoModel Pix = new()
             {
                 FaturamentoId = FaturamentoId,
 

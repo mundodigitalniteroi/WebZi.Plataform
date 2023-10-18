@@ -4,9 +4,9 @@ using WebZi.Plataform.Domain.Models.Banco.PIX;
 
 namespace WebZi.Plataform.Data.Mappings.Banco.PIX
 {
-    public class PixMap : IEntityTypeConfiguration<PixModel>
+    public class PixMap : IEntityTypeConfiguration<PixEstaticoModel>
     {
-        public void Configure(EntityTypeBuilder<PixModel> builder)
+        public void Configure(EntityTypeBuilder<PixEstaticoModel> builder)
         {
             builder
                 .ToTable("tb_dep_pix", "dbo")
