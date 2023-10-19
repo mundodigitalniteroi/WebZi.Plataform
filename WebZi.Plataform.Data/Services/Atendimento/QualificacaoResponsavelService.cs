@@ -19,18 +19,18 @@ namespace WebZi.Plataform.Data.Services.Atendimento
         {
             QualificacaoResponsavelViewModelList ResultView = new()
             {
-                QualificacoesResponsaveis = await _context.QualificacaoResponsavel
+                ListagemQualificacaoResponsavel = await _context.QualificacaoResponsavel
                 .AsNoTracking()
                 .ToListAsync()
             };
 
-            if (ResultView.QualificacoesResponsaveis?.Count > 0)
+            if (ResultView.ListagemQualificacaoResponsavel?.Count > 0)
             {
-                ResultView.QualificacoesResponsaveis = ResultView.QualificacoesResponsaveis
+                ResultView.ListagemQualificacaoResponsavel = ResultView.ListagemQualificacaoResponsavel
                     .OrderBy(o => o.Descricao)
                     .ToList();
 
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound(ResultView.QualificacoesResponsaveis.Count);
+                ResultView.Mensagem = MensagemViewHelper.GetOkFound(ResultView.ListagemQualificacaoResponsavel.Count);
 
                 return ResultView;
             }

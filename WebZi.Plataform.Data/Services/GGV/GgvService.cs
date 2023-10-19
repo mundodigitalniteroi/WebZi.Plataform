@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using WebZi.Plataform.Data.Database;
+using WebZi.Plataform.Data.Services.Sistema;
 using WebZi.Plataform.Data.Services.Vistoria;
 using WebZi.Plataform.Domain.ViewModel.GGV;
 
@@ -22,15 +23,17 @@ namespace WebZi.Plataform.Data.Services.GGV
 
             DadosMestresViewModel DadosMestres = new()
             {
-                EstadoGeralVeiculos = await VistoriaService.ListarEstadoGeralVeiculo(),
+                ListagemCorOstentada = await new SistemaService(_context, _mapper).ListarCores(),
 
-                SituacoesChassi = await VistoriaService.ListarSituacaoChassi(),
+                ListagemEstadoGeralVeiculo = await VistoriaService.ListarEstadoGeralVeiculo(),
 
-                StatusVistoria = await VistoriaService.ListarStatusVistoria(),
+                ListagemSituacaoChassi = await VistoriaService.ListarSituacaoChassi(),
 
-                TiposAvarias = await new TipoAvariaService(_context, _mapper).ListarTipoAvaria(),
+                ListagemStatusVistoria = await VistoriaService.ListarStatusVistoria(),
 
-                TiposDirecoes = await VistoriaService.ListarTipoDirecao()
+                ListagemTipoAvaria = await new TipoAvariaService(_context, _mapper).ListarTipoAvaria(),
+
+                ListagemTipoDirecao = await VistoriaService.ListarTipoDirecao()
             };
 
             return DadosMestres;

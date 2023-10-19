@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using WebZi.Plataform.Domain.Models.Condutor;
+using WebZi.Plataform.Domain.Models.Veiculo;
 
-namespace WebZi.Plataform.Data.Mappings.Condutor
+namespace WebZi.Plataform.Data.Mappings.Veiculo
 {
     public class EquipamentoOpcionalMap : IEntityTypeConfiguration<EquipamentoOpcionalModel>
     {
@@ -16,11 +16,11 @@ namespace WebZi.Plataform.Data.Mappings.Condutor
                 .ValueGeneratedOnAdd()
                 .HasColumnType("numeric(3, 0)")
                 .HasColumnName("id_equipamento_opcional");
-            
+
             builder.Property(e => e.EquipamentoOpcionalLocalizacaoId).HasColumnName("id_equipamento_opcional_localizacao");
-            
+
             builder.Property(e => e.UsuarioCadastroId).HasColumnName("id_usuario");
-            
+
             builder.Property(e => e.UsuarioAlteracaoId).HasColumnName("id_usuario_alteracao");
 
             builder.Property(e => e.Descricao)
@@ -34,16 +34,16 @@ namespace WebZi.Plataform.Data.Mappings.Condutor
                 .IsUnicode(false)
                 .HasDefaultValueSql("('N')")
                 .HasColumnName("item_obrigatorio");
-            
+
             builder.Property(e => e.ItemOcorrenciaDetranBa)
                 .HasMaxLength(2)
                 .IsUnicode(false)
                 .HasColumnName("item_ocorrencia_detran_ba");
-            
+
             builder.Property(e => e.OrdemVistoria)
                 .HasDefaultValueSql("((0))")
                 .HasColumnName("ordem_vistoria");
-            
+
             builder.Property(e => e.Status)
                 .IsRequired()
                 .HasMaxLength(1)

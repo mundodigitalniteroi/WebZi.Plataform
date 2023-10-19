@@ -92,6 +92,8 @@ namespace WebZi.Plataform.Data.Database
 
         public DbSet<EnquadramentoInfracaoGrvModel> EnquadramentoInfracaoGrv { get; set; }
 
+        public DbSet<EquipamentoOpcionalModel> EquipamentoOpcional { get; set; }
+
         public DbSet<MotivoApreensaoModel> MotivoApreensao { get; set; }
 
         public DbSet<QualificacaoResponsavelModel> QualificacaoResponsavel { get; set; }

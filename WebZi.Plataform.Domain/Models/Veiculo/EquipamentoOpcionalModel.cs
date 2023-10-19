@@ -1,7 +1,7 @@
-﻿using WebZi.Plataform.Domain.Models.Usuario;
-using WebZi.Plataform.Domain.Models.Veiculo;
+﻿using WebZi.Plataform.Domain.Models.Condutor;
+using WebZi.Plataform.Domain.Models.Usuario;
 
-namespace WebZi.Plataform.Domain.Models.Condutor
+namespace WebZi.Plataform.Domain.Models.Veiculo
 {
     public class EquipamentoOpcionalModel
     {

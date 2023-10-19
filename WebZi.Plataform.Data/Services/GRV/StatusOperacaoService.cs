@@ -33,7 +33,7 @@ namespace WebZi.Plataform.Data.Services.GRV
 
             if (result != null)
             {
-                ResultView.StatusOperacoes.Add(result);
+                ResultView.ListagemStatusOperacao.Add(result);
 
                 ResultView.Mensagem = MensagemViewHelper.GetOkFound();
             }
@@ -59,7 +59,7 @@ namespace WebZi.Plataform.Data.Services.GRV
                     .OrderBy(o => o.Descricao)
                     .ToList();
 
-                ResultView.StatusOperacoes = result;
+                ResultView.ListagemStatusOperacao = result;
 
                 ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
             }

@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using WebZi.Plataform.Domain.Models.Condutor;
 
-namespace WebZi.Plataform.Data.Mappings.Condutor
+namespace WebZi.Plataform.Data.Mappings.Veiculo
 {
     public class EquipamentoOpcionalLocalizacaoMap : IEntityTypeConfiguration<EquipamentoOpcionalLocalizacaoModel>
     {

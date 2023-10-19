@@ -2,18 +2,23 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection.Metadata;
 using System.ServiceModel.Channels;
 using WebZi.Plataform.CrossCutting.Contacts;
 using WebZi.Plataform.CrossCutting.Documents;
+using WebZi.Plataform.CrossCutting.Localizacao;
 using WebZi.Plataform.CrossCutting.Number;
 using WebZi.Plataform.CrossCutting.Veiculo;
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
+using WebZi.Plataform.Data.Mappings.Localizacao;
 using WebZi.Plataform.Data.Services.Bucket;
 using WebZi.Plataform.Data.Services.Deposito;
 using WebZi.Plataform.Data.Services.Faturamento;
+using WebZi.Plataform.Data.Services.Localizacao;
+using WebZi.Plataform.Data.Services.Sistema;
 using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Cliente;
 using WebZi.Plataform.Domain.Models.ClienteDeposito;
@@ -21,6 +26,7 @@ using WebZi.Plataform.Domain.Models.Condutor;
 using WebZi.Plataform.Domain.Models.Deposito;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.GRV;
+using WebZi.Plataform.Domain.Models.Localizacao;
 using WebZi.Plataform.Domain.Models.Servico;
 using WebZi.Plataform.Domain.Models.Sistema;
 using WebZi.Plataform.Domain.Models.Veiculo;
@@ -29,6 +35,8 @@ using WebZi.Plataform.Domain.ViewModel;
 using WebZi.Plataform.Domain.ViewModel.GRV;
 using WebZi.Plataform.Domain.ViewModel.GRV.Cadastro;
 using WebZi.Plataform.Domain.ViewModel.GRV.Pesquisa;
+using WebZi.Plataform.Domain.ViewModel.Localizacao;
+using WebZi.Plataform.Domain.ViewModel.Vistoria;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
@@ -91,8 +99,6 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
                 Rfid = GrvCadastro.Rfid.ToUpper().Trim(),
 
-                EnderecoLocalizacaoVeiculoCEPId = GrvCadastro.EnderecoLocalizacaoVeiculoCEPId,
-
                 EnderecoLocalizacaoVeiculoLogradouro = GrvCadastro.EnderecoLocalizacaoVeiculoLogradouro.ToUpper().Trim(),
 
                 EnderecoLocalizacaoVeiculoNumero = GrvCadastro.EnderecoLocalizacaoVeiculoNumero.ToUpper().Trim(),
@@ -143,6 +149,24 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
                 EnquadramentosInfracoes = _mapper.Map<List<EnquadramentoInfracaoGrvModel>>(GrvCadastro.EnquadramentosInfracoes)
             };
+
+            if (!string.IsNullOrWhiteSpace(GrvCadastro.EnderecoLocalizacaoVeiculoCEP))
+            {
+                EnderecoViewModel Endereco = new EnderecoService(_context, _mapper).GetByCEP(GrvCadastro.EnderecoLocalizacaoVeiculoCEP.Replace("-", ""));
+
+                if (Endereco != null)
+                {
+                    Grv.EnderecoLocalizacaoVeiculoCEPId = Endereco.CEPId;
+
+                    Grv.EnderecoLocalizacaoVeiculoLogradouro = Endereco.Logradouro;
+
+                    Grv.EnderecoLocalizacaoVeiculoBairro = Endereco.Bairro;
+
+                    Grv.EnderecoLocalizacaoVeiculoMunicipio = Endereco.MunicipioPtbr;
+
+                    Grv.EnderecoLocalizacaoVeiculoUF = Endereco.UF;
+                }
+            }
 
             if (GrvCadastro.EnquadramentosInfracoes?.Count > 0)
             {
@@ -273,7 +297,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 return ResultView;
             }
 
-            ResultView.Grvs = _mapper.Map<List<GrvViewModel>>(Grv);
+            ResultView.ListagemGrv = _mapper.Map<List<GrvViewModel>>(Grv);
 
             ResultView.Mensagem = MensagemViewHelper.GetOkFound();
 
@@ -359,7 +383,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 return ResultView;
             }
 
-            ResultView.Grvs = _mapper.Map<List<GrvViewModel>>(Grv);
+            ResultView.ListagemGrv = _mapper.Map<List<GrvViewModel>>(Grv);
 
             ResultView.Mensagem = MensagemViewHelper.GetOkFound();
 
@@ -497,7 +521,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             foreach (GrvModel Grv in Grvs)
             {
-                ResultView.Grvs.Add(new()
+                ResultView.ListagemGrv.Add(new()
                 {
                     GrvId = Grv.GrvId,
 
@@ -764,6 +788,14 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 erros.Add("Flag do Veículo Roubado/Furtado inválido, informe \"S\" ou \"N\" (sem aspas)");
             }
 
+            if (!string.IsNullOrWhiteSpace(GrvCadastro.EnderecoLocalizacaoVeiculoCEP))
+            {
+                if (!LocalizacaoHelper.IsCEP(GrvCadastro.EnderecoLocalizacaoVeiculoCEP))
+                {
+                    erros.Add("CEP inválido");
+                }
+            }
+
             if (GrvCadastro.Condutor == null)
             {
                 erros.Add("Informe os dados do Condutor");
@@ -788,9 +820,15 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 {
                     erros.Add("Informe o Status da Assinatura do Condutor");
                 }
-                else if (!new[] { "1", "2", "3", "4" }.Contains(GrvCadastro.Condutor.StatusAssinaturaCondutor))
+                else
                 {
-                    erros.Add("Status da Assinatura do Condutor inválido, informe 1, 2, 3 ou 4");
+                    List<TabelaGenericaModel> TabelaGenerica = await new SistemaService(_context)
+                        .ListarTabelaGenerica("STATUS_ASSINATURA_CONDUTOR");
+
+                    if (!TabelaGenerica.Select(x => x.Sigla).ToList().Contains(GrvCadastro.Condutor.StatusAssinaturaCondutor))
+                    {
+                        erros.Add("Status da Assinatura do Condutor inválido");
+                    }
                 }
 
                 if (!string.IsNullOrWhiteSpace(GrvCadastro.Condutor.TelefoneDDD)
@@ -887,6 +925,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             #region Consultas
             ClienteModel Cliente = await _context.Cliente
+                .Include(x => x.Endereco)
                 .Include(x => x.ClientesDepositos)
                 .Where(w => w.ClienteId == GrvCadastro.ClienteId)
                 .AsNoTracking()
@@ -966,6 +1005,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             }
 
             AutoridadeResponsavelModel AutoridadeResponsavel = await _context.AutoridadeResponsavel
+                .Include(x => x.OrgaoEmissor)
                 .Where(w => w.AutoridadeResponsavelId == GrvCadastro.AutoridadeResponsavelId)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
@@ -973,6 +1013,10 @@ namespace WebZi.Plataform.Domain.Services.GRV
             if (AutoridadeResponsavel == null)
             {
                 ResultView.AvisosImpeditivos.Add("Autoridade Responsável não encontrada");
+            }
+            else if (AutoridadeResponsavel.OrgaoEmissor.UF != Cliente.Endereco.UF)
+            {
+                ResultView.AvisosImpeditivos.Add($"A Autoridade Responsável ({AutoridadeResponsavel.OrgaoEmissor.UF}) informada não pertence a mesma Unidade Federativa do cadastro do Cliente {Cliente.Nome} ({Cliente.Endereco.UF})");
             }
 
             CorModel Cor = await _context.Cor
@@ -1070,6 +1114,16 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 ResultView.AvisosImpeditivos.Add("Código do Produto não encontrado");
             }
 
+            if (!string.IsNullOrWhiteSpace(GrvCadastro.EnderecoLocalizacaoVeiculoCEP))
+            {
+                if (await _context.CEP
+                    .Where(x => x.CEP == GrvCadastro.EnderecoLocalizacaoVeiculoCEP.Replace("-", ""))
+                    .FirstOrDefaultAsync() == null)
+                {
+                    ResultView.AvisosImpeditivos.Add("CEP não encontrado");
+                }
+            }
+
             GrvModel Grv = await _context.Grv
                 .Where(w => w.NumeroFormularioGrv == GrvCadastro.NumeroProcesso && w.ClienteId == GrvCadastro.ClienteId && w.DepositoId == GrvCadastro.DepositoId)
                 .AsNoTracking()
@@ -1089,6 +1143,34 @@ namespace WebZi.Plataform.Domain.Services.GRV
             {
                 ResultView.HtmlStatusCode = HtmlStatusCodeEnum.Ok;
             }
+
+            return ResultView;
+        }
+
+        public async Task<StatusAssinaturaCondutorViewModelList> ListarStatusAssinaturaCondutor()
+        {
+            StatusAssinaturaCondutorViewModelList ResultView = new();
+
+            List<TabelaGenericaModel> result = await new SistemaService(_context)
+                .ListarTabelaGenerica("STATUS_ASSINATURA_CONDUTOR");
+
+            if (result?.Count == 0)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+
+                return ResultView;
+            }
+
+            foreach (var item in result)
+            {
+                ResultView.ListagemStatusAssinaturaCondutor.Add(new()
+                {
+                    StatusAssinaturaCondutorId = item.Sigla,
+                    Descricao = item.Valor1
+                });
+            }
+
+            ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
 
             return ResultView;
         }

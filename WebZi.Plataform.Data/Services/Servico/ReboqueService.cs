@@ -40,7 +40,7 @@ namespace WebZi.Plataform.Data.Services.Servico
 
             if (result != null)
             {
-                ResultView.Reboques.Add(_mapper.Map<ReboqueViewModel>(result));
+                ResultView.ListagemReboque.Add(_mapper.Map<ReboqueViewModel>(result));
 
                 ResultView.Mensagem = MensagemViewHelper.GetOkFound();
             }
@@ -115,7 +115,7 @@ namespace WebZi.Plataform.Data.Services.Servico
 
             if (result != null)
             {
-                ResultView.Reboques.Add(_mapper.Map<ReboqueViewModel>(result));
+                ResultView.ListagemReboque.Add(_mapper.Map<ReboqueViewModel>(result));
 
                 ResultView.Mensagem = MensagemViewHelper.GetOkFound();
             }
@@ -181,7 +181,7 @@ namespace WebZi.Plataform.Data.Services.Servico
 
             if (result?.Count > 0)
             {
-                ResultView.Reboques = _mapper.Map<List<ReboqueViewModel>>(result
+                ResultView.ListagemReboque = _mapper.Map<List<ReboqueViewModel>>(result
                     .OrderBy(o => o.Placa)
                     .ToList());
 

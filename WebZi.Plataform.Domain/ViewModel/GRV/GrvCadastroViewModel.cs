@@ -44,7 +44,7 @@ namespace WebZi.Plataform.Domain.ViewModel.GRV
 
         public string Rfid { get; set; }
 
-        public int? EnderecoLocalizacaoVeiculoCEPId { get; set; }
+        public string EnderecoLocalizacaoVeiculoCEP { get; set; }
 
         public string EnderecoLocalizacaoVeiculoLogradouro { get; set; }
 

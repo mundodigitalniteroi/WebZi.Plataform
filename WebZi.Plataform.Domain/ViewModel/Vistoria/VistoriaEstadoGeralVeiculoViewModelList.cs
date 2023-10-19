@@ -4,6 +4,6 @@
     {
         public MensagemViewModel Mensagem { get; set; } = new();
 
-        public List<VistoriaEstadoGeralVeiculoViewModel> EstadoGeralVeiculo { get; set; } = new();
+        public List<VistoriaEstadoGeralVeiculoViewModel> ListagemEstadoGeralVeiculo { get; set; } = new();
     }
 }

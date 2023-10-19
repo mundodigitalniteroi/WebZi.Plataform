@@ -45,10 +45,6 @@ namespace WebZi.Plataform.Data.Services
 
             services.AddScoped<ClienteService>();
 
-            services.AddScoped<ConfiguracaoService>();
-
-            services.AddScoped<CorService>();
-
             services.AddScoped<DepositoService>();
 
             services.AddScoped<FaturamentoBoletoService>();
@@ -67,8 +63,6 @@ namespace WebZi.Plataform.Data.Services
 
             services.AddScoped<LeilaoService>();
 
-            services.AddScoped<MarcaModeloService>();
-
             services.AddScoped<PixDinamicoService>();
 
             services.AddScoped<PixEstaticoService>();
@@ -79,17 +73,17 @@ namespace WebZi.Plataform.Data.Services
 
             services.AddScoped<ReboquistaService>();
 
-            services.AddScoped<StatusOperacaoService>();
+            services.AddScoped<SistemaService>();
 
-            services.AddScoped<TabelaGenericaService>();
+            services.AddScoped<StatusOperacaoService>();
 
             services.AddScoped<TipoAvariaService>();
 
             services.AddScoped<TipoMeioCobrancaService>();
 
-            services.AddScoped<TipoVeiculoService>();
-
             services.AddScoped<UsuarioService>();
+
+            services.AddScoped<VeiculoService>();
 
             services.AddScoped<VistoriaService>();
         }

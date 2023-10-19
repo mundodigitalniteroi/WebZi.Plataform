@@ -2,6 +2,7 @@
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.GGV;
+using WebZi.Plataform.Data.Services.Veiculo;
 using WebZi.Plataform.Data.Services.Vistoria;
 using WebZi.Plataform.Domain.ViewModel.GGV;
 using WebZi.Plataform.Domain.ViewModel.Veiculo;
@@ -38,6 +39,27 @@ namespace WebZi.Plataform.API.Controllers
                 var error = MensagemViewHelper.GetInternalServerError(ex);
 
                 return StatusCode((int)error.HtmlStatusCode, error);
+            }
+        }
+
+        [HttpGet("ListarEquipamentoOpcional")]
+        public async Task<ActionResult<EquipamentoOpcionalViewModelList>> ListarEquipamentoOpcional(int TipoVeiculoId)
+        {
+            EquipamentoOpcionalViewModelList ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<VeiculoService>()
+                    .ListarEquipamentoOpcional(TipoVeiculoId);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
         }
 

@@ -50,7 +50,7 @@ namespace WebZi.Plataform.Data.Services.Empresa
                 return ResultView;
             }
 
-            ResultView.Empresas = _mapper.Map<List<EmpresaViewModel>>(result);
+            ResultView.ListagemEmpresa = _mapper.Map<List<EmpresaViewModel>>(result);
 
             ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
 

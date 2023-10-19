@@ -42,7 +42,7 @@ namespace WebZi.Plataform.Data.Services.Deposito
 
             if (result != null)
             {
-                ResultView.Depositos.Add(_mapper.Map<DepositoViewModel>(result));
+                ResultView.ListagemDeposito.Add(_mapper.Map<DepositoViewModel>(result));
 
                 ResultView.Mensagem = MensagemViewHelper.GetOkFound();
             }
@@ -74,7 +74,7 @@ namespace WebZi.Plataform.Data.Services.Deposito
             {
                 result = result.OrderBy(o => o.Nome).ToList();
 
-                ResultView.Depositos = _mapper.Map<List<DepositoViewModel>>(result);
+                ResultView.ListagemDeposito = _mapper.Map<List<DepositoViewModel>>(result);
 
                 ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
             }
@@ -100,7 +100,7 @@ namespace WebZi.Plataform.Data.Services.Deposito
                     .OrderBy(o => o.Nome)
                     .ToList();
 
-                ResultView.Depositos = _mapper.Map<List<DepositoViewModel>>(result);
+                ResultView.ListagemDeposito = _mapper.Map<List<DepositoViewModel>>(result);
 
                 ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
             }

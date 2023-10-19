@@ -29,7 +29,7 @@ namespace WebZi.Plataform.Data.Services.GRV
                     .OrderBy(o => o.Descricao)
                     .ToList();
 
-                ResultView.MotivosApreensoes = result;
+                ResultView.ListagemMotivoApreensao = result;
 
                 ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
             }

@@ -6,6 +6,6 @@ namespace WebZi.Plataform.Domain.ViewModel.GRV
     {
         public MensagemViewModel Mensagem { get; set; } = new();
 
-        public List<MotivoApreensaoModel> MotivosApreensoes { get; set; } = new();
+        public List<MotivoApreensaoModel> ListagemMotivoApreensao { get; set; } = new();
     }
 }

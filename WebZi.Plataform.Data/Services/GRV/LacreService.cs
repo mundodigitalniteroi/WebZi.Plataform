@@ -76,7 +76,7 @@ namespace WebZi.Plataform.Data.Services.GRV
 
             if (result?.Count > 0)
             {
-                ResultView.Lacres = _mapper.Map<List<LacreViewModel>>(result
+                ResultView.ListagemLacre = _mapper.Map<List<LacreViewModel>>(result
                     .OrderBy(o => o.Lacre)
                     .ToList());
 

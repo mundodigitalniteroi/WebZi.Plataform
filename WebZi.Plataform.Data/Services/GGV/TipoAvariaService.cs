@@ -26,7 +26,7 @@ namespace WebZi.Plataform.Data.Services.GGV
                 .AsNoTracking()
                 .ToListAsync();
 
-            ResultView.TiposAvarias = _mapper.Map<List<TipoAvariaViewModel>>(result.OrderBy(x => x.Descricao).ToList());
+            ResultView.ListagemTipoAvaria = _mapper.Map<List<TipoAvariaViewModel>>(result.OrderBy(x => x.Descricao).ToList());
 
             ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
 

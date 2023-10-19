@@ -51,7 +51,7 @@ namespace WebZi.Plataform.Data.Services.GRV
 
             if (result.AutoridadesResponsaveis?.Count > 0)
             {
-                ResultView.AutoridadesResponsaveis = _mapper.Map<List<AutoridadeResponsavelViewModel>>(result.AutoridadesResponsaveis
+                ResultView.ListagemAutoridadeResponsavel = _mapper.Map<List<AutoridadeResponsavelViewModel>>(result.AutoridadesResponsaveis
                     .OrderBy(o => o.Divisao)
                     .ToList());
 

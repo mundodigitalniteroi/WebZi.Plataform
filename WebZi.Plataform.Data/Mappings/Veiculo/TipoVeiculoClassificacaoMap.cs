@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using WebZi.Plataform.Domain.Models.Veiculo;
 
-namespace WebZi.Plataform.Data.Services.Veiculo
+namespace WebZi.Plataform.Data.Mappings.Veiculo
 {
     public class TipoVeiculoClassificacaoMap : IEntityTypeConfiguration<TipoVeiculoClassificacaoModel>
     {

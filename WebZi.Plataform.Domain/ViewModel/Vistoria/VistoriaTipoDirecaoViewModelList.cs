@@ -4,6 +4,6 @@
     {
         public MensagemViewModel Mensagem { get; set; } = new();
 
-        public List<VistoriaTipoDirecaoViewModel> TipoDirecao { get; set; } = new();
+        public List<VistoriaTipoDirecaoViewModel> ListagemTipoDirecao { get; set; } = new();
     }
 }

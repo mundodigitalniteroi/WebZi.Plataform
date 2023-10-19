@@ -123,8 +123,8 @@ namespace WebZi.Plataform.API.Controllers
             try
             {
                 ResultView = await _provider
-                    .GetService<CorService>()
-                    .List(Cor);
+                    .GetService<SistemaService>()
+                    .ListarCores(Cor);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -165,8 +165,8 @@ namespace WebZi.Plataform.API.Controllers
             try
             {
                 ResultView = await _provider
-                    .GetService<MarcaModeloService>()
-                    .List(MarcaModelo);
+                    .GetService<VeiculoService>()
+                    .ListarMarcaModelo(MarcaModelo);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -241,6 +241,27 @@ namespace WebZi.Plataform.API.Controllers
             }
         }
 
+        [HttpGet("ListarStatusAssinaturaCondutor")]
+        public async Task<ActionResult<StatusOperacaoViewModelList>> ListarStatusAssinaturaCondutor()
+        {
+            StatusAssinaturaCondutorViewModelList ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<GrvService>()
+                    .ListarStatusAssinaturaCondutor();
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
+
         [HttpGet("ListarStatusOperacoes")]
         public async Task<ActionResult<StatusOperacaoViewModelList>> ListarStatusOperacoes()
         {
@@ -270,8 +291,8 @@ namespace WebZi.Plataform.API.Controllers
             try
             {
                 ResultView = await _provider
-                    .GetService<TipoVeiculoService>()
-                    .List();
+                    .GetService<VeiculoService>()
+                    .ListarTipoVeiculo();
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }

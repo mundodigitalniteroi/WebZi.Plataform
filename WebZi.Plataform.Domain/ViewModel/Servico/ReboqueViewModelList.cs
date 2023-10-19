@@ -6,6 +6,6 @@ namespace WebZi.Plataform.Domain.ViewModel.Servico
     {
         public MensagemViewModel Mensagem { get; set; } = new();
 
-        public List<ReboqueViewModel> Reboques { get; set; } = new();
+        public List<ReboqueViewModel> ListagemReboque { get; set; } = new();
     }
 }

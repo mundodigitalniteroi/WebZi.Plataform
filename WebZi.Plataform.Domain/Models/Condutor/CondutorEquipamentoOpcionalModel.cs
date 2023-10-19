@@ -1,5 +1,5 @@
 ﻿using WebZi.Plataform.Domain.Models.GRV;
-using WebZi.Plataform.Domain.Models.Usuario;
+using WebZi.Plataform.Domain.Models.Veiculo;
 
 namespace WebZi.Plataform.Domain.Models.Condutor
 {
@@ -29,9 +29,9 @@ namespace WebZi.Plataform.Domain.Models.Condutor
 
         public virtual GrvModel Grv { get; set; }
 
-        public virtual UsuarioModel UsuarioCadastro { get; set; }
+        //public virtual UsuarioModel UsuarioCadastro { get; set; }
 
-        public virtual UsuarioModel UsuarioAlteracao { get; set; }
+        //public virtual UsuarioModel UsuarioAlteracao { get; set; }
 
         public virtual ICollection<CondutorEquipamentoOpcionalNaoConformidadeModel> CondutorEquipamentosOpcionaisNaoConformidades { get; set; }
     }

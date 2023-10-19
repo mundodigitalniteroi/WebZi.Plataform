@@ -36,7 +36,7 @@ namespace WebZi.Plataform.Data.Services.Banco
 
             if (result != null)
             {
-                ResultView.AgenciasBancarias.Add(_mapper.Map<AgenciaBancariaViewModel>(result));
+                ResultView.ListagemAgenciaBancaria.Add(_mapper.Map<AgenciaBancariaViewModel>(result));
 
                 ResultView.Mensagem = MensagemViewHelper.GetOkFound();
             }
@@ -78,7 +78,7 @@ namespace WebZi.Plataform.Data.Services.Banco
 
             if (result != null)
             {
-                ResultView.AgenciasBancarias.Add(_mapper.Map<AgenciaBancariaViewModel>(result));
+                ResultView.ListagemAgenciaBancaria.Add(_mapper.Map<AgenciaBancariaViewModel>(result));
 
                 ResultView.Mensagem = MensagemViewHelper.GetOkFound();
             }
@@ -113,7 +113,7 @@ namespace WebZi.Plataform.Data.Services.Banco
                     .ThenBy(t => t.ContaCorrente)
                     .ToList();
 
-                ResultView.AgenciasBancarias = _mapper.Map<List<AgenciaBancariaViewModel>>(result);
+                ResultView.ListagemAgenciaBancaria = _mapper.Map<List<AgenciaBancariaViewModel>>(result);
 
                 ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
             }

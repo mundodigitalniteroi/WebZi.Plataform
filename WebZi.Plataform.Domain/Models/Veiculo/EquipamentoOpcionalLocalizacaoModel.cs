@@ -1,6 +1,4 @@
-﻿using WebZi.Plataform.Domain.Models.Usuario;
-
-namespace WebZi.Plataform.Domain.Models.Condutor
+﻿namespace WebZi.Plataform.Domain.Models.Condutor
 {
     public class EquipamentoOpcionalLocalizacaoModel
     {
@@ -16,10 +14,10 @@ namespace WebZi.Plataform.Domain.Models.Condutor
 
         public DateTime? DataAlteracao { get; set; }
 
-        public virtual UsuarioModel UsuarioAlteracao { get; set; }
+        //public virtual UsuarioModel UsuarioAlteracao { get; set; }
 
-        public virtual UsuarioModel UsuarioCadastro { get; set; }
+        //public virtual UsuarioModel UsuarioCadastro { get; set; }
 
-        public virtual ICollection<EquipamentoOpcionalModel> EquipamentosOpcionais { get; set; }
+        // public virtual ICollection<EquipamentoOpcionalModel> EquipamentosOpcionais { get; set; }
     }
 }

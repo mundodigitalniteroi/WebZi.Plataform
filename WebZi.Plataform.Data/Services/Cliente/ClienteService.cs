@@ -37,7 +37,7 @@ namespace WebZi.Plataform.Data.Services.Cliente
 
             if (result != null)
             {
-                ResultView.Clientes.Add(_mapper.Map<ClienteViewModel>(result));
+                ResultView.ListagemCliente.Add(_mapper.Map<ClienteViewModel>(result));
 
                 ResultView.Mensagem = MensagemViewHelper.GetOkFound();
             }
@@ -69,7 +69,7 @@ namespace WebZi.Plataform.Data.Services.Cliente
             {
                 result = result.OrderBy(o => o.Nome).ToList();
 
-                ResultView.Clientes = _mapper.Map<List<ClienteViewModel>>(result);
+                ResultView.ListagemCliente = _mapper.Map<List<ClienteViewModel>>(result);
 
                 ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
             }
@@ -95,7 +95,7 @@ namespace WebZi.Plataform.Data.Services.Cliente
                     .OrderBy(o => o.Nome)
                     .ToList();
 
-                ResultView.Clientes = _mapper.Map<List<ClienteViewModel>>(result);
+                ResultView.ListagemCliente = _mapper.Map<List<ClienteViewModel>>(result);
 
                 ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
             }

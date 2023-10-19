@@ -40,7 +40,7 @@ namespace WebZi.Plataform.Data.Services.Servico
 
             if (result != null)
             {
-                ResultView.Reboquistas.Add(_mapper.Map<ReboquistaViewModel>(result));
+                ResultView.ListagemReboquista.Add(_mapper.Map<ReboquistaViewModel>(result));
 
                 ResultView.Mensagem = MensagemViewHelper.GetOkFound();
             }
@@ -106,7 +106,7 @@ namespace WebZi.Plataform.Data.Services.Servico
 
             if (result?.Count > 0)
             {
-                ResultView.Reboquistas = _mapper.Map<List<ReboquistaViewModel>>(result
+                ResultView.ListagemReboquista = _mapper.Map<List<ReboquistaViewModel>>(result
                     .OrderBy(o => o.Nome)
                     .ToList());
 

@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Sistema;
@@ -11,10 +12,17 @@ namespace WebZi.Plataform.Data.Services.Vistoria
     public class VistoriaService
     {
         private readonly AppDbContext _context;
+        private readonly IMapper _mapper;
 
         public VistoriaService(AppDbContext context)
         {
             _context = context;
+        }
+
+        public VistoriaService(AppDbContext context, IMapper mapper)
+        {
+            _context = context;
+            _mapper = mapper;
         }
 
         public async Task<VistoriaStatusViewModelList> ListarStatusVistoria()
@@ -31,7 +39,7 @@ namespace WebZi.Plataform.Data.Services.Vistoria
 
             foreach (var item in result)
             {
-                ResultView.StatusVistoria.Add(new()
+                ResultView.ListagemStatusVistoria.Add(new()
                 {
                     VistoriaStatusId = item.VistoriaStatusId,
                     Descricao = item.Descricao
@@ -57,7 +65,7 @@ namespace WebZi.Plataform.Data.Services.Vistoria
 
             foreach (var item in result)
             {
-                ResultView.SituacaoChassi.Add(new()
+                ResultView.ListagemSituacaoChassi.Add(new()
                 {
                     VistoriaSituacaoChassiId = item.VistoriaSituacaoChassiId,
                     Descricao = item.Descricao
@@ -73,7 +81,7 @@ namespace WebZi.Plataform.Data.Services.Vistoria
         {
             VistoriaTipoDirecaoViewModelList ResultView = new();
 
-            List<TabelaGenericaModel> result = await new TabelaGenericaService(_context).List("VISTORIA_TIPO_DIRECAO");
+            List<TabelaGenericaModel> result = await new SistemaService(_context).ListarTabelaGenerica("VISTORIA_TIPO_DIRECAO");
 
             if (result?.Count == 0)
             {
@@ -84,7 +92,7 @@ namespace WebZi.Plataform.Data.Services.Vistoria
 
             foreach (var item in result)
             {
-                ResultView.TipoDirecao.Add(new()
+                ResultView.ListagemTipoDirecao.Add(new()
                 {
                     Sigla = item.Sigla,
                     Descricao = item.Valor1
@@ -100,7 +108,7 @@ namespace WebZi.Plataform.Data.Services.Vistoria
         {
             VistoriaEstadoGeralVeiculoViewModelList ResultView = new();
 
-            List<TabelaGenericaModel> result = await new TabelaGenericaService(_context).List("VISTORIA_ESTADO_GERAL_VEICULO");
+            List<TabelaGenericaModel> result = await new SistemaService(_context).ListarTabelaGenerica("VISTORIA_ESTADO_GERAL_VEICULO");
 
             if (result?.Count == 0)
             {
@@ -111,7 +119,7 @@ namespace WebZi.Plataform.Data.Services.Vistoria
 
             foreach (var item in result)
             {
-                ResultView.EstadoGeralVeiculo.Add(new()
+                ResultView.ListagemEstadoGeralVeiculo.Add(new()
                 {
                     Sigla = item.Sigla,
                     Descricao = item.Valor1
