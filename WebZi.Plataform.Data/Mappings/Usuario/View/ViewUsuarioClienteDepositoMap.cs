@@ -9,8 +9,8 @@ namespace WebZi.Plataform.Data.Mappings.Usuario.View
         public void Configure(EntityTypeBuilder<ViewUsuarioClienteDepositoModel> builder)
         {
             builder
-                .HasNoKey()
-                .ToView("vw_dep_usuarios_clientes_depositos");
+                .ToView("vw_dep_usuarios_clientes_depositos")
+                .HasKey(e => e.UsuarioId);
 
             builder.Property(e => e.UsuarioId)
                 .HasColumnName("id_usuario");
@@ -39,12 +39,18 @@ namespace WebZi.Plataform.Data.Mappings.Usuario.View
                 .IsUnicode(false)
                 .HasColumnName("senha1");
 
-            builder.Property(e => e.UsuarioFlagAtivo)
+            builder.Property(e => e.FlagAtivo)
                 .IsRequired()
                 .HasMaxLength(1)
                 .IsUnicode(false)
                 .IsFixedLength()
                 .HasColumnName("usuario_flag_ativo");
+
+            builder
+                .HasOne(d => d.Usuario)
+                .WithMany(p => p.ListagemUsuarioClienteDeposito)
+                .HasForeignKey(d => d.UsuarioId)
+                .OnDelete(DeleteBehavior.NoAction);
         }
     }
 }

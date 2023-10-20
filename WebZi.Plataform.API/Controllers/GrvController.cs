@@ -30,6 +30,7 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpPost("Cadastrar")]
+        [IgnoreAntiforgeryToken]
         public async Task<ActionResult<GrvCadastradoViewModel>> Cadastrar(GrvCadastroViewModel Grv)
         {
             GrvCadastradoViewModel ResultView = new();
@@ -74,6 +75,7 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpPost("CadastrarFotos")]
+        [IgnoreAntiforgeryToken]
         public ActionResult<MensagemViewModel> CadastrarFotos(GrvFotoViewModel Fotos)
         {
             MensagemViewModel ResultView;
@@ -305,6 +307,7 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpPost("Pesquisar")]
+        [IgnoreAntiforgeryToken]
         public async Task<ActionResult<GrvViewModelList>> Pesquisar(GrvPesquisaInputViewModel ParametrosPesquisa)
         {
             GrvPesquisaResultViewModelList ResultView = new();
@@ -431,6 +434,7 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpPost("ValidarInformacoesParaCadastro")]
+        [IgnoreAntiforgeryToken]
         public async Task<ActionResult<MensagemViewModel>> ValidarInformacoesParaCadastro(GrvCadastroViewModel Grv)
         {
             MensagemViewModel ResultView;
@@ -440,6 +444,27 @@ namespace WebZi.Plataform.API.Controllers
                 ResultView = await _provider
                     .GetService<GrvService>()
                     .ValidarInformacoesParaCadastro(Grv);
+
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+        }
+
+        [HttpGet("VerificarAlteracaoStatusProcesso")]
+        public async Task<ActionResult<MensagemViewModel>> VerificarAlteracaoStatusProcesso(int GrvId, string StatusOperacaoId, int UsuarioId)
+        {
+            MensagemViewModel ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<GrvService>()
+                    .VerificarAlteracaoStatusGRV(GrvId, StatusOperacaoId, UsuarioId);
 
                 return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
             }

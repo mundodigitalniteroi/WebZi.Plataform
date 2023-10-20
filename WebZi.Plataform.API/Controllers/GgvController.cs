@@ -22,7 +22,7 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("ListarDadosMestres")]
-        public async Task<ActionResult<DadosMestresViewModel>> ListarDadosMestres()
+        public async Task<ActionResult<DadosMestresViewModel>> ListarDadosMestres(byte TipoVeiculoId)
         {
             DadosMestresViewModel ResultView;
 
@@ -30,7 +30,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<GgvService>()
-                    .ListarDadosMestres();
+                    .ListarDadosMestres(TipoVeiculoId);
 
                 return StatusCode((int)HtmlStatusCodeEnum.Ok, ResultView);
             }
@@ -43,7 +43,7 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("ListarEquipamentoOpcional")]
-        public async Task<ActionResult<EquipamentoOpcionalViewModelList>> ListarEquipamentoOpcional(int TipoVeiculoId)
+        public async Task<ActionResult<EquipamentoOpcionalViewModelList>> ListarEquipamentoOpcional(byte TipoVeiculoId)
         {
             EquipamentoOpcionalViewModelList ResultView = new();
 

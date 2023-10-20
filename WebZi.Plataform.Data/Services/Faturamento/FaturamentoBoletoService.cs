@@ -113,7 +113,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             }
             else
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadraoEnum.FaturamentoNaoEncontrado);
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadraoEnum.NaoEncontradoFaturamento);
 
                 return ResultView;
             }
@@ -233,7 +233,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             }
             else
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadraoEnum.FaturamentoNaoEncontrado);
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadraoEnum.NaoEncontradoFaturamento);
 
                 return ResultView;
             }

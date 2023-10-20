@@ -91,7 +91,7 @@ namespace WebZi.Plataform.Data.Services.Servico
 
             if (Cliente == null)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadraoEnum.ClienteNaoEncontrado);
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadraoEnum.NaoEncontradoCliente);
 
                 return ResultView;
             }
@@ -103,7 +103,7 @@ namespace WebZi.Plataform.Data.Services.Servico
 
             if (Deposito == null)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadraoEnum.DepositoNaoEncontrado);
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadraoEnum.NaoEncontradoDeposito);
 
                 return ResultView;
             }
@@ -157,7 +157,7 @@ namespace WebZi.Plataform.Data.Services.Servico
 
             if (Cliente == null)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadraoEnum.ClienteNaoEncontrado);
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadraoEnum.NaoEncontradoCliente);
 
                 return ResultView;
             }
@@ -169,7 +169,7 @@ namespace WebZi.Plataform.Data.Services.Servico
 
             if (Deposito == null)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadraoEnum.DepositoNaoEncontrado);
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadraoEnum.NaoEncontradoDeposito);
 
                 return ResultView;
             }

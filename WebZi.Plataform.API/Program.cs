@@ -1,49 +1,71 @@
+using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 using WebZi.Plataform.Data.Services;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-//builder.Services.AddControllers().AddJsonOptions(options =>
-//{
-//    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
-//});
+ConfigureServices(builder);
 
-builder.Services.AddControllers();
+ConfigureJson(builder);
 
-JsonConvert.DefaultSettings = () => new JsonSerializerSettings
+ConfigureWebApplication(builder.Build());
+
+static void ConfigureServices(WebApplicationBuilder builder)
 {
-    Formatting = Formatting.Indented,
-    ReferenceLoopHandling = ReferenceLoopHandling.Ignore
-};
+    builder.Services
+        .AddControllers();
 
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services
-    .AddEndpointsApiExplorer()
-    .AddSwaggerGen();
-// builder.Services.Configure<JsonOptions>(options => options.SerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
+    // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+    builder.Services
+        .AddEndpointsApiExplorer()
+        .AddSwaggerGen();
 
-builder.Services.RegisterDependencies(builder.Configuration);
+    builder.Services
+        .RegisterDependencies(builder.Configuration);
 
-WebApplication app = builder.Build();
-
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    builder.Services
+        .AddMvc(options =>
+    {
+        options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
+    });
 }
 
-app.UseCors(options =>
+static void ConfigureJson(WebApplicationBuilder builder)
 {
-    options.AllowAnyMethod()
-        .AllowAnyHeader()
-        .AllowAnyOrigin();
-});
+    // Newtonsoft.Json
+    JsonConvert.DefaultSettings = () => new JsonSerializerSettings
+    {
+        Formatting = Formatting.Indented,
+        ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+    };
 
-app.UseHttpsRedirection();
+    // System.Json
+    builder.Services
+        .Configure<JsonOptions>(options => options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
+}
 
-app.UseAuthorization();
+static void ConfigureWebApplication(WebApplication app)
+{
+    // Configure the HTTP request pipeline.
+    if (app.Environment.IsDevelopment())
+    {
+        app.UseSwagger();
+        app.UseSwaggerUI();
+    }
 
-app.MapControllers();
+    app.UseCors(options =>
+    {
+        options.AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowAnyOrigin();
+    });
 
-app.Run();
+    app.UseHttpsRedirection();
+
+    app.UseAuthorization();
+
+    app.MapControllers();
+
+    app.Run();
+}

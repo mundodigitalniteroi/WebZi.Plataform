@@ -65,7 +65,8 @@ namespace WebZi.Plataform.Data.Mappings.Usuario.View
                 .IsUnicode(false)
                 .IsFixedLength();
 
-            builder.HasOne(d => d.Grv).WithOne(p => p.UsuarioClienteDepositoGrvModel)
+            builder.HasOne(d => d.Grv)
+                .WithOne(p => p.UsuarioClienteDepositoGrv)
                 .OnDelete(DeleteBehavior.NoAction);
         }
     }

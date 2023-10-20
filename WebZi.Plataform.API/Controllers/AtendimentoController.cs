@@ -20,6 +20,7 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpPost("Cadastrar")]
+        [IgnoreAntiforgeryToken]
         public async Task<ActionResult<AtendimentoCadastroResultViewModel>> Cadastrar(AtendimentoCadastroInputViewModel Atendimento)
         {
             AtendimentoCadastroResultViewModel ResultView = new();
@@ -143,6 +144,7 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpPost("ValidarInformacoesParaCadastro")]
+        [IgnoreAntiforgeryToken]
         public async Task<ActionResult<MensagemViewModel>> ValidarInformacoesParaCadastro(AtendimentoCadastroInputViewModel Atendimento)
         {
             MensagemViewModel ResultView;

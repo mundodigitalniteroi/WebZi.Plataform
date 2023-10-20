@@ -76,7 +76,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             if (Grv == null)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadraoEnum.GrvNaoEncontrado);
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadraoEnum.NaoEncontradoGrv);
 
                 return ResultView;
             }
@@ -88,7 +88,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             }
             else if (Grv.Atendimento == null)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadraoEnum.AtendimentoNaoEncontrado);
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadraoEnum.NaoEncontradoAtendimento);
 
                 return ResultView;
             }
@@ -152,7 +152,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             if (Grv == null)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadraoEnum.GrvNaoEncontrado);
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadraoEnum.NaoEncontradoGrv);
 
                 return ResultView;
             }
@@ -164,7 +164,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             }
             else if (Grv.Atendimento == null)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadraoEnum.AtendimentoNaoEncontrado);
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadraoEnum.NaoEncontradoAtendimento);
 
                 return ResultView;
             }
@@ -225,7 +225,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             if (Grv == null)
             {
-                return MensagemViewHelper.GetNotFound(MensagemPadraoEnum.GrvNaoEncontrado);
+                return MensagemViewHelper.GetNotFound(MensagemPadraoEnum.NaoEncontradoGrv);
             }
             else if (!new GrvService(_context, _mapper).UserCanAccessGrv(Grv, AtendimentoCadastro.UsuarioId))
             {
@@ -567,7 +567,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             if (grv == null)
             {
-                return MensagemViewHelper.GetNotFound(MensagemPadraoEnum.GrvNaoEncontrado);
+                return MensagemViewHelper.GetNotFound(MensagemPadraoEnum.NaoEncontradoGrv);
             }
 
             // TODO: Verificar o Status para confirmação do Pagamento

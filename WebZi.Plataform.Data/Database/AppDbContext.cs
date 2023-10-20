@@ -52,6 +52,11 @@ namespace WebZi.Plataform.Data.Database
                 .EnableSensitiveDataLogging(); // Configura o EF para exibir os dados sensíveis
         }
 
+        public string GetConnectionString()
+        {
+            return new AppSettingsHelper().GetConnectionString("DefaultConnection");
+        }
+
         public void SetUserContextInfo(int UsuarioId)
         {
             Database.ExecuteSqlRaw($"EXECUTE dbo.sp_set_contextinfo {UsuarioId}");

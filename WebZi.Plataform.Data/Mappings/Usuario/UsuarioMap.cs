@@ -128,6 +128,11 @@ namespace WebZi.Plataform.Data.Mappings.Usuario
                 .HasMaxLength(32)
                 .IsUnicode(false)
                 .HasColumnName("senha_android");
+
+            builder
+                .HasMany(x => x.ListagemUsuarioClienteDeposito)
+                .WithOne(d => d.Usuario)
+                .OnDelete(DeleteBehavior.NoAction);
         }
     }
 }

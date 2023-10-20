@@ -17,6 +17,7 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpPost("ValidarInformacoesParaPagamento")]
+        [IgnoreAntiforgeryToken]
         public async Task<ActionResult<MensagemViewModel>> ValidarInformacoesParaPagamento(PagamentoViewModel Atendimento)
         {
             MensagemViewModel mensagem = await _provider

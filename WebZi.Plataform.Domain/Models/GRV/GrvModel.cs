@@ -8,6 +8,7 @@ using WebZi.Plataform.Domain.Models.Servico;
 using WebZi.Plataform.Domain.Models.Sistema;
 using WebZi.Plataform.Domain.Models.Usuario;
 using WebZi.Plataform.Domain.Models.Veiculo;
+using WebZi.Plataform.Domain.Models.Vistoria;
 using WebZi.Plataform.Domain.Views.Usuario;
 
 namespace WebZi.Plataform.Domain.Models.GRV
@@ -194,19 +195,21 @@ namespace WebZi.Plataform.Domain.Models.GRV
         
         public virtual UsuarioModel UsuarioEdicao { get; set; }
 
-        public virtual ICollection<CobrancaLegalModel> CobrancasLegais { get; set; }
+        public virtual ICollection<CobrancaLegalModel> ListagemCobrancaLegal { get; set; }
 
-        public virtual ICollection<CondutorEquipamentoOpcionalModel> CondutorEquipamentosOpcionais { get; set; }
+        public virtual ICollection<CondutorEquipamentoOpcionalModel> ListagemCondutorEquipamentoOpcional { get; set; }
 
-        public virtual ICollection<EnquadramentoInfracaoGrvModel> EnquadramentosInfracoes { get; set; } = new List<EnquadramentoInfracaoGrvModel>();
+        public virtual ICollection<EnquadramentoInfracaoGrvModel> ListagemEnquadramentoInfracao { get; set; }
 
-        public virtual ICollection<LacreModel> Lacres { get; set; } = new List<LacreModel>();
+        public virtual ICollection<LacreModel> ListagemLacre { get; set; }
 
-        public virtual ICollection<FaturamentoServicoGrvModel> Servicos { get; set; }
+        public virtual ICollection<FaturamentoServicoGrvModel> ListagemServico { get; set; }
 
-        public virtual ViewUsuarioClienteDepositoGrvModel UsuarioClienteDepositoGrvModel { get; set; }
+        public virtual ICollection<VistoriaModel> ListagemVistoria { get; set; }
 
-        //public virtual Alterdatum Alterdatum { get; set; }
+        public virtual ViewUsuarioClienteDepositoGrvModel UsuarioClienteDepositoGrv { get; set; }
+
+        //public virtual AlterdataModel Alterdata { get; set; }
 
         //public virtual DetroGrv DetroGrv { get; set; }
 
@@ -228,11 +231,7 @@ namespace WebZi.Plataform.Domain.Models.GRV
 
         //public virtual ICollection<GrvBloqueio> GrvBloqueios { get; set; } = new List<GrvBloqueio>();
 
-        
-
         //public virtual ICollection<GrvDocumento> GrvDocumentos { get; set; } = new List<GrvDocumento>();
-
-        //public virtual ICollection<GrvVistorium> GrvVistoria { get; set; } = new List<GrvVistorium>();
 
         //public virtual ICollection<GtvGrv> GtvGrvs { get; set; } = new List<GtvGrv>();
 

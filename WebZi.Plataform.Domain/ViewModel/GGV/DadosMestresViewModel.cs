@@ -8,6 +8,8 @@ namespace WebZi.Plataform.Domain.ViewModel.GGV
     {
         public CorViewModelList ListagemCorOstentada { get; set; }
 
+        public EquipamentoOpcionalViewModelList ListagemEquipamento { get; set; }
+
         public VistoriaEstadoGeralVeiculoViewModelList ListagemEstadoGeralVeiculo { get; set; }
 
         public VistoriaSituacaoChassiViewModelList ListagemSituacaoChassi { get; set; }

@@ -782,7 +782,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             if (Faturamento == null)
             {
-                return MensagemViewHelper.GetNotFound(MensagemPadraoEnum.FaturamentoNaoEncontrado);
+                return MensagemViewHelper.GetNotFound(MensagemPadraoEnum.NaoEncontradoFaturamento);
             }
             else if (Faturamento.Status == "C")
             {

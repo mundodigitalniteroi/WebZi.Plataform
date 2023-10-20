@@ -18,8 +18,6 @@ namespace WebZi.Plataform.Domain.ViewModel.GRV
 
         public int CorId { get; set; }
 
-        public int? CorOstentadaId { get; set; }
-
         public int MarcaModeloId { get; set; }
 
         public byte MotivoApreensaoId { get; set; }

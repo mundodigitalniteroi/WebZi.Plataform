@@ -2,11 +2,13 @@
 {
     public static class MensagemPadraoEnum
     {
-        public static readonly string AtendimentoNaoEncontrado = "Atendimento não encontrado";
-        public static readonly string ClienteNaoEncontrado = "Cliente não encontrado";
-        public static readonly string DepositoNaoEncontrado = "Depósito não encontrado";
-        public static readonly string FaturamentoNaoEncontrado = "Faturamento não encontrado";
-        public static readonly string GrvNaoEncontrado = "GRV não encontrado";
+        public static readonly string NaoEncontradoAtendimento = "Atendimento não encontrado";
+        public static readonly string NaoEncontradoCliente = "Cliente não encontrado";
+        public static readonly string NaoEncontradoDeposito = "Depósito não encontrado";
+        public static readonly string NaoEncontradoFaturamento = "Faturamento não encontrado";
+        public static readonly string NaoEncontradoGrv = "GRV não encontrado";
+        public static readonly string NaoEncontradoStatusOperacao = "Status da Operação não encontrado";
+        public static readonly string NaoEncontradoUsuario = "Usuário não encontrado";
         public static readonly string IdentificadorAtendimentoInvalido = "Identificador do Atendimento inválido";
         public static readonly string IdentificadorAutoridadeResponsavelInvalido = "Identificador da Autoridade Responsável inválido";
         public static readonly string IdentificadorClienteInvalido = "Identificador do Cliente inválido";

@@ -1,7 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using System.Reflection.Emit;
-using System.Reflection.Metadata;
 using WebZi.Plataform.Domain.Models.GRV;
 
 namespace WebZi.Plataform.Data.Mappings.GRV
@@ -368,31 +366,39 @@ namespace WebZi.Plataform.Data.Mappings.GRV
                 .IsUnicode(false)
                 .IsFixedLength();
 
-            //builder.HasOne(d => d.MarcaModelo).WithMany(p => p.Grvs)
-            //    .HasForeignKey(d => d.MarcaModeloId)
-            //    .OnDelete(DeleteBehavior.NoAction);
-
-            builder.HasOne(d => d.UsuarioCadastro).WithMany(p => p.UsuarioCadastroGrvs)
+            builder
+                .HasOne(d => d.UsuarioCadastro)
+                .WithMany(p => p.ListagemUsuarioCadastroGrv)
                 .HasForeignKey(d => d.UsuarioCadastroId)
                 .OnDelete(DeleteBehavior.NoAction);
 
-            builder.HasOne(d => d.UsuarioAlteracao).WithMany(p => p.UsuarioAlteracaoGrvs)
+            builder
+                .HasOne(d => d.UsuarioAlteracao)
+                .WithMany(p => p.ListagemUsuarioAlteracaoGrv)
                 .HasForeignKey(d => d.UsuarioAlteracaoId)
                 .OnDelete(DeleteBehavior.NoAction);
 
-            builder.HasOne(d => d.UsuarioEdicao).WithMany(p => p.UsuarioEdicaoGrvs)
+            builder
+                .HasOne(d => d.UsuarioEdicao)
+                .WithMany(p => p.ListagemUsuarioEdicaoGrv)
                 .HasForeignKey(d => d.UsuarioEdicaoId)
                 .OnDelete(DeleteBehavior.NoAction);
 
-            builder.HasOne(d => d.UsuarioCadastroGgv).WithMany(p => p.UsuarioCadastroGgvs)
+            builder
+                .HasOne(d => d.UsuarioCadastroGgv)
+                .WithMany(p => p.ListagemUsuarioCadastroGgv)
                 .HasForeignKey(d => d.UsuarioCadastroGgvId)
                 .OnDelete(DeleteBehavior.NoAction);
 
-            builder.HasOne(d => d.FaturamentoProduto).WithMany(p => p.Grvs)
+            builder
+                .HasOne(d => d.FaturamentoProduto)
+                .WithMany(p => p.Grvs)
                 .HasForeignKey(d => d.FaturamentoProdutoId)
-            .OnDelete(DeleteBehavior.NoAction);
+                .OnDelete(DeleteBehavior.NoAction);
 
-            builder.HasOne(d => d.UsuarioClienteDepositoGrvModel).WithOne(p => p.Grv)
+            builder
+                .HasOne(d => d.UsuarioClienteDepositoGrv)
+                .WithOne(p => p.Grv)
                 .OnDelete(DeleteBehavior.NoAction);
         }
     }

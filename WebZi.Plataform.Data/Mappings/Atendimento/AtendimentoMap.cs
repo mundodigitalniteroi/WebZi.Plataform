@@ -315,11 +315,11 @@ namespace WebZi.Plataform.Data.Mappings.Atendimento
                 .HasColumnType("smalldatetime")
                 .HasColumnName("data_alteracao");
 
-            builder.HasOne(d => d.UsuarioCadastro).WithMany(p => p.UsuarioCadastroAtendimentos)
+            builder.HasOne(d => d.UsuarioCadastro).WithMany(p => p.ListagemUsuarioCadastroAtendimento)
                 .HasForeignKey(d => d.UsuarioCadastroId)
                 .OnDelete(DeleteBehavior.NoAction);
 
-            builder.HasOne(d => d.UsuarioAlteracao).WithMany(p => p.UsuarioAlteracaoAtendimentos)
+            builder.HasOne(d => d.UsuarioAlteracao).WithMany(p => p.ListagemUsuarioAlteracaoAtendimento)
                 .HasForeignKey(d => d.UsuarioAlteracaoId)
                 .OnDelete(DeleteBehavior.NoAction);
         }

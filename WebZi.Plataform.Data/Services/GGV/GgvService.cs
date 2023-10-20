@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Services.Sistema;
+using WebZi.Plataform.Data.Services.Veiculo;
 using WebZi.Plataform.Data.Services.Vistoria;
 using WebZi.Plataform.Domain.ViewModel.GGV;
 
@@ -17,23 +18,32 @@ namespace WebZi.Plataform.Data.Services.GGV
             _mapper = mapper;
         }
 
-        public async Task<DadosMestresViewModel> ListarDadosMestres()
+        public async Task<DadosMestresViewModel> ListarDadosMestres(byte TipoVeiculoId)
         {
             VistoriaService VistoriaService = new(_context);
 
             DadosMestresViewModel DadosMestres = new()
             {
-                ListagemCorOstentada = await new SistemaService(_context, _mapper).ListarCores(),
+                ListagemCorOstentada = await new SistemaService(_context, _mapper)
+                    .ListarCores(),
 
-                ListagemEstadoGeralVeiculo = await VistoriaService.ListarEstadoGeralVeiculo(),
+                ListagemEquipamento = await new VeiculoService(_context, _mapper)
+                    .ListarEquipamentoOpcional(TipoVeiculoId),
 
-                ListagemSituacaoChassi = await VistoriaService.ListarSituacaoChassi(),
+                ListagemEstadoGeralVeiculo = await VistoriaService
+                    .ListarEstadoGeralVeiculo(),
 
-                ListagemStatusVistoria = await VistoriaService.ListarStatusVistoria(),
+                ListagemSituacaoChassi = await VistoriaService
+                    .ListarSituacaoChassi(),
 
-                ListagemTipoAvaria = await new TipoAvariaService(_context, _mapper).ListarTipoAvaria(),
+                ListagemStatusVistoria = await VistoriaService
+                    .ListarStatusVistoria(),
 
-                ListagemTipoDirecao = await VistoriaService.ListarTipoDirecao()
+                ListagemTipoAvaria = await new TipoAvariaService(_context, _mapper)
+                    .ListarTipoAvaria(),
+
+                ListagemTipoDirecao = await VistoriaService 
+                    .ListarTipoDirecao()
             };
 
             return DadosMestres;

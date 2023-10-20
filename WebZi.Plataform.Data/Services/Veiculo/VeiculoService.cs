@@ -1,10 +1,9 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.Net.NetworkInformation;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Domain.Models.Veiculo;
+using WebZi.Plataform.Domain.ViewModel.Servico;
 using WebZi.Plataform.Domain.ViewModel.Veiculo;
 
 namespace WebZi.Plataform.Data.Services.Veiculo
@@ -20,14 +19,16 @@ namespace WebZi.Plataform.Data.Services.Veiculo
             _mapper = mapper;
         }
 
-        public async Task<EquipamentoOpcionalViewModelList> ListarEquipamentoOpcional(int TipoVeiculoId)
+        public async Task<EquipamentoOpcionalViewModelList> ListarEquipamentoOpcional(byte TipoVeiculoId)
         {
             EquipamentoOpcionalViewModelList ResultView = new();
 
-            //List<EquipamentoOpcionalModel> result = await _context.EquipamentoOpcional
-            //    .OrderBy(x => x.Descricao)
-            //    .AsNoTracking()
-            //    .ToListAsync();
+            if (TipoVeiculoId <= 0)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetBadRequest("Identificador do Tipo de Veículo inválido");
+
+                return ResultView;
+            }
 
             TipoVeiculoModel result = await _context.TipoVeiculo
                 .Include(x => x.TiposVeiculosEquipamentosAssociacoes)
@@ -36,27 +37,34 @@ namespace WebZi.Plataform.Data.Services.Veiculo
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
 
-            EquipamentoOpcionalViewModel EquipamentoOpcionalView = new();
-
-            foreach (var item in result.TiposVeiculosEquipamentosAssociacoes)
+            if (result != null)
             {
-                EquipamentoOpcionalView = new()
+                EquipamentoOpcionalViewModel EquipamentoOpcionalView = new();
+
+                foreach (var item in result.TiposVeiculosEquipamentosAssociacoes)
                 {
-                    EquipamentoOpcionalId = item.EquipamentoOpcional.EquipamentoOpcionalId,
+                    EquipamentoOpcionalView = new()
+                    {
+                        EquipamentoOpcionalId = item.EquipamentoOpcional.EquipamentoOpcionalId,
 
-                    OrdemVistoria = item.EquipamentoOpcional.OrdemVistoria,
+                        OrdemVistoria = item.EquipamentoOpcional.OrdemVistoria,
 
-                    Descricao = item.EquipamentoOpcional.Descricao,
+                        Descricao = item.EquipamentoOpcional.Descricao,
 
-                    ItemObrigatorio = item.EquipamentoOpcional.ItemObrigatorio,
+                        ItemObrigatorio = item.EquipamentoOpcional.ItemObrigatorio,
 
-                    Status = item.EquipamentoOpcional.Status
-                };
+                        Status = item.EquipamentoOpcional.Status
+                    };
 
-                ResultView.ListagemEquipamentoOpcional.Add(EquipamentoOpcionalView);
+                    ResultView.ListagemEquipamentoOpcional.Add(EquipamentoOpcionalView);
+                }
+
+                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.TiposVeiculosEquipamentosAssociacoes.Count);
             }
-
-            ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.TiposVeiculosEquipamentosAssociacoes.Count);
+            else
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+            }
 
             return ResultView;
         }
@@ -100,13 +108,6 @@ namespace WebZi.Plataform.Data.Services.Veiculo
             List<TipoVeiculoModel> result = await _context.TipoVeiculo
                 .AsNoTracking()
                 .ToListAsync();
-
-            if (result == null)
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound("Marca/Modelo não encontrado");
-
-                return ResultView;
-            }
 
             ResultView.ListagemTipoVeiculo = _mapper.Map<List<TipoVeiculoViewModel>>(result.OrderBy(x => x.Descricao).ToList());
 

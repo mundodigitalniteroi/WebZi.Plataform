@@ -45,15 +45,15 @@ namespace WebZi.Plataform.Data.Mappings.Usuario
                 .IsFixedLength()
                 .HasColumnName("flag_ativo");
 
-            builder.HasOne(d => d.Usuario).WithMany(p => p.UsuariosPermissoes)
+            builder.HasOne(d => d.Usuario).WithMany(p => p.ListagemUsuarioPermissao)
                 .HasForeignKey(d => d.UsuarioId)
                 .OnDelete(DeleteBehavior.ClientNoAction);
 
-            builder.HasOne(d => d.UsuarioCadastro).WithMany(p => p.UsuariosPermissoesCadastros)
+            builder.HasOne(d => d.UsuarioCadastro).WithMany(p => p.ListagemUsuarioPermissaoCadastro)
                 .HasForeignKey(d => d.UsuarioCadastroId)
                 .OnDelete(DeleteBehavior.ClientNoAction);
 
-            builder.HasOne(d => d.UsuarioAlteracao).WithMany(p => p.UsuariosPermissoesAlteracoes)
+            builder.HasOne(d => d.UsuarioAlteracao).WithMany(p => p.ListagemUsuarioPermissaoAlteracao)
                 .HasForeignKey(d => d.UsuarioAlteracaoId)
                 .OnDelete(DeleteBehavior.ClientNoAction);
         }

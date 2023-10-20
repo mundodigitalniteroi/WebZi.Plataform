@@ -76,7 +76,7 @@ namespace WebZi.Plataform.Data.Services.Banco.PIX
             }
             else
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadraoEnum.FaturamentoNaoEncontrado);
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadraoEnum.NaoEncontradoFaturamento);
 
                 return ResultView;
             }

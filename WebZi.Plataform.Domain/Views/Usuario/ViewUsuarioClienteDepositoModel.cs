@@ -1,4 +1,6 @@
-﻿namespace WebZi.Plataform.Domain.Views.Usuario
+﻿using WebZi.Plataform.Domain.Models.Usuario;
+
+namespace WebZi.Plataform.Domain.Views.Usuario
 {
     public class ViewUsuarioClienteDepositoModel
     {
@@ -16,6 +18,8 @@
 
         public string Senha1 { get; set; }
 
-        public string UsuarioFlagAtivo { get; set; }
+        public string FlagAtivo { get; set; }
+
+        public UsuarioModel Usuario { get; set; }
     }
 }

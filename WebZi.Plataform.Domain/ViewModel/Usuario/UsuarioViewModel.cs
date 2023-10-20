@@ -10,9 +10,7 @@
 
         public string Email { get; set; }
 
-        public DateTime DataCadastro { get; set; }
-
-        public DateTime? DataAlteracao { get; set; }
+        public string Matricula { get; set; }
 
         public DateTime? DataUltimoAcesso { get; set; }
 
@@ -20,10 +18,8 @@
 
         public string FlagPermissaoDataRetroativaFaturamento { get; set; }
 
-        public string FlagReceberEmailErro { get; set; }
-
         public string FlagAtivo { get; set; }
 
-        public string Matricula { get; set; }
+        public List<UsuarioClienteDepositoViewModel> ListagemClienteDepositoAssociado { get; set; } = new();
     }
 }

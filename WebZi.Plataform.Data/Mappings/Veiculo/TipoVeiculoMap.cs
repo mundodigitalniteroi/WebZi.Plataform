@@ -53,11 +53,11 @@ namespace WebZi.Plataform.Data.Mappings.GRV
             builder.Property(e => e.UsuarioAlteracaoId)
                 .HasColumnName("id_usuario_alteracao");
 
-            builder.HasOne(d => d.UsuarioCadastro).WithMany(p => p.UsuarioCadastroTiposVeiculos)
+            builder.HasOne(d => d.UsuarioCadastro).WithMany(p => p.ListagemUsuarioCadastroTipoVeiculo)
                 .HasForeignKey(d => d.UsuarioCadastroId)
                 .OnDelete(DeleteBehavior.NoAction);
 
-            builder.HasOne(d => d.UsuarioAlteracao).WithMany(p => p.UsuarioAlteracaoTiposVeiculos)
+            builder.HasOne(d => d.UsuarioAlteracao).WithMany(p => p.ListagemUsuarioAlteracaoTipoVeiculo)
                 .HasForeignKey(d => d.UsuarioAlteracaoId)
                 .OnDelete(DeleteBehavior.NoAction);
         }

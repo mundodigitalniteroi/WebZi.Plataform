@@ -2,6 +2,7 @@
 using WebZi.Plataform.Domain.Models.GRV;
 using WebZi.Plataform.Domain.Models.Pessoa;
 using WebZi.Plataform.Domain.Models.Veiculo;
+using WebZi.Plataform.Domain.Views.Usuario;
 
 namespace WebZi.Plataform.Domain.Models.Usuario
 {
@@ -55,35 +56,37 @@ namespace WebZi.Plataform.Domain.Models.Usuario
 
         public virtual PessoaModel Pessoa { get; set; }
 
-        public virtual ICollection<GrvModel> UsuarioCadastroGrvs { get; set; }
+        public virtual ICollection<GrvModel> ListagemUsuarioCadastroGrv { get; set; }
 
-        public virtual ICollection<GrvModel> UsuarioAlteracaoGrvs { get; set; }
+        public virtual ICollection<GrvModel> ListagemUsuarioAlteracaoGrv { get; set; }
 
-        public virtual ICollection<GrvModel> UsuarioEdicaoGrvs { get; set; }
+        public virtual ICollection<GrvModel> ListagemUsuarioEdicaoGrv { get; set; }
 
-        public virtual ICollection<GrvModel> UsuarioCadastroGgvs { get; set; }
+        public virtual ICollection<GrvModel> ListagemUsuarioCadastroGgv { get; set; }
 
-        public virtual ICollection<AtendimentoModel> UsuarioCadastroAtendimentos { get; set; }
+        public virtual ICollection<AtendimentoModel> ListagemUsuarioCadastroAtendimento { get; set; }
         
-        public virtual ICollection<AtendimentoModel> UsuarioAlteracaoAtendimentos { get; set; }
+        public virtual ICollection<AtendimentoModel> ListagemUsuarioAlteracaoAtendimento { get; set; }
 
-        public virtual ICollection<TipoVeiculoModel> UsuarioCadastroTiposVeiculos { get; set; }
+        public virtual ICollection<TipoVeiculoModel> ListagemUsuarioCadastroTipoVeiculo { get; set; }
 
-        public virtual ICollection<TipoVeiculoModel> UsuarioAlteracaoTiposVeiculos { get; set; }
+        public virtual ICollection<TipoVeiculoModel> ListagemUsuarioAlteracaoTipoVeiculo { get; set; }
 
-        public virtual ICollection<UsuarioClienteModel> UsuariosClientes { get; set; }
+        public virtual ICollection<UsuarioClienteModel> ListagemUsuarioCliente { get; set; }
 
-        public virtual ICollection<UsuarioClienteModel> UsuariosClientesCadastros { get; set; }
+        public virtual ICollection<UsuarioClienteModel> ListagemUsuarioClienteCadastro { get; set; }
 
-        public virtual ICollection<UsuarioDepositoModel> UsuariosDepositos { get; set; }
+        public virtual ICollection<UsuarioDepositoModel> ListagemUsuarioDeposito { get; set; }
 
-        public virtual ICollection<UsuarioDepositoModel> UsuariosDepositosCadastros { get; set; }
+        public virtual ICollection<UsuarioDepositoModel> ListagemUsuarioDepositoCadastro { get; set; }
 
-        public virtual ICollection<UsuarioPermissaoModel> UsuariosPermissoes { get; set; }
+        public virtual ICollection<UsuarioPermissaoModel> ListagemUsuarioPermissao { get; set; }
 
-        public virtual ICollection<UsuarioPermissaoModel> UsuariosPermissoesCadastros { get; set; }
+        public virtual ICollection<UsuarioPermissaoModel> ListagemUsuarioPermissaoCadastro { get; set; }
 
-        public virtual ICollection<UsuarioPermissaoModel> UsuariosPermissoesAlteracoes { get; set; }
+        public virtual ICollection<UsuarioPermissaoModel> ListagemUsuarioPermissaoAlteracao { get; set; }
+
+        public virtual ICollection<ViewUsuarioClienteDepositoModel> ListagemUsuarioClienteDeposito { get; set; }
 
         //public virtual UsuarioModel UsuarioAlteracao { get; set; }
 
