@@ -3,13 +3,17 @@ using Microsoft.EntityFrameworkCore;
 using WebZi.Plataform.CrossCutting.Date;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
-using WebZi.Plataform.Data.Services.Localizacao;
 using WebZi.Plataform.Domain.Enums;
+using WebZi.Plataform.Domain.Models.Cliente;
 using WebZi.Plataform.Domain.Models.Deposito;
 using WebZi.Plataform.Domain.Models.Localizacao;
 using WebZi.Plataform.Domain.Models.Sistema;
+using WebZi.Plataform.Domain.Models.Usuario;
+using WebZi.Plataform.Domain.ViewModel.Cliente;
 using WebZi.Plataform.Domain.ViewModel.Deposito;
+using WebZi.Plataform.Domain.ViewModel.GRV.Pesquisa;
 using WebZi.Plataform.Domain.Views.Localizacao;
+using WebZi.Plataform.Domain.Views.Usuario;
 
 namespace WebZi.Plataform.Data.Services.Deposito
 {
@@ -86,32 +90,6 @@ namespace WebZi.Plataform.Data.Services.Deposito
             return ResultView;
         }
 
-        public async Task<DepositoViewModelList> List()
-        {
-            DepositoViewModelList ResultView = new();
-
-            List<DepositoModel> result = await _context.Deposito
-                .AsNoTracking()
-                .ToListAsync();
-
-            if (result?.Count > 0)
-            {
-                result = result
-                    .OrderBy(o => o.Nome)
-                    .ToList();
-
-                ResultView.ListagemDeposito = _mapper.Map<List<DepositoViewModel>>(result);
-
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
-            }
-            else
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
-            }
-
-            return ResultView;
-        }
-
         public DateTime GetDataHoraPorDeposito(int DepositoId)
         {
             DepositoModel Deposito = _context.Deposito
@@ -170,6 +148,60 @@ namespace WebZi.Plataform.Data.Services.Deposito
             }
 
             return DataHoraAtual;
+        }
+
+        public async Task<DepositoViewModelList> List(int UsuarioId)
+        {
+            DepositoViewModelList ResultView = new();
+
+            List<UsuarioDepositoModel> result = await _context.UsuarioDeposito
+                .Include(x => x.Deposito)
+                .Where(x => x.UsuarioId == UsuarioId)
+                .AsNoTracking()
+                .ToListAsync();
+
+            if (result?.Count > 0)
+            {
+                List<DepositoModel> Depositos = new();
+
+                foreach (UsuarioDepositoModel UsuarioDeposito in result)
+                {
+                    Depositos.Add(UsuarioDeposito.Deposito);
+                }
+
+                ResultView.ListagemDeposito = _mapper.Map<List<DepositoViewModel>>(Depositos.OrderBy(o => o.Nome).ToList());
+
+                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
+            }
+            else
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+            }
+
+            return ResultView;
+        }
+
+        public async Task<ClienteDepositoSimplificadoViewModelList> ListagemSimplificada(int UsuarioId)
+        {
+            ClienteDepositoSimplificadoViewModelList ResultView = new();
+
+            List<ViewUsuarioClienteDepositoModel> result = await _context.ViewUsuarioClienteDeposito
+                .Where(x => x.UsuarioId == UsuarioId)
+                .AsNoTracking()
+                .ToListAsync();
+
+            if (result?.Count > 0)
+            {
+                ResultView.ListagemDeposito = _mapper.Map<List<ClienteDepositoSimplificadoViewModel>>(result.OrderBy(o => o.DepositoNome).ToList());
+
+                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
+            }
+            else
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+            }
+
+            return ResultView;
         }
     }
 }

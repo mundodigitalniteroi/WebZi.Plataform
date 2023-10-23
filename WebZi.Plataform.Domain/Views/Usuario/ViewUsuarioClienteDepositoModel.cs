@@ -10,7 +10,15 @@ namespace WebZi.Plataform.Domain.Views.Usuario
 
         public int ClienteId { get; set; }
 
+        public string ClienteNome { get; set; }
+
+        public string ClienteFlagAtivo { get; set; }
+
         public int DepositoId { get; set; }
+
+        public string DepositoNome { get; set; }
+
+        public string DepositoFlagAtivo { get; set; }
 
         public int UsuarioId { get; set; }
 
@@ -18,7 +26,7 @@ namespace WebZi.Plataform.Domain.Views.Usuario
 
         public string Senha1 { get; set; }
 
-        public string FlagAtivo { get; set; }
+        public string UsuarioFlagAtivo { get; set; }
 
         public UsuarioModel Usuario { get; set; }
     }

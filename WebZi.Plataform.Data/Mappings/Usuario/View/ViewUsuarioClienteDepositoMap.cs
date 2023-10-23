@@ -26,7 +26,33 @@ namespace WebZi.Plataform.Data.Mappings.Usuario.View
 
             builder.Property(e => e.UsuarioDepositoId)
                 .HasColumnName("id_usuario_deposito");
-            
+
+            builder.Property(e => e.ClienteNome)
+                .IsRequired()
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasColumnName("cliente_nome");
+
+            builder.Property(e => e.ClienteFlagAtivo)
+                .IsRequired()
+                .HasMaxLength(1)
+                .IsUnicode(false)
+                .IsFixedLength()
+                .HasColumnName("cliente_flag_ativo");
+
+            builder.Property(e => e.DepositoNome)
+                .IsRequired()
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("deposito_nome");
+
+            builder.Property(e => e.DepositoFlagAtivo)
+                .IsRequired()
+                .HasMaxLength(1)
+                .IsUnicode(false)
+                .IsFixedLength()
+                .HasColumnName("deposito_flag_ativo");
+
             builder.Property(e => e.Login)
                 .IsRequired()
                 .HasMaxLength(20)
@@ -39,7 +65,7 @@ namespace WebZi.Plataform.Data.Mappings.Usuario.View
                 .IsUnicode(false)
                 .HasColumnName("senha1");
 
-            builder.Property(e => e.FlagAtivo)
+            builder.Property(e => e.UsuarioFlagAtivo)
                 .IsRequired()
                 .HasMaxLength(1)
                 .IsUnicode(false)

@@ -5,6 +5,7 @@ using WebZi.Plataform.Domain.Models.Cliente;
 using WebZi.Plataform.Domain.Models.Condutor;
 using WebZi.Plataform.Domain.Models.Deposito;
 using WebZi.Plataform.Domain.Models.Empresa;
+using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.GRV;
 using WebZi.Plataform.Domain.Models.Servico;
 using WebZi.Plataform.Domain.Models.Sistema;
@@ -15,14 +16,17 @@ using WebZi.Plataform.Domain.ViewModel.Banco;
 using WebZi.Plataform.Domain.ViewModel.Cliente;
 using WebZi.Plataform.Domain.ViewModel.Deposito;
 using WebZi.Plataform.Domain.ViewModel.Empresa;
+using WebZi.Plataform.Domain.ViewModel.Faturamento;
 using WebZi.Plataform.Domain.ViewModel.GRV;
 using WebZi.Plataform.Domain.ViewModel.GRV.Cadastro;
+using WebZi.Plataform.Domain.ViewModel.GRV.Pesquisa;
 using WebZi.Plataform.Domain.ViewModel.Localizacao;
 using WebZi.Plataform.Domain.ViewModel.Servico;
 using WebZi.Plataform.Domain.ViewModel.Sistema;
 using WebZi.Plataform.Domain.ViewModel.Usuario;
 using WebZi.Plataform.Domain.ViewModel.Veiculo;
 using WebZi.Plataform.Domain.Views.Localizacao;
+using WebZi.Plataform.Domain.Views.Usuario;
 
 namespace WebZi.Plataform.Data.Services.AutoMapper
 {
@@ -44,11 +48,15 @@ namespace WebZi.Plataform.Data.Services.AutoMapper
 
             CreateMap<ClienteModel, ClienteViewModel>();
 
+            CreateMap<ClienteViewModel, ClienteSimplificadoViewModel>();
+
             CreateMap<CorModel, CorViewModel>();
 
             CreateMap<DepositoModel, DepositoViewModel>();
 
             CreateMap<EmpresaModel, EmpresaViewModel>();
+
+            CreateMap<FaturamentoProdutoModel, FaturamentoProdutoViewModel>();
 
             CreateMap<GrvModel, GrvViewModel>();
 
@@ -68,8 +76,26 @@ namespace WebZi.Plataform.Data.Services.AutoMapper
 
             CreateMap<ViewEnderecoCompletoModel, EnderecoViewModel>();
 
+            CreateMap<ViewUsuarioClienteDepositoReboqueModel, UsuarioClienteDepositoReboqueViewModel>();
+
+            CreateMap<ViewUsuarioClienteDepositoReboquistaModel, UsuarioClienteDepositoReboquistaViewModel>();
+
+            CreateMap<ViewUsuarioClienteDepositoModel, ClienteDepositoSimplificadoViewModel>()
+                .ForMember(dest => dest.Nome, opt => opt.MapFrom(src => src.DepositoNome))
+                .ForMember(dest => dest.FlagAtivo, opt => opt.MapFrom(src => src.DepositoFlagAtivo));
+
+            CreateMap<UsuarioClienteDepositoReboqueViewModel, ReboqueSimplificadoViewModel>()
+                .ForMember(dest => dest.Placa, opt => opt.MapFrom(src => src.ReboquePlaca))
+                .ForMember(dest => dest.FlagAtivo, opt => opt.MapFrom(src => src.ReboqueFlagAtivo));
+
+            CreateMap<UsuarioClienteDepositoReboquistaViewModel, ReboquistaSimplificadoViewModel>()
+                .ForMember(dest => dest.Nome, opt => opt.MapFrom(src => src.ReboquistaNome))
+                .ForMember(dest => dest.FlagAtivo, opt => opt.MapFrom(src => src.ReboquistaFlagAtivo));
+
             // ViewModel to Model
             CreateMap<CondutorCadastroViewModel, CondutorModel>();
+
+            CreateMap<UsuarioClienteDepositoReboqueViewModel, UsuarioClienteDepositoReboqueViewModel>();
 
             CreateMap<EnquadramentoInfracaoGrvCadastroViewModel, EnquadramentoInfracaoGrvModel>();
         }

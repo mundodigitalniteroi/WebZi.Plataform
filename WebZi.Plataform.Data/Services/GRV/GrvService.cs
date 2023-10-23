@@ -1,10 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection.Metadata;
-using System.ServiceModel.Channels;
+using Microsoft.Extensions.DependencyInjection;
 using WebZi.Plataform.CrossCutting.Contacts;
 using WebZi.Plataform.CrossCutting.Documents;
 using WebZi.Plataform.CrossCutting.Localizacao;
@@ -13,10 +10,10 @@ using WebZi.Plataform.CrossCutting.Veiculo;
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
-using WebZi.Plataform.Data.Mappings.Localizacao;
 using WebZi.Plataform.Data.Services.Bucket;
+using WebZi.Plataform.Data.Services.Cliente;
 using WebZi.Plataform.Data.Services.Deposito;
-using WebZi.Plataform.Data.Services.Faturamento;
+using WebZi.Plataform.Data.Services.GRV;
 using WebZi.Plataform.Data.Services.Localizacao;
 using WebZi.Plataform.Data.Services.Sistema;
 using WebZi.Plataform.Domain.Enums;
@@ -26,19 +23,17 @@ using WebZi.Plataform.Domain.Models.Condutor;
 using WebZi.Plataform.Domain.Models.Deposito;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.GRV;
-using WebZi.Plataform.Domain.Models.Localizacao;
 using WebZi.Plataform.Domain.Models.Servico;
 using WebZi.Plataform.Domain.Models.Sistema;
 using WebZi.Plataform.Domain.Models.Veiculo;
 using WebZi.Plataform.Domain.Services.Usuario;
 using WebZi.Plataform.Domain.ViewModel;
+using WebZi.Plataform.Domain.ViewModel.Faturamento;
 using WebZi.Plataform.Domain.ViewModel.GRV;
 using WebZi.Plataform.Domain.ViewModel.GRV.Cadastro;
 using WebZi.Plataform.Domain.ViewModel.GRV.Pesquisa;
 using WebZi.Plataform.Domain.ViewModel.Localizacao;
-using WebZi.Plataform.Domain.ViewModel.Vistoria;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+using WebZi.Plataform.Domain.ViewModel.Veiculo;
 
 namespace WebZi.Plataform.Domain.Services.GRV
 {
@@ -46,11 +41,19 @@ namespace WebZi.Plataform.Domain.Services.GRV
     {
         private readonly AppDbContext _context;
         private readonly IMapper _mapper;
+        private readonly IServiceProvider _provider;
 
         public GrvService(AppDbContext context, IMapper mapper)
         {
             _context = context;
             _mapper = mapper;
+        }
+
+        public GrvService(AppDbContext context, IMapper mapper, IServiceProvider provider)
+        {
+            _context = context;
+            _mapper = mapper;
+            _provider = provider;
         }
 
         public GrvCadastradoViewModel Create(GrvCadastroViewModel GrvCadastro)
@@ -546,6 +549,49 @@ namespace WebZi.Plataform.Domain.Services.GRV
             }
 
             ResultView.Mensagem = MensagemViewHelper.GetOkFound(Grvs.Count);
+
+            return ResultView;
+        }
+
+        public async Task<GrvPesquisaDadosMestresViewModel> ListarItensPesquisa(int UsuarioId)
+        {
+            return new()
+            {
+                ListagemProduto = await ListarProdutos(),
+
+                ListagemCliente = await _provider
+                    .GetService<ClienteService>()
+                    .ListagemSimplificada(UsuarioId),
+
+                ListagemDeposito = await _provider
+                    .GetService<DepositoService>()
+                    .ListagemSimplificada(UsuarioId),
+
+                ListagemStatusOperacao = await _provider
+                    .GetService<StatusOperacaoService>()
+                    .List(),
+
+                //ListagemReboque = await _provider
+                //    .GetService<UsuarioService>()
+                //    .ListarUsuarioClienteDepositoReboqueSimplificada(UsuarioId),
+
+                //ListagemReboquista = await _provider
+                //    .GetService<UsuarioService>()
+                //    .ListarUsuarioClienteDepositoReboquistaSimplificada(UsuarioId)
+            };
+        }
+
+        public async Task<FaturamentoProdutoViewModelList> ListarProdutos()
+        {
+            FaturamentoProdutoViewModelList ResultView = new();
+
+            List<FaturamentoProdutoModel> result = await _context.FaturamentoProduto
+                .AsNoTracking()
+                .ToListAsync();
+
+            ResultView.ListagemProduto = _mapper.Map<List<FaturamentoProdutoViewModel>>(result.OrderBy(x => x.Descricao).ToList());
+
+            ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
 
             return ResultView;
         }

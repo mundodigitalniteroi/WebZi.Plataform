@@ -14,7 +14,7 @@
 
         public int? SistemaExternoId { get; set; }
 
-        public string Descricao { get; set; }
+        public string Nome { get; set; }
 
         public string Logradouro { get; set; }
 

@@ -22,6 +22,10 @@
 
         public int? DepositoId { get; set; }
 
+        public string ReboquePlaca { get; set; }
+
+        public string ReboquistaNome { get; set; }
+
         public int UsuarioId { get; set; }
     }
 }

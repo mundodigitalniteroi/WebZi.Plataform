@@ -9,6 +9,7 @@ using WebZi.Plataform.Data.Services.Veiculo;
 using WebZi.Plataform.Domain.Services.GRV;
 using WebZi.Plataform.Domain.ViewModel;
 using WebZi.Plataform.Domain.ViewModel.Atendimento;
+using WebZi.Plataform.Domain.ViewModel.Faturamento;
 using WebZi.Plataform.Domain.ViewModel.GRV;
 using WebZi.Plataform.Domain.ViewModel.GRV.Cadastro;
 using WebZi.Plataform.Domain.ViewModel.GRV.Pesquisa;
@@ -138,6 +139,27 @@ namespace WebZi.Plataform.API.Controllers
             }
         }
 
+        [HttpGet("ListarItensPesquisa")]
+        public async Task<ActionResult<GrvPesquisaDadosMestresViewModel>> ListarItensPesquisa(int UsuarioId)
+        {
+            GrvPesquisaDadosMestresViewModel ResultView;
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<GrvService>()
+                    .ListarItensPesquisa(UsuarioId);
+
+                return StatusCode((int)HtmlStatusCodeEnum.Ok, ResultView);
+            }
+            catch (Exception ex)
+            {
+                var error = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)error.HtmlStatusCode, error);
+            }
+        }
+
         [HttpGet("ListarLacres")]
         public async Task<ActionResult<LacreViewModelList>> ListarLacres(int GrvId, int UsuarioId)
         {
@@ -190,6 +212,27 @@ namespace WebZi.Plataform.API.Controllers
                 ResultView = await _provider
                     .GetService<MotivoApreensaoService>()
                     .List();
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
+
+        [HttpGet("ListarProdutos")]
+        public async Task<ActionResult<FaturamentoProdutoViewModelList>> ListarProdutos()
+        {
+            FaturamentoProdutoViewModelList ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<GrvService>()
+                    .ListarProdutos();
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }

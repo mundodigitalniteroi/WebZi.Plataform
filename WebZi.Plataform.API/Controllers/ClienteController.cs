@@ -61,7 +61,7 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("Listar")]
-        public async Task<ActionResult<ClienteViewModelList>> Listar()
+        public async Task<ActionResult<ClienteViewModelList>> Listar(int UsuarioId)
         {
             ClienteViewModelList ResultView = new();
 
@@ -69,7 +69,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<ClienteService>()
-                    .List();
+                    .List(UsuarioId);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }

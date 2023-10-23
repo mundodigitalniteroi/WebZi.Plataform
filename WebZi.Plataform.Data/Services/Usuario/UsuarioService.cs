@@ -1,14 +1,18 @@
 ﻿using AutoMapper;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Identity.Client;
 using System.Data;
 using System.Text;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Domain.Enums;
+using WebZi.Plataform.Domain.Models.Deposito;
 using WebZi.Plataform.Domain.Models.Usuario;
+using WebZi.Plataform.Domain.ViewModel.Cliente;
+using WebZi.Plataform.Domain.ViewModel.Deposito;
+using WebZi.Plataform.Domain.ViewModel.GRV.Pesquisa;
 using WebZi.Plataform.Domain.ViewModel.Usuario;
+using WebZi.Plataform.Domain.Views.Usuario;
 
 namespace WebZi.Plataform.Domain.Services.Usuario
 {
@@ -154,6 +158,92 @@ namespace WebZi.Plataform.Domain.Services.Usuario
                 .FirstOrDefault();
 
             return Usuario != null && Usuario.FlagAtivo != "N";
+        }
+
+        public async Task<UsuarioClienteDepositoReboqueViewModelList> ListarUsuarioClienteDepositoReboque(int UsuarioId)
+        {
+            UsuarioClienteDepositoReboqueViewModelList ResultView = new();
+
+            List<ViewUsuarioClienteDepositoReboqueModel> result = await _context.ViewUsuarioClienteDepositoReboque
+                .Where(x => x.UsuarioId == UsuarioId)
+                .AsNoTracking()
+                .ToListAsync();
+
+            if (result?.Count > 0)
+            {
+                ResultView.ListagemUsuarioClienteDepositoReboque = _mapper.Map<List<UsuarioClienteDepositoReboqueViewModel>>(result.OrderBy(o => o.ReboquePlaca).ToList());
+
+                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
+            }
+            else
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+            }
+
+            return ResultView;
+        }
+        
+        public async Task<UsuarioClienteDepositoReboquistaViewModelList> ListarUsuarioClienteDepositoReboquista(int UsuarioId)
+        {
+            UsuarioClienteDepositoReboquistaViewModelList ResultView = new();
+
+            List<ViewUsuarioClienteDepositoReboquistaModel> result = await _context.ViewUsuarioClienteDepositoReboquista
+                .Where(x => x.UsuarioId == UsuarioId)
+                .AsNoTracking()
+                .ToListAsync();
+
+            if (result?.Count > 0)
+            {
+                ResultView.ListagemUsuarioClienteDepositoReboquista = _mapper.Map<List<UsuarioClienteDepositoReboquistaViewModel>>(result.OrderBy(o => o.ReboquistaNome).ToList());
+
+                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
+            }
+            else
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+            }
+
+            return ResultView;
+        }
+
+        public async Task<ReboqueSimplificadoViewModelList> ListarUsuarioClienteDepositoReboqueSimplificada(int UsuarioId)
+        {
+            ReboqueSimplificadoViewModelList ResultView = new();
+
+            UsuarioClienteDepositoReboqueViewModelList result = await ListarUsuarioClienteDepositoReboque(UsuarioId);
+
+            if (result.ListagemUsuarioClienteDepositoReboque?.Count > 0)
+            {
+                ResultView.ListagemReboque = _mapper.Map<List<ReboqueSimplificadoViewModel>>(result.ListagemUsuarioClienteDepositoReboque);
+
+                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.ListagemUsuarioClienteDepositoReboque.Count);
+            }
+            else
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+            }
+
+            return ResultView;
+        }
+
+        public async Task<ReboquistaSimplificadoViewModelList> ListarUsuarioClienteDepositoReboquistaSimplificada(int UsuarioId)
+        {
+            ReboquistaSimplificadoViewModelList ResultView = new();
+
+            UsuarioClienteDepositoReboquistaViewModelList result = await ListarUsuarioClienteDepositoReboquista(UsuarioId);
+
+            if (result.ListagemUsuarioClienteDepositoReboquista?.Count > 0)
+            {
+                ResultView.ListagemReboquista = _mapper.Map<List<ReboquistaSimplificadoViewModel>>(result.ListagemUsuarioClienteDepositoReboquista);
+
+                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.ListagemUsuarioClienteDepositoReboquista.Count);
+            }
+            else
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+            }
+
+            return ResultView;
         }
     }
 }

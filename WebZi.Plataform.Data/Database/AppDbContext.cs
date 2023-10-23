@@ -274,6 +274,10 @@ namespace WebZi.Plataform.Data.Database
         #region Views
         public DbSet<ViewUsuarioClienteDepositoGrvModel> ViewUsuarioClienteDepositoGrv { get; set; }
 
+        public DbSet<ViewUsuarioClienteDepositoReboqueModel> ViewUsuarioClienteDepositoReboque { get; set; }
+
+        public DbSet<ViewUsuarioClienteDepositoReboquistaModel> ViewUsuarioClienteDepositoReboquista { get; set; }
+
         public DbSet<ViewUsuarioClienteDepositoModel> ViewUsuarioClienteDeposito { get; set; }
 
         public DbSet<ViewFaturamentoBoletoModel> ViewFaturamentoBoleto { get; set; }
