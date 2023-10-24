@@ -2,14 +2,14 @@
 {
     public class AutoridadeResponsavelViewModel
     {
-        public int AutoridadeResponsavelId { get; set; }
+        public int IdentificadorAutoridadeResponsavel { get; set; }
 
-        public short OrgaoEmissorId { get; set; }
+        public short IdentificadorOrgaoEmissor { get; set; }
 
         public string Divisao { get; set; }
 
         public string FlagAtivo { get; set; } = "S";
 
-        public int? SistemaExternoId { get; set; }
+        public int? IdentificadorSistemaExterno { get; set; }
     }
 }

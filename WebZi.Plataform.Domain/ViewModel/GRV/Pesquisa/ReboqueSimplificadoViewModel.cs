@@ -2,11 +2,11 @@
 {
     public class ReboqueSimplificadoViewModel
     {
-        public int ReboqueId { get; set; }
+        public int IdentificadorReboque { get; set; }
 
-        public int ClienteId { get; set; }
+        public int IdentificadorCliente { get; set; }
 
-        public int DepositoId { get; set; }
+        public int IdentificadorDeposito { get; set; }
 
         public string Placa { get; set; }
 

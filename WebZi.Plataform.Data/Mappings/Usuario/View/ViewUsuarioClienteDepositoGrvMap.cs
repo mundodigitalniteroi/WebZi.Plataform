@@ -34,7 +34,7 @@ namespace WebZi.Plataform.Data.Mappings.Usuario.View
                 .IsUnicode(false)
                 .IsFixedLength();
             
-            builder.Property(e => e.FaturamentoProdutoId)
+            builder.Property(e => e.FaturamentoProdutoCodigo)
                 .IsRequired()
                 .HasMaxLength(3)
                 .IsUnicode(false)
@@ -52,11 +52,6 @@ namespace WebZi.Plataform.Data.Mappings.Usuario.View
             builder.Property(e => e.NumeroFormularioGrv)
                 .IsRequired()
                 .HasMaxLength(14)
-                .IsUnicode(false);
-            
-            builder.Property(e => e.Senha)
-                .IsRequired()
-                .HasMaxLength(32)
                 .IsUnicode(false);
             
             builder.Property(e => e.UsuarioFlagAtivo)

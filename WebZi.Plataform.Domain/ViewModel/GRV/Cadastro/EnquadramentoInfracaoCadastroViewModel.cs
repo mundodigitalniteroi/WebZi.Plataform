@@ -2,7 +2,7 @@
 {
     public class EnquadramentoInfracaoCadastroViewModel
     {
-        public int UsuarioCadastroId { get; set; }
+        public int IdentificadorUsuarioCadastro { get; set; }
 
         public string CodigoInfracao { get; set; }
 

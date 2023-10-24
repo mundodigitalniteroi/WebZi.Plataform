@@ -2,17 +2,17 @@
 {
     public class DepositoViewModel
     {
-        public int DepositoId { get; set; }
+        public int IdentificadorDeposito { get; set; }
 
-        public int? EmpresaId { get; set; }
+        public int? IdentificadorEmpresa { get; set; }
 
-        public int? CEPId { get; set; }
+        public int? IdentificadorCEP { get; set; }
 
-        public byte? TipoLogradouroId { get; set; }
+        public byte? IdentificadorTipoLogradouro { get; set; }
 
-        public int? BairroId { get; set; }
+        public int? IdentificadorBairro { get; set; }
 
-        public int? SistemaExternoId { get; set; }
+        public int? IdentificadorSistemaExterno { get; set; }
 
         public string Nome { get; set; }
 

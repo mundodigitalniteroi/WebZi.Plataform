@@ -2,19 +2,23 @@
 {
     public class ClienteViewModel
     {
-        public int ClienteId { get; set; }
+        public int IdentificadorCliente { get; set; }
 
-        public short AgenciaBancariaId { get; set; }
+        public short IdentificadorAgenciaBancaria { get; set; }
 
-        public int CEPId { get; set; }
+        public int IdentificadorCEP { get; set; }
 
-        public byte? TipoLogradouroId { get; set; }
+        public byte? IdentificadorTipoLogradouro { get; set; }
 
-        public int? BairroId { get; set; }
+        public int? IdentificadorBairro { get; set; }
 
-        public byte? TipoMeioCobrancaId { get; set; }
+        public byte? IdentificadorTipoMeioCobranca { get; set; }
 
-        public int? EmpresaId { get; set; }
+        public int? IdentificadorEmpresa { get; set; }
+
+        public int? IdentificadorOrgaoExecutivoTransito { get; set; }
+
+        public byte? IdentificadorTipoChavePIX { get; set; }
 
         public string Nome { get; set; }
 
@@ -62,15 +66,11 @@
 
         public string FlagAtivo { get; set; }
 
-        public int? OrgaoExecutivoTransitoId { get; set; }
-
         public string CodigoOrgao { get; set; }
 
         public string FlagPossuiPIXEstatico { get; set; }
 
-        public byte? PIXTipoChaveId { get; set; }
-
-        public string PIXChave { get; set; }
+        public string ChavePIX { get; set; }
 
         public string FlagPossuiPIXDinamico { get; set; }
     }

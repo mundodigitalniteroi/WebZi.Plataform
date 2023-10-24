@@ -2,7 +2,7 @@
 {
     public class CorViewModel
     {
-        public int CorId { get; set; }
+        public int IdentificadorCor { get; set; }
 
         public string Cor { get; set; }
 

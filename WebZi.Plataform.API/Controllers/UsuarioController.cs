@@ -16,8 +16,8 @@ namespace WebZi.Plataform.API.Controllers
             _provider = provider;
         }
 
-        [HttpGet("SelecionarPorId")]
-        public async Task<ActionResult<UsuarioViewModel>> SelecionarPorId(int UsuarioId)
+        [HttpGet("SelecionarPorIdentificador")]
+        public async Task<ActionResult<UsuarioViewModel>> SelecionarPorIdentificador(int IdentificadorUsuario)
         {
             UsuarioViewModel ResultView = new();
 
@@ -25,7 +25,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<UsuarioService>()
-                    .GetById(UsuarioId);
+                    .GetById(IdentificadorUsuario);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }

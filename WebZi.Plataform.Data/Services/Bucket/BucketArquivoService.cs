@@ -1,10 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System.Net;
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
+using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Domain.Models.Bucket;
 using WebZi.Plataform.Domain.Models.Bucket.Work;
 using WebZi.Plataform.Domain.Models.Sistema;
+using WebZi.Plataform.Domain.ViewModel.Generic;
 using Z.EntityFramework.Plus;
 
 namespace WebZi.Plataform.Data.Services.Bucket
@@ -30,7 +31,7 @@ namespace WebZi.Plataform.Data.Services.Bucket
                 .FirstOrDefault();
 
             BucketNomeTabelaOrigemModel BucketNomeTabelaOrigem = _context.BucketNomeTabelaOrigem
-                .Where(w => w.Codigo == CodigoTabelaOrigem)
+                .Where(x => x.Codigo == CodigoTabelaOrigem)
                 .AsNoTracking()
                 .FirstOrDefault();
 
@@ -93,51 +94,101 @@ namespace WebZi.Plataform.Data.Services.Bucket
             }
         }
 
-        public byte[] DownloadFile(string CodigoTabelaOrigem, int TabelaOrigemId)
+        public async Task<ImageViewModelList> DownloadFiles(string CodigoTabelaOrigem, int TabelaOrigemId)
         {
-            BucketArquivoModel BucketArquivo = _context.BucketArquivo
-                .Include(i => i.BucketNomeTabelaOrigem)
-                .Where(w => w.TabelaOrigemId == TabelaOrigemId && w.BucketNomeTabelaOrigem.Codigo == CodigoTabelaOrigem)
-                .AsNoTracking()
-                .FirstOrDefault();
+            List<string> erros = new();
 
-            return BucketArquivo != null ? HttpClientHelper.DownloadFile(BucketArquivo.Url) : null;
+            if (string.IsNullOrWhiteSpace(CodigoTabelaOrigem))
+            {
+                erros.Add("Primeiro é necessário informar o Código Tabela de Origem");
+            }
+
+            if (TabelaOrigemId <= 0)
+            {
+                erros.Add("Primeiro é necessário informar o Identificador da Tabela de Origem");
+            }
+
+            ImageViewModelList ResultView = new();
+
+            if (erros.Count > 0)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetBadRequest(erros);
+
+                return ResultView;
+            }
+
+            List<BucketArquivoModel> result = await _context.BucketArquivo
+                .Include(x => x.BucketNomeTabelaOrigem)
+                .Where(x => x.BucketNomeTabelaOrigem.Codigo == CodigoTabelaOrigem
+                         && x.TabelaOrigemId == TabelaOrigemId)
+                .AsNoTracking()
+                .ToListAsync();
+
+            if (result?.Count > 0)
+            {
+                result = result.OrderBy(x => x.RepositorioArquivoId).ToList();
+
+                foreach (BucketArquivoModel BucketArquivo in result)
+                {
+                    ResultView.Listagem.Add(new()
+                    {
+                        Identificador = BucketArquivo.RepositorioArquivoId,
+
+                        Imagem = HttpClientHelper.DownloadFile(BucketArquivo.Url)
+                    });
+                }
+
+                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
+            }
+            else
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+            }
+
+            return ResultView;
         }
 
-        public BucketMensagemRetornoModel DeleteFile(string CodigoTabelaOrigem, int TabelaOrigemId)
+        public void DeleteFiles(string CodigoTabelaOrigem, List<int> ListagemTabelaOrigemId)
         {
             ConfiguracaoModel Configuracao = _context.Configuracao
                 .AsNoTracking()
                 .FirstOrDefault();
 
-            BucketArquivoModel BucketArquivo = _context.BucketArquivo
+            List<BucketArquivoModel> BucketArquivos = _context.BucketArquivo
                 .Include(i => i.BucketNomeTabelaOrigem)
-                .Where(w => w.TabelaOrigemId == TabelaOrigemId && w.BucketNomeTabelaOrigem.Codigo == CodigoTabelaOrigem)
-                .FirstOrDefault();
+                .Where(w => w.BucketNomeTabelaOrigem.Codigo == CodigoTabelaOrigem
+                         && ListagemTabelaOrigemId.Contains(w.TabelaOrigemId))
+                .ToList();
 
-            if (BucketArquivo == null)
+            if (BucketArquivos.Count > 0)
             {
-                return null;
+                foreach (BucketArquivoModel BucketArquivo in BucketArquivos)
+                {
+                    _context.BucketArquivo.Remove(BucketArquivo);
+
+                    DeletarArquivoEnvioModel DeletarArquivoEnvio = new()
+                    {
+                        NomeBucket = Configuracao.RepositorioArquivoNomeBucket,
+
+                        NomeArquivo = BucketArquivo.NomeArquivo,
+
+                        NomePasta = BucketArquivo.BucketNomeTabelaOrigem.DiretorioRemoto
+                    };
+
+                    HttpClientHelper.DeleteBasicAuth<BucketMensagemRetornoModel>
+                    (
+                        url: Configuracao.RepositorioArquivoUrl,
+                        username: Configuracao.RepositorioArquivoUsername,
+                        password: Configuracao.RepositorioArquivoPassword,
+                        obj: DeletarArquivoEnvio
+                    );
+                }
             }
+        }
 
-            _context.BucketArquivo.Remove(BucketArquivo);
-
-            DeletarArquivoEnvioModel DeletarArquivoEnvio = new()
-            {
-                NomeBucket = Configuracao.RepositorioArquivoNomeBucket,
-
-                NomeArquivo = BucketArquivo.NomeArquivo,
-
-                NomePasta = BucketArquivo.BucketNomeTabelaOrigem.DiretorioRemoto
-            };
-
-            return HttpClientHelper.DeleteBasicAuth<BucketMensagemRetornoModel>
-            (
-                url: Configuracao.RepositorioArquivoUrl,
-                username: Configuracao.RepositorioArquivoUsername,
-                password: Configuracao.RepositorioArquivoPassword,
-                obj: DeletarArquivoEnvio
-            );
+        public void DeleteFile(string CodigoTabelaOrigem, int TabelaOrigemId)
+        {
+            DeleteFiles(CodigoTabelaOrigem, new() { TabelaOrigemId });
         }
     }
 }

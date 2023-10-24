@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Domain.Models.Atendimento;
@@ -9,28 +10,29 @@ namespace WebZi.Plataform.Data.Services.Atendimento
     public class QualificacaoResponsavelService
     {
         private readonly AppDbContext _context;
+        private readonly IMapper _mapper;
 
-        public QualificacaoResponsavelService(AppDbContext context)
+        public QualificacaoResponsavelService(AppDbContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         public async Task<QualificacaoResponsavelViewModelList> ListAsync()
         {
-            QualificacaoResponsavelViewModelList ResultView = new()
-            {
-                ListagemQualificacaoResponsavel = await _context.QualificacaoResponsavel
+            QualificacaoResponsavelViewModelList ResultView = new();
+
+            List<QualificacaoResponsavelModel> result = await _context.QualificacaoResponsavel
                 .AsNoTracking()
-                .ToListAsync()
-            };
+                .ToListAsync();
 
-            if (ResultView.ListagemQualificacaoResponsavel?.Count > 0)
+            if (result?.Count > 0)
             {
-                ResultView.ListagemQualificacaoResponsavel = ResultView.ListagemQualificacaoResponsavel
+                ResultView.Listagem = _mapper.Map<List<QualificacaoResponsavelViewModel>>(result
                     .OrderBy(o => o.Descricao)
-                    .ToList();
+                    .ToList());
 
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound(ResultView.ListagemQualificacaoResponsavel.Count);
+                ResultView.Mensagem = MensagemViewHelper.GetOkFound(ResultView.Listagem.Count);
 
                 return ResultView;
             }

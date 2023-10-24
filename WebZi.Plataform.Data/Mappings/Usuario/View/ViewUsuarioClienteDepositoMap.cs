@@ -59,12 +59,6 @@ namespace WebZi.Plataform.Data.Mappings.Usuario.View
                 .IsUnicode(false)
                 .HasColumnName("login");
 
-            builder.Property(e => e.Senha1)
-                .IsRequired()
-                .HasMaxLength(32)
-                .IsUnicode(false)
-                .HasColumnName("senha1");
-
             builder.Property(e => e.UsuarioFlagAtivo)
                 .IsRequired()
                 .HasMaxLength(1)

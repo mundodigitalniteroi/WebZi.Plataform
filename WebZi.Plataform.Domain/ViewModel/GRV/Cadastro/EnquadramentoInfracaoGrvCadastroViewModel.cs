@@ -2,7 +2,7 @@
 {
     public class EnquadramentoInfracaoGrvCadastroViewModel
     {
-        public decimal EnquadramentoInfracaoId { get; set; }
+        public decimal IdentificadorEnquadramentoInfracao { get; set; }
 
         public string NumeroInfracao { get; set; }
     }

@@ -2,7 +2,7 @@
 {
     public class GrvCadastradoViewModel
     {
-        public int GrvId { get; set; }
+        public int IdentificadorGrv { get; set; }
 
         public MensagemViewModel Mensagem { get; set; } = new();
     }

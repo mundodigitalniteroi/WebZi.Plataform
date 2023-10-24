@@ -10,7 +10,6 @@ using WebZi.Plataform.Domain.Models.Banco.PIX.Work;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.Sistema;
 using WebZi.Plataform.Domain.Services.GRV;
-using WebZi.Plataform.Domain.Services.Usuario;
 using WebZi.Plataform.Domain.ViewModel.Banco.PIX;
 using Z.EntityFramework.Plus;
 
@@ -29,31 +28,11 @@ namespace WebZi.Plataform.Data.Services.Banco.PIX
 
         public PixEstaticoGeradoViewModel Create(int FaturamentoId, int UsuarioId)
         {
-            #region Validações
-            List<string> erros = new();
+            PixEstaticoGeradoViewModel ResultView = new();
 
             if (FaturamentoId <= 0)
             {
-                erros.Add(MensagemPadraoEnum.IdentificadorFaturamentoInvalido);
-            }
-
-            if (UsuarioId <= 0)
-            {
-                erros.Add(MensagemPadraoEnum.IdentificadorUsuarioInvalido);
-            }
-
-            PixEstaticoGeradoViewModel ResultView = new();
-
-            if (erros.Count > 0)
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest(erros);
-
-                return ResultView;
-            }
-
-            if (!new UsuarioService(_context).IsUserActive(UsuarioId))
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetUnauthorized();
+                ResultView.Mensagem = MensagemViewHelper.GetBadRequest(MensagemPadraoEnum.IdentificadorFaturamentoInvalido);
 
                 return ResultView;
             }
@@ -70,10 +49,10 @@ namespace WebZi.Plataform.Data.Services.Banco.PIX
 
             if (Faturamento != null)
             {
-                if (!new GrvService(_context, _mapper).UserCanAccessGrv(Faturamento.Atendimento.Grv, UsuarioId))
-                {
-                    ResultView.Mensagem = MensagemViewHelper.GetUnauthorized(MensagemPadraoEnum.UsuarioSemPermissaoAcessoGrv);
+                ResultView.Mensagem = new GrvService(_context).ValidarInputGrv(Faturamento.Atendimento.Grv, UsuarioId);
 
+                if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+                {
                     return ResultView;
                 }
             }
@@ -109,7 +88,6 @@ namespace WebZi.Plataform.Data.Services.Banco.PIX
 
                 return ResultView;
             }
-            #endregion Validações
 
             // Exclui o PIX Estático da Fatura caso exista
             _context.PixEstatico
@@ -186,7 +164,7 @@ namespace WebZi.Plataform.Data.Services.Banco.PIX
 
             return new()
             {
-                PixId = Pix.PixId,
+                IdentificadorPix = Pix.PixId,
 
                 Chave = Pix.Chave,
 

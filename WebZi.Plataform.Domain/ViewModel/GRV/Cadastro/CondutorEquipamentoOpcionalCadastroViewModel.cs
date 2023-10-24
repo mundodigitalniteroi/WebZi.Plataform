@@ -2,11 +2,11 @@
 {
     public class CondutorEquipamentoOpcionalCadastroViewModel
     {
-        public int GrvId { get; set; }
+        public int IdentificadorGrv { get; set; }
 
-        public decimal EquipamentoOpcionalId { get; set; }
+        public decimal IdentificadorEquipamentoOpcional { get; set; }
 
-        public int? UsuarioCadastroId { get; set; }
+        public int? IdentificadorUsuarioCadastro { get; set; }
 
         public int? CodigoAvaria { get; set; }
 

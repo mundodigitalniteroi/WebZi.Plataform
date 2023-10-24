@@ -2,23 +2,23 @@
 {
     public class UsuarioClienteDepositoReboqueViewModel
     {
-        public int ClienteId { get; set; }
+        public int IdentificadorCliente { get; set; }
 
         public string ClienteNome { get; set; }
 
         public string ClienteFlagAtivo { get; set; }
 
-        public int DepositoId { get; set; }
+        public int IdentificadorDeposito { get; set; }
 
         public string DepositoNome { get; set; }
 
         public string DepositoFlagAtivo { get; set; }
 
-        public int UsuarioId { get; set; }
+        public int IdentificadorUsuario { get; set; }
 
         public string UsuarioFlagAtivo { get; set; }
 
-        public int ReboqueId { get; set; }
+        public int IdentificadorReboque { get; set; }
 
         public string ReboquePlaca { get; set; }
 

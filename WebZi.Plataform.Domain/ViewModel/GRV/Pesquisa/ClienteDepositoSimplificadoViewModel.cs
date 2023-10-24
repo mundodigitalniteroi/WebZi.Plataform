@@ -2,9 +2,9 @@
 {
     public class ClienteDepositoSimplificadoViewModel
     {
-        public int DepositoId { get; set; }
+        public int IdentificadorDeposito { get; set; }
 
-        public int ClienteId { get; set; }
+        public int IdentificadorCliente { get; set; }
 
         public string Nome { get; set; }
 

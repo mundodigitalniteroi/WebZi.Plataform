@@ -2,14 +2,13 @@
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Atendimento;
-using WebZi.Plataform.Data.Services.GRV;
 using WebZi.Plataform.Data.Services.Servico;
 using WebZi.Plataform.Data.Services.Sistema;
 using WebZi.Plataform.Data.Services.Veiculo;
 using WebZi.Plataform.Domain.Services.GRV;
 using WebZi.Plataform.Domain.ViewModel;
-using WebZi.Plataform.Domain.ViewModel.Atendimento;
 using WebZi.Plataform.Domain.ViewModel.Faturamento;
+using WebZi.Plataform.Domain.ViewModel.Generic;
 using WebZi.Plataform.Domain.ViewModel.GRV;
 using WebZi.Plataform.Domain.ViewModel.GRV.Cadastro;
 using WebZi.Plataform.Domain.ViewModel.GRV.Pesquisa;
@@ -97,16 +96,16 @@ namespace WebZi.Plataform.API.Controllers
             }
         }
 
-        [HttpGet("ListarAutoridadesResponsaveis")]
-        public async Task<ActionResult<AutoridadeResponsavelViewModelList>> ListarAutoridadesResponsaveis(string UF)
+        [HttpGet("ListarAutoridadeResponsavel")]
+        public async Task<ActionResult<AutoridadeResponsavelViewModelList>> ListarAutoridadeResponsavel(string UF)
         {
             AutoridadeResponsavelViewModelList ResultView = new();
 
             try
             {
                 ResultView = await _provider
-                    .GetService<AutoridadeResponsavelService>()
-                    .List(UF);
+                    .GetService<GrvService>()
+                    .ListAutoridadeResponsavel(UF);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -118,8 +117,8 @@ namespace WebZi.Plataform.API.Controllers
             }
         }
 
-        [HttpGet("ListarCores")]
-        public async Task<ActionResult<CorViewModelList>> ListarCores(string Cor)
+        [HttpGet("ListarCor")]
+        public async Task<ActionResult<CorViewModelList>> ListarCor(string Cor)
         {
             CorViewModelList ResultView = new();
 
@@ -139,8 +138,29 @@ namespace WebZi.Plataform.API.Controllers
             }
         }
 
-        [HttpGet("ListarItensPesquisa")]
-        public async Task<ActionResult<GrvPesquisaDadosMestresViewModel>> ListarItensPesquisa(int UsuarioId)
+        [HttpGet("ListarFoto")]
+        public async Task<ActionResult<ImageViewModelList>> ListarFoto(int IdentificadorGrv, int IdentificadorUsuario)
+        {
+            ImageViewModelList ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<GrvService>()
+                    .ListarFotos(IdentificadorGrv, IdentificadorUsuario);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
+
+        [HttpGet("ListarItensParaPesquisa")]
+        public async Task<ActionResult<GrvPesquisaDadosMestresViewModel>> ListarItensParaPesquisa(int IdentificadorUsuario)
         {
             GrvPesquisaDadosMestresViewModel ResultView;
 
@@ -148,7 +168,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<GrvService>()
-                    .ListarItensPesquisa(UsuarioId);
+                    .ListarItensPesquisa(IdentificadorUsuario);
 
                 return StatusCode((int)HtmlStatusCodeEnum.Ok, ResultView);
             }
@@ -160,16 +180,16 @@ namespace WebZi.Plataform.API.Controllers
             }
         }
 
-        [HttpGet("ListarLacres")]
-        public async Task<ActionResult<LacreViewModelList>> ListarLacres(int GrvId, int UsuarioId)
+        [HttpGet("ListarLacre")]
+        public async Task<ActionResult<LacreViewModelList>> ListarLacre(int IdentificadorGrv, int IdentificadorUsuario)
         {
             LacreViewModelList ResultView = new();
 
             try
             {
                 ResultView = await _provider
-                    .GetService<LacreService>()
-                    .List(GrvId, UsuarioId);
+                    .GetService<GrvService>()
+                    .ListarLacre(IdentificadorGrv, IdentificadorUsuario);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -202,16 +222,16 @@ namespace WebZi.Plataform.API.Controllers
             }
         }
 
-        [HttpGet("ListarMotivosApreensoes")]
-        public async Task<ActionResult<MotivoApreensaoViewModelList>> ListarMotivosApreensoes()
+        [HttpGet("ListarMotivoApreensao")]
+        public async Task<ActionResult<MotivoApreensaoViewModelList>> ListarMotivoApreensao()
         {
             MotivoApreensaoViewModelList ResultView = new();
 
             try
             {
                 ResultView = await _provider
-                    .GetService<MotivoApreensaoService>()
-                    .List();
+                    .GetService<GrvService>()
+                    .ListarMotivoApreensao();
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -223,8 +243,8 @@ namespace WebZi.Plataform.API.Controllers
             }
         }
 
-        [HttpGet("ListarProdutos")]
-        public async Task<ActionResult<FaturamentoProdutoViewModelList>> ListarProdutos()
+        [HttpGet("ListarProduto")]
+        public async Task<ActionResult<FaturamentoProdutoViewModelList>> ListarProduto()
         {
             FaturamentoProdutoViewModelList ResultView = new();
 
@@ -244,16 +264,16 @@ namespace WebZi.Plataform.API.Controllers
             }
         }
 
-        [HttpGet("ListarReboques")]
-        public async Task<ActionResult<ReboqueViewModelList>> ListarReboques(int ClienteId, int DepositoId)
+        [HttpGet("ListarReboque")]
+        public async Task<ActionResult<ReboqueViewModelList>> ListarReboque(int IdentificadorCliente, int IdentificadorDeposito)
         {
             ReboqueViewModelList ResultView = new();
 
             try
             {
                 ResultView = await _provider
-                    .GetService<ReboqueService>()
-                    .List(ClienteId, DepositoId);
+                    .GetService<ServicoService>()
+                    .ListarReboque(IdentificadorCliente, IdentificadorDeposito);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -265,16 +285,16 @@ namespace WebZi.Plataform.API.Controllers
             }
         }
 
-        [HttpGet("ListarReboquistas")]
-        public async Task<ActionResult<ReboquistaViewModelList>> ListarReboquistas(int ClienteId, int DepositoId)
+        [HttpGet("ListarReboquista")]
+        public async Task<ActionResult<ReboquistaViewModelList>> ListarReboquista(int IdentificadorCliente, int IdentificadorDeposito)
         {
             ReboquistaViewModelList ResultView = new();
 
             try
             {
                 ResultView = await _provider
-                    .GetService<ReboquistaService>()
-                    .List(ClienteId, DepositoId);
+                    .GetService<ServicoService>()
+                    .ListarReboquista(IdentificadorCliente, IdentificadorDeposito);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -307,16 +327,16 @@ namespace WebZi.Plataform.API.Controllers
             }
         }
 
-        [HttpGet("ListarStatusOperacoes")]
-        public async Task<ActionResult<StatusOperacaoViewModelList>> ListarStatusOperacoes()
+        [HttpGet("ListarStatusOperacao")]
+        public async Task<ActionResult<StatusOperacaoViewModelList>> ListarStatusOperacao()
         {
             StatusOperacaoViewModelList ResultView = new();
 
             try
             {
                 ResultView = await _provider
-                    .GetService<StatusOperacaoService>()
-                    .List();
+                    .GetService<GrvService>()
+                    .ListarStatusOperacao();
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -328,8 +348,8 @@ namespace WebZi.Plataform.API.Controllers
             }
         }
 
-        [HttpGet("ListarTiposVeiculos")]
-        public async Task<ActionResult<TipoVeiculoViewModelList>> ListarTiposVeiculos()
+        [HttpGet("ListarTipoVeiculo")]
+        public async Task<ActionResult<TipoVeiculoViewModelList>> ListarTipoVeiculo()
         {
             TipoVeiculoViewModelList ResultView = new();
 
@@ -371,8 +391,8 @@ namespace WebZi.Plataform.API.Controllers
             }
         }
 
-        [HttpGet("SelecionarPorId")]
-        public async Task<ActionResult<GrvViewModel>> SelecionarPorId(int GrvId, int UsuarioId)
+        [HttpGet("SelecionarPorIdentificador")]
+        public async Task<ActionResult<GrvViewModel>> SelecionarPorIdentificador(int IdentificadorGrv, int IdentificadorUsuario)
         {
             GrvViewModelList ResultView = new();
 
@@ -380,7 +400,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<GrvService>()
-                    .GetById(GrvId, UsuarioId);
+                    .GetById(IdentificadorGrv, IdentificadorUsuario);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -393,7 +413,7 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("SelecionarPorProcesso")]
-        public async Task<ActionResult<GrvViewModelList>> SelecionarPorProcesso(string NumeroProcesso, int ClienteId, int DepositoId, int UsuarioId)
+        public async Task<ActionResult<GrvViewModelList>> SelecionarPorProcesso(string NumeroProcesso, string CodigoProduto, int IdentificadorCliente, int IdentificadorDeposito, int IdentificadorUsuario)
         {
             GrvViewModelList ResultView = new();
 
@@ -401,7 +421,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<GrvService>()
-                    .GetByNumeroFormularioGrv(NumeroProcesso, ClienteId, DepositoId, UsuarioId);
+                    .GetByNumeroFormularioGrv(NumeroProcesso, CodigoProduto, IdentificadorCliente, IdentificadorDeposito, IdentificadorUsuario);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -413,16 +433,16 @@ namespace WebZi.Plataform.API.Controllers
             }
         }
 
-        [HttpGet("SelecionarReboquePorId")]
-        public async Task<ActionResult<ReboqueViewModelList>> SelecionarReboquePorId(int ReboqueId)
+        [HttpGet("SelecionarReboquePorIdentificador")]
+        public async Task<ActionResult<ReboqueViewModelList>> SelecionarReboquePorIdentificador(int IdentificadorReboque)
         {
             ReboqueViewModelList ResultView = new();
 
             try
             {
                 ResultView = await _provider
-                    .GetService<ReboqueService>()
-                    .GetById(ReboqueId);
+                    .GetService<ServicoService>()
+                    .GetReboqueById(IdentificadorReboque);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -435,15 +455,15 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("SelecionarReboquePorPlaca")]
-        public async Task<ActionResult<ReboqueViewModelList>> SelecionarReboquePorPlaca(string Placa, int ClienteId, int DepositoId)
+        public async Task<ActionResult<ReboqueViewModelList>> SelecionarReboquePorPlaca(string Placa, int IdentificadorCliente, int IdentificadorDeposito)
         {
             ReboqueViewModelList ResultView = new();
 
             try
             {
                 ResultView = await _provider
-                    .GetService<ReboqueService>()
-                    .GetByPlaca(Placa, ClienteId, DepositoId);
+                    .GetService<ServicoService>()
+                    .GetReboqueByPlaca(Placa, IdentificadorCliente, IdentificadorDeposito);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -455,16 +475,16 @@ namespace WebZi.Plataform.API.Controllers
             }
         }
 
-        [HttpGet("SelecionarReboquistaPorId")]
-        public async Task<ActionResult<ReboquistaViewModelList>> SelecionarReboquistaPorId(int ReboquistaId)
+        [HttpGet("SelecionarReboquistaPorIdentificador")]
+        public async Task<ActionResult<ReboquistaViewModelList>> SelecionarReboquistaPorIdentificador(int IdentificadorReboquista)
         {
             ReboquistaViewModelList ResultView = new();
 
             try
             {
                 ResultView = await _provider
-                    .GetService<ReboquistaService>()
-                    .GetById(ReboquistaId);
+                    .GetService<ServicoService>()
+                    .GetByReboquistaId(IdentificadorReboquista);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -499,7 +519,7 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("VerificarAlteracaoStatusProcesso")]
-        public async Task<ActionResult<MensagemViewModel>> VerificarAlteracaoStatusProcesso(int GrvId, string StatusOperacaoId, int UsuarioId)
+        public async Task<ActionResult<MensagemViewModel>> VerificarAlteracaoStatusProcesso(int IdentificadorGrv, string IdentificadorStatusOperacao, int IdentificadorUsuario)
         {
             MensagemViewModel ResultView = new();
 
@@ -507,7 +527,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<GrvService>()
-                    .VerificarAlteracaoStatusGRV(GrvId, StatusOperacaoId, UsuarioId);
+                    .VerificarAlteracaoStatusGRV(IdentificadorGrv, IdentificadorStatusOperacao, IdentificadorUsuario);
 
                 return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
             }

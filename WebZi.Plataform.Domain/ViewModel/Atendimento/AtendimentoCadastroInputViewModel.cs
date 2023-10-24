@@ -2,13 +2,13 @@
 {
     public class AtendimentoCadastroInputViewModel
     {
-        public int GrvId { get; set; }
+        public int IdentificadorGrv { get; set; }
 
-        public byte TipoMeioCobrancaId { get; set; }
+        public byte IdentificadorTipoMeioCobranca { get; set; }
 
-        public byte QualificacaoResponsavelId { get; set; }
+        public byte IdentificadorQualificacaoResponsavel { get; set; }
 
-        public int UsuarioId { get; set; }
+        public int IdentificadorUsuario { get; set; }
 
         public string ResponsavelNome { get; set; }
 
@@ -38,7 +38,7 @@
 
         public string ProprietarioNome { get; set; }
 
-        public byte ProprietarioTipoDocumentoId { get; set; }
+        public byte IdentificadorProprietarioTipoDocumento { get; set; }
 
         public string ProprietarioDocumento { get; set; }
 

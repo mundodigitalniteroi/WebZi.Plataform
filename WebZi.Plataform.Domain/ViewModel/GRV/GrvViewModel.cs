@@ -2,48 +2,33 @@
 {
     public class GrvViewModel
     {
-        public int GrvId { get; set; }
+        public int IdentificadorGrv { get; set; }
 
-        public int ClienteId { get; set; }
+        public int IdentificadorCliente { get; set; }
 
-        public int DepositoId { get; set; }
+        public int IdentificadorDeposito { get; set; }
 
-        public byte? TipoVeiculoId { get; set; }
+        public byte? IdentificadorTipoVeiculo { get; set; }
 
-        public int? ReboquistaId { get; set; }
+        public int? IdentificadorReboquista { get; set; }
 
-        public int? ReboqueId { get; set; }
+        public int? IdentificadorReboque { get; set; }
 
-        public int? AutoridadeResponsavelId { get; set; }
+        public int? IdentificadorAutoridadeResponsavel { get; set; }
 
-        public int? CorId { get; set; }
+        public int? IdentificadorCor { get; set; }
 
-        public int? CorOstentadaId { get; set; }
+        public int? IdentificadorMarcaModelo { get; set; }
 
-        public int? MarcaModeloId { get; set; }
+        public byte? IdentificadorMotivoApreensao { get; set; }
 
-        public int? AgenteId { get; set; }
+        public string IdentificadorStatusOperacao { get; set; }
 
-        public byte? MotivoApreensaoId { get; set; }
-
-        public string StatusOperacaoId { get; set; }
-
-        public int? LiberacaoId { get; set; }
-
-        public int UsuarioCadastroId { get; set; }
-
-        public int? UsuarioAlteracaoId { get; set; }
-
-        public int? UsuarioEdicaoId { get; set; }
-
-        /// <summary>
-        /// ID do Usuário que realizou o cadastro das informações do GGV
-        /// </summary>
-        public int? UsuarioCadastroGgvId { get; set; }
+        public int? IdentificadorLiberacao { get; set; }
 
         public string NumeroFormularioGrv { get; set; }
 
-        public string FaturamentoProdutoId { get; set; }
+        public string CodigoProduto { get; set; }
 
         public string MatriculaAutoridadeResponsavel { get; set; }
 
@@ -59,7 +44,7 @@
 
         public string Rfid { get; set; }
 
-        public int? EnderecoLocalizacaoVeiculoCEPId { get; set; }
+        public int? IdentificadorEnderecoLocalizacaoVeiculoCEP { get; set; }
 
         public string EnderecoLocalizacaoVeiculoLogradouro { get; set; }
 

@@ -2,13 +2,14 @@
 {
     public static class MensagemPadraoEnum
     {
-        public static readonly string NaoEncontradoAtendimento = "Atendimento não encontrado";
-        public static readonly string NaoEncontradoCliente = "Cliente não encontrado";
-        public static readonly string NaoEncontradoDeposito = "Depósito não encontrado";
-        public static readonly string NaoEncontradoFaturamento = "Faturamento não encontrado";
-        public static readonly string NaoEncontradoGrv = "GRV não encontrado";
-        public static readonly string NaoEncontradoStatusOperacao = "Status da Operação não encontrado";
-        public static readonly string NaoEncontradoUsuario = "Usuário não encontrado";
+        public static readonly string NaoEncontradoAtendimento = "Atendimento inexistente";
+        public static readonly string NaoEncontradoCliente = "Cliente inexistente";
+        public static readonly string NaoEncontradoDeposito = "Depósito inexistente";
+        public static readonly string NaoEncontradoFaturamento = "Faturamento inexistente";
+        public static readonly string NaoEncontradoFaturamentoProduto = "Código do Produto inexistente";
+        public static readonly string NaoEncontradoGrv = "GRV inexistente";
+        public static readonly string NaoEncontradoStatusOperacao = "Status da Operação inexistente";
+        public static readonly string NaoEncontradoUsuario = "Usuário inexistente";
         public static readonly string IdentificadorAtendimentoInvalido = "Identificador do Atendimento inválido";
         public static readonly string IdentificadorAutoridadeResponsavelInvalido = "Identificador da Autoridade Responsável inválido";
         public static readonly string IdentificadorClienteInvalido = "Identificador do Cliente inválido";
@@ -23,6 +24,7 @@
         public static readonly string IdentificadorReboquistaInvalido = "Identificador do Reboquista inválido";
         public static readonly string IdentificadorTipoVeiculoInvalido = "Identificador do Tipo de Veículo inválido";
         public static readonly string IdentificadorUsuarioInvalido = "Identificador do Usuário inválido";
+        public static readonly string InformeCodigoProduto = "Informe o Código do Produto";
         public static readonly string InformeNumeroProcesso = "Informe o Número do Processo";
         public static readonly string NumeroProcessoInvalido = "Número do Processo inválido";
         public static readonly string UsuarioSemPermissaoAcessoGrv = "Usuário sem permissão de acesso ao GRV";

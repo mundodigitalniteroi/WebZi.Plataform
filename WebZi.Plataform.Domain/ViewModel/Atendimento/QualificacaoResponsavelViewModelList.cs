@@ -8,6 +8,6 @@ namespace WebZi.Plataform.Domain.ViewModel.Atendimento
 
         // Não precisa criar uma ViewModel para esta entidade
         // porque são retornados todos os campos do Banco de Dados
-        public List<QualificacaoResponsavelModel> ListagemQualificacaoResponsavel { get; set; } = new();
+        public List<QualificacaoResponsavelViewModel> Listagem { get; set; } = new();
     }
 }

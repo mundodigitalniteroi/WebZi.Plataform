@@ -39,7 +39,7 @@ namespace WebZi.Plataform.Data.Services.Cliente
 
             if (result != null)
             {
-                ResultView.ListagemCliente.Add(_mapper.Map<ClienteViewModel>(result));
+                ResultView.Listagem.Add(_mapper.Map<ClienteViewModel>(result));
 
                 ResultView.Mensagem = MensagemViewHelper.GetOkFound();
             }
@@ -69,9 +69,7 @@ namespace WebZi.Plataform.Data.Services.Cliente
 
             if (result?.Count > 0)
             {
-                result = result.OrderBy(o => o.Nome).ToList();
-
-                ResultView.ListagemCliente = _mapper.Map<List<ClienteViewModel>>(result);
+                ResultView.Listagem = _mapper.Map<List<ClienteViewModel>>(result.OrderBy(o => o.Nome).ToList());
 
                 ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
             }
@@ -102,7 +100,7 @@ namespace WebZi.Plataform.Data.Services.Cliente
                     Clientes.Add(UsuarioCliente.Cliente);
                 }
 
-                ResultView.ListagemCliente = _mapper.Map<List<ClienteViewModel>>(Clientes.OrderBy(o => o.Nome).ToList());
+                ResultView.Listagem = _mapper.Map<List<ClienteViewModel>>(Clientes.OrderBy(o => o.Nome).ToList());
 
                 ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
             }
@@ -120,11 +118,11 @@ namespace WebZi.Plataform.Data.Services.Cliente
 
             ClienteViewModelList result = await List(UsuarioId);
 
-            if (result.ListagemCliente?.Count > 0)
+            if (result.Listagem?.Count > 0)
             {
-                ResultView.ListagemCliente = _mapper.Map<List<ClienteSimplificadoViewModel>>(result.ListagemCliente);
+                ResultView.Listagem = _mapper.Map<List<ClienteSimplificadoViewModel>>(result.Listagem);
 
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.ListagemCliente.Count);
+                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Listagem.Count);
             }
             else
             {

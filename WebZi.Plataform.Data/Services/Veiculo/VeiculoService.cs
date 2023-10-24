@@ -45,7 +45,7 @@ namespace WebZi.Plataform.Data.Services.Veiculo
                 {
                     EquipamentoOpcionalView = new()
                     {
-                        EquipamentoOpcionalId = item.EquipamentoOpcional.EquipamentoOpcionalId,
+                        IdentificadorEquipamentoOpcional = item.EquipamentoOpcional.EquipamentoOpcionalId,
 
                         OrdemVistoria = item.EquipamentoOpcional.OrdemVistoria,
 
@@ -56,7 +56,7 @@ namespace WebZi.Plataform.Data.Services.Veiculo
                         Status = item.EquipamentoOpcional.Status
                     };
 
-                    ResultView.ListagemEquipamentoOpcional.Add(EquipamentoOpcionalView);
+                    ResultView.Listagem.Add(EquipamentoOpcionalView);
                 }
 
                 ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.TiposVeiculosEquipamentosAssociacoes.Count);
@@ -89,12 +89,12 @@ namespace WebZi.Plataform.Data.Services.Veiculo
 
             if (result == null)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound("Marca/Modelo não encontrado");
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound("Marca/Modelo inexistente");
 
                 return ResultView;
             }
 
-            ResultView.ListagemMarcaModelo = _mapper.Map<List<MarcaModeloViewModel>>(result);
+            ResultView.Listagem = _mapper.Map<List<MarcaModeloViewModel>>(result);
 
             ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
 
@@ -109,7 +109,7 @@ namespace WebZi.Plataform.Data.Services.Veiculo
                 .AsNoTracking()
                 .ToListAsync();
 
-            ResultView.ListagemTipoVeiculo = _mapper.Map<List<TipoVeiculoViewModel>>(result.OrderBy(x => x.Descricao).ToList());
+            ResultView.Listagem = _mapper.Map<List<TipoVeiculoViewModel>>(result.OrderBy(x => x.Descricao).ToList());
 
             ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
 

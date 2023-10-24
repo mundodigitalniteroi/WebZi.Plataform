@@ -2,7 +2,7 @@
 {
     public class TipoVeiculoViewModel
     {
-        public byte TipoVeiculoId { get; set; }
+        public byte IdentificadorTipoVeiculo { get; set; }
 
         public string Descricao { get; set; }
 

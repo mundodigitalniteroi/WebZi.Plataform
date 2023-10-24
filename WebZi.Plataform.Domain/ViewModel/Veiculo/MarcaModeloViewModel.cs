@@ -2,7 +2,7 @@
 {
     public class MarcaModeloViewModel
     {
-        public int MarcaModeloId { get; set; }
+        public int IdentificadorMarcaModelo { get; set; }
 
         public string MarcaModelo { get; set; }
     }

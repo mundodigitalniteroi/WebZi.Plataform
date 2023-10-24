@@ -39,9 +39,9 @@ namespace WebZi.Plataform.Data.Services.Vistoria
 
             foreach (var item in result)
             {
-                ResultView.ListagemStatusVistoria.Add(new()
+                ResultView.Listagem.Add(new()
                 {
-                    VistoriaStatusId = item.VistoriaStatusId,
+                    IdentificadorStatus = item.VistoriaStatusId,
                     Descricao = item.Descricao
                 });
             }
@@ -65,9 +65,9 @@ namespace WebZi.Plataform.Data.Services.Vistoria
 
             foreach (var item in result)
             {
-                ResultView.ListagemSituacaoChassi.Add(new()
+                ResultView.Listagem.Add(new()
                 {
-                    VistoriaSituacaoChassiId = item.VistoriaSituacaoChassiId,
+                    IdentificadorSituacaoChassi = item.VistoriaSituacaoChassiId,
                     Descricao = item.Descricao
                 });
             }
@@ -92,7 +92,7 @@ namespace WebZi.Plataform.Data.Services.Vistoria
 
             foreach (var item in result)
             {
-                ResultView.ListagemTipoDirecao.Add(new()
+                ResultView.Listagem.Add(new()
                 {
                     Sigla = item.Sigla,
                     Descricao = item.Valor1
@@ -119,7 +119,7 @@ namespace WebZi.Plataform.Data.Services.Vistoria
 
             foreach (var item in result)
             {
-                ResultView.ListagemEstadoGeralVeiculo.Add(new()
+                ResultView.Listagem.Add(new()
                 {
                     Sigla = item.Sigla,
                     Descricao = item.Valor1

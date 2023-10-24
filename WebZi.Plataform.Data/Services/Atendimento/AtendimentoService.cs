@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore.Storage;
 using WebZi.Plataform.CrossCutting.Contacts;
 using WebZi.Plataform.CrossCutting.Documents;
 using WebZi.Plataform.CrossCutting.Localizacao;
-using WebZi.Plataform.CrossCutting.Number;
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
@@ -42,28 +41,9 @@ namespace WebZi.Plataform.Data.Services.Atendimento
         {
             AtendimentoViewModel ResultView = new();
 
-            List<string> erros = new();
-
             if (AtendimentoId <= 0)
             {
-                erros.Add(MensagemPadraoEnum.IdentificadorAtendimentoInvalido);
-            }
-
-            if (UsuarioId <= 0)
-            {
-                erros.Add(MensagemPadraoEnum.IdentificadorUsuarioInvalido);
-            }
-
-            if (erros.Count > 0)
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest(erros);
-
-                return ResultView;
-            }
-
-            if (!new UsuarioService(_context).IsUserActive(UsuarioId))
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetUnauthorized();
+                ResultView.Mensagem = MensagemViewHelper.GetBadRequest(MensagemPadraoEnum.IdentificadorAtendimentoInvalido);
 
                 return ResultView;
             }
@@ -80,13 +60,15 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
                 return ResultView;
             }
-            else if (!new GrvService(_context, _mapper).UserCanAccessGrv(Grv, UsuarioId))
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetUnauthorized(MensagemPadraoEnum.UsuarioSemPermissaoAcessoGrv);
 
+            ResultView.Mensagem = new GrvService(_context).ValidarInputGrv(Grv, UsuarioId);
+
+            if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+            {
                 return ResultView;
             }
-            else if (Grv.Atendimento == null)
+
+            if (Grv.Atendimento == null)
             {
                 ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadraoEnum.NaoEncontradoAtendimento);
 
@@ -100,69 +82,27 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             return ResultView;
         }
 
-        public async Task<AtendimentoViewModel> GetByProcesso(string NumeroProcesso, int ClienteId, int DepositoId, int UsuarioId)
+        public async Task<AtendimentoViewModel> GetByProcesso(string NumeroProcesso, string CodigoProduto, int ClienteId, int DepositoId, int UsuarioId)
         {
-            AtendimentoViewModel ResultView = new();
-
-            List<string> erros = new();
-
-            if (string.IsNullOrWhiteSpace(NumeroProcesso))
+            AtendimentoViewModel ResultView = new()
             {
-                erros.Add(MensagemPadraoEnum.InformeNumeroProcesso);
-            }
-            else if (!NumberHelper.IsNumber(NumeroProcesso) || Convert.ToInt64(NumeroProcesso) <= 0)
+                Mensagem = new GrvService(_context).ValidarInputGrv(NumeroProcesso, CodigoProduto, ClienteId, DepositoId, UsuarioId)
+            };
+
+            if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
             {
-                erros.Add(MensagemPadraoEnum.NumeroProcessoInvalido);
-            }
-
-            if (ClienteId <= 0)
-            {
-                erros.Add(MensagemPadraoEnum.IdentificadorClienteInvalido);
-            }
-
-            if (DepositoId <= 0)
-            {
-                erros.Add(MensagemPadraoEnum.IdentificadorDepositoInvalido);
-            }
-
-            if (UsuarioId <= 0)
-            {
-                erros.Add(MensagemPadraoEnum.IdentificadorUsuarioInvalido);
-            }
-
-            if (erros.Count > 0)
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest(erros);
-
-                return ResultView;
-            }
-
-            if (!new UsuarioService(_context).IsUserActive(UsuarioId))
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetUnauthorized();
-
                 return ResultView;
             }
 
             GrvModel Grv = await _context.Grv
-                .Include(i => i.Atendimento)
-                .Where(w => w.NumeroFormularioGrv == NumeroProcesso && w.ClienteId == ClienteId && w.DepositoId == DepositoId)
+                .Include(x => x.Atendimento)
+                .Where(x => x.NumeroFormularioGrv == NumeroProcesso
+                         && x.ClienteId == ClienteId
+                         && x.DepositoId == DepositoId)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
 
-            if (Grv == null)
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadraoEnum.NaoEncontradoGrv);
-
-                return ResultView;
-            }
-            else if (!new GrvService(_context, _mapper).UserCanAccessGrv(Grv, UsuarioId))
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetUnauthorized(MensagemPadraoEnum.UsuarioSemPermissaoAcessoGrv);
-
-                return ResultView;
-            }
-            else if (Grv.Atendimento == null)
+            if (Grv.Atendimento == null)
             {
                 ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadraoEnum.NaoEncontradoAtendimento);
 
@@ -178,40 +118,17 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
         public async Task<MensagemViewModel> ValidarInformacoesParaCadastro(AtendimentoCadastroInputViewModel AtendimentoCadastro)
         {
-            MensagemViewModel ResultView = new();
-
-            #region Validações de IDs
-            List<string> erros = new();
-
-            if (AtendimentoCadastro.GrvId <= 0)
+            if (AtendimentoCadastro.IdentificadorTipoMeioCobranca <= 0)
             {
-                erros.Add(MensagemPadraoEnum.IdentificadorGrvInvalido);
+                return MensagemViewHelper.GetBadRequest("Identificador da Forma de Pagamento inválido");
             }
 
-            if (AtendimentoCadastro.TipoMeioCobrancaId <= 0)
-            {
-                ResultView.AvisosImpeditivos.Add("Identificador da Forma de Pagamento inválido");
-            }
+            MensagemViewModel ResultView = new GrvService(_context).ValidarInputGrv(AtendimentoCadastro.IdentificadorGrv, AtendimentoCadastro.IdentificadorUsuario);
 
-            if (AtendimentoCadastro.UsuarioId <= 0)
+            if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
             {
-                erros.Add(MensagemPadraoEnum.IdentificadorUsuarioInvalido);
-            }
-
-            if (erros.Count > 0)
-            {
-                ResultView = MensagemViewHelper.GetBadRequest(erros);
-
                 return ResultView;
             }
-            #endregion Validações de IDs
-
-            #region Validações do Usuário
-            if (!new UsuarioService(_context).IsUserActive(AtendimentoCadastro.UsuarioId))
-            {
-                return MensagemViewHelper.GetUnauthorized();
-            }
-            #endregion Validações do Usuário
 
             #region Consultas
             GrvModel Grv = await _context.Grv
@@ -219,18 +136,9 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 .Include(i => i.Deposito)
                 .Include(i => i.StatusOperacao)
                 .Include(i => i.Atendimento)
-                .Where(w => w.GrvId == AtendimentoCadastro.GrvId)
+                .Where(w => w.GrvId == AtendimentoCadastro.IdentificadorGrv)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
-
-            if (Grv == null)
-            {
-                return MensagemViewHelper.GetNotFound(MensagemPadraoEnum.NaoEncontradoGrv);
-            }
-            else if (!new GrvService(_context, _mapper).UserCanAccessGrv(Grv, AtendimentoCadastro.UsuarioId))
-            {
-                return MensagemViewHelper.GetUnauthorized(MensagemPadraoEnum.UsuarioSemPermissaoAcessoGrv);
-            }
 
             if (!new[] { "B", "D", "V", "L", "E", "1", "2", "3", "4", "7" }.Contains(Grv.StatusOperacao.StatusOperacaoId))
             {
@@ -265,7 +173,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             #endregion Leilão
 
             #region Dados do Responsável
-            if (AtendimentoCadastro.QualificacaoResponsavelId <= 0)
+            if (AtendimentoCadastro.IdentificadorQualificacaoResponsavel <= 0)
             {
                 ResultView.AvisosImpeditivos.Add("Informe a Qualificação do Responsável");
             }
@@ -358,7 +266,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 ResultView.AvisosImpeditivos.Add("Informe o Nome do Proprietário");
             }
 
-            if (AtendimentoCadastro.ProprietarioTipoDocumentoId <= 0)
+            if (AtendimentoCadastro.IdentificadorProprietarioTipoDocumento <= 0)
             {
                 ResultView.AvisosImpeditivos.Add("Informe o Tipo do Documento do Proprietário");
             }
@@ -368,16 +276,16 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 ResultView.AvisosImpeditivos.Add("Informe o Documento do Proprietário");
             }
 
-            if (AtendimentoCadastro.ProprietarioTipoDocumentoId > 0)
+            if (AtendimentoCadastro.IdentificadorProprietarioTipoDocumento > 0)
             {
                 TipoDocumentoIdentificacaoModel TipoDocumentoIdentificacao = await _context.TipoDocumentoIdentificacao
-                    .Where(w => w.TipoDocumentoIdentificacaoId == AtendimentoCadastro.ProprietarioTipoDocumentoId)
+                    .Where(w => w.TipoDocumentoIdentificacaoId == AtendimentoCadastro.IdentificadorProprietarioTipoDocumento)
                     .AsNoTracking()
                     .FirstOrDefaultAsync();
 
                 if (TipoDocumentoIdentificacao == null)
                 {
-                    ResultView.AvisosImpeditivos.Add($"Tipo do Documento do Proprietário inexistente: {AtendimentoCadastro.ProprietarioTipoDocumentoId}");
+                    ResultView.AvisosImpeditivos.Add($"Tipo do Documento do Proprietário inexistente: {AtendimentoCadastro.IdentificadorProprietarioTipoDocumento}");
                 }
                 else if (TipoDocumentoIdentificacao.Codigo != "CPF" && TipoDocumentoIdentificacao.Codigo != "CNPJ")
                 {
@@ -506,13 +414,13 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             #region Forma de Pagamento
             TipoMeioCobrancaModel TipoMeioCobranca = await _context.TipoMeioCobranca
-                .Where(w => w.TipoMeioCobrancaId == AtendimentoCadastro.TipoMeioCobrancaId)
+                .Where(w => w.TipoMeioCobrancaId == AtendimentoCadastro.IdentificadorTipoMeioCobranca)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
 
             if (TipoMeioCobranca == null)
             {
-                ResultView.AvisosImpeditivos.Add($"Forma de Pagamento inexistente: {AtendimentoCadastro.TipoMeioCobrancaId}");
+                ResultView.AvisosImpeditivos.Add($"Forma de Pagamento inexistente: {AtendimentoCadastro.IdentificadorTipoMeioCobranca}");
             }
             else if (TipoMeioCobranca.Alias == TipoMeioCobrancaAliasEnum.PixEstatico && Grv.Cliente.FlagPossuiPixEstatico == "N")
             {
@@ -542,11 +450,11 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             MensagemViewModel mensagem = new();
 
             #region Consultas
-            if (Atendimento.FaturamentoId <= 0)
+            if (Atendimento.IdentificadorFaturamento <= 0)
             {
                 mensagem.Erros.Add(MensagemPadraoEnum.IdentificadorAtendimentoInvalido);
             }
-            else if (Atendimento.UsuarioId <= 0)
+            else if (Atendimento.IdentificadorUsuario <= 0)
             {
                 mensagem.Erros.Add(MensagemPadraoEnum.IdentificadorUsuarioInvalido);
             }
@@ -561,7 +469,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 .Include(i => i.Deposito)
                 .Include(i => i.StatusOperacao)
                 .Include(i => i.Atendimento)
-                .Where(w => w.Atendimento.AtendimentoId == Atendimento.FaturamentoId)
+                .Where(w => w.Atendimento.AtendimentoId == Atendimento.IdentificadorFaturamento)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
 
@@ -588,7 +496,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             GrvModel Grv = await _context.Grv
                 .Include(i => i.Cliente)
                 .Include(i => i.Deposito)
-                .Where(w => w.GrvId == AtendimentoInput.GrvId)
+                .Where(w => w.GrvId == AtendimentoInput.IdentificadorGrv)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
 
@@ -599,11 +507,11 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             #region Dados do Atendimento
             AtendimentoModel Atendimento = new()
             {
-                GrvId = AtendimentoInput.GrvId,
+                GrvId = AtendimentoInput.IdentificadorGrv,
 
-                QualificacaoResponsavelId = AtendimentoInput.QualificacaoResponsavelId,
+                QualificacaoResponsavelId = AtendimentoInput.IdentificadorQualificacaoResponsavel,
 
-                UsuarioCadastroId = AtendimentoInput.UsuarioId,
+                UsuarioCadastroId = AtendimentoInput.IdentificadorUsuario,
 
                 DataHoraInicioAtendimento = AtendimentoInput.DataHoraInicioAtendimento ?? DataHoraPorDeposito,
 
@@ -639,7 +547,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
                 ProprietarioNome = AtendimentoInput.ProprietarioNome.ToUpper(),
 
-                ProprietarioTipoDocumentoId = AtendimentoInput.ProprietarioTipoDocumentoId,
+                ProprietarioTipoDocumentoId = AtendimentoInput.IdentificadorProprietarioTipoDocumento,
 
                 ProprietarioDocumento = AtendimentoInput.ProprietarioDocumento,
 
@@ -692,7 +600,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             }
             #endregion Dados do Atendimento
 
-            CalculoFaturamentoParametroModel ParametrosCalculoFaturamento = await ConfigurarParametrosCalculoFaturamento(Grv, Atendimento, AtendimentoInput.TipoMeioCobrancaId, DataHoraPorDeposito);
+            CalculoFaturamentoParametroModel ParametrosCalculoFaturamento = await ConfigurarParametrosCalculoFaturamento(Grv, Atendimento, AtendimentoInput.IdentificadorTipoMeioCobranca, DataHoraPorDeposito);
 
             AtendimentoCadastroResultViewModel AtendimentoCadastroResultView = new();
 
@@ -721,7 +629,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
                     transaction.Commit();
 
-                    AtendimentoCadastroResultView.AtendimentoId = Atendimento.AtendimentoId;
+                    AtendimentoCadastroResultView.IdentificadorAtendimento = Atendimento.AtendimentoId;
                 }
                 catch (Exception ex)
                 {
@@ -739,7 +647,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             // TODO:
             // GerarFormaPagamento(ParametrosCalculoFaturamento);
 
-            AtendimentoCadastroResultView.AtendimentoId = ParametrosCalculoFaturamento.Atendimento.AtendimentoId;
+            AtendimentoCadastroResultView.IdentificadorAtendimento = ParametrosCalculoFaturamento.Atendimento.AtendimentoId;
 
             AtendimentoCadastroResultView.Mensagem = MensagemViewHelper.GetOkCreate();
 
@@ -799,7 +707,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
         {
             if (AtendimentoInput.ResponsavelFoto != null)
             {
-                new BucketArquivoService(_context).SendFile("ATENDIMFOTORESP", AtendimentoId, AtendimentoInput.UsuarioId, AtendimentoInput.ResponsavelFoto);
+                new BucketArquivoService(_context).SendFile("ATENDIMFOTORESP", AtendimentoId, AtendimentoInput.IdentificadorUsuario, AtendimentoInput.ResponsavelFoto);
             }
         }
 
@@ -844,9 +752,9 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             _context.Grv.Update(Grv);
         }
 
-        public async Task<ImageViewModel> GetResponsavelFoto(int AtendimentoId, int UsuarioId)
+        public async Task<ImageViewModelList> GetResponsavelFoto(int AtendimentoId, int UsuarioId)
         {
-            ImageViewModel ResultView = new();
+            ImageViewModelList ResultView = new();
 
             List<string> erros = new();
 
@@ -882,7 +790,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             if (BucketArquivo != null)
             {
-                ResultView.Imagem = HttpClientHelper.DownloadFile(BucketArquivo.Url);
+                ResultView.Listagem.Add(new ImageViewModel { Imagem = HttpClientHelper.DownloadFile(BucketArquivo.Url) });
 
                 ResultView.Mensagem = MensagemViewHelper.GetOkFound();
 
@@ -897,7 +805,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
                 if (AtendimentoFotoResponsavel != null)
                 {
-                    ResultView.Imagem = AtendimentoFotoResponsavel.Foto;
+                    ResultView.Listagem.Add(new ImageViewModel { Imagem = AtendimentoFotoResponsavel.Foto });
 
                     ResultView.Mensagem = MensagemViewHelper.GetOkFound();
 

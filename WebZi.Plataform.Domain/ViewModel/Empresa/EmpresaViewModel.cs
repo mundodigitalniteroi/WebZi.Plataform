@@ -2,19 +2,19 @@
 {
     public class EmpresaViewModel
     {
-        public int EmpresaId { get; set; }
+        public int IdentificadorEmpresa { get; set; }
 
-        public int? EmpresaMatrizId { get; set; }
+        public int? IdentificadorEmpresaMatriz { get; set; }
 
-        public byte EmpresaClassificacaoId { get; set; }
+        public byte IdentificadorEmpresaClassificacao { get; set; }
 
-        public int? CEPId { get; set; }
+        public int? IdentificadorCEP { get; set; }
 
-        public byte? TipoLogradouroId { get; set; }
+        public byte? IdentificadorTipoLogradouro { get; set; }
 
-        public int? CnaeId { get; set; }
+        public int? IdentificadorCNAE { get; set; }
 
-        public int? CnaeListaServicoId { get; set; }
+        public int? IdentificadorCNAEListaServico { get; set; }
 
         public string CNPJ { get; set; }
 

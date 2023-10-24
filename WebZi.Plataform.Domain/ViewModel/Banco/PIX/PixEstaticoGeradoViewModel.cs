@@ -4,7 +4,7 @@
     {
         public MensagemViewModel Mensagem { get; set; } = new();
 
-        public int PixId { get; set; }
+        public int IdentificadorPix { get; set; }
 
         public string Chave { get; set; }
 

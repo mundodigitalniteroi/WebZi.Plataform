@@ -6,6 +6,16 @@ namespace WebZi.Plataform.Data.Helper
 {
     public abstract class MensagemViewHelper
     {
+        public static MensagemViewModel GetOk()
+        {
+            MensagemViewModel Mensagem = new()
+            {
+                HtmlStatusCode = HtmlStatusCodeEnum.Ok
+            };
+
+            return Mensagem;
+        }
+
         public static MensagemViewModel GetOk(string Message)
         {
             MensagemViewModel Mensagem = new()

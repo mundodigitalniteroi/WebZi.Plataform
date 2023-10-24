@@ -16,8 +16,8 @@ namespace WebZi.Plataform.API.Controllers
             _provider = provider;
         }
 
-        [HttpGet("SelecionarPorId")]
-        public async Task<ActionResult<DepositoViewModelList>> SelecionarPorId(int DepositoId)
+        [HttpGet("Listar")]
+        public async Task<ActionResult<DepositoViewModelList>> Listar(int IdentificadorUsuario)
         {
             DepositoViewModelList ResultView = new();
 
@@ -25,7 +25,52 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<DepositoService>()
-                    .GetById(DepositoId);
+                    .List(IdentificadorUsuario);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
+
+        [HttpGet("SelecionarDataHoraPeloIdentificador")]
+        public ActionResult<DateTime> SelecionarDataHoraPeloIdentificador(int Identificador)
+        {
+            if (Identificador <= 0)
+            {
+                return BadRequest("Identificador do Depósito inválido");
+            }
+
+            try
+            {
+                DateTime result = _provider
+                    .GetService<DepositoService>()
+                    .GetDataHoraPorDeposito(Identificador);
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                var Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)Mensagem.HtmlStatusCode, Mensagem);
+            }
+        }
+
+        [HttpGet("SelecionarPorIdentificador")]
+        public async Task<ActionResult<DepositoViewModelList>> SelecionarPorIdentificador(int Identificador)
+        {
+            DepositoViewModelList ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<DepositoService>()
+                    .GetById(Identificador);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -55,51 +100,6 @@ namespace WebZi.Plataform.API.Controllers
                 ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-        }
-
-        [HttpGet("Listar")]
-        public async Task<ActionResult<DepositoViewModelList>> Listar(int UsuarioId)
-        {
-            DepositoViewModelList ResultView = new();
-
-            try
-            {
-                ResultView = await _provider
-                    .GetService<DepositoService>()
-                    .List(UsuarioId);
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-            catch (Exception ex)
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-        }
-
-        [HttpGet("GetDateTimeById")]
-        public ActionResult<DateTime> GetDateTimeById(int DepositoId)
-        {
-            if (DepositoId <= 0)
-            {
-                return BadRequest("Identificador do Depósito inválido");
-            }
-
-            try
-            {
-                DateTime result = _provider
-                    .GetService<DepositoService>()
-                    .GetDataHoraPorDeposito(DepositoId);
-
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                var Mensagem = MensagemViewHelper.GetInternalServerError(ex);
-
-                return StatusCode((int)Mensagem.HtmlStatusCode, Mensagem);
             }
         }
     }

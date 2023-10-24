@@ -2,7 +2,7 @@
 {
     public class VistoriaStatusViewModel
     {
-        public byte VistoriaStatusId { get; set; }
+        public byte IdentificadorStatus { get; set; }
 
         public string Descricao { get; set; }
     }

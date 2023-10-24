@@ -23,7 +23,7 @@ namespace WebZi.Plataform.Data.Services.Empresa
         {
             List<string> erros = new();
 
-            if (!string.IsNullOrWhiteSpace(CNPJ) && DocumentHelper.IsCNPJ(CNPJ))
+            if (!string.IsNullOrWhiteSpace(CNPJ) && !DocumentHelper.IsCNPJ(CNPJ))
             {
                 erros.Add("CNPJ inválido");
             }
@@ -39,20 +39,20 @@ namespace WebZi.Plataform.Data.Services.Empresa
 
             List<EmpresaModel> result = await _context.Empresa
                 .Where(w => (!string.IsNullOrWhiteSpace(CNPJ) ? w.CNPJ == CNPJ : true) &&
-                            (!string.IsNullOrWhiteSpace(Nome) ? w.Nome == Nome.ToUpper().Trim() : true))
+                            (!string.IsNullOrWhiteSpace(Nome) ? w.Nome.Contains(Nome.ToUpper().Trim()) : true))
                 .AsNoTracking()
                 .ToListAsync();
 
-            if (result == null)
+            if (result?.Count > 0)
+            {
+                ResultView.Listagem = _mapper.Map<List<EmpresaViewModel>>(result.OrderBy(x => x.Nome).ToList());
+
+                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
+            }
+            else
             {
                 ResultView.Mensagem = MensagemViewHelper.GetNotFound("Empresa não encontrada");
-
-                return ResultView;
             }
-
-            ResultView.ListagemEmpresa = _mapper.Map<List<EmpresaViewModel>>(result);
-
-            ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
 
             return ResultView;
         }

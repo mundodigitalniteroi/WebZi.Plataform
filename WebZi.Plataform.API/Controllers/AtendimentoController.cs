@@ -59,8 +59,8 @@ namespace WebZi.Plataform.API.Controllers
             }
         }
 
-        [HttpGet("ListarQualificacoesResponsaveis")]
-        public async Task<ActionResult<QualificacaoResponsavelViewModelList>> ListarQualificacoesResponsaveis()
+        [HttpGet("ListarQualificacaoResponsavel")]
+        public async Task<ActionResult<QualificacaoResponsavelViewModelList>> ListarQualificacaoResponsavel()
         {
             QualificacaoResponsavelViewModelList ResultView = new();
 
@@ -80,8 +80,8 @@ namespace WebZi.Plataform.API.Controllers
             }
         }
 
-        [HttpGet("SelecionarPorId")]
-        public async Task<ActionResult<AtendimentoViewModel>> SelecionarPorId(int AtendimentoId, int UsuarioId)
+        [HttpGet("SelecionarPorIdentificador")]
+        public async Task<ActionResult<AtendimentoViewModel>> SelecionarPorIdentificador(int IdentificadorAtendimento, int IdentificadorUsuario)
         {
             AtendimentoViewModel ResultView = new();
 
@@ -89,7 +89,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<AtendimentoService>()
-                    .GetById(AtendimentoId, UsuarioId);
+                    .GetById(IdentificadorAtendimento, IdentificadorUsuario);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -102,7 +102,7 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("SelecionarPorProcesso")]
-        public async Task<ActionResult<AtendimentoViewModel>> SelecionarPorProcesso(string NumeroProcesso, int ClienteId, int DepositoId, int UsuarioId)
+        public async Task<ActionResult<AtendimentoViewModel>> SelecionarPorProcesso(string NumeroProcesso, string CodigoProduto, int IdentificadorCliente, int IdentificadorDeposito, int IdentificadorUsuario)
         {
             AtendimentoViewModel ResultView = new();
 
@@ -110,7 +110,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<AtendimentoService>()
-                    .GetByProcesso(NumeroProcesso, ClienteId, DepositoId, UsuarioId);
+                    .GetByProcesso(NumeroProcesso, CodigoProduto, IdentificadorCliente, IdentificadorDeposito, IdentificadorUsuario);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -123,15 +123,15 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("SelecionarFotoResponsavel")]
-        public async Task<ActionResult<ImageViewModel>> SelecionarFotoResponsavel(int AtendimentoId, int UsuarioId)
+        public async Task<ActionResult<ImageViewModelList>> SelecionarFotoResponsavel(int IdentificadorAtendimento, int IdentificadorUsuario)
         {
-            ImageViewModel ResultView = new();
+            ImageViewModelList ResultView = new();
 
             try
             {
                 ResultView = await _provider
                     .GetService<AtendimentoService>()
-                    .GetResponsavelFoto(AtendimentoId, UsuarioId);
+                    .GetResponsavelFoto(IdentificadorAtendimento, IdentificadorUsuario);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }

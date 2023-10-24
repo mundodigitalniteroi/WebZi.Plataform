@@ -2,7 +2,7 @@
 {
     public class FaturamentoProdutoViewModel
     {
-        public string FaturamentoProdutoId { get; set; }
+        public string CodigoProduto { get; set; }
 
         public string Descricao { get; set; }
 

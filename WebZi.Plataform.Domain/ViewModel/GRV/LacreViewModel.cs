@@ -2,12 +2,8 @@
 {
     public class LacreViewModel
     {
-        public int LacreId { get; set; }
-
-        public byte? LacreMotivoDesassociacaoId { get; set; }
+        public int IdentificadorLacre { get; set; }
 
         public string Lacre { get; set; }
-
-        public string LacreAnterior { get; set; }
     }
 }

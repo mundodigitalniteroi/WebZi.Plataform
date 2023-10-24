@@ -2,7 +2,7 @@
 {
     public class ImageViewModel
     {
-        public MensagemViewModel Mensagem { get; set; } = new MensagemViewModel();
+        public int Identificador { get; set; }
 
         public byte[] Imagem { get; set; }
     }

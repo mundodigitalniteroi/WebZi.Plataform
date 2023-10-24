@@ -2,9 +2,9 @@
 {
     public class GrvFotoViewModel
     {
-        public int GrvId { get; set; }
+        public int IdentificadorGrv { get; set; }
 
-        public int UsuarioId { get; set; }
+        public int IdentificadorUsuario { get; set; }
 
         public List<byte[]> Fotos { get; set; }
     }

@@ -2,7 +2,7 @@
 {
     public class StatusAssinaturaCondutorViewModel
     {
-        public string StatusAssinaturaCondutorId { get; set; }
+        public string IdentificadorStatusAssinaturaCondutor { get; set; }
 
         public string Descricao { get; set; }
     }

@@ -16,48 +16,6 @@ namespace WebZi.Plataform.API.Controllers
             _provider = provider;
         }
 
-        [HttpGet("SelecionarPorId")]
-        public async Task<ActionResult<BancoViewModelList>> SelecionarPorId(short BancoId)
-        {
-            BancoViewModelList ResultView = new();
-
-            try
-            {
-                ResultView = await _provider
-                    .GetService<BancoService>()
-                    .GetById(BancoId);
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-            catch (Exception ex)
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-        }
-
-        [HttpGet("SelecionarPorNome")]
-        public async Task<ActionResult<BancoViewModelList>> SelecionarPorNome(string Nome)
-        {
-            BancoViewModelList ResultView = new();
-
-            try
-            {
-                ResultView = await _provider
-                    .GetService<BancoService>()
-                    .GetByName(Nome);
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-            catch (Exception ex)
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-        }
-
         [HttpGet("Listar")]
         public async Task<ActionResult<BancoViewModelList>> Listar()
         {
@@ -79,8 +37,8 @@ namespace WebZi.Plataform.API.Controllers
             }
         }
 
-        [HttpGet("ListarAgenciasBancarias")]
-        public async Task<ActionResult<AgenciaBancariaViewModelList>> ListarAgenciasBancarias(short BancoId)
+        [HttpGet("ListarAgenciaBancaria")]
+        public async Task<ActionResult<AgenciaBancariaViewModelList>> ListarAgenciaBancaria(short IdentificadorBanco)
         {
             AgenciaBancariaViewModelList ResultView = new();
 
@@ -88,7 +46,49 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<AgenciaBancariaService>()
-                    .List(BancoId);
+                    .List(IdentificadorBanco);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
+
+        [HttpGet("SelecionarPorIdentificador")]
+        public async Task<ActionResult<BancoViewModelList>> SelecionarPorIdentificador(short IdentificadorBanco)
+        {
+            BancoViewModelList ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<BancoService>()
+                    .GetById(IdentificadorBanco);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
+
+        [HttpGet("SelecionarPorNome")]
+        public async Task<ActionResult<BancoViewModelList>> SelecionarPorNome(string Nome)
+        {
+            BancoViewModelList ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<BancoService>()
+                    .GetByName(Nome);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }

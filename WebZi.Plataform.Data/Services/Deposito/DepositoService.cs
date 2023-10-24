@@ -4,12 +4,10 @@ using WebZi.Plataform.CrossCutting.Date;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Domain.Enums;
-using WebZi.Plataform.Domain.Models.Cliente;
 using WebZi.Plataform.Domain.Models.Deposito;
 using WebZi.Plataform.Domain.Models.Localizacao;
 using WebZi.Plataform.Domain.Models.Sistema;
 using WebZi.Plataform.Domain.Models.Usuario;
-using WebZi.Plataform.Domain.ViewModel.Cliente;
 using WebZi.Plataform.Domain.ViewModel.Deposito;
 using WebZi.Plataform.Domain.ViewModel.GRV.Pesquisa;
 using WebZi.Plataform.Domain.Views.Localizacao;
@@ -46,7 +44,7 @@ namespace WebZi.Plataform.Data.Services.Deposito
 
             if (result != null)
             {
-                ResultView.ListagemDeposito.Add(_mapper.Map<DepositoViewModel>(result));
+                ResultView.Listagem.Add(_mapper.Map<DepositoViewModel>(result));
 
                 ResultView.Mensagem = MensagemViewHelper.GetOkFound();
             }
@@ -76,9 +74,7 @@ namespace WebZi.Plataform.Data.Services.Deposito
 
             if (result?.Count > 0)
             {
-                result = result.OrderBy(o => o.Nome).ToList();
-
-                ResultView.ListagemDeposito = _mapper.Map<List<DepositoViewModel>>(result);
+                ResultView.Listagem = _mapper.Map<List<DepositoViewModel>>(result.OrderBy(o => o.Nome).ToList());
 
                 ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
             }
@@ -169,7 +165,7 @@ namespace WebZi.Plataform.Data.Services.Deposito
                     Depositos.Add(UsuarioDeposito.Deposito);
                 }
 
-                ResultView.ListagemDeposito = _mapper.Map<List<DepositoViewModel>>(Depositos.OrderBy(o => o.Nome).ToList());
+                ResultView.Listagem = _mapper.Map<List<DepositoViewModel>>(Depositos.OrderBy(o => o.Nome).ToList());
 
                 ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
             }
@@ -192,7 +188,7 @@ namespace WebZi.Plataform.Data.Services.Deposito
 
             if (result?.Count > 0)
             {
-                ResultView.ListagemDeposito = _mapper.Map<List<ClienteDepositoSimplificadoViewModel>>(result.OrderBy(o => o.DepositoNome).ToList());
+                ResultView.Listagem = _mapper.Map<List<ClienteDepositoSimplificadoViewModel>>(result.OrderBy(o => o.DepositoNome).ToList());
 
                 ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
             }

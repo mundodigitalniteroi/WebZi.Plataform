@@ -24,8 +24,6 @@ namespace WebZi.Plataform.Domain.Views.Usuario
 
         public string Login { get; set; }
 
-        public string Senha1 { get; set; }
-
         public string UsuarioFlagAtivo { get; set; }
 
         public UsuarioModel Usuario { get; set; }

@@ -13,10 +13,8 @@ using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Bucket;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.Faturamento.Boleto;
-using WebZi.Plataform.Domain.Models.GRV;
 using WebZi.Plataform.Domain.Models.Sistema;
 using WebZi.Plataform.Domain.Services.GRV;
-using WebZi.Plataform.Domain.Services.Usuario;
 using WebZi.Plataform.Domain.ViewModel.Generic;
 using WebZi.Plataform.Domain.Views.Faturamento;
 using Z.EntityFramework.Plus;
@@ -35,42 +33,23 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             _mapper = mapper;
         }
 
-        public ImageViewModel GetBoletoNaoPago(int FaturamentoId, int UsuarioId)
+        public ImageViewModelList GetBoletoNaoPago(int FaturamentoId, int UsuarioId)
         {
             return GetBoleto(FaturamentoId, UsuarioId, "N");
         }
 
-        public ImageViewModel GetBoletoNaoCancelado(int FaturamentoId, int UsuarioId)
+        public ImageViewModelList GetBoletoNaoCancelado(int FaturamentoId, int UsuarioId)
         {
             return GetBoleto(FaturamentoId, UsuarioId);
         }
 
-        private ImageViewModel GetBoleto(int FaturamentoId, int UsuarioId, string StatusBoleto = "")
+        private ImageViewModelList GetBoleto(int FaturamentoId, int UsuarioId, string StatusBoleto = "")
         {
-            ImageViewModel ResultView = new();
-
-            List<string> erros = new();
+            ImageViewModelList ResultView = new();
 
             if (FaturamentoId <= 0)
             {
-                erros.Add(MensagemPadraoEnum.IdentificadorFaturamentoInvalido);
-            }
-
-            if (UsuarioId <= 0)
-            {
-                erros.Add(MensagemPadraoEnum.IdentificadorUsuarioInvalido);
-            }
-
-            if (erros.Count > 0)
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest(erros);
-
-                return ResultView;
-            }
-
-            if (!new UsuarioService(_context).IsUserActive(UsuarioId))
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetUnauthorized();
+                ResultView.Mensagem = MensagemViewHelper.GetBadRequest(MensagemPadraoEnum.IdentificadorFaturamentoInvalido);
 
                 return ResultView;
             }
@@ -104,10 +83,10 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             if (Faturamento != null)
             {
-                if (!new GrvService(_context, _mapper).UserCanAccessGrv(Faturamento.Atendimento.Grv, UsuarioId))
-                {
-                    ResultView.Mensagem = MensagemViewHelper.GetUnauthorized(MensagemPadraoEnum.UsuarioSemPermissaoAcessoGrv);
+                ResultView.Mensagem = new GrvService(_context).ValidarInputGrv(Faturamento.Atendimento.Grv, UsuarioId);
 
+                if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+                {
                     return ResultView;
                 }
             }
@@ -117,7 +96,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
                 return ResultView;
             }
-            
+
             if (Faturamento.TipoMeioCobranca.Alias != TipoMeioCobrancaAliasEnum.Boleto &&
                 Faturamento.TipoMeioCobranca.Alias != TipoMeioCobrancaAliasEnum.BoletoEspecial)
             {
@@ -154,7 +133,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             {
                 ResultView.Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.Ok;
 
-                ResultView.Imagem = HttpClientHelper.DownloadFile(BucketArquivo.Url);
+                ResultView.Listagem.Add(new ImageViewModel { Imagem = HttpClientHelper.DownloadFile(BucketArquivo.Url) });
 
                 return ResultView;
             }
@@ -171,7 +150,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 {
                     ResultView.Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.Ok;
 
-                    ResultView.Imagem = FaturamentoBoletoImagem.Imagem;
+                    ResultView.Listagem.Add(new ImageViewModel { Imagem = FaturamentoBoletoImagem.Imagem });
 
                     return ResultView;
                 }
@@ -184,32 +163,13 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             }
         }
 
-        public ImageViewModel Create(int FaturamentoId, int UsuarioId)
+        public ImageViewModelList Create(int FaturamentoId, int UsuarioId)
         {
-            ImageViewModel ResultView = new();
-
-            List<string> erros = new();
+            ImageViewModelList ResultView = new();
 
             if (FaturamentoId <= 0)
             {
-                erros.Add(MensagemPadraoEnum.IdentificadorFaturamentoInvalido);
-            }
-
-            if (UsuarioId <= 0)
-            {
-                erros.Add(MensagemPadraoEnum.IdentificadorUsuarioInvalido);
-            }
-
-            if (erros.Count > 0)
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest(erros);
-
-                return ResultView;
-            }
-
-            if (!new UsuarioService(_context).IsUserActive(UsuarioId))
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetUnauthorized();
+                ResultView.Mensagem = MensagemViewHelper.GetBadRequest(MensagemPadraoEnum.IdentificadorFaturamentoInvalido);
 
                 return ResultView;
             }
@@ -224,10 +184,10 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             if (Faturamento != null)
             {
-                if (!new GrvService(_context, _mapper).UserCanAccessGrv(Faturamento.Atendimento.Grv, UsuarioId))
-                {
-                    ResultView.Mensagem = MensagemViewHelper.GetUnauthorized(MensagemPadraoEnum.UsuarioSemPermissaoAcessoGrv);
+                ResultView.Mensagem = new GrvService(_context).ValidarInputGrv(Faturamento.Atendimento.Grv, UsuarioId);
 
+                if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+                {
                     return ResultView;
                 }
             }
@@ -237,8 +197,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
                 return ResultView;
             }
-            
-            if (Faturamento.TipoMeioCobranca.Alias != TipoMeioCobrancaAliasEnum.Boleto && 
+
+            if (Faturamento.TipoMeioCobranca.Alias != TipoMeioCobrancaAliasEnum.Boleto &&
                 Faturamento.TipoMeioCobranca.Alias != TipoMeioCobrancaAliasEnum.BoletoEspecial)
             {
                 ResultView.Mensagem = MensagemViewHelper
@@ -270,7 +230,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             if (ViewBoleto == null)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound("Dados para a geração do Boleto não encontrados");
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound("Dados para a geração do Boleto inexistentes");
 
                 return ResultView;
             }
@@ -418,7 +378,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             }
             #endregion Cadastro do Boleto e da Imagem
 
-            ResultView.Imagem = BoletoGerado.Boleto;
+            ResultView.Listagem.Add(new ImageViewModel { Imagem = BoletoGerado.Boleto });
 
             ResultView.Mensagem = MensagemViewHelper.GetOk("Boleto gerado com sucesso");
 

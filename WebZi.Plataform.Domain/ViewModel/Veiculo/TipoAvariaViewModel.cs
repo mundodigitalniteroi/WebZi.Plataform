@@ -2,7 +2,7 @@
 {
     public class TipoAvariaViewModel
     {
-        public int TipoAvariaId { get; set; }
+        public int IdentificadorTipoAvaria { get; set; }
 
         public string Descricao { get; set; }
     }

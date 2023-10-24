@@ -4,6 +4,6 @@
     {
         public MensagemViewModel Mensagem { get; set; } = new();
 
-        public List<TipoAvariaViewModel> ListagemTipoAvaria { get; set; } = new();
+        public List<TipoAvariaViewModel> Listagem { get; set; } = new();
     }
 }

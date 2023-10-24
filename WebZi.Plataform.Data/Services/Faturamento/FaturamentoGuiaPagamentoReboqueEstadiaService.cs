@@ -4,6 +4,7 @@ using System.Text;
 using WebZi.Plataform.CrossCutting.Documents;
 using WebZi.Plataform.CrossCutting.Number;
 using WebZi.Plataform.CrossCutting.Strings;
+using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Bucket;
@@ -16,8 +17,8 @@ using WebZi.Plataform.Domain.Models.GRV;
 using WebZi.Plataform.Domain.Models.Sistema;
 using WebZi.Plataform.Domain.Models.Usuario;
 using WebZi.Plataform.Domain.Services.GRV;
-using WebZi.Plataform.Domain.Services.Usuario;
 using WebZi.Plataform.Domain.ViewModel.Faturamento;
+using WebZi.Plataform.Domain.ViewModel.Generic;
 
 namespace WebZi.Plataform.Data.Services.Faturamento
 {
@@ -32,37 +33,18 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             _mapper = mapper;
         }
 
-        public GerarPagamentoReboqueEstadiaViewModel GetGuiaPagamentoReboqueEstadia(int FaturamentoId, int UsuarioId)
+        public async Task<GerarPagamentoReboqueEstadiaViewModel> GetGuiaPagamentoReboqueEstadia(int FaturamentoId, int UsuarioId)
         {
             GerarPagamentoReboqueEstadiaViewModel ResultView = new();
 
-            List<string> erros = new();
-
             if (FaturamentoId <= 0)
             {
-                erros.Add(MensagemPadraoEnum.IdentificadorFaturamentoInvalido);
-            }
-
-            if (UsuarioId <= 0)
-            {
-                erros.Add(MensagemPadraoEnum.IdentificadorUsuarioInvalido);
-            }
-
-            if (erros.Count > 0)
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest(erros);
+                ResultView.Mensagem = MensagemViewHelper.GetBadRequest(MensagemPadraoEnum.IdentificadorFaturamentoInvalido);
 
                 return ResultView;
             }
 
-            if (!new UsuarioService(_context).IsUserActive(UsuarioId))
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetUnauthorized();
-
-                return ResultView;
-            }
-
-            FaturamentoModel Faturamento = _context.Faturamento
+            FaturamentoModel Faturamento = await _context.Faturamento
                 .Include(i => i.TipoMeioCobranca)
                 .Include(i => i.FaturamentoComposicoes)
                 .ThenInclude(t => t.FaturamentoServicoTipoVeiculo)
@@ -70,7 +52,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 .ThenInclude(t => t.FaturamentoServicoTipo)
                 .Where(w => w.FaturamentoId == FaturamentoId)
                 .AsNoTracking()
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
 
             if (Faturamento == null)
             {
@@ -99,7 +81,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 return ResultView;
             }
 
-            GrvModel Grv = _context.Grv
+            GrvModel Grv = await _context.Grv
                 .Include(i => i.Cliente)
                 .ThenInclude(t => t.Endereco)
                 .Include(i => i.Cliente)
@@ -119,7 +101,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 .ThenInclude(t => t.QualificacaoResponsavel)
                 .Where(w => w.Atendimento.AtendimentoId == Faturamento.AtendimentoId)
                 .AsNoTracking()
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
 
             if (Grv == null)
             {
@@ -127,10 +109,11 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
                 return ResultView;
             }
-            else if (!new GrvService(_context, _mapper).UserCanAccessGrv(Grv, UsuarioId))
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetUnauthorized(MensagemPadraoEnum.UsuarioSemPermissaoAcessoGrv);
 
+            ResultView.Mensagem = new GrvService(_context).ValidarInputGrv(Grv, UsuarioId);
+
+            if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+            {
                 return ResultView;
             }
 
@@ -161,7 +144,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             GuiaPagamentoEstadiaReboque = GetRodape(GuiaPagamentoEstadiaReboque, UsuarioId);
 
             // LOGOMARCA
-            GuiaPagamentoEstadiaReboque.Logo = GetLogomarca(Grv.ClienteId);
+            GuiaPagamentoEstadiaReboque.Logo = await GetLogomarca(Grv.ClienteId);
 
             GuiaPagamentoEstadiaReboque.Mensagem = MensagemViewHelper.GetOk("Guia de Pagamento de Reboque e Estadia gerado com sucesso");
 
@@ -378,7 +361,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             NomeCompleto.Append(" " + Usuario.Pessoa.Sobrenome);
 
-            GuiaPagamentoEstadiaReboque.Rodape = "Impressão realizada em " + 
+            GuiaPagamentoEstadiaReboque.Rodape = "Impressão realizada em " +
                 GuiaPagamentoEstadiaReboque.DataHoraAtualDateTime.ToString("dd/MM/yyyy") +
                 " às " +
                 GuiaPagamentoEstadiaReboque.DataHoraAtualDateTime.ToShortTimeString() +
@@ -388,12 +371,16 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             return GuiaPagamentoEstadiaReboque;
         }
 
-        public byte[] GetLogomarca(int ClienteId)
+        public async Task<byte[]> GetLogomarca(int ClienteId)
         {
-            byte[] Logomarca = new BucketArquivoService(_context)
-                .DownloadFile("CADLOGOCLIENTE", ClienteId);
+            ImageViewModelList ResultView = await new BucketArquivoService(_context)
+                .DownloadFiles("CADLOGOCLIENTE", ClienteId);
 
-            if (Logomarca == null)
+            if (ResultView.Mensagem.QuantidadeRegistros > 0)
+            {
+                return ResultView.Listagem.FirstOrDefault().Imagem;
+            }
+            else
             {
                 ConfiguracaoLogoModel ConfiguracaoLogo = _context.ConfiguracaoLogo
                     .AsNoTracking()
@@ -401,8 +388,6 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
                 return ConfiguracaoLogo.LogoPadraoSistema;
             }
-
-            return Logomarca ?? null;
         }
     }
 }

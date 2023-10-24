@@ -4,15 +4,11 @@
     {
         public MensagemViewModel Mensagem { get; set; } = new();
 
-        public int AtendimentoId { get; set; }
+        public int IdentificadorAtendimento { get; set; }
 
-        public int GrvId { get; set; }
+        public int IdentificadorGrv { get; set; }
 
-        public byte QualificacaoResponsavelId { get; set; }
-
-        public int UsuarioCadastroId { get; set; }
-
-        public int? UsuarioAlteracaoId { get; set; }
+        public byte IdentificadorQualificacaoResponsavel { get; set; }
 
         public string ResponsavelNome { get; set; }
 
@@ -40,7 +36,7 @@
 
         public string ProprietarioNome { get; set; }
 
-        public byte? ProprietarioTipoDocumentoId { get; set; }
+        public byte? IdentificadorProprietarioTipoDocumento { get; set; }
 
         public string ProprietarioDocumento { get; set; }
 

@@ -2,8 +2,8 @@
 {
     public class UsuarioClienteDepositoViewModel
     {
-        public int ClienteId { get; set; }
+        public int IdentificadorCliente { get; set; }
 
-        public int DepositoId { get; set; }
+        public int IdentificadorDeposito { get; set; }
     }
 }

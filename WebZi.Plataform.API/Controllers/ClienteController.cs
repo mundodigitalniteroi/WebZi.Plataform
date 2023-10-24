@@ -18,8 +18,8 @@ namespace WebZi.Plataform.API.Controllers
             _provider = provider;
         }
 
-        [HttpGet("SelecionarPorId")]
-        public async Task<ActionResult<ClienteViewModelList>> SelecionarPorId(int ClienteId)
+        [HttpGet("Listar")]
+        public async Task<ActionResult<ClienteViewModelList>> Listar(int IdentificadorUsuario)
         {
             ClienteViewModelList ResultView = new();
 
@@ -27,7 +27,28 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<ClienteService>()
-                    .GetById(ClienteId);
+                    .List(IdentificadorUsuario);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
+
+        [HttpGet("SelecionarPorIdentificador")]
+        public async Task<ActionResult<ClienteViewModelList>> SelecionarPorIdentificador(int IdentificadorCliente)
+        {
+            ClienteViewModelList ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<ClienteService>()
+                    .GetById(IdentificadorCliente);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -49,27 +70,6 @@ namespace WebZi.Plataform.API.Controllers
                 ResultView = await _provider
                     .GetService<ClienteService>()
                     .GetByName(Nome);
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-            catch (Exception ex)
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-        }
-
-        [HttpGet("Listar")]
-        public async Task<ActionResult<ClienteViewModelList>> Listar(int UsuarioId)
-        {
-            ClienteViewModelList ResultView = new();
-
-            try
-            {
-                ResultView = await _provider
-                    .GetService<ClienteService>()
-                    .List(UsuarioId);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }

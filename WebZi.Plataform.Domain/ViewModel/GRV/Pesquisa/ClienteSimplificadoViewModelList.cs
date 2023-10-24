@@ -4,6 +4,6 @@
     {
         public MensagemViewModel Mensagem { get; set; }
 
-        public List<ClienteSimplificadoViewModel> ListagemCliente { get; set; } = new();
+        public List<ClienteSimplificadoViewModel> Listagem { get; set; } = new();
     }
 }

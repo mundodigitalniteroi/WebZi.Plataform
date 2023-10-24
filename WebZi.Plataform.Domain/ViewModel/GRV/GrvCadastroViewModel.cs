@@ -4,25 +4,25 @@ namespace WebZi.Plataform.Domain.ViewModel.GRV
 {
     public class GrvCadastroViewModel
     {
-        public int ClienteId { get; set; }
+        public int IdentificadorCliente { get; set; }
 
-        public int DepositoId { get; set; }
+        public int IdentificadorDeposito { get; set; }
 
-        public byte TipoVeiculoId { get; set; }
+        public byte IdentificadorTipoVeiculo { get; set; }
 
-        public int ReboquistaId { get; set; }
+        public int IdentificadorReboquista { get; set; }
 
-        public int ReboqueId { get; set; }
+        public int IdentificadorReboque { get; set; }
 
-        public int AutoridadeResponsavelId { get; set; }
+        public int IdentificadorAutoridadeResponsavel { get; set; }
 
-        public int CorId { get; set; }
+        public int IdentificadorCor { get; set; }
 
-        public int MarcaModeloId { get; set; }
+        public int IdentificadorMarcaModelo { get; set; }
 
-        public byte MotivoApreensaoId { get; set; }
+        public byte IdentificadorMotivoApreensao { get; set; }
 
-        public int UsuarioId { get; set; }
+        public int IdentificadorUsuario { get; set; }
 
         public string NumeroProcesso { get; set; }
 

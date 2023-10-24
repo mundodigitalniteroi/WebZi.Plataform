@@ -1,11 +1,21 @@
-﻿using WebZi.Plataform.Domain.Models.Faturamento;
-
-namespace WebZi.Plataform.Domain.ViewModel.Faturamento
+﻿namespace WebZi.Plataform.Domain.ViewModel.Faturamento
 {
     public class TipoMeioCobrancaViewModel
     {
-        public MensagemViewModel Mensagem { get; set; } = new();
+        public byte IdentificadorTipoMeioCobranca { get; set; }
 
-        public List<TipoMeioCobrancaModel> TiposMeiosCobrancas { get; set; } = new();
+        public string Descricao { get; set; }
+
+        public string Alias { get; set; }
+
+        public string DocumentoImpressao { get; set; }
+
+        public string CodigoERP { get; set; }
+
+        public string FlagBanco { get; set; }
+
+        public string FlagPossuiCodigoAutorizacaoCartao { get; set; }
+
+        public string FlagAtivo { get; set; }
     }
 }

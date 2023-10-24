@@ -6,10 +6,7 @@ using System.Text;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Domain.Enums;
-using WebZi.Plataform.Domain.Models.Deposito;
 using WebZi.Plataform.Domain.Models.Usuario;
-using WebZi.Plataform.Domain.ViewModel.Cliente;
-using WebZi.Plataform.Domain.ViewModel.Deposito;
 using WebZi.Plataform.Domain.ViewModel.GRV.Pesquisa;
 using WebZi.Plataform.Domain.ViewModel.Usuario;
 using WebZi.Plataform.Domain.Views.Usuario;
@@ -122,7 +119,7 @@ namespace WebZi.Plataform.Domain.Services.Usuario
 
                     foreach (var item in ListagemUsuarioClienteDeposito)
                     {
-                        ResultView.ListagemClienteDepositoAssociado.Add(new UsuarioClienteDepositoViewModel { ClienteId = item.ClienteId, DepositoId = item.DepositoId });
+                        ResultView.ListagemClienteDepositoAssociado.Add(new UsuarioClienteDepositoViewModel { IdentificadorCliente = item.ClienteId, IdentificadorDeposito = item.DepositoId });
                     }
                 }
                 else
@@ -171,7 +168,7 @@ namespace WebZi.Plataform.Domain.Services.Usuario
 
             if (result?.Count > 0)
             {
-                ResultView.ListagemUsuarioClienteDepositoReboque = _mapper.Map<List<UsuarioClienteDepositoReboqueViewModel>>(result.OrderBy(o => o.ReboquePlaca).ToList());
+                ResultView.Listagem = _mapper.Map<List<UsuarioClienteDepositoReboqueViewModel>>(result.OrderBy(o => o.ReboquePlaca).ToList());
 
                 ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
             }
@@ -194,7 +191,7 @@ namespace WebZi.Plataform.Domain.Services.Usuario
 
             if (result?.Count > 0)
             {
-                ResultView.ListagemUsuarioClienteDepositoReboquista = _mapper.Map<List<UsuarioClienteDepositoReboquistaViewModel>>(result.OrderBy(o => o.ReboquistaNome).ToList());
+                ResultView.Listagem = _mapper.Map<List<UsuarioClienteDepositoReboquistaViewModel>>(result.OrderBy(o => o.ReboquistaNome).ToList());
 
                 ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
             }
@@ -212,11 +209,11 @@ namespace WebZi.Plataform.Domain.Services.Usuario
 
             UsuarioClienteDepositoReboqueViewModelList result = await ListarUsuarioClienteDepositoReboque(UsuarioId);
 
-            if (result.ListagemUsuarioClienteDepositoReboque?.Count > 0)
+            if (result.Listagem?.Count > 0)
             {
-                ResultView.ListagemReboque = _mapper.Map<List<ReboqueSimplificadoViewModel>>(result.ListagemUsuarioClienteDepositoReboque);
+                ResultView.Listagem = _mapper.Map<List<ReboqueSimplificadoViewModel>>(result.Listagem);
 
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.ListagemUsuarioClienteDepositoReboque.Count);
+                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Listagem.Count);
             }
             else
             {
@@ -232,11 +229,11 @@ namespace WebZi.Plataform.Domain.Services.Usuario
 
             UsuarioClienteDepositoReboquistaViewModelList result = await ListarUsuarioClienteDepositoReboquista(UsuarioId);
 
-            if (result.ListagemUsuarioClienteDepositoReboquista?.Count > 0)
+            if (result.Listagem?.Count > 0)
             {
-                ResultView.ListagemReboquista = _mapper.Map<List<ReboquistaSimplificadoViewModel>>(result.ListagemUsuarioClienteDepositoReboquista);
+                ResultView.Listagem = _mapper.Map<List<ReboquistaSimplificadoViewModel>>(result.Listagem);
 
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.ListagemUsuarioClienteDepositoReboquista.Count);
+                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Listagem.Count);
             }
             else
             {

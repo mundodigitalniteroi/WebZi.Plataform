@@ -6,6 +6,6 @@ namespace WebZi.Plataform.Domain.ViewModel.Faturamento
     {
         public MensagemViewModel Mensagem { get; set; } = new();
 
-        public List<FaturamentoProdutoViewModel> ListagemProduto { get; set; }
+        public List<FaturamentoProdutoViewModel> Listagem { get; set; }
     }
 }

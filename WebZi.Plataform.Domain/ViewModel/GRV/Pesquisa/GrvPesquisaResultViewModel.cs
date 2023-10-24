@@ -2,7 +2,7 @@
 {
     public class GrvPesquisaResultViewModel
     {
-        public int GrvId { get; set; }
+        public int IdentificadorGrv { get; set; }
 
         public string NumeroProcesso { get; set; }
 

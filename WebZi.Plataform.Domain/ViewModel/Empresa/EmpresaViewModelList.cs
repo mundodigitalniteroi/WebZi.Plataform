@@ -4,6 +4,6 @@
     {
         public MensagemViewModel Mensagem { get; set; } = new();
 
-        public List<EmpresaViewModel> ListagemEmpresa { get; set; } = new();
+        public List<EmpresaViewModel> Listagem { get; set; } = new();
     }
 }

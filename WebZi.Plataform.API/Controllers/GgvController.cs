@@ -4,7 +4,11 @@ using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.GGV;
 using WebZi.Plataform.Data.Services.Veiculo;
 using WebZi.Plataform.Data.Services.Vistoria;
+using WebZi.Plataform.Domain.Services.GRV;
+using WebZi.Plataform.Domain.ViewModel;
+using WebZi.Plataform.Domain.ViewModel.Generic;
 using WebZi.Plataform.Domain.ViewModel.GGV;
+using WebZi.Plataform.Domain.ViewModel.GRV;
 using WebZi.Plataform.Domain.ViewModel.Veiculo;
 using WebZi.Plataform.Domain.ViewModel.Vistoria;
 
@@ -21,8 +25,30 @@ namespace WebZi.Plataform.API.Controllers
             _provider = provider;
         }
 
+        [HttpPost("CadastrarFotos")]
+        [IgnoreAntiforgeryToken]
+        public ActionResult<MensagemViewModel> CadastrarFotos(GrvFotoViewModel Fotos)
+        {
+            MensagemViewModel ResultView;
+
+            try
+            {
+                ResultView = _provider
+                    .GetService<GrvService>()
+                    .SendFiles(Fotos);
+
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+        }
+
         [HttpGet("ListarDadosMestres")]
-        public async Task<ActionResult<DadosMestresViewModel>> ListarDadosMestres(byte TipoVeiculoId)
+        public async Task<ActionResult<DadosMestresViewModel>> ListarDadosMestres(byte IdentificadorTipoVeiculo)
         {
             DadosMestresViewModel ResultView;
 
@@ -30,7 +56,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<GgvService>()
-                    .ListarDadosMestres(TipoVeiculoId);
+                    .ListarDadosMestres(IdentificadorTipoVeiculo);
 
                 return StatusCode((int)HtmlStatusCodeEnum.Ok, ResultView);
             }
@@ -43,7 +69,7 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("ListarEquipamentoOpcional")]
-        public async Task<ActionResult<EquipamentoOpcionalViewModelList>> ListarEquipamentoOpcional(byte TipoVeiculoId)
+        public async Task<ActionResult<EquipamentoOpcionalViewModelList>> ListarEquipamentoOpcional(byte IdentificadorTipoVeiculo)
         {
             EquipamentoOpcionalViewModelList ResultView = new();
 
@@ -51,7 +77,28 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<VeiculoService>()
-                    .ListarEquipamentoOpcional(TipoVeiculoId);
+                    .ListarEquipamentoOpcional(IdentificadorTipoVeiculo);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
+
+        [HttpGet("ListarFoto")]
+        public async Task<ActionResult<ImageViewModelList>> ListarFoto(int IdentificadorGrv, int IdentificadorUsuario)
+        {
+            ImageViewModelList ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<GgvService>()
+                    .ListarFotos(IdentificadorGrv, IdentificadorUsuario);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }

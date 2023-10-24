@@ -2,8 +2,8 @@
 {
     public class PagamentoViewModel
     {
-        public int FaturamentoId { get; set; }
+        public int IdentificadorFaturamento { get; set; }
 
-        public int UsuarioId { get; set; }
+        public int IdentificadorUsuario { get; set; }
     }
 }

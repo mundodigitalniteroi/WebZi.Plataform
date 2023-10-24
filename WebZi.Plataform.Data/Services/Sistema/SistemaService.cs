@@ -32,18 +32,18 @@ namespace WebZi.Plataform.Data.Services.Sistema
 
             CorViewModelList ResultView = new();
 
-            if (result == null)
+            if (result?.Count > 0)
+            {
+                ResultView.Listagem = _mapper
+                    .Map<List<CorViewModel>>(result.OrderBy(x => x.Cor)
+                    .ToList());
+
+                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
+            }
+            else
             {
                 ResultView.Mensagem = MensagemViewHelper.GetNotFound("Cor não encontrada");
-
-                return ResultView;
             }
-
-            ResultView.ListagemCor = _mapper
-                .Map<List<CorViewModel>>(result.OrderBy(x => x.Cor)
-                .ToList());
-
-            ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
 
             return ResultView;
         }

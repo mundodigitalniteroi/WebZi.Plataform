@@ -18,8 +18,6 @@ namespace WebZi.Plataform.Domain.Views.Usuario
 
         public string Matricula { get; set; }
 
-        public string Senha { get; set; }
-
         public string UsuarioFlagAtivo { get; set; }
 
         public string Cliente { get; set; }
@@ -34,7 +32,7 @@ namespace WebZi.Plataform.Domain.Views.Usuario
 
         public string NumeroFormularioGrv { get; set; }
 
-        public string FaturamentoProdutoId { get; set; }
+        public string FaturamentoProdutoCodigo { get; set; }
 
         public virtual GrvModel Grv { get; set; }
     }

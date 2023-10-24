@@ -9,7 +9,6 @@ using WebZi.Plataform.Data.Services.Deposito;
 using WebZi.Plataform.Data.Services.Empresa;
 using WebZi.Plataform.Data.Services.Faturamento;
 using WebZi.Plataform.Data.Services.GGV;
-using WebZi.Plataform.Data.Services.GRV;
 using WebZi.Plataform.Data.Services.Leilao;
 using WebZi.Plataform.Data.Services.Localizacao;
 using WebZi.Plataform.Data.Services.Servico;
@@ -30,8 +29,6 @@ namespace WebZi.Plataform.Data.Services
             services.AddScoped<AgenciaBancariaService>();
 
             services.AddScoped<AtendimentoService>();
-
-            services.AddScoped<AutoridadeResponsavelService>();
 
             services.AddScoped<BancoService>();
 
@@ -59,8 +56,6 @@ namespace WebZi.Plataform.Data.Services
 
             services.AddScoped<GrvService>();
 
-            services.AddScoped<LacreService>();
-
             services.AddScoped<LeilaoService>();
 
             services.AddScoped<PixDinamicoService>();
@@ -69,13 +64,9 @@ namespace WebZi.Plataform.Data.Services
 
             services.AddScoped<QualificacaoResponsavelService>();
 
-            services.AddScoped<ReboqueService>();
-
-            services.AddScoped<ReboquistaService>();
+            services.AddScoped<ServicoService>();
 
             services.AddScoped<SistemaService>();
-
-            services.AddScoped<StatusOperacaoService>();
 
             services.AddScoped<TipoAvariaService>();
 

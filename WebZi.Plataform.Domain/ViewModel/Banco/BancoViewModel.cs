@@ -2,7 +2,7 @@
 {
     public class BancoViewModel
     {
-        public short BancoId { get; set; }
+        public short IdentificadorBanco { get; set; }
 
         public string CodigoFebraban { get; set; }
 

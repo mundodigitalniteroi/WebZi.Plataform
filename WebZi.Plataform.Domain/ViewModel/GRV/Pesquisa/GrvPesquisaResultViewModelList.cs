@@ -4,6 +4,6 @@
     {
         public MensagemViewModel Mensagem { get; set; }
 
-        public List<GrvPesquisaResultViewModel> ListagemGrv { get; set; } = new();
+        public List<GrvPesquisaResultViewModel> Listagem { get; set; } = new();
     }
 }

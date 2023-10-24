@@ -21,7 +21,7 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("AlterarFormaPagamento")]
-        public ActionResult<MensagemViewModel> AlterarFormaPagamento(int FaturamentoId, byte NovaFormaPagamentoId, int UsuarioId)
+        public ActionResult<MensagemViewModel> AlterarFormaPagamento(int IdentificadorFaturamento, byte IdentificadorNovaFormaPagamento, int IdentificadorUsuario)
         {
             MensagemViewModel ResultView;
 
@@ -29,7 +29,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = _provider
                     .GetService<FaturamentoService>()
-                    .AlterarFormaPagamento(FaturamentoId, NovaFormaPagamentoId, UsuarioId);
+                    .AlterarFormaPagamento(IdentificadorFaturamento, IdentificadorNovaFormaPagamento, IdentificadorUsuario);
 
                 return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
             }
@@ -42,15 +42,15 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("GerarBoleto")]
-        public ActionResult<ImageViewModel> GerarBoleto(int FaturamentoId, int UsuarioId)
+        public ActionResult<ImageViewModelList> GerarBoleto(int IdentificadorFaturamento, int IdentificadorUsuario)
         {
-            ImageViewModel ResultView = new();
+            ImageViewModelList ResultView = new();
 
             try
             {
                 ResultView = _provider
                     .GetService<FaturamentoBoletoService>()
-                    .Create(FaturamentoId, UsuarioId);
+                    .Create(IdentificadorFaturamento, IdentificadorUsuario);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -63,15 +63,15 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("GerarGuiaPagamentoReboqueEstadia")]
-        public ActionResult<GerarPagamentoReboqueEstadiaViewModel> GerarGuiaPagamentoReboqueEstadia(int FaturamentoId, int UsuarioId)
+        public async Task<ActionResult<GerarPagamentoReboqueEstadiaViewModel>> GerarGuiaPagamentoReboqueEstadia(int IdentificadorFaturamento, int IdentificadorUsuario)
         {
             GerarPagamentoReboqueEstadiaViewModel ResultView = new();
 
             try
             {
-                ResultView = _provider
+                ResultView = await _provider
                     .GetService<FaturamentoGuiaPagamentoReboqueEstadiaService>()
-                    .GetGuiaPagamentoReboqueEstadia(FaturamentoId, UsuarioId);
+                    .GetGuiaPagamentoReboqueEstadia(IdentificadorFaturamento, IdentificadorUsuario);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -84,7 +84,7 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("GerarPixEstatico")]
-        public ActionResult<PixEstaticoGeradoViewModel> GerarPixEstatico(int FaturamentoId, int UsuarioId)
+        public ActionResult<PixEstaticoGeradoViewModel> GerarPixEstatico(int IdentificadorFaturamento, int IdentificadorUsuario)
         {
             PixEstaticoGeradoViewModel ResultView = new();
 
@@ -92,7 +92,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = _provider
                     .GetService<PixEstaticoService>()
-                    .Create(FaturamentoId, UsuarioId);
+                    .Create(IdentificadorFaturamento, IdentificadorUsuario);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -105,7 +105,7 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("GerarPixDinamico")]
-        public ActionResult<PixEstaticoGeradoViewModel> GerarPixDinamico(int FaturamentoId, int UsuarioId)
+        public ActionResult<PixEstaticoGeradoViewModel> GerarPixDinamico(int IdentificadorFaturamento, int IdentificadorUsuario)
         {
             PixEstaticoGeradoViewModel ResultView = new();
 
@@ -113,7 +113,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = _provider
                     .GetService<PixDinamicoService>()
-                    .Create(FaturamentoId, UsuarioId);
+                    .Create(IdentificadorFaturamento, IdentificadorUsuario);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -126,9 +126,9 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("ListarTipoMeioCobranca")]
-        public ActionResult<TipoMeioCobrancaViewModel> ListarTipoMeioCobranca()
+        public ActionResult<TipoMeioCobrancaViewModelList> ListarTipoMeioCobranca()
         {
-            TipoMeioCobrancaViewModel ResultView = new();
+            TipoMeioCobrancaViewModelList ResultView = new();
 
             try
             {
@@ -147,15 +147,15 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("SelecionarBoleto")]
-        public ActionResult<ImageViewModel> SelecionarBoleto(int FaturamentoId, int UsuarioId)
+        public ActionResult<ImageViewModelList> SelecionarBoleto(int IdentificadorFaturamento, int IdentificadorUsuario)
         {
-            ImageViewModel ResultView = new();
+            ImageViewModelList ResultView = new();
 
             try
             {
                 ResultView = _provider
                     .GetService<FaturamentoBoletoService>()
-                    .GetBoletoNaoCancelado(FaturamentoId, UsuarioId);
+                    .GetBoletoNaoCancelado(IdentificadorFaturamento, IdentificadorUsuario);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }

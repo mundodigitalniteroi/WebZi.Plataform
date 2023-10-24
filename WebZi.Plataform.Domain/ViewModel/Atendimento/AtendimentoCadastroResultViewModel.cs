@@ -2,7 +2,7 @@
 {
     public class AtendimentoCadastroResultViewModel
     {
-        public int AtendimentoId { get; set; }
+        public int IdentificadorAtendimento { get; set; }
 
         public MensagemViewModel Mensagem { get; set; } = new();
     }

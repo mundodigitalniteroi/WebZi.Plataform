@@ -4,13 +4,13 @@
     {
         public MensagemViewModel Mensagem { get; set; } = new();
 
-        public int CEPId { get; set; }
+        public int IdentificadorCEP { get; set; }
 
-        public int MunicipioId { get; set; }
+        public int IdentificadorMunicipio { get; set; }
 
-        public int? BairroId { get; set; }
+        public int? IdentificadorBairro { get; set; }
 
-        public byte? TipoLogradouroId { get; set; }
+        public byte? IdentificadorTipoLogradouro { get; set; }
 
         public string CEP { get; set; }
 

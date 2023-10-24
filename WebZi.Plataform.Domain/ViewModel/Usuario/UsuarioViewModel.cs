@@ -4,7 +4,7 @@
     {
         public MensagemViewModel Mensagem { get; set; } = new();
 
-        public int UsuarioId { get; set; }
+        public int IdentificadorUsuario { get; set; }
 
         public string Login { get; set; }
 

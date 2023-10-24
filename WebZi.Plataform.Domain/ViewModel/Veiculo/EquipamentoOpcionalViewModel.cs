@@ -2,7 +2,7 @@
 {
     public class EquipamentoOpcionalViewModel
     {
-        public decimal EquipamentoOpcionalId { get; set; }
+        public decimal IdentificadorEquipamentoOpcional { get; set; }
 
         public int? OrdemVistoria { get; set; } = 0;
 

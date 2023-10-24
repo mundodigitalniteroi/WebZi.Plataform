@@ -2,7 +2,7 @@
 {
     public class AgenciaBancariaViewModel
     {
-        public short AgenciaBancariaId { get; set; }
+        public short IdentificadorAgenciaBancaria { get; set; }
 
         public string CodigoAgencia { get; set; }
 

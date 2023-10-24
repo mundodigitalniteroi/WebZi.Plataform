@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Domain.Models.Faturamento;
@@ -9,15 +10,17 @@ namespace WebZi.Plataform.Data.Services.Faturamento
     public class TipoMeioCobrancaService
     {
         private readonly AppDbContext _context;
+        private readonly IMapper _mapper;
 
-        public TipoMeioCobrancaService(AppDbContext context)
+        public TipoMeioCobrancaService(AppDbContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
-        public TipoMeioCobrancaViewModel GetById(byte TipoMeioCobrancaId)
+        public TipoMeioCobrancaViewModelList GetById(byte TipoMeioCobrancaId)
         {
-            TipoMeioCobrancaViewModel ResultView = new();
+            TipoMeioCobrancaViewModelList ResultView = new();
 
             TipoMeioCobrancaModel result = _context.TipoMeioCobranca
                 .Where(w => w.TipoMeioCobrancaId == TipoMeioCobrancaId)
@@ -26,7 +29,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             if (result != null)
             {
-                ResultView.TiposMeiosCobrancas.Add(result);
+                ResultView.Listagem.Add(_mapper.Map<TipoMeioCobrancaViewModel>(result));
 
                 ResultView.Mensagem = MensagemViewHelper.GetOkFound();
             }
@@ -38,9 +41,9 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             return ResultView;
         }
 
-        public TipoMeioCobrancaViewModel List()
+        public TipoMeioCobrancaViewModelList List()
         {
-            TipoMeioCobrancaViewModel ResultView = new();
+            TipoMeioCobrancaViewModelList ResultView = new();
 
             List<TipoMeioCobrancaModel> result = _context.TipoMeioCobranca
                 .Where(w => w.FlagAtivo == "S")
@@ -49,9 +52,9 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             if (result?.Count > 0)
             {
-                ResultView.TiposMeiosCobrancas = result
+                ResultView.Listagem = _mapper.Map<List<TipoMeioCobrancaViewModel>>(result
                     .OrderBy(o => o.Descricao)
-                    .ToList();
+                    .ToList());
 
                 ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
             }
