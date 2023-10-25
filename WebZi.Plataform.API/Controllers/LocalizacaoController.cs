@@ -17,8 +17,14 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("SelecionarEnderecoCompleto")]
+        // TODO: [Authorize]
         public ActionResult<EnderecoViewModel> SelecionarEnderecoCompleto(string CEP)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             EnderecoViewModel ResultView = new();
 
             try

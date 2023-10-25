@@ -17,15 +17,21 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("Listar")]
+        // TODO: [Authorize]
         public async Task<ActionResult<EmpresaViewModelList>> Listar(string CNPJ, string Nome)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             EmpresaViewModelList ResultView = new();
 
             try
             {
                 ResultView = await _provider
                     .GetService<EmpresaService>()
-                    .List(CNPJ, Nome);
+                    .ListAsync(CNPJ, Nome);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }

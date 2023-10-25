@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 
 namespace WebZi.Plataform.CrossCutting.Number
 {
-    public abstract class NumberHelper
+    public static class NumberHelper
     {
         public static decimal GetPercentage(decimal value, decimal percentage)
         {

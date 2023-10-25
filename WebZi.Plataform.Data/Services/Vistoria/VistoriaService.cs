@@ -25,7 +25,7 @@ namespace WebZi.Plataform.Data.Services.Vistoria
             _mapper = mapper;
         }
 
-        public async Task<VistoriaStatusViewModelList> ListarStatusVistoria()
+        public async Task<VistoriaStatusViewModelList> ListarStatusVistoriaAsync()
         {
             VistoriaStatusViewModelList ResultView = new();
 
@@ -51,7 +51,7 @@ namespace WebZi.Plataform.Data.Services.Vistoria
             return ResultView;
         }
 
-        public async Task<VistoriaSituacaoChassiViewModelList> ListarSituacaoChassi()
+        public async Task<VistoriaSituacaoChassiViewModelList> ListarSituacaoChassiAsync()
         {
             VistoriaSituacaoChassiViewModelList ResultView = new();
 
@@ -77,7 +77,7 @@ namespace WebZi.Plataform.Data.Services.Vistoria
             return ResultView;
         }
 
-        public async Task<VistoriaTipoDirecaoViewModelList> ListarTipoDirecao()
+        public async Task<VistoriaTipoDirecaoViewModelList> ListarTipoDirecaoAsync()
         {
             VistoriaTipoDirecaoViewModelList ResultView = new();
 
@@ -104,7 +104,7 @@ namespace WebZi.Plataform.Data.Services.Vistoria
             return ResultView;
         }
 
-        public async Task<VistoriaEstadoGeralVeiculoViewModelList> ListarEstadoGeralVeiculo()
+        public async Task<VistoriaEstadoGeralVeiculoViewModelList> ListarEstadoGeralVeiculoAsync()
         {
             VistoriaEstadoGeralVeiculoViewModelList ResultView = new();
 

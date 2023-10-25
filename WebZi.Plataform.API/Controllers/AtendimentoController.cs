@@ -20,16 +20,22 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpPost("Cadastrar")]
+        // TODO: [Authorize]
         [IgnoreAntiforgeryToken]
-        public async Task<ActionResult<AtendimentoCadastroResultViewModel>> Cadastrar(AtendimentoCadastroInputViewModel Atendimento)
+        public async Task<ActionResult<AtendimentoCadastroResultViewModel>> Cadastrar([FromBody] AtendimentoCadastroInputViewModel Atendimento)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             AtendimentoCadastroResultViewModel ResultView = new();
 
             try
             {
                 ResultView.Mensagem = await _provider
                     .GetService<AtendimentoService>()
-                    .ValidarInformacoesParaCadastro(Atendimento);
+                    .ValidarInformacoesParaCadastroAsync(Atendimento);
 
                 if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
                 {
@@ -60,8 +66,14 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("ListarQualificacaoResponsavel")]
+        // TODO: [Authorize]
         public async Task<ActionResult<QualificacaoResponsavelViewModelList>> ListarQualificacaoResponsavel()
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             QualificacaoResponsavelViewModelList ResultView = new();
 
             try
@@ -81,15 +93,21 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("SelecionarPorIdentificador")]
+        // TODO: [Authorize]
         public async Task<ActionResult<AtendimentoViewModel>> SelecionarPorIdentificador(int IdentificadorAtendimento, int IdentificadorUsuario)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             AtendimentoViewModel ResultView = new();
 
             try
             {
                 ResultView = await _provider
                     .GetService<AtendimentoService>()
-                    .GetById(IdentificadorAtendimento, IdentificadorUsuario);
+                    .GetByIdAsync(IdentificadorAtendimento, IdentificadorUsuario);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -102,15 +120,21 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("SelecionarPorProcesso")]
+        // TODO: [Authorize]
         public async Task<ActionResult<AtendimentoViewModel>> SelecionarPorProcesso(string NumeroProcesso, string CodigoProduto, int IdentificadorCliente, int IdentificadorDeposito, int IdentificadorUsuario)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             AtendimentoViewModel ResultView = new();
 
             try
             {
                 ResultView = await _provider
                     .GetService<AtendimentoService>()
-                    .GetByProcesso(NumeroProcesso, CodigoProduto, IdentificadorCliente, IdentificadorDeposito, IdentificadorUsuario);
+                    .GetByProcessoAsync(NumeroProcesso, CodigoProduto, IdentificadorCliente, IdentificadorDeposito, IdentificadorUsuario);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -123,15 +147,21 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("SelecionarFotoResponsavel")]
+        // TODO: [Authorize]
         public async Task<ActionResult<ImageViewModelList>> SelecionarFotoResponsavel(int IdentificadorAtendimento, int IdentificadorUsuario)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             ImageViewModelList ResultView = new();
 
             try
             {
                 ResultView = await _provider
                     .GetService<AtendimentoService>()
-                    .GetResponsavelFoto(IdentificadorAtendimento, IdentificadorUsuario);
+                    .GetResponsavelFotoAsync(IdentificadorAtendimento, IdentificadorUsuario);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -145,15 +175,21 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpPost("ValidarInformacoesParaCadastro")]
         [IgnoreAntiforgeryToken]
-        public async Task<ActionResult<MensagemViewModel>> ValidarInformacoesParaCadastro(AtendimentoCadastroInputViewModel Atendimento)
+        // TODO: [Authorize]
+        public async Task<ActionResult<MensagemViewModel>> ValidarInformacoesParaCadastro([FromBody] AtendimentoCadastroInputViewModel Atendimento)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             MensagemViewModel ResultView;
 
             try
             {
                 ResultView = await _provider
                     .GetService<AtendimentoService>()
-                    .ValidarInformacoesParaCadastro(Atendimento);
+                    .ValidarInformacoesParaCadastroAsync(Atendimento);
 
                 return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
             }

@@ -26,16 +26,50 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpPost("CadastrarFotos")]
+        // TODO: [Authorize]
         [IgnoreAntiforgeryToken]
-        public ActionResult<MensagemViewModel> CadastrarFotos(GrvFotoViewModel Fotos)
+        public ActionResult<MensagemViewModel> CadastrarFotos([FromBody] GrvFotoViewModel Fotos)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             MensagemViewModel ResultView;
 
             try
             {
                 ResultView = _provider
                     .GetService<GrvService>()
-                    .SendFiles(Fotos);
+                    .CadastrarFotos(Fotos);
+
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+        }
+
+        [HttpDelete("ExcluirFotos")]
+        // TODO: [Authorize]
+        [IgnoreAntiforgeryToken]
+        public async Task<ActionResult<MensagemViewModel>> ExcluirFotos(int IdentificadorGrv, int IdentificadorUsuario, [FromBody] List<int> ListagemIdentificadorTabelaOrigem)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            MensagemViewModel ResultView;
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<GgvService>()
+                    .ExcluirFotosAsync(IdentificadorGrv, IdentificadorUsuario, ListagemIdentificadorTabelaOrigem);
 
                 return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
             }
@@ -48,15 +82,21 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("ListarDadosMestres")]
+        // TODO: [Authorize]
         public async Task<ActionResult<DadosMestresViewModel>> ListarDadosMestres(byte IdentificadorTipoVeiculo)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             DadosMestresViewModel ResultView;
 
             try
             {
                 ResultView = await _provider
                     .GetService<GgvService>()
-                    .ListarDadosMestres(IdentificadorTipoVeiculo);
+                    .ListarDadosMestresAsync(IdentificadorTipoVeiculo);
 
                 return StatusCode((int)HtmlStatusCodeEnum.Ok, ResultView);
             }
@@ -69,15 +109,21 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("ListarEquipamentoOpcional")]
+        // TODO: [Authorize]
         public async Task<ActionResult<EquipamentoOpcionalViewModelList>> ListarEquipamentoOpcional(byte IdentificadorTipoVeiculo)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             EquipamentoOpcionalViewModelList ResultView = new();
 
             try
             {
                 ResultView = await _provider
                     .GetService<VeiculoService>()
-                    .ListarEquipamentoOpcional(IdentificadorTipoVeiculo);
+                    .ListarEquipamentoOpcionalAsync(IdentificadorTipoVeiculo);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -90,15 +136,21 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("ListarFoto")]
+        // TODO: [Authorize]
         public async Task<ActionResult<ImageViewModelList>> ListarFoto(int IdentificadorGrv, int IdentificadorUsuario)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             ImageViewModelList ResultView = new();
 
             try
             {
                 ResultView = await _provider
                     .GetService<GgvService>()
-                    .ListarFotos(IdentificadorGrv, IdentificadorUsuario);
+                    .ListarFotosAsync(IdentificadorGrv, IdentificadorUsuario);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -111,15 +163,21 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("ListarEstadoGeralVeiculo")]
+        // TODO: [Authorize]
         public async Task<ActionResult<VistoriaEstadoGeralVeiculoViewModelList>> ListarEstadoGeralVeiculo()
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             VistoriaEstadoGeralVeiculoViewModelList ResultView = new();
 
             try
             {
                 ResultView = await _provider
                     .GetService<VistoriaService>()
-                    .ListarEstadoGeralVeiculo();
+                    .ListarEstadoGeralVeiculoAsync();
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -132,15 +190,21 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("ListarSituacaoChassi")]
+        // TODO: [Authorize]
         public async Task<ActionResult<VistoriaSituacaoChassiViewModelList>> ListarSituacaoChassi()
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             VistoriaSituacaoChassiViewModelList ResultView = new();
 
             try
             {
                 ResultView = await _provider
                     .GetService<VistoriaService>()
-                    .ListarSituacaoChassi();
+                    .ListarSituacaoChassiAsync();
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -153,15 +217,21 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("ListarStatusVistoria")]
+        // TODO: [Authorize]
         public async Task<ActionResult<VistoriaStatusViewModelList>> ListarStatusVistoria()
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             VistoriaStatusViewModelList ResultView = new();
 
             try
             {
                 ResultView = await _provider
                     .GetService<VistoriaService>()
-                    .ListarStatusVistoria();
+                    .ListarStatusVistoriaAsync();
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -174,15 +244,21 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("ListarTipoAvaria")]
+        // TODO: [Authorize]
         public async Task<ActionResult<TipoAvariaViewModelList>> ListarTipoAvaria()
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             TipoAvariaViewModelList ResultView = new();
 
             try
             {
                 ResultView = await _provider
                     .GetService<TipoAvariaService>()
-                    .ListarTipoAvaria();
+                    .ListarTipoAvariaAsync();
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -195,15 +271,21 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("ListarTipoDirecao")]
+        // TODO: [Authorize]
         public async Task<ActionResult<VistoriaTipoDirecaoViewModelList>> ListarTipoDirecao()
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             VistoriaTipoDirecaoViewModelList ResultView = new();
 
             try
             {
                 ResultView = await _provider
                     .GetService<VistoriaService>()
-                    .ListarTipoDirecao();
+                    .ListarTipoDirecaoAsync();
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }

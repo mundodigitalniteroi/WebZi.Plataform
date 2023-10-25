@@ -2,7 +2,7 @@
 
 namespace WebZi.Plataform.CrossCutting.Localizacao
 {
-    public abstract class LocalizacaoHelper
+    public static class LocalizacaoHelper
     {
         public static bool IsCEP(string cep)
         {

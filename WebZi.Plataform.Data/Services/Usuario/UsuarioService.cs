@@ -137,12 +137,12 @@ namespace WebZi.Plataform.Domain.Services.Usuario
             }
         }
 
-        public async Task<UsuarioViewModel> GetById(int UsuarioId)
+        public async Task<UsuarioViewModel> GetByIdAsync(int UsuarioId)
         {
             return await Get(UsuarioId, string.Empty);
         }
 
-        public async Task<UsuarioViewModel> GetByLogin(string Login, string Password = "")
+        public async Task<UsuarioViewModel> GetByLoginAsync(string Login, string Password = "")
         {
             return await Get(0, Login, Password);
         }

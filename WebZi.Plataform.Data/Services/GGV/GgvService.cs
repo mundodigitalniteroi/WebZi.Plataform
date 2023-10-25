@@ -30,64 +30,55 @@ namespace WebZi.Plataform.Data.Services.GGV
             _mapper = mapper;
         }
 
-        public async Task<DadosMestresViewModel> ListarDadosMestres(byte TipoVeiculoId)
+        public async Task<DadosMestresViewModel> ListarDadosMestresAsync(byte TipoVeiculoId)
         {
             VistoriaService VistoriaService = new(_context);
 
             DadosMestresViewModel DadosMestres = new()
             {
                 ListagemCorOstentada = await new SistemaService(_context, _mapper)
-                    .ListarCores(),
+                    .ListarCorAsync(),
 
                 ListagemEquipamento = await new VeiculoService(_context, _mapper)
-                    .ListarEquipamentoOpcional(TipoVeiculoId),
+                    .ListarEquipamentoOpcionalAsync(TipoVeiculoId),
 
                 ListagemEstadoGeralVeiculo = await VistoriaService
-                    .ListarEstadoGeralVeiculo(),
+                    .ListarEstadoGeralVeiculoAsync(),
 
                 ListagemSituacaoChassi = await VistoriaService
-                    .ListarSituacaoChassi(),
+                    .ListarSituacaoChassiAsync(),
 
                 ListagemStatusVistoria = await VistoriaService
-                    .ListarStatusVistoria(),
+                    .ListarStatusVistoriaAsync(),
 
                 ListagemTipoAvaria = await new TipoAvariaService(_context, _mapper)
-                    .ListarTipoAvaria(),
+                    .ListarTipoAvariaAsync(),
 
-                ListagemTipoDirecao = await VistoriaService 
-                    .ListarTipoDirecao()
+                ListagemTipoDirecao = await VistoriaService
+                    .ListarTipoDirecaoAsync()
             };
 
             return DadosMestres;
         }
-        
-        public MensagemViewModel SendFiles(GrvFotoViewModel Fotos)
+
+        public MensagemViewModel CadastrarFotos(GrvFotoViewModel Fotos)
         {
-            MensagemViewModel ResultView = new();
+            MensagemViewModel ResultView = new GrvService(_context)
+                .ValidarInputGrv(Fotos.IdentificadorGrv, Fotos.IdentificadorUsuario);
+
+            if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+            {
+                return ResultView;
+            }
 
             if (Fotos.Fotos.Count == 0)
             {
                 return MensagemViewHelper.GetBadRequest("Nenhuma imagem enviada para a API");
             }
 
-            GrvModel Grv = _context.Grv
-                .Include(x => x.StatusOperacao)
-                .Where(x => x.GrvId == Fotos.IdentificadorGrv)
-                .AsNoTracking()
-                .FirstOrDefault();
-
-            if (Grv == null)
-            {
-                return MensagemViewHelper.GetNotFound(MensagemPadraoEnum.NaoEncontradoGrv);
-            }
+            GrvModel Grv = GetGrv(Fotos.IdentificadorGrv);
             
-            ResultView = new GrvService(_context).ValidarInputGrv(Grv, Fotos.IdentificadorUsuario);
-
-            if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
-            {
-                return ResultView;
-            }
-            else if (!new[] { "V", "L", "U", "T", "R", "E", "B", "D", "1", "2", "3", "4" }.Contains(Grv.StatusOperacao.StatusOperacaoId))
+            if (!new[] { "V", "L", "U", "T", "R", "E", "B", "D", "1", "2", "3", "4" }.Contains(Grv.StatusOperacao.StatusOperacaoId))
             {
                 return MensagemViewHelper.GetBadRequest($"O Status da Operação deste GRV não permite o envio de Fotos. Status atual: {Grv.StatusOperacao.Descricao}");
             }
@@ -98,33 +89,15 @@ namespace WebZi.Plataform.Data.Services.GGV
             return MensagemViewHelper.GetOkCreate(Fotos.Fotos.Count);
         }
 
-        public async Task<ImageViewModelList> ListarFotos(int GrvId, int UsuarioId)
+        public async Task<ImageViewModelList> ListarFotosAsync(int GrvId, int UsuarioId)
         {
-            List<string> erros = new();
-
-            if (GrvId <= 0)
+            ImageViewModelList ResultView = new()
             {
-                erros.Add(MensagemPadraoEnum.IdentificadorGrvInvalido);
-            }
+                Mensagem = new GrvService(_context).ValidarInputGrv(GrvId, UsuarioId)
+            };
 
-            if (UsuarioId <= 0)
+            if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
             {
-                erros.Add(MensagemPadraoEnum.IdentificadorUsuarioInvalido);
-            }
-
-            ImageViewModelList ResultView = new();
-
-            if (erros.Count > 0)
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest(erros);
-
-                return ResultView;
-            }
-
-            if (!new UsuarioService(_context).IsUserActive(UsuarioId))
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetUnauthorized();
-
                 return ResultView;
             }
 
@@ -132,7 +105,7 @@ namespace WebZi.Plataform.Data.Services.GGV
                 .DownloadFiles("GGVFOTOSVEICCAD", GrvId);
         }
 
-        public MensagemViewModel ExcluirFotos(int GrvId, int UsuarioId, List<int> ListagemTabelaOrigemId)
+        public async Task<MensagemViewModel> ExcluirFotosAsync(int GrvId, int UsuarioId, List<int> ListagemTabelaOrigemId)
         {
             if (ListagemTabelaOrigemId.Count == 0)
             {
@@ -146,15 +119,22 @@ namespace WebZi.Plataform.Data.Services.GGV
                 return ResultView;
             }
 
-            List<BucketArquivoModel> BucketArquivos = _context.BucketArquivo
+            GrvModel Grv = await GetGrvAsync(GrvId);
+
+            if (!new[] { "E", "B", "D", "G", "L", "R", "T", "U", "V" }.Contains(Grv.StatusOperacaoId))
+            {
+                return MensagemViewHelper.GetBadRequest("O GRV está em um Status de Operação que impede a exclusão de Fotos");
+            }
+
+            List<BucketArquivoModel> BucketArquivos = await _context.BucketArquivo
                 .Include(x => x.BucketNomeTabelaOrigem)
                 .Where(x => x.TabelaOrigemId != GrvId
-                            && ListagemTabelaOrigemId.Contains(x.RepositorioArquivoId)
-                            && x.BucketNomeTabelaOrigem.Codigo == "GGVFOTOSVEICCAD")
+                         && ListagemTabelaOrigemId.Contains(x.RepositorioArquivoId)
+                         && x.BucketNomeTabelaOrigem.Codigo == "GGVFOTOSVEICCAD")
                 .AsNoTracking()
-                .ToList();
+                .ToListAsync();
 
-            if (BucketArquivos != null)
+            if (BucketArquivos?.Count > 0)
             {
                 List<string> erros = new()
                 {
@@ -165,12 +145,32 @@ namespace WebZi.Plataform.Data.Services.GGV
                 {
                     erros.Add(BucketArquivo.RepositorioArquivoId.ToString());
                 }
+
+                return MensagemViewHelper.GetBadRequest(erros);
             }
 
             new BucketArquivoService(_context)
                 .DeleteFiles("GGVFOTOSVEICCAD", ListagemTabelaOrigemId);
 
-            return MensagemViewHelper.GetOk("Foto(s) excluída(s) com sucesso");
+            return MensagemViewHelper.GetOkDelete(BucketArquivos.Count, "Foto(s) excluída(s) com sucesso");
+        }
+
+        private GrvModel GetGrv(int GrvId)
+        {
+            return _context.Grv
+                .Include(x => x.StatusOperacao)
+                .Where(x => x.GrvId == GrvId)
+                .AsNoTracking()
+                .FirstOrDefault();
+        }
+
+        private async Task<GrvModel> GetGrvAsync(int GrvId)
+        {
+            return await _context.Grv
+                .Include(x => x.StatusOperacao)
+                .Where(x => x.GrvId == GrvId)
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
         }
     }
 }

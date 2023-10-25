@@ -18,7 +18,7 @@ namespace WebZi.Plataform.Data.Services.GGV
             _mapper = mapper;
         }
 
-        public async Task<TipoAvariaViewModelList> ListarTipoAvaria()
+        public async Task<TipoAvariaViewModelList> ListarTipoAvariaAsync()
         {
             TipoAvariaViewModelList ResultView = new();
 

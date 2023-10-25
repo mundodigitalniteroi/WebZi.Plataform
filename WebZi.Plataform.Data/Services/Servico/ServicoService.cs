@@ -22,7 +22,7 @@ namespace WebZi.Plataform.Data.Services.Servico
             _mapper = mapper;
         }
 
-        public async Task<ReboqueViewModelList> GetReboqueById(int ReboqueId)
+        public async Task<ReboqueViewModelList> GetReboqueByIdAsync(int ReboqueId)
         {
             ReboqueViewModelList ResultView = new();
 
@@ -52,7 +52,7 @@ namespace WebZi.Plataform.Data.Services.Servico
             return ResultView;
         }
 
-        public async Task<ReboqueViewModelList> GetReboqueByPlaca(string Placa, int ClienteId, int DepositoId)
+        public async Task<ReboqueViewModelList> GetReboqueByPlacaAsync(string Placa, int ClienteId, int DepositoId)
         {
             List<string> erros = new();
 
@@ -127,7 +127,7 @@ namespace WebZi.Plataform.Data.Services.Servico
             return ResultView;
         }
 
-        public async Task<ReboqueViewModelList> ListarReboque(int ClienteId, int DepositoId)
+        public async Task<ReboqueViewModelList> ListarReboqueAsync(int ClienteId, int DepositoId)
         {
             List<string> erros = new();
 
@@ -195,7 +195,7 @@ namespace WebZi.Plataform.Data.Services.Servico
             return ResultView;
         }
 
-        public async Task<ReboquistaViewModelList> GetByReboquistaId(int ReboquistaId)
+        public async Task<ReboquistaViewModelList> GetByReboquistaIdAsync(int ReboquistaId)
         {
             ReboquistaViewModelList ResultView = new();
 
@@ -225,7 +225,7 @@ namespace WebZi.Plataform.Data.Services.Servico
             return ResultView;
         }
 
-        public async Task<ReboquistaViewModelList> ListarReboquista(int ClienteId, int DepositoId)
+        public async Task<ReboquistaViewModelList> ListarReboquistaAsync(int ClienteId, int DepositoId)
         {
             List<string> erros = new();
 

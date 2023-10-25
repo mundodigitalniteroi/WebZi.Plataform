@@ -19,7 +19,7 @@ namespace WebZi.Plataform.Data.Services.Veiculo
             _mapper = mapper;
         }
 
-        public async Task<EquipamentoOpcionalViewModelList> ListarEquipamentoOpcional(byte TipoVeiculoId)
+        public async Task<EquipamentoOpcionalViewModelList> ListarEquipamentoOpcionalAsync(byte TipoVeiculoId)
         {
             EquipamentoOpcionalViewModelList ResultView = new();
 
@@ -69,7 +69,7 @@ namespace WebZi.Plataform.Data.Services.Veiculo
             return ResultView;
         }
 
-        public async Task<MarcaModeloViewModelList> ListarMarcaModelo(string MarcaModelo)
+        public async Task<MarcaModeloViewModelList> ListarMarcaModeloAsync(string MarcaModelo)
         {
             MarcaModeloViewModelList ResultView = new();
 
@@ -101,7 +101,7 @@ namespace WebZi.Plataform.Data.Services.Veiculo
             return ResultView;
         }
 
-        public async Task<TipoVeiculoViewModelList> ListarTipoVeiculo()
+        public async Task<TipoVeiculoViewModelList> ListarTipoVeiculoAsync()
         {
             TipoVeiculoViewModelList ResultView = new();
 

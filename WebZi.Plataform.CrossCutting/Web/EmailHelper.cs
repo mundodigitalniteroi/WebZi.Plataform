@@ -2,7 +2,7 @@
 
 namespace WebZi.Plataform.CrossCutting.Web
 {
-    public abstract class EmailHelper
+    public static class EmailHelper
     {
         public static bool IsEmail(string email)
         {

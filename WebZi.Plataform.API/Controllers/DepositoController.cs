@@ -17,15 +17,21 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("Listar")]
+        // TODO: [Authorize]
         public async Task<ActionResult<DepositoViewModelList>> Listar(int IdentificadorUsuario)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             DepositoViewModelList ResultView = new();
 
             try
             {
                 ResultView = await _provider
                     .GetService<DepositoService>()
-                    .List(IdentificadorUsuario);
+                    .ListAsync(IdentificadorUsuario);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -38,8 +44,14 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("SelecionarDataHoraPeloIdentificador")]
+        // TODO: [Authorize]
         public ActionResult<DateTime> SelecionarDataHoraPeloIdentificador(int Identificador)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             if (Identificador <= 0)
             {
                 return BadRequest("Identificador do Depósito inválido");
@@ -62,15 +74,21 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("SelecionarPorIdentificador")]
+        // TODO: [Authorize]
         public async Task<ActionResult<DepositoViewModelList>> SelecionarPorIdentificador(int Identificador)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             DepositoViewModelList ResultView = new();
 
             try
             {
                 ResultView = await _provider
                     .GetService<DepositoService>()
-                    .GetById(Identificador);
+                    .GetByIdAsync(Identificador);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -83,15 +101,21 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("SelecionarPorNome")]
+        // TODO: [Authorize]
         public async Task<ActionResult<DepositoViewModelList>> SelecionarPorNome(string Nome)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             DepositoViewModelList ResultView = new();
 
             try
             {
                 ResultView = await _provider
                     .GetService<DepositoService>()
-                    .GetByName(Nome);
+                    .GetByNameAsync(Nome);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }

@@ -7,7 +7,7 @@ using System.Text;
 
 namespace WebZi.Plataform.CrossCutting.Web
 {
-    public abstract class HttpClientHelper
+    public static class HttpClientHelper
     {
         private static readonly HttpClient httpClient = new();
 
@@ -120,7 +120,7 @@ namespace WebZi.Plataform.CrossCutting.Web
             return Task.Run(async () => await DeleteBasicAuthAsync<T>(url, username, password, obj)).Result;
         }
 
-        private static async Task<T> DeleteBasicAuthAsync<T>(string url, string username, string password, object obj) where T : class
+        public static async Task<T> DeleteBasicAuthAsync<T>(string url, string username, string password, object obj) where T : class
         {
             InitializeHttpClient(url);
 

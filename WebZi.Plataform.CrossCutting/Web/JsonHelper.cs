@@ -2,7 +2,7 @@
 
 namespace WebZi.Plataform.CrossCutting.Web
 {
-    public abstract class JsonHelper
+    public static class JsonHelper
     {
         /// <summary>
         /// Convert an object to a JSON string

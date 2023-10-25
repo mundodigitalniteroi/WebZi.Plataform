@@ -1,6 +1,6 @@
 ﻿namespace WebZi.Plataform.CrossCutting.Date
 {
-    public abstract class HolidayHelper
+    public static class HolidayHelper
     {
         #region GET DOMINGO DE PÁSCOA
         /// <summary>

@@ -23,7 +23,7 @@ namespace WebZi.Plataform.Data.Services.Sistema
             _mapper = mapper;
         }
 
-        public async Task<CorViewModelList> ListarCores(string Cor = "")
+        public async Task<CorViewModelList> ListarCorAsync(string Cor = "")
         {
             List<CorModel> result = await _context.Cor
                 .Where(w => !string.IsNullOrWhiteSpace(Cor) ? w.Cor.Contains(Cor.ToUpper().Trim()) : true)

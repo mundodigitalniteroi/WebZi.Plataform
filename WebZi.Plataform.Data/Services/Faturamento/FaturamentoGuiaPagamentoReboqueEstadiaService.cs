@@ -33,7 +33,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             _mapper = mapper;
         }
 
-        public async Task<GerarPagamentoReboqueEstadiaViewModel> GetGuiaPagamentoReboqueEstadia(int FaturamentoId, int UsuarioId)
+        public async Task<GerarPagamentoReboqueEstadiaViewModel> GetGuiaPagamentoReboqueEstadiaAsync(int FaturamentoId, int UsuarioId)
         {
             GerarPagamentoReboqueEstadiaViewModel ResultView = new();
 

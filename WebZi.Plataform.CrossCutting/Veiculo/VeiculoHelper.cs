@@ -2,7 +2,7 @@
 
 namespace WebZi.Plataform.CrossCutting.Veiculo
 {
-    public abstract class VeiculoHelper
+    public static class VeiculoHelper
     {
         public static bool IsPlaca(string input)
         {

@@ -2,7 +2,7 @@
 
 namespace WebZi.Plataform.CrossCutting.Contacts
 {
-    public abstract class ContactHelper
+    public static class ContactHelper
     {
         public static bool IsTelephone(string telephone)
         {

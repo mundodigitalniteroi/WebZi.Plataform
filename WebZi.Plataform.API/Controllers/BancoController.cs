@@ -17,15 +17,21 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("Listar")]
+        // TODO: [Authorize]
         public async Task<ActionResult<BancoViewModelList>> Listar()
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             BancoViewModelList ResultView = new();
 
             try
             {
                 ResultView = await _provider
                     .GetService<BancoService>()
-                    .List();
+                    .ListAsync();
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -38,15 +44,21 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("ListarAgenciaBancaria")]
+        // TODO: [Authorize]
         public async Task<ActionResult<AgenciaBancariaViewModelList>> ListarAgenciaBancaria(short IdentificadorBanco)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             AgenciaBancariaViewModelList ResultView = new();
 
             try
             {
                 ResultView = await _provider
                     .GetService<AgenciaBancariaService>()
-                    .List(IdentificadorBanco);
+                    .ListAsync(IdentificadorBanco);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -59,15 +71,21 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("SelecionarPorIdentificador")]
+        // TODO: [Authorize]
         public async Task<ActionResult<BancoViewModelList>> SelecionarPorIdentificador(short IdentificadorBanco)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             BancoViewModelList ResultView = new();
 
             try
             {
                 ResultView = await _provider
                     .GetService<BancoService>()
-                    .GetById(IdentificadorBanco);
+                    .GetByIdAsync(IdentificadorBanco);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -80,15 +98,21 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("SelecionarPorNome")]
+        // TODO: [Authorize]
         public async Task<ActionResult<BancoViewModelList>> SelecionarPorNome(string Nome)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             BancoViewModelList ResultView = new();
 
             try
             {
                 ResultView = await _provider
                     .GetService<BancoService>()
-                    .GetByName(Nome);
+                    .GetByNameAsync(Nome);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }

@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 
 namespace WebZi.Plataform.CrossCutting.Documents
 {
-    public abstract class DocumentHelper
+    public static class DocumentHelper
     {
         public static bool IsCPF(string cpf)
         {

@@ -90,7 +90,7 @@ namespace WebZi.Plataform.Data.Services.Banco
             return ResultView;
         }
 
-        public async Task<AgenciaBancariaViewModelList> List(int BancoId)
+        public async Task<AgenciaBancariaViewModelList> ListAsync(int BancoId)
         {
             AgenciaBancariaViewModelList ResultView = new();
 

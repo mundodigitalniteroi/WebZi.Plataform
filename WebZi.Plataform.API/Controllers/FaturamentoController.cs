@@ -21,8 +21,14 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("AlterarFormaPagamento")]
+        // TODO: [Authorize]
         public ActionResult<MensagemViewModel> AlterarFormaPagamento(int IdentificadorFaturamento, byte IdentificadorNovaFormaPagamento, int IdentificadorUsuario)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             MensagemViewModel ResultView;
 
             try
@@ -42,8 +48,14 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("GerarBoleto")]
+        // TODO: [Authorize]
         public ActionResult<ImageViewModelList> GerarBoleto(int IdentificadorFaturamento, int IdentificadorUsuario)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             ImageViewModelList ResultView = new();
 
             try
@@ -63,15 +75,21 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("GerarGuiaPagamentoReboqueEstadia")]
+        // TODO: [Authorize]
         public async Task<ActionResult<GerarPagamentoReboqueEstadiaViewModel>> GerarGuiaPagamentoReboqueEstadia(int IdentificadorFaturamento, int IdentificadorUsuario)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             GerarPagamentoReboqueEstadiaViewModel ResultView = new();
 
             try
             {
                 ResultView = await _provider
                     .GetService<FaturamentoGuiaPagamentoReboqueEstadiaService>()
-                    .GetGuiaPagamentoReboqueEstadia(IdentificadorFaturamento, IdentificadorUsuario);
+                    .GetGuiaPagamentoReboqueEstadiaAsync(IdentificadorFaturamento, IdentificadorUsuario);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -84,8 +102,14 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("GerarPixEstatico")]
+        // TODO: [Authorize]
         public ActionResult<PixEstaticoGeradoViewModel> GerarPixEstatico(int IdentificadorFaturamento, int IdentificadorUsuario)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             PixEstaticoGeradoViewModel ResultView = new();
 
             try
@@ -105,8 +129,14 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("GerarPixDinamico")]
+        // TODO: [Authorize]
         public ActionResult<PixEstaticoGeradoViewModel> GerarPixDinamico(int IdentificadorFaturamento, int IdentificadorUsuario)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             PixEstaticoGeradoViewModel ResultView = new();
 
             try
@@ -126,8 +156,14 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("ListarTipoMeioCobranca")]
+        // TODO: [Authorize]
         public ActionResult<TipoMeioCobrancaViewModelList> ListarTipoMeioCobranca()
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             TipoMeioCobrancaViewModelList ResultView = new();
 
             try
@@ -147,8 +183,14 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("SelecionarBoleto")]
+        // TODO: [Authorize]
         public ActionResult<ImageViewModelList> SelecionarBoleto(int IdentificadorFaturamento, int IdentificadorUsuario)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             ImageViewModelList ResultView = new();
 
             try

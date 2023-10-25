@@ -1,9 +1,10 @@
-﻿using System.Text;
+﻿using System.Globalization;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace WebZi.Plataform.CrossCutting.Strings
 {
-    public abstract class StringHelper
+    public static class StringHelper
     {
         public static string Left(string input, int lengh)
         {
@@ -25,14 +26,6 @@ namespace WebZi.Plataform.CrossCutting.Strings
             return input.Substring(index);
         }
 
-        /// <summary>
-        /// Remove acentuações
-        /// </summary>
-        public static string Normalize(string input)
-        {
-            return Regex.Replace(input.Normalize(NormalizationForm.FormD), @"\p{Mn}", string.Empty);
-        }
-
         public static string AddStringLeft(string input, char Caracter, int lenght)
         {
             if (input.Length >= lenght)
@@ -42,8 +35,17 @@ namespace WebZi.Plataform.CrossCutting.Strings
 
             return input.PadLeft(lenght, Caracter);
         }
-        
-        public static string TitleCase(string input)
+
+        #region Extension Methods
+        /// <summary>
+        /// Remove acentuações
+        /// </summary>
+        public static string Normalize(this string input)
+        {
+            return Regex.Replace(input.Normalize(NormalizationForm.FormD), @"\p{Mn}", string.Empty);
+        }
+
+        public static string TitleCase(this string input)
         {
             if (input == null)
             {
@@ -65,7 +67,7 @@ namespace WebZi.Plataform.CrossCutting.Strings
 
                 if (words[i].Length > 1)
                 {
-                    rest = words[i].Substring(1).ToLower();
+                    rest = words[i][1..].ToLower(CultureInfo.CurrentCulture);
                 }
 
                 words[i] = firstChar + rest;
@@ -73,5 +75,16 @@ namespace WebZi.Plataform.CrossCutting.Strings
 
             return string.Join(" ", words);
         }
+
+        public static string ToLowerTrim(this string input)
+        {
+            return input.ToLower().Trim();
+        }
+
+        public static string ToUpperTrim(this string input)
+        {
+            return input.ToUpper().Trim();
+        }
+        #endregion Extension Methods
     }
 }

@@ -17,15 +17,21 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("SelecionarPorIdentificador")]
+        // TODO: [Authorize]
         public async Task<ActionResult<UsuarioViewModel>> SelecionarPorIdentificador(int IdentificadorUsuario)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             UsuarioViewModel ResultView = new();
 
             try
             {
                 ResultView = await _provider
                     .GetService<UsuarioService>()
-                    .GetById(IdentificadorUsuario);
+                    .GetByIdAsync(IdentificadorUsuario);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -38,15 +44,21 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("SelecionarPorLogin")]
+        // TODO: [Authorize]
         public async Task<ActionResult<UsuarioViewModel>> SelecionarPorLogin(string Login)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             UsuarioViewModel ResultView = new();
 
             try
             {
                 ResultView = await _provider
                     .GetService<UsuarioService>()
-                    .GetByLogin(Login);
+                    .GetByLoginAsync(Login);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -59,15 +71,21 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("SelecionarPorLoginSenha")]
+        // TODO: [Authorize]
         public async Task<ActionResult<UsuarioViewModel>> SelecionarPorLoginSenha(string Login, string Senha)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             UsuarioViewModel ResultView = new();
 
             try
             {
                 ResultView = await _provider
                     .GetService<UsuarioService>()
-                    .GetByLogin(Login, Senha);
+                    .GetByLoginAsync(Login, Senha);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }

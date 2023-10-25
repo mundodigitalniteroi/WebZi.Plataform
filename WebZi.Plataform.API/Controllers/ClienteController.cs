@@ -1,8 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using WebZi.Plataform.Data.Helper;
-using WebZi.Plataform.Data.Services.Banco;
 using WebZi.Plataform.Data.Services.Cliente;
-using WebZi.Plataform.Domain.ViewModel.Banco;
 using WebZi.Plataform.Domain.ViewModel.Cliente;
 
 namespace WebZi.Plataform.API.Controllers
@@ -19,15 +17,21 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("Listar")]
+        // TODO: [Authorize]
         public async Task<ActionResult<ClienteViewModelList>> Listar(int IdentificadorUsuario)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             ClienteViewModelList ResultView = new();
 
             try
             {
                 ResultView = await _provider
                     .GetService<ClienteService>()
-                    .List(IdentificadorUsuario);
+                    .ListAsync(IdentificadorUsuario);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -40,15 +44,21 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("SelecionarPorIdentificador")]
+        // TODO: [Authorize]
         public async Task<ActionResult<ClienteViewModelList>> SelecionarPorIdentificador(int IdentificadorCliente)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             ClienteViewModelList ResultView = new();
 
             try
             {
                 ResultView = await _provider
                     .GetService<ClienteService>()
-                    .GetById(IdentificadorCliente);
+                    .GetByIdAsync(IdentificadorCliente);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -61,15 +71,21 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("SelecionarPorNome")]
+        // TODO: [Authorize]
         public async Task<ActionResult<ClienteViewModelList>> SelecionarPorNome(string Nome)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             ClienteViewModelList ResultView = new();
 
             try
             {
                 ResultView = await _provider
                     .GetService<ClienteService>()
-                    .GetByName(Nome);
+                    .GetByNameAsync(Nome);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }

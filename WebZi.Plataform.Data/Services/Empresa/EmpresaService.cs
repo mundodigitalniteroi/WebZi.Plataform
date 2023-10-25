@@ -19,7 +19,7 @@ namespace WebZi.Plataform.Data.Services.Empresa
             _mapper = mapper;
         }
 
-        public async Task<EmpresaViewModelList> List(string CNPJ, string Nome)
+        public async Task<EmpresaViewModelList> ListAsync(string CNPJ, string Nome)
         {
             List<string> erros = new();
 

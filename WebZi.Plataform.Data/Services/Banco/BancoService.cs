@@ -19,7 +19,7 @@ namespace WebZi.Plataform.Data.Services.Banco
             _mapper = mapper;
         }
 
-        public async Task<BancoViewModelList> GetById(short BancoId)
+        public async Task<BancoViewModelList> GetByIdAsync(short BancoId)
         {
             BancoViewModelList ResultView = new();
 
@@ -49,7 +49,7 @@ namespace WebZi.Plataform.Data.Services.Banco
             return ResultView;
         }
 
-        public async Task<BancoViewModelList> GetByName(string Name)
+        public async Task<BancoViewModelList> GetByNameAsync(string Name)
         {
             BancoViewModelList ResultView = new();
 
@@ -81,7 +81,7 @@ namespace WebZi.Plataform.Data.Services.Banco
             return ResultView;
         }
 
-        public async Task<BancoViewModelList> List()
+        public async Task<BancoViewModelList> ListAsync()
         {
             BancoViewModelList ResultView = new();
 

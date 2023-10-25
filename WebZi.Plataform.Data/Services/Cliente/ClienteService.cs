@@ -21,7 +21,7 @@ namespace WebZi.Plataform.Data.Services.Cliente
             _mapper = mapper;
         }
 
-        public async Task<ClienteViewModelList> GetById(int ClienteId)
+        public async Task<ClienteViewModelList> GetByIdAsync(int ClienteId)
         {
             ClienteViewModelList ResultView = new();
 
@@ -51,7 +51,7 @@ namespace WebZi.Plataform.Data.Services.Cliente
             return ResultView;
         }
         
-        public async Task<ClienteViewModelList> GetByName(string Name)
+        public async Task<ClienteViewModelList> GetByNameAsync(string Name)
         {
             ClienteViewModelList ResultView = new();
 
@@ -81,7 +81,7 @@ namespace WebZi.Plataform.Data.Services.Cliente
             return ResultView;
         }
 
-        public async Task<ClienteViewModelList> List(int UsuarioId)
+        public async Task<ClienteViewModelList> ListAsync(int UsuarioId)
         {
             ClienteViewModelList ResultView = new();
 
@@ -116,7 +116,7 @@ namespace WebZi.Plataform.Data.Services.Cliente
         {
             ClienteSimplificadoViewModelList ResultView = new();
 
-            ClienteViewModelList result = await List(UsuarioId);
+            ClienteViewModelList result = await ListAsync(UsuarioId);
 
             if (result.Listagem?.Count > 0)
             {

@@ -17,12 +17,18 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpPost("ValidarInformacoesParaPagamento")]
+        // TODO: [Authorize]
         [IgnoreAntiforgeryToken]
-        public async Task<ActionResult<MensagemViewModel>> ValidarInformacoesParaPagamento(PagamentoViewModel Atendimento)
+        public async Task<ActionResult<MensagemViewModel>> ValidarInformacoesParaPagamento([FromBody] PagamentoViewModel Atendimento)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             MensagemViewModel mensagem = await _provider
                 .GetService<AtendimentoService>()
-                .ValidarInformacoesParaPagamento(Atendimento);
+                .ValidarInformacoesParaPagamentoAsync(Atendimento);
 
             if (mensagem.Erros.Count == 0)
             {

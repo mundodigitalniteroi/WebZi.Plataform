@@ -2,8 +2,10 @@
 
 namespace WebZi.Plataform.Domain.ViewModel.GRV
 {
-    public class GrvCadastroViewModel
+    public class GrvPersistenciaViewModel
     {
+        public int IdentificadorGrv { get; set; }
+
         public int IdentificadorCliente { get; set; }
 
         public int IdentificadorDeposito { get; set; }

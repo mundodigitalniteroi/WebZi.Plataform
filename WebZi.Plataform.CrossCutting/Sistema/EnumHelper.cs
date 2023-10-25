@@ -2,7 +2,7 @@
 
 namespace WebZi.Plataform.CrossCutting.Sistema
 {
-    public abstract class EnumHelper
+    public static class EnumHelper
     {
         public class StringValue : Attribute
         {

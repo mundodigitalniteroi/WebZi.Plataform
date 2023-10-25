@@ -26,7 +26,7 @@ namespace WebZi.Plataform.Data.Services.Deposito
             _mapper = mapper;
         }
 
-        public async Task<DepositoViewModelList> GetById(int DepositoId)
+        public async Task<DepositoViewModelList> GetByIdAsync(int DepositoId)
         {
             DepositoViewModelList ResultView = new();
 
@@ -56,7 +56,7 @@ namespace WebZi.Plataform.Data.Services.Deposito
             return ResultView;
         }
 
-        public async Task<DepositoViewModelList> GetByName(string Name)
+        public async Task<DepositoViewModelList> GetByNameAsync(string Name)
         {
             DepositoViewModelList ResultView = new();
 
@@ -146,7 +146,7 @@ namespace WebZi.Plataform.Data.Services.Deposito
             return DataHoraAtual;
         }
 
-        public async Task<DepositoViewModelList> List(int UsuarioId)
+        public async Task<DepositoViewModelList> ListAsync(int UsuarioId)
         {
             DepositoViewModelList ResultView = new();
 
