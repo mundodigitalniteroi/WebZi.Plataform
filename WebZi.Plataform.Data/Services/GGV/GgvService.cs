@@ -15,7 +15,7 @@ using WebZi.Plataform.Domain.Services.Usuario;
 using WebZi.Plataform.Domain.ViewModel;
 using WebZi.Plataform.Domain.ViewModel.Generic;
 using WebZi.Plataform.Domain.ViewModel.GGV;
-using WebZi.Plataform.Domain.ViewModel.GRV;
+using WebZi.Plataform.Domain.ViewModel.GRV.Cadastro;
 
 namespace WebZi.Plataform.Data.Services.GGV
 {
@@ -61,7 +61,7 @@ namespace WebZi.Plataform.Data.Services.GGV
             return DadosMestres;
         }
 
-        public MensagemViewModel CadastrarFotos(GrvFotoViewModel Fotos)
+        public MensagemViewModel CadastrarFotos(CadastroFotoVeiculoViewModel Fotos)
         {
             MensagemViewModel ResultView = new GrvService(_context)
                 .ValidarInputGrv(Fotos.IdentificadorGrv, Fotos.IdentificadorUsuario);
@@ -76,7 +76,7 @@ namespace WebZi.Plataform.Data.Services.GGV
                 return MensagemViewHelper.GetBadRequest("Nenhuma imagem enviada para a API");
             }
 
-            GrvModel Grv = GetGrv(Fotos.IdentificadorGrv);
+            GrvModel Grv = new GrvService(_context).GetGrv(Fotos.IdentificadorGrv);
             
             if (!new[] { "V", "L", "U", "T", "R", "E", "B", "D", "1", "2", "3", "4" }.Contains(Grv.StatusOperacao.StatusOperacaoId))
             {
@@ -119,11 +119,11 @@ namespace WebZi.Plataform.Data.Services.GGV
                 return ResultView;
             }
 
-            GrvModel Grv = await GetGrvAsync(GrvId);
+            GrvModel Grv = await new GrvService(_context).GetGrvAsync(GrvId);
 
             if (!new[] { "E", "B", "D", "G", "L", "R", "T", "U", "V" }.Contains(Grv.StatusOperacaoId))
             {
-                return MensagemViewHelper.GetBadRequest("O GRV está em um Status de Operação que impede a exclusão de Fotos");
+                return MensagemViewHelper.GetBadRequest($"O GRV está em um Status de Operação que impede a exclusão de Fotos. Status atual: {Grv.StatusOperacao.Descricao}");
             }
 
             List<BucketArquivoModel> BucketArquivos = await _context.BucketArquivo
@@ -153,24 +153,6 @@ namespace WebZi.Plataform.Data.Services.GGV
                 .DeleteFiles("GGVFOTOSVEICCAD", ListagemTabelaOrigemId);
 
             return MensagemViewHelper.GetOkDelete(BucketArquivos.Count, "Foto(s) excluída(s) com sucesso");
-        }
-
-        private GrvModel GetGrv(int GrvId)
-        {
-            return _context.Grv
-                .Include(x => x.StatusOperacao)
-                .Where(x => x.GrvId == GrvId)
-                .AsNoTracking()
-                .FirstOrDefault();
-        }
-
-        private async Task<GrvModel> GetGrvAsync(int GrvId)
-        {
-            return await _context.Grv
-                .Include(x => x.StatusOperacao)
-                .Where(x => x.GrvId == GrvId)
-                .AsNoTracking()
-                .FirstOrDefaultAsync();
         }
     }
 }

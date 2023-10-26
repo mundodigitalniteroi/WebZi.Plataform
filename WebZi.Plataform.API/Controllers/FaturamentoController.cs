@@ -101,33 +101,6 @@ namespace WebZi.Plataform.API.Controllers
             }
         }
 
-        [HttpGet("GerarPixEstatico")]
-        // TODO: [Authorize]
-        public ActionResult<PixEstaticoGeradoViewModel> GerarPixEstatico(int IdentificadorFaturamento, int IdentificadorUsuario)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            PixEstaticoGeradoViewModel ResultView = new();
-
-            try
-            {
-                ResultView = _provider
-                    .GetService<PixEstaticoService>()
-                    .Create(IdentificadorFaturamento, IdentificadorUsuario);
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-            catch (Exception ex)
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-        }
-
         [HttpGet("GerarPixDinamico")]
         // TODO: [Authorize]
         public ActionResult<PixEstaticoGeradoViewModel> GerarPixDinamico(int IdentificadorFaturamento, int IdentificadorUsuario)
@@ -155,22 +128,22 @@ namespace WebZi.Plataform.API.Controllers
             }
         }
 
-        [HttpGet("ListarTipoMeioCobranca")]
+        [HttpGet("GerarPixEstatico")]
         // TODO: [Authorize]
-        public ActionResult<TipoMeioCobrancaViewModelList> ListarTipoMeioCobranca()
+        public ActionResult<PixEstaticoGeradoViewModel> GerarPixEstatico(int IdentificadorFaturamento, int IdentificadorUsuario)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            TipoMeioCobrancaViewModelList ResultView = new();
+            PixEstaticoGeradoViewModel ResultView = new();
 
             try
             {
                 ResultView = _provider
-                    .GetService<TipoMeioCobrancaService>()
-                    .List();
+                    .GetService<PixEstaticoService>()
+                    .Create(IdentificadorFaturamento, IdentificadorUsuario);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }

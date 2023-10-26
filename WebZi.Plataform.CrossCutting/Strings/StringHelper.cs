@@ -42,6 +42,11 @@ namespace WebZi.Plataform.CrossCutting.Strings
         /// </summary>
         public static string Normalize(this string input)
         {
+            if (input == null)
+            {
+                return input;
+            }
+
             return Regex.Replace(input.Normalize(NormalizationForm.FormD), @"\p{Mn}", string.Empty);
         }
 
@@ -78,12 +83,12 @@ namespace WebZi.Plataform.CrossCutting.Strings
 
         public static string ToLowerTrim(this string input)
         {
-            return input.ToLower().Trim();
+            return input != null ? input.ToLower().Trim() : null;
         }
 
         public static string ToUpperTrim(this string input)
         {
-            return input.ToUpper().Trim();
+            return input != null ? input.ToUpper().Trim() : null;
         }
         #endregion Extension Methods
     }

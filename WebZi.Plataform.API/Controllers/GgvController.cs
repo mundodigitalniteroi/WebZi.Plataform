@@ -8,7 +8,7 @@ using WebZi.Plataform.Domain.Services.GRV;
 using WebZi.Plataform.Domain.ViewModel;
 using WebZi.Plataform.Domain.ViewModel.Generic;
 using WebZi.Plataform.Domain.ViewModel.GGV;
-using WebZi.Plataform.Domain.ViewModel.GRV;
+using WebZi.Plataform.Domain.ViewModel.GRV.Cadastro;
 using WebZi.Plataform.Domain.ViewModel.Veiculo;
 using WebZi.Plataform.Domain.ViewModel.Vistoria;
 
@@ -28,7 +28,7 @@ namespace WebZi.Plataform.API.Controllers
         [HttpPost("CadastrarFotos")]
         // TODO: [Authorize]
         [IgnoreAntiforgeryToken]
-        public ActionResult<MensagemViewModel> CadastrarFotos([FromBody] GrvFotoViewModel Fotos)
+        public ActionResult<MensagemViewModel> CadastrarFotos([FromBody] CadastroFotoVeiculoViewModel Fotos)
         {
             if (!ModelState.IsValid)
             {
@@ -108,36 +108,9 @@ namespace WebZi.Plataform.API.Controllers
             }
         }
 
-        [HttpGet("ListarEquipamentoOpcional")]
+        [HttpGet("ListarFotos")]
         // TODO: [Authorize]
-        public async Task<ActionResult<EquipamentoOpcionalViewModelList>> ListarEquipamentoOpcional(byte IdentificadorTipoVeiculo)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            EquipamentoOpcionalViewModelList ResultView = new();
-
-            try
-            {
-                ResultView = await _provider
-                    .GetService<VeiculoService>()
-                    .ListarEquipamentoOpcionalAsync(IdentificadorTipoVeiculo);
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-            catch (Exception ex)
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-        }
-
-        [HttpGet("ListarFoto")]
-        // TODO: [Authorize]
-        public async Task<ActionResult<ImageViewModelList>> ListarFoto(int IdentificadorGrv, int IdentificadorUsuario)
+        public async Task<ActionResult<ImageViewModelList>> ListarFotos(int IdentificadorGrv, int IdentificadorUsuario)
         {
             if (!ModelState.IsValid)
             {
@@ -151,141 +124,6 @@ namespace WebZi.Plataform.API.Controllers
                 ResultView = await _provider
                     .GetService<GgvService>()
                     .ListarFotosAsync(IdentificadorGrv, IdentificadorUsuario);
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-            catch (Exception ex)
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-        }
-
-        [HttpGet("ListarEstadoGeralVeiculo")]
-        // TODO: [Authorize]
-        public async Task<ActionResult<VistoriaEstadoGeralVeiculoViewModelList>> ListarEstadoGeralVeiculo()
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            VistoriaEstadoGeralVeiculoViewModelList ResultView = new();
-
-            try
-            {
-                ResultView = await _provider
-                    .GetService<VistoriaService>()
-                    .ListarEstadoGeralVeiculoAsync();
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-            catch (Exception ex)
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-        }
-
-        [HttpGet("ListarSituacaoChassi")]
-        // TODO: [Authorize]
-        public async Task<ActionResult<VistoriaSituacaoChassiViewModelList>> ListarSituacaoChassi()
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            VistoriaSituacaoChassiViewModelList ResultView = new();
-
-            try
-            {
-                ResultView = await _provider
-                    .GetService<VistoriaService>()
-                    .ListarSituacaoChassiAsync();
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-            catch (Exception ex)
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-        }
-
-        [HttpGet("ListarStatusVistoria")]
-        // TODO: [Authorize]
-        public async Task<ActionResult<VistoriaStatusViewModelList>> ListarStatusVistoria()
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            VistoriaStatusViewModelList ResultView = new();
-
-            try
-            {
-                ResultView = await _provider
-                    .GetService<VistoriaService>()
-                    .ListarStatusVistoriaAsync();
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-            catch (Exception ex)
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-        }
-
-        [HttpGet("ListarTipoAvaria")]
-        // TODO: [Authorize]
-        public async Task<ActionResult<TipoAvariaViewModelList>> ListarTipoAvaria()
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            TipoAvariaViewModelList ResultView = new();
-
-            try
-            {
-                ResultView = await _provider
-                    .GetService<TipoAvariaService>()
-                    .ListarTipoAvariaAsync();
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-            catch (Exception ex)
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-        }
-
-        [HttpGet("ListarTipoDirecao")]
-        // TODO: [Authorize]
-        public async Task<ActionResult<VistoriaTipoDirecaoViewModelList>> ListarTipoDirecao()
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            VistoriaTipoDirecaoViewModelList ResultView = new();
-
-            try
-            {
-                ResultView = await _provider
-                    .GetService<VistoriaService>()
-                    .ListarTipoDirecaoAsync();
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }

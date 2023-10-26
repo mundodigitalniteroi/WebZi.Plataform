@@ -94,6 +94,73 @@ namespace WebZi.Plataform.Data.Services.Bucket
             }
         }
 
+        public void SendFiles(string CodigoTabelaOrigem, int UsuarioCadastroId, List<BucketListaCadastroModel> Files, string TipoCadastro = "")
+        {
+            ConfiguracaoModel Configuracao = _context.Configuracao
+                .AsNoTracking()
+                .FirstOrDefault();
+
+            BucketNomeTabelaOrigemModel BucketNomeTabelaOrigem = _context.BucketNomeTabelaOrigem
+                .Where(x => x.Codigo == CodigoTabelaOrigem)
+                .AsNoTracking()
+                .FirstOrDefault();
+
+            string NomeArquivo = string.Empty;
+
+            List<BucketArquivoEnvioModel> ArquivosEnvio = new();
+
+            foreach (BucketListaCadastroModel File in Files)
+            {
+                NomeArquivo = Guid.NewGuid().ToString() + ".jpg";
+
+                ArquivosEnvio.Add(new()
+                {
+                    NomeBucket = Configuracao.RepositorioArquivoNomeBucket,
+
+                    NomeArquivo = NomeArquivo,
+
+                    ArquivoBase64 = Convert.ToBase64String(File.File),
+
+                    NomePasta = BucketNomeTabelaOrigem.DiretorioRemoto,
+
+                    NomeArquivoCompleto = NomeArquivo,
+
+                    NomeArquivoOriginal = NomeArquivo,
+                });
+
+                List<BucketArquivoRetornoModel> BucketArquivosRetorno = HttpClientHelper.PostBasicAuth<List<BucketArquivoRetornoModel>>
+                (
+                    url: Configuracao.RepositorioArquivoUrl,
+                    username: Configuracao.RepositorioArquivoUsername,
+                    password: Configuracao.RepositorioArquivoPassword,
+                    obj: ArquivosEnvio
+                ).ToList();
+
+                BucketArquivoModel BucketArquivo = new()
+                {
+                    NomeTabelaOrigemId = BucketNomeTabelaOrigem.NomeTabelaOrigemId,
+
+                    TabelaOrigemId = File.Id,
+
+                    UsuarioCadastroId = UsuarioCadastroId,
+
+                    NomeArquivo = BucketArquivosRetorno[0].NomeArquivo,
+
+                    TamanhoBytes = BucketArquivosRetorno[0].TamanhoBytes,
+
+                    Url = BucketArquivosRetorno[0].Url,
+
+                    PermissaoAcesso = BucketArquivosRetorno[0].PermissaoAcesso,
+
+                    TipoCadastro = TipoCadastro
+                };
+
+                _context.BucketArquivo.Add(BucketArquivo);
+
+                _context.SaveChanges();
+            }
+        }
+
         public async Task<ImageViewModelList> DownloadFiles(string CodigoTabelaOrigem, int TabelaOrigemId)
         {
             List<string> erros = new();

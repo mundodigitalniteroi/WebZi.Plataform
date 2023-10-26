@@ -7,6 +7,7 @@ using WebZi.Plataform.Domain.Models.Deposito;
 using WebZi.Plataform.Domain.Models.Empresa;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.GRV;
+using WebZi.Plataform.Domain.Models.Pessoa.Documento;
 using WebZi.Plataform.Domain.Models.Servico;
 using WebZi.Plataform.Domain.Models.Sistema;
 using WebZi.Plataform.Domain.Models.Usuario;
@@ -21,6 +22,7 @@ using WebZi.Plataform.Domain.ViewModel.GRV;
 using WebZi.Plataform.Domain.ViewModel.GRV.Cadastro;
 using WebZi.Plataform.Domain.ViewModel.GRV.Pesquisa;
 using WebZi.Plataform.Domain.ViewModel.Localizacao;
+using WebZi.Plataform.Domain.ViewModel.Pessoa;
 using WebZi.Plataform.Domain.ViewModel.Servico;
 using WebZi.Plataform.Domain.ViewModel.Sistema;
 using WebZi.Plataform.Domain.ViewModel.Usuario;
@@ -130,6 +132,12 @@ namespace WebZi.Plataform.Data.Services.AutoMapper
             CreateMap<TipoAvariaModel, TipoAvariaViewModel>()
                 .ForMember(dest => dest.IdentificadorTipoAvaria, opt => opt.MapFrom(src => src.TipoAvariaId));
 
+            CreateMap<TipoDocumentoIdentificacaoModel, TipoDocumentoIdentificacaoViewModel>()
+                .ForMember(dest => dest.IdentificadorTipoDocumentoIdentificacao, opt => opt.MapFrom(src => src.TipoDocumentoIdentificacaoId));
+
+            CreateMap<TipoDocumentoIdentificacaoModel, TipoDocumentoIdentificacaoSimplificadoViewModel>()
+                .ForMember(dest => dest.IdentificadorTipoDocumentoIdentificacao, opt => opt.MapFrom(src => src.TipoDocumentoIdentificacaoId));
+
             CreateMap<TipoMeioCobrancaModel, TipoMeioCobrancaViewModel>()
                 .ForMember(dest => dest.IdentificadorTipoMeioCobranca, opt => opt.MapFrom(src => src.TipoMeioCobrancaId));
 
@@ -172,11 +180,12 @@ namespace WebZi.Plataform.Data.Services.AutoMapper
                 .ForMember(dest => dest.FlagAtivo, opt => opt.MapFrom(src => src.ReboquistaFlagAtivo));
 
             // ViewModel to Model
-            CreateMap<CondutorCadastroViewModel, CondutorModel>();
+            CreateMap<CadastroCondutorViewModel, CondutorModel>();
 
             CreateMap<UsuarioClienteDepositoReboqueViewModel, UsuarioClienteDepositoReboqueViewModel>();
 
-            CreateMap<EnquadramentoInfracaoGrvCadastroViewModel, EnquadramentoInfracaoGrvModel>();
+            CreateMap<CadastroEnquadramentoInfracaoGrvViewModel, EnquadramentoInfracaoGrvModel>()
+                .ForMember(dest => dest.EnquadramentoInfracaoId, opt => opt.MapFrom(src => src.IdentificadorEnquadramentoInfracao));
         }
     }
 }

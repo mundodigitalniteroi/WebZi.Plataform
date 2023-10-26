@@ -11,6 +11,7 @@ using WebZi.Plataform.Data.Services.Faturamento;
 using WebZi.Plataform.Data.Services.GGV;
 using WebZi.Plataform.Data.Services.Leilao;
 using WebZi.Plataform.Data.Services.Localizacao;
+using WebZi.Plataform.Data.Services.Pessoa;
 using WebZi.Plataform.Data.Services.Servico;
 using WebZi.Plataform.Data.Services.Sistema;
 using WebZi.Plataform.Data.Services.Veiculo;
@@ -57,6 +58,8 @@ namespace WebZi.Plataform.Data.Services
             services.AddScoped<GrvService>();
 
             services.AddScoped<LeilaoService>();
+
+            services.AddScoped<PessoaService>();
 
             services.AddScoped<PixDinamicoService>();
 

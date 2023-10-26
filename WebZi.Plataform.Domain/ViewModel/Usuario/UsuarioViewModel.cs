@@ -6,14 +6,6 @@
 
         public int IdentificadorUsuario { get; set; }
 
-        public string Login { get; set; }
-
-        public string Email { get; set; }
-
-        public string Matricula { get; set; }
-
-        public DateTime? DataUltimoAcesso { get; set; }
-
         public string FlagPermissaoDesconto { get; set; }
 
         public string FlagPermissaoDataRetroativaFaturamento { get; set; }

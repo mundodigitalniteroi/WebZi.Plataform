@@ -4,8 +4,6 @@ namespace WebZi.Plataform.Domain.ViewModel.GRV
 {
     public class GrvPersistenciaViewModel
     {
-        public int IdentificadorGrv { get; set; }
-
         public int IdentificadorCliente { get; set; }
 
         public int IdentificadorDeposito { get; set; }
@@ -94,13 +92,15 @@ namespace WebZi.Plataform.Domain.ViewModel.GRV
 
         public string FlagVeiculoNaoOstentaPlaca { get; set; }
 
-        public CondutorCadastroViewModel Condutor { get; set; }
+        public CadastroCondutorViewModel Condutor { get; set; }
 
-        public List<string> Lacres { get; set;}
+        public List<CadastroCondutorDocumentoViewModel> ListagemDocumentoCondutor { get; set; }
 
-        public List<EnquadramentoInfracaoGrvCadastroViewModel> EnquadramentosInfracoes { get; set; }
+        public List<CadastroEnquadramentoInfracaoGrvViewModel> ListagemEnquadramentoInfracao { get; set; }
 
-        public List<byte[]> Fotos { get; set; }
+        public List<byte[]> ListagemFoto { get; set; }
+
+        public List<string> ListagemLacre { get; set; }
 
         // Isso é cadastrado no GGV
         // public ICollection<CondutorEquipamentoOpcionalCadastroViewModel> CondutorEquipamentosOpcionais { get; set; }

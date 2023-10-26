@@ -9,6 +9,7 @@ using WebZi.Plataform.Domain.Models.Banco.PIX.Dinamico;
 using WebZi.Plataform.Domain.Models.Bucket;
 using WebZi.Plataform.Domain.Models.Cliente;
 using WebZi.Plataform.Domain.Models.ClienteDeposito;
+using WebZi.Plataform.Domain.Models.Condutor;
 using WebZi.Plataform.Domain.Models.Deposito;
 using WebZi.Plataform.Domain.Models.Documento;
 using WebZi.Plataform.Domain.Models.Empresa;
@@ -86,6 +87,14 @@ namespace WebZi.Plataform.Data.Database
         public DbSet<ClienteRegraModel> ClienteRegra { get; set; }
 
         public DbSet<ClienteRegraTipoModel> ClienteRegraTipo { get; set; }
+
+        public DbSet<CondutorModel> Condutor { get; set; }
+
+        public DbSet<CondutorDocumentoModel> CondutorDocumento { get; set; }
+
+        public DbSet<CondutorEquipamentoOpcionalModel> CondutorEquipamentoOpcional { get; set; }
+
+        public DbSet<CondutorEquipamentoOpcionalNaoConformidadeModel> CondutorEquipamentoOpcionalNaoConformidade { get; set; }
 
         public DbSet<ConfiguracaoModel> Configuracao { get; set; }
 

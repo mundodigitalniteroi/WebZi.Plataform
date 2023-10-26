@@ -1,6 +1,6 @@
 ﻿namespace WebZi.Plataform.Domain.ViewModel.GRV.Cadastro
 {
-    public class EnquadramentoInfracaoGrvCadastroViewModel
+    public class CadastroEnquadramentoInfracaoGrvViewModel
     {
         public decimal IdentificadorEnquadramentoInfracao { get; set; }
 

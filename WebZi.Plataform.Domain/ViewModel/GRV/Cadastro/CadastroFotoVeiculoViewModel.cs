@@ -1,6 +1,6 @@
-﻿namespace WebZi.Plataform.Domain.ViewModel.GRV
+﻿namespace WebZi.Plataform.Domain.ViewModel.GRV.Cadastro
 {
-    public class GrvFotoViewModel
+    public class CadastroFotoVeiculoViewModel
     {
         public int IdentificadorGrv { get; set; }
 

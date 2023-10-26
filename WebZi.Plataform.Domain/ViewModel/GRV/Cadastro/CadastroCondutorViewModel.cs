@@ -1,6 +1,6 @@
 ﻿namespace WebZi.Plataform.Domain.ViewModel.GRV.Cadastro
 {
-    public class CondutorCadastroViewModel
+    public class CadastroCondutorViewModel
     {
         public string Documento { get; set; }
 
