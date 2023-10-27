@@ -2,8 +2,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Linq;
 using WebZi.Plataform.CrossCutting.Contacts;
 using WebZi.Plataform.CrossCutting.Documents;
 using WebZi.Plataform.CrossCutting.Localizacao;
@@ -28,7 +26,6 @@ using WebZi.Plataform.Domain.Models.Deposito;
 using WebZi.Plataform.Domain.Models.Documento;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.GRV;
-using WebZi.Plataform.Domain.Models.Pessoa.Documento;
 using WebZi.Plataform.Domain.Models.Servico;
 using WebZi.Plataform.Domain.Models.Sistema;
 using WebZi.Plataform.Domain.Models.Veiculo;
@@ -259,20 +256,323 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 }
             }
 
-            if (GrvPersistencia.ListagemDocumentoCondutor?.Count > 0)
+            try
             {
-                CadastrarDocumentosCondutor(Grv.GrvId, Grv.UsuarioCadastroId, GrvPersistencia.ListagemDocumentoCondutor);
+                if (GrvPersistencia.ListagemDocumentoCondutor?.Count > 0)
+                {
+                    CadastrarDocumentosCondutor(Grv.GrvId, Grv.UsuarioCadastroId, GrvPersistencia.ListagemDocumentoCondutor);
+                }
+            }
+            catch (Exception ex)
+            {
+                if (true)
+                {
+
+                }
             }
 
-            if (GrvPersistencia.ListagemFoto?.Count > 0)
+            try
             {
-                new BucketArquivoService(_context)
-                    .SendFiles("GRVFOTOSVEICCAD", Grv.GrvId, Grv.UsuarioCadastroId, GrvPersistencia.ListagemFoto);
+                if (GrvPersistencia.ListagemFoto?.Count > 0)
+                {
+                    new BucketArquivoService(_context)
+                        .SendFiles("GRVFOTOSVEICCAD", Grv.GrvId, Grv.UsuarioCadastroId, GrvPersistencia.ListagemFoto);
+                }
             }
+            catch (Exception ex)
+            {
+                if (true)
+                {
+
+                }
+            }
+
+            
 
             ResultView.Mensagem = MensagemViewHelper.GetOkCreate();
 
             return ResultView;
+        }
+
+        private void CadastrarDocumentosCondutor(int GrvId, int UsuarioId, List<CadastroCondutorDocumentoViewModel> ListagemDocumentoCondutor)
+        {
+            List<BucketListaCadastroModel> Files = new();
+
+            CondutorDocumentoModel CondutorDocumento;
+
+            foreach (CadastroCondutorDocumentoViewModel item in ListagemDocumentoCondutor)
+            {
+                CondutorDocumento = new()
+                {
+                    GrvId = GrvId,
+
+                    UsuarioCadastroId = UsuarioId,
+
+                    TipoDocumentoIdentificacaoId = item.IdentificadorTipoDocumentoIdentificacao,
+                };
+
+                _context.CondutorDocumento.Add(CondutorDocumento);
+
+                _context.SaveChanges();
+
+                Files.Add(new()
+                {
+                    Id = CondutorDocumento.CondutorDocumentoId,
+
+                    File = item.Imagem
+                });
+            }
+
+            new BucketArquivoService(_context)
+                .SendFiles("GRV_DOCCONDUTOR", UsuarioId, Files);
+        }
+
+        public MensagemViewModel CadastrarDocumentosCondutor(CadastroCondutorDocumentoViewModelList ListagemDocumentoCondutor)
+        {
+            MensagemViewModel ResultView = ValidarInputGrv(ListagemDocumentoCondutor.IdentificadorGrv, ListagemDocumentoCondutor.IdentificadorUsuario);
+
+            if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+            {
+                return ResultView;
+            }
+
+            if (ListagemDocumentoCondutor.ListagemDocumentoCondutor?.Count == 0)
+            {
+                return MensagemViewHelper.GetBadRequest("Nenhuma imagem enviada para a API");
+            }
+
+            GrvModel Grv = GetGrv(ListagemDocumentoCondutor.IdentificadorGrv);
+
+            if (!new[] { "G", "V", "L", "U", "T", "R", "E", "B", "D", "1", "2", "3", "4" }.Contains(Grv.StatusOperacao.StatusOperacaoId))
+            {
+                return MensagemViewHelper.GetBadRequest($"O Status da Operação deste GRV não permite o envio de Fotos. Status atual: {Grv.StatusOperacao.Descricao}");
+            }
+
+            CadastrarDocumentosCondutor(ListagemDocumentoCondutor.IdentificadorGrv, ListagemDocumentoCondutor.IdentificadorUsuario, ListagemDocumentoCondutor.ListagemDocumentoCondutor);
+
+            return MensagemViewHelper.GetOkCreate(ListagemDocumentoCondutor.ListagemDocumentoCondutor.Count);
+        }
+
+        public MensagemViewModel CadastrarFotos(CadastroFotoVeiculoViewModel Fotos)
+        {
+            MensagemViewModel ResultView = ValidarInputGrv(Fotos.IdentificadorGrv, Fotos.IdentificadorUsuario);
+
+            if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+            {
+                return ResultView;
+            }
+
+            if (Fotos.Fotos.Count == 0)
+            {
+                return MensagemViewHelper.GetBadRequest("Nenhuma imagem enviada para a API");
+            }
+
+            GrvModel Grv = GetGrv(Fotos.IdentificadorGrv);
+
+            if (!new[] { "G", "V", "L", "U", "T", "R", "E", "B", "D", "1", "2", "3", "4" }.Contains(Grv.StatusOperacao.StatusOperacaoId))
+            {
+                return MensagemViewHelper.GetBadRequest($"O Status da Operação deste GRV não permite o envio de Fotos. Status atual: {Grv.StatusOperacao.Descricao}");
+            }
+
+            new BucketArquivoService(_context)
+                .SendFiles("GRVFOTOSVEICCAD", Fotos.IdentificadorGrv, Fotos.IdentificadorUsuario, Fotos.Fotos);
+
+            return MensagemViewHelper.GetOkCreate(Fotos.Fotos.Count);
+        }
+
+        public async Task<MensagemViewModel> CadastrarLacresAsync(int GrvId, int UsuarioId, List<string> ListagemLacre)
+        {
+            MensagemViewModel ResultView = ValidarInputGrv(GrvId, UsuarioId);
+
+            if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+            {
+                return ResultView;
+            }
+
+            if (ListagemLacre.Count == 0)
+            {
+                return MensagemViewHelper.GetBadRequest("Informe os Lacres");
+            }
+
+            ListagemLacre = ListagemLacre
+                .ConvertAll(x => x.ToUpperTrim())
+                .Distinct()
+                .OrderBy(x => x)
+                .ToList();
+
+            GrvModel Grv = await GetGrvAsync(GrvId);
+
+            if (!new[] { "E", "G", "L", "R", "T", "U", "V" }.Contains(Grv.StatusOperacaoId))
+            {
+                return MensagemViewHelper.GetBadRequest($"O GRV está em um Status de Operação que impede o cadastro de Lacres. Status atual: {Grv.StatusOperacao.Descricao}");
+            }
+
+            List<LacreModel> Lacres = await _context.Lacre
+                .Where(x => x.GrvId == GrvId
+                         && ListagemLacre.Contains(x.Lacre))
+                .AsNoTracking()
+                .ToListAsync();
+
+            if (Lacres?.Count > 0)
+            {
+                List<string> erros = new()
+                {
+                    $"O(s) seguinte(s) Lacre(s) já estão cadastrados:"
+                };
+
+                foreach (LacreModel item in Lacres)
+                {
+                    erros.Add(item.Lacre);
+                }
+
+                return MensagemViewHelper.GetBadRequest(erros);
+            }
+
+            using (IDbContextTransaction transaction = _context.Database.BeginTransaction())
+            {
+                try
+                {
+                    foreach (string Lacre in ListagemLacre)
+                    {
+                        _context.Lacre.Add(new()
+                        {
+                            GrvId = GrvId,
+
+                            UsuarioCadastroId = UsuarioId,
+
+                            Lacre = Lacre
+                        });
+                    }
+
+                    _context.SaveChanges();
+
+                    transaction.Commit();
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+
+                    return MensagemViewHelper.GetInternalServerError(ex);
+                }
+            }
+
+            return MensagemViewHelper.GetOkCreate(ListagemLacre.Count, "Lacre(s) cadastrado(s) com sucesso");
+        }
+
+        public async Task<MensagemViewModel> ExcluirFotosAsync(int GrvId, int UsuarioId, List<int> ListagemTabelaOrigemId)
+        {
+            MensagemViewModel ResultView = ValidarInputGrv(GrvId, UsuarioId);
+
+            if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+            {
+                return ResultView;
+            }
+
+            if (ListagemTabelaOrigemId.Count == 0)
+            {
+                return MensagemViewHelper.GetBadRequest("Informe os Identificadores das Fotos");
+            }
+
+            GrvModel Grv = await GetGrvAsync(GrvId);
+
+            if (!new[] { "E", "G", "L", "R", "T", "U", "V" }.Contains(Grv.StatusOperacaoId))
+            {
+                return MensagemViewHelper.GetBadRequest($"O GRV está em um Status de Operação que impede a exclusão de Fotos. Status atual: {Grv.StatusOperacao.Descricao}");
+            }
+
+            List<BucketArquivoModel> BucketArquivos = await _context.BucketArquivo
+                .Include(x => x.BucketNomeTabelaOrigem)
+                .Where(x => x.TabelaOrigemId != GrvId
+                         && ListagemTabelaOrigemId.Contains(x.RepositorioArquivoId)
+                         && x.BucketNomeTabelaOrigem.Codigo == "GRVFOTOSVEICCAD")
+                .AsNoTracking()
+                .ToListAsync();
+
+            if (BucketArquivos?.Count > 0)
+            {
+                List<string> erros = new()
+                {
+                    $"A(s) seguinte(s) Fotos não pertencem ao GRV {GrvId}:"
+                };
+
+                foreach (BucketArquivoModel BucketArquivo in BucketArquivos)
+                {
+                    erros.Add(BucketArquivo.RepositorioArquivoId.ToString());
+                }
+
+                return MensagemViewHelper.GetBadRequest(erros);
+            }
+
+            new BucketArquivoService(_context)
+                .DeleteFiles("GRVFOTOSVEICCAD", ListagemTabelaOrigemId);
+
+            return MensagemViewHelper.GetOkFound(BucketArquivos.Count, "Foto(s) excluída(s) com sucesso");
+        }
+
+        public async Task<MensagemViewModel> ExcluirLacresAsync(int GrvId, int UsuarioId, List<int> ListagemIdentificadorLacre)
+        {
+            MensagemViewModel ResultView = ValidarInputGrv(GrvId, UsuarioId);
+
+            if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+            {
+                return ResultView;
+            }
+
+            if (ListagemIdentificadorLacre.Count == 0)
+            {
+                return MensagemViewHelper.GetBadRequest("Informe os Lacres");
+            }
+
+            GrvModel Grv = await GetGrvAsync(GrvId);
+
+            if (!new[] { "E", "G", "L", "R", "T", "U", "V" }.Contains(Grv.StatusOperacaoId))
+            {
+                return MensagemViewHelper.GetBadRequest($"O GRV está em um Status de Operação que impede o exclusão de Lacres. Status atual: {Grv.StatusOperacao.Descricao}");
+            }
+
+            List<LacreModel> Lacres = await _context.Lacre
+                .Where(x => x.GrvId != GrvId
+                         && ListagemIdentificadorLacre.Contains(x.LacreId))
+                .AsNoTracking()
+                .ToListAsync();
+
+            if (Lacres?.Count > 0)
+            {
+                List<string> erros = new()
+                {
+                    $"O(s) seguinte(s) Lacre(s) pertencem à outro GRV:"
+                };
+
+                foreach (LacreModel item in Lacres)
+                {
+                    erros.Add($"Identificador {item.LacreId}");
+                }
+
+                return MensagemViewHelper.GetBadRequest(erros);
+            }
+
+            using (IDbContextTransaction transaction = _context.Database.BeginTransaction())
+            {
+                try
+                {
+                    foreach (int Lacre in ListagemIdentificadorLacre)
+                    {
+                        _context.Lacre.DeleteByKey(Lacre);
+                    }
+
+                    _context.SaveChanges();
+
+                    transaction.Commit();
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+
+                    return MensagemViewHelper.GetInternalServerError(ex);
+                }
+            }
+
+            return MensagemViewHelper.GetOkDelete(ListagemIdentificadorLacre.Count, "Lacre(s) excluído(s) com sucesso");
         }
 
         public async Task<GrvViewModelList> GetByIdAsync(int GrvId, int UsuarioId)
@@ -296,7 +596,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 return ResultView;
             }
 
-            ResultView.Mensagem = new GrvService(_context).ValidarInputGrv(Grv, UsuarioId);
+            ResultView.Mensagem = ValidarInputGrv(Grv, UsuarioId);
 
             if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
             {
@@ -337,7 +637,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 return ResultView;
             }
 
-            ResultView.Mensagem = new GrvService(_context).ValidarInputGrv(Grv, UsuarioId);
+            ResultView.Mensagem = ValidarInputGrv(Grv, UsuarioId);
 
             if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
             {
@@ -347,6 +647,274 @@ namespace WebZi.Plataform.Domain.Services.GRV
             ResultView.Listagem.Add(_mapper.Map<GrvViewModel>(Grv));
 
             ResultView.Mensagem = MensagemViewHelper.GetOkFound();
+
+            return ResultView;
+        }
+
+        public async Task<StatusOperacaoViewModelList> GetStatusOperacaoByIdAsync(string StatusOperacaoId)
+        {
+            StatusOperacaoViewModelList ResultView = new();
+
+            if (string.IsNullOrWhiteSpace(StatusOperacaoId))
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetBadRequest("Identificador do Status da Operação inválido");
+
+                return ResultView;
+            }
+
+            StatusOperacaoModel result = await _context.StatusOperacao
+                .Where(w => w.StatusOperacaoId == StatusOperacaoId.ToUpperTrim())
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
+
+            if (result != null)
+            {
+                ResultView.Listagem.Add(result);
+
+                ResultView.Mensagem = MensagemViewHelper.GetOkFound();
+            }
+            else
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+            }
+
+            return ResultView;
+        }
+
+        public async Task<StatusAssinaturaCondutorViewModelList> ListarStatusAssinaturaCondutorAsync()
+        {
+            StatusAssinaturaCondutorViewModelList ResultView = new();
+
+            List<TabelaGenericaModel> result = await new SistemaService(_context)
+                .ListarTabelaGenerica("STATUS_ASSINATURA_CONDUTOR");
+
+            if (result?.Count == 0)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+
+                return ResultView;
+            }
+
+            foreach (TabelaGenericaModel item in result)
+            {
+                ResultView.Listagem.Add(new()
+                {
+                    IdentificadorStatusAssinaturaCondutor = item.Sigla,
+                    Descricao = item.Valor1
+                });
+            }
+
+            ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
+
+            return ResultView;
+        }
+
+        public async Task<AutoridadeResponsavelViewModelList> ListAutoridadeResponsavelAsync(string UF)
+        {
+            AutoridadeResponsavelViewModelList ResultView = new();
+
+            if (string.IsNullOrWhiteSpace(UF))
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetBadRequest("Informe a Unidade Federativa");
+
+                return ResultView;
+            }
+            else if (!LocalizacaoHelper.IsUF(UF))
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetBadRequest("Unidade Federativa inválida");
+
+                return ResultView;
+            }
+
+            OrgaoEmissorModel result = await _context.OrgaoEmissor
+                .Include(i => i.AutoridadesResponsaveis)
+                .Where(w => w.UF == UF.ToUpperTrim())
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
+
+            if (result == null)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound("Unidade Federativa sem Órgão Emissor cadastrado");
+
+                return ResultView;
+            }
+
+            if (result.AutoridadesResponsaveis?.Count > 0)
+            {
+                ResultView.Listagem = _mapper.Map<List<AutoridadeResponsavelViewModel>>(result.AutoridadesResponsaveis
+                    .OrderBy(o => o.Divisao)
+                    .ToList());
+
+                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.AutoridadesResponsaveis.Count);
+            }
+            else
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+            }
+
+            return ResultView;
+        }
+
+        public async Task<ImageViewModelList> ListarDocumentosCondutorAsync(int GrvId, int UsuarioId)
+        {
+            ImageViewModelList ResultView = new()
+            {
+                Mensagem = ValidarInputGrv(GrvId, UsuarioId)
+            };
+
+            if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+            {
+                return ResultView;
+            }
+
+            List<int> DocumentosCondutor = await _context.CondutorDocumento
+                .Where(x => x.GrvId == GrvId)
+                .AsNoTracking()
+                .Select(x => x.CondutorDocumentoId)
+                .ToListAsync();
+
+            return await new BucketArquivoService(_context)
+                .DownloadFiles("GRV_DOCCONDUTOR", DocumentosCondutor);
+        }
+
+        public async Task<ImageViewModelList> ListarFotoAsync(int GrvId, int UsuarioId)
+        {
+            ImageViewModelList ResultView = new()
+            {
+                Mensagem = ValidarInputGrv(GrvId, UsuarioId)
+            };
+
+            if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+            {
+                return ResultView;
+            }
+
+            return await new BucketArquivoService(_context)
+                .DownloadFiles("GRVFOTOSVEICCAD", GrvId);
+        }
+
+        public async Task<GrvPesquisaDadosMestresViewModel> ListarItemPesquisaAsync(int UsuarioId)
+        {
+            return new()
+            {
+                ListagemProduto = await ListarProdutosAsync(),
+
+                ListagemCliente = await _provider
+                    .GetService<ClienteService>()
+                    .ListagemSimplificada(UsuarioId),
+
+                ListagemDeposito = await _provider
+                    .GetService<DepositoService>()
+                    .ListagemSimplificada(UsuarioId),
+
+                ListagemStatusOperacao = await _provider
+                    .GetService<GrvService>()
+                    .ListarStatusOperacaoAsync(),
+
+                //ListagemReboque = await _provider
+                //    .GetService<UsuarioService>()
+                //    .ListarUsuarioClienteDepositoReboqueSimplificada(UsuarioId),
+
+                //ListagemReboquista = await _provider
+                //    .GetService<UsuarioService>()
+                //    .ListarUsuarioClienteDepositoReboquistaSimplificada(UsuarioId)
+            };
+        }
+
+        public async Task<LacreViewModelList> ListarLacreAsync(int GrvId, int UsuarioId)
+        {
+            LacreViewModelList ResultView = new()
+            {
+                Mensagem = ValidarInputGrv(GrvId, UsuarioId)
+            };
+
+            if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+            {
+                return ResultView;
+            }
+
+            List<LacreModel> result = await _context.Lacre
+                .Where(x => x.GrvId == GrvId)
+                .AsNoTracking()
+                .ToListAsync();
+
+            if (result?.Count > 0)
+            {
+                ResultView.Listagem = _mapper.Map<List<LacreViewModel>>(result
+                    .OrderBy(x => x.Lacre)
+                    .ToList());
+
+                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
+            }
+            else
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+            }
+
+            return ResultView;
+        }
+
+        public async Task<MotivoApreensaoViewModelList> ListarMotivoApreensaoAsync()
+        {
+            MotivoApreensaoViewModelList ResultView = new();
+
+            List<MotivoApreensaoModel> result = await _context.MotivoApreensao
+                .AsNoTracking()
+                .ToListAsync();
+
+            if (result?.Count > 0)
+            {
+                ResultView.Listagem = _mapper.Map<List<MotivoApreensaoViewModel>>(result
+                    .OrderBy(o => o.Descricao)
+                    .ToList());
+
+                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
+            }
+            else
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+            }
+
+            return ResultView;
+        }
+
+        public async Task<FaturamentoProdutoViewModelList> ListarProdutosAsync()
+        {
+            FaturamentoProdutoViewModelList ResultView = new();
+
+            List<FaturamentoProdutoModel> result = await _context.FaturamentoProduto
+                .AsNoTracking()
+                .ToListAsync();
+
+            ResultView.Listagem = _mapper.Map<List<FaturamentoProdutoViewModel>>(result.OrderBy(x => x.Descricao).ToList());
+
+            ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
+
+            return ResultView;
+        }
+
+        public async Task<StatusOperacaoViewModelList> ListarStatusOperacaoAsync()
+        {
+            StatusOperacaoViewModelList ResultView = new();
+
+            List<StatusOperacaoModel> result = await _context.StatusOperacao
+                .AsNoTracking()
+                .ToListAsync();
+
+            if (result?.Count > 0)
+            {
+                result = result
+                    .OrderBy(o => o.Descricao)
+                    .ToList();
+
+                ResultView.Listagem = result;
+
+                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
+            }
+            else
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+            }
 
             return ResultView;
         }
@@ -520,73 +1088,6 @@ namespace WebZi.Plataform.Domain.Services.GRV
             return ResultView;
         }
 
-        public async Task<GrvPesquisaDadosMestresViewModel> ListarItemPesquisaAsync(int UsuarioId)
-        {
-            return new()
-            {
-                ListagemProduto = await ListarProdutoAsync(),
-
-                ListagemCliente = await _provider
-                    .GetService<ClienteService>()
-                    .ListagemSimplificada(UsuarioId),
-
-                ListagemDeposito = await _provider
-                    .GetService<DepositoService>()
-                    .ListagemSimplificada(UsuarioId),
-
-                ListagemStatusOperacao = await _provider
-                    .GetService<GrvService>()
-                    .ListarStatusOperacaoAsync(),
-
-                //ListagemReboque = await _provider
-                //    .GetService<UsuarioService>()
-                //    .ListarUsuarioClienteDepositoReboqueSimplificada(UsuarioId),
-
-                //ListagemReboquista = await _provider
-                //    .GetService<UsuarioService>()
-                //    .ListarUsuarioClienteDepositoReboquistaSimplificada(UsuarioId)
-            };
-        }
-
-        public async Task<MotivoApreensaoViewModelList> ListarMotivoApreensaoAsync()
-        {
-            MotivoApreensaoViewModelList ResultView = new();
-
-            List<MotivoApreensaoModel> result = await _context.MotivoApreensao
-                .AsNoTracking()
-                .ToListAsync();
-
-            if (result?.Count > 0)
-            {
-                ResultView.Listagem = _mapper.Map<List<MotivoApreensaoViewModel>>(result
-                    .OrderBy(o => o.Descricao)
-                    .ToList());
-
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
-            }
-            else
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
-            }
-
-            return ResultView;
-        }
-
-        public async Task<FaturamentoProdutoViewModelList> ListarProdutoAsync()
-        {
-            FaturamentoProdutoViewModelList ResultView = new();
-
-            List<FaturamentoProdutoModel> result = await _context.FaturamentoProduto
-                .AsNoTracking()
-                .ToListAsync();
-
-            ResultView.Listagem = _mapper.Map<List<FaturamentoProdutoViewModel>>(result.OrderBy(x => x.Descricao).ToList());
-
-            ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
-
-            return ResultView;
-        }
-
         public MensagemViewModel ValidarInputGrv(int GrvId, int UsuarioId)
         {
             return ValidarInputGrv(GrvId, "", "", 0, 0, UsuarioId);
@@ -720,6 +1221,43 @@ namespace WebZi.Plataform.Domain.Services.GRV
             }
 
             return MensagemViewHelper.GetOk();
+        }
+
+        public async Task<MensagemViewModel> VerificarAlteracaoStatusGRVAsync(int GrvId, string StatusOperacaoId, int UsuarioId)
+        {
+            MensagemViewModel ResultView = ValidarInputGrv(GrvId, UsuarioId);
+
+            if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+            {
+                return ResultView;
+            }
+
+            GrvModel Grv = await _context.Grv
+                .Include(x => x.StatusOperacao)
+                .Where(x => x.GrvId == GrvId)
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
+
+            if (Grv == null)
+            {
+                return MensagemViewHelper.GetNotFound(MensagemPadraoEnum.NaoEncontradoGrv);
+            }
+
+            StatusOperacaoModel StatusOperacao = await _context.StatusOperacao
+                .Where(x => x.StatusOperacaoId == StatusOperacaoId)
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
+
+            if (StatusOperacao == null)
+            {
+                return MensagemViewHelper.GetNotFound(MensagemPadraoEnum.NaoEncontradoStatusOperacao);
+            }
+            else if (Grv.StatusOperacao.StatusOperacaoId != StatusOperacaoId)
+            {
+                return MensagemViewHelper.GetBadRequest($"O Status da Operação foi alterado de \"{Grv.StatusOperacao.Descricao.ToUpper()}\" para \"{StatusOperacao.Descricao.ToUpper()}\"");
+            }
+
+            return MensagemViewHelper.GetOk("O Status da Operação não foi alterado");
         }
 
         public async Task<MensagemViewModel> ValidarInformacoesPersistenciaAsync(GrvPersistenciaViewModel GrvPersistencia)
@@ -1287,477 +1825,6 @@ namespace WebZi.Plataform.Domain.Services.GRV
             }
 
             return ResultView;
-        }
-
-        public async Task<StatusAssinaturaCondutorViewModelList> ListarStatusAssinaturaCondutorAsync()
-        {
-            StatusAssinaturaCondutorViewModelList ResultView = new();
-
-            List<TabelaGenericaModel> result = await new SistemaService(_context)
-                .ListarTabelaGenerica("STATUS_ASSINATURA_CONDUTOR");
-
-            if (result?.Count == 0)
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
-
-                return ResultView;
-            }
-
-            foreach (TabelaGenericaModel item in result)
-            {
-                ResultView.Listagem.Add(new()
-                {
-                    IdentificadorStatusAssinaturaCondutor = item.Sigla,
-                    Descricao = item.Valor1
-                });
-            }
-
-            ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
-
-            return ResultView;
-        }
-
-        public async Task<MensagemViewModel> VerificarAlteracaoStatusGRVAsync(int GrvId, string StatusOperacaoId, int UsuarioId)
-        {
-            MensagemViewModel ResultView = new GrvService(_context).ValidarInputGrv(GrvId, UsuarioId);
-
-            if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
-            {
-                return ResultView;
-            }
-
-            GrvModel Grv = await _context.Grv
-                .Include(x => x.StatusOperacao)
-                .Where(x => x.GrvId == GrvId)
-                .AsNoTracking()
-                .FirstOrDefaultAsync();
-
-            if (Grv == null)
-            {
-                return MensagemViewHelper.GetNotFound(MensagemPadraoEnum.NaoEncontradoGrv);
-            }
-
-            StatusOperacaoModel StatusOperacao = await _context.StatusOperacao
-                .Where(x => x.StatusOperacaoId == StatusOperacaoId)
-                .AsNoTracking()
-                .FirstOrDefaultAsync();
-
-            if (StatusOperacao == null)
-            {
-                return MensagemViewHelper.GetNotFound(MensagemPadraoEnum.NaoEncontradoStatusOperacao);
-            }
-            else if (Grv.StatusOperacao.StatusOperacaoId != StatusOperacaoId)
-            {
-                return MensagemViewHelper.GetBadRequest($"O Status da Operação foi alterado de \"{Grv.StatusOperacao.Descricao.ToUpper()}\" para \"{StatusOperacao.Descricao.ToUpper()}\"");
-            }
-
-            return MensagemViewHelper.GetOk("O Status da Operação não foi alterado");
-        }
-
-        public async Task<AutoridadeResponsavelViewModelList> ListAutoridadeResponsavelAsync(string UF)
-        {
-            AutoridadeResponsavelViewModelList ResultView = new();
-
-            if (string.IsNullOrWhiteSpace(UF))
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest("Informe a Unidade Federativa");
-
-                return ResultView;
-            }
-            else if (!LocalizacaoHelper.IsUF(UF))
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest("Unidade Federativa inválida");
-
-                return ResultView;
-            }
-
-            OrgaoEmissorModel result = await _context.OrgaoEmissor
-                .Include(i => i.AutoridadesResponsaveis)
-                .Where(w => w.UF == UF.ToUpperTrim())
-                .AsNoTracking()
-                .FirstOrDefaultAsync();
-
-            if (result == null)
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound("Unidade Federativa sem Órgão Emissor cadastrado");
-
-                return ResultView;
-            }
-
-            if (result.AutoridadesResponsaveis?.Count > 0)
-            {
-                ResultView.Listagem = _mapper.Map<List<AutoridadeResponsavelViewModel>>(result.AutoridadesResponsaveis
-                    .OrderBy(o => o.Divisao)
-                    .ToList());
-
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.AutoridadesResponsaveis.Count);
-            }
-            else
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
-            }
-
-            return ResultView;
-        }
-
-        public async Task<LacreViewModelList> ListarLacreAsync(int GrvId, int UsuarioId)
-        {
-            LacreViewModelList ResultView = new()
-            {
-                Mensagem = new GrvService(_context).ValidarInputGrv(GrvId, UsuarioId)
-            };
-
-            if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
-            {
-                return ResultView;
-            }
-
-            List<LacreModel> result = await _context.Lacre
-                .Where(x => x.GrvId == GrvId)
-                .AsNoTracking()
-                .ToListAsync();
-
-            if (result?.Count > 0)
-            {
-                ResultView.Listagem = _mapper.Map<List<LacreViewModel>>(result
-                    .OrderBy(x => x.Lacre)
-                    .ToList());
-
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
-            }
-            else
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
-            }
-
-            return ResultView;
-        }
-
-        public async Task<StatusOperacaoViewModelList> GetStatusOperacaoById(string StatusOperacaoId)
-        {
-            StatusOperacaoViewModelList ResultView = new();
-
-            if (string.IsNullOrWhiteSpace(StatusOperacaoId))
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest("Identificador do Status da Operação inválido");
-
-                return ResultView;
-            }
-
-            StatusOperacaoModel result = await _context.StatusOperacao
-                .Where(w => w.StatusOperacaoId == StatusOperacaoId.ToUpperTrim())
-                .AsNoTracking()
-                .FirstOrDefaultAsync();
-
-            if (result != null)
-            {
-                ResultView.Listagem.Add(result);
-
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound();
-            }
-            else
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
-            }
-
-            return ResultView;
-        }
-
-        public async Task<StatusOperacaoViewModelList> ListarStatusOperacaoAsync()
-        {
-            StatusOperacaoViewModelList ResultView = new();
-
-            List<StatusOperacaoModel> result = await _context.StatusOperacao
-                .AsNoTracking()
-                .ToListAsync();
-
-            if (result?.Count > 0)
-            {
-                result = result
-                    .OrderBy(o => o.Descricao)
-                    .ToList();
-
-                ResultView.Listagem = result;
-
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
-            }
-            else
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
-            }
-
-            return ResultView;
-        }
-
-        public void CadastrarDocumentosCondutor(int GrvId, int UsuarioId, List<CadastroCondutorDocumentoViewModel> Documentos)
-        {
-            List<BucketListaCadastroModel> Files = new();
-
-            CondutorDocumentoModel CondutorDocumento;
-
-            foreach (CadastroCondutorDocumentoViewModel item in Documentos)
-            {
-                CondutorDocumento = new()
-                {
-                    GrvId = GrvId,
-
-                    UsuarioCadastroId = UsuarioId,
-
-                    TipoDocumentoIdentificacaoId = item.IdentificadorTipoDocumentoIdentificacao,
-                };
-
-                _context.CondutorDocumento.Add(CondutorDocumento);
-
-                _context.SaveChanges();
-
-                Files.Add(new()
-                {
-                    Id = CondutorDocumento.CondutorDocumentoId,
-
-                    File = item.Imagem
-                });
-            }
-
-            new BucketArquivoService(_context)
-                .SendFiles("GRV_DOCCONDUTOR", UsuarioId, Files);
-        }
-
-        public MensagemViewModel CadastrarFotos(CadastroFotoVeiculoViewModel Fotos)
-        {
-            MensagemViewModel ResultView = new GrvService(_context).ValidarInputGrv(Fotos.IdentificadorGrv, Fotos.IdentificadorUsuario);
-
-            if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
-            {
-                return ResultView;
-            }
-
-            if (Fotos.Fotos.Count == 0)
-            {
-                return MensagemViewHelper.GetBadRequest("Nenhuma imagem enviada para a API");
-            }
-
-            GrvModel Grv = GetGrv(Fotos.IdentificadorGrv);
-
-            if (!new[] { "V", "L", "U", "T", "R", "E", "B", "D", "1", "2", "3", "4" }.Contains(Grv.StatusOperacao.StatusOperacaoId))
-            {
-                return MensagemViewHelper.GetBadRequest($"O Status da Operação deste GRV não permite o envio de Fotos. Status atual: {Grv.StatusOperacao.Descricao}");
-            }
-
-            new BucketArquivoService(_context)
-                .SendFiles("GRVFOTOSVEICCAD", Fotos.IdentificadorGrv, Fotos.IdentificadorUsuario, Fotos.Fotos);
-
-            return MensagemViewHelper.GetOkCreate(Fotos.Fotos.Count);
-        }
-
-        public async Task<ImageViewModelList> ListarFotoAsync(int GrvId, int UsuarioId)
-        {
-            ImageViewModelList ResultView = new()
-            {
-                Mensagem = ValidarInputGrv(GrvId, UsuarioId)
-            };
-
-            if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
-            {
-                return ResultView;
-            }
-
-            return await new BucketArquivoService(_context)
-                .DownloadFiles("GRVFOTOSVEICCAD", GrvId);
-        }
-
-        public async Task<MensagemViewModel> ExcluirFotosAsync(int GrvId, int UsuarioId, List<int> ListagemTabelaOrigemId)
-        {
-            MensagemViewModel ResultView = new GrvService(_context).ValidarInputGrv(GrvId, UsuarioId);
-
-            if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
-            {
-                return ResultView;
-            }
-
-            if (ListagemTabelaOrigemId.Count == 0)
-            {
-                return MensagemViewHelper.GetBadRequest("Informe os Identificadores das Fotos");
-            }
-
-            GrvModel Grv = await GetGrvAsync(GrvId);
-
-            if (!new[] { "E", "G", "L", "R", "T", "U", "V" }.Contains(Grv.StatusOperacaoId))
-            {
-                return MensagemViewHelper.GetBadRequest($"O GRV está em um Status de Operação que impede a exclusão de Fotos. Status atual: {Grv.StatusOperacao.Descricao}");
-            }
-
-            List<BucketArquivoModel> BucketArquivos = await _context.BucketArquivo
-                .Include(x => x.BucketNomeTabelaOrigem)
-                .Where(x => x.TabelaOrigemId != GrvId
-                         && ListagemTabelaOrigemId.Contains(x.RepositorioArquivoId)
-                         && x.BucketNomeTabelaOrigem.Codigo == "GRVFOTOSVEICCAD")
-                .AsNoTracking()
-                .ToListAsync();
-
-            if (BucketArquivos?.Count > 0)
-            {
-                List<string> erros = new()
-                {
-                    $"A(s) seguinte(s) Fotos não pertencem ao GRV {GrvId}:"
-                };
-
-                foreach (BucketArquivoModel BucketArquivo in BucketArquivos)
-                {
-                    erros.Add(BucketArquivo.RepositorioArquivoId.ToString());
-                }
-
-                return MensagemViewHelper.GetBadRequest(erros);
-            }
-
-            new BucketArquivoService(_context)
-                .DeleteFiles("GRVFOTOSVEICCAD", ListagemTabelaOrigemId);
-
-            return MensagemViewHelper.GetOkFound(BucketArquivos.Count, "Foto(s) excluída(s) com sucesso");
-        }
-
-        public async Task<MensagemViewModel> CadastrarLacresAsync(int GrvId, int UsuarioId, List<string> ListagemLacre)
-        {
-            MensagemViewModel ResultView = new GrvService(_context).ValidarInputGrv(GrvId, UsuarioId);
-
-            if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
-            {
-                return ResultView;
-            }
-
-            if (ListagemLacre.Count == 0)
-            {
-                return MensagemViewHelper.GetBadRequest("Informe os Lacres");
-            }
-
-            ListagemLacre = ListagemLacre
-                .ConvertAll(x => x.ToUpperTrim())
-                .Distinct()
-                .OrderBy(x => x)
-                .ToList();
-
-            GrvModel Grv = await GetGrvAsync(GrvId);
-
-            if (!new[] { "E", "G", "L", "R", "T", "U", "V" }.Contains(Grv.StatusOperacaoId))
-            {
-                return MensagemViewHelper.GetBadRequest($"O GRV está em um Status de Operação que impede o cadastro de Lacres. Status atual: {Grv.StatusOperacao.Descricao}");
-            }
-
-            List<LacreModel> Lacres = await _context.Lacre
-                .Where(x => x.GrvId == GrvId
-                         && ListagemLacre.Contains(x.Lacre))
-                .AsNoTracking()
-                .ToListAsync();
-
-            if (Lacres?.Count > 0)
-            {
-                List<string> erros = new()
-                {
-                    $"O(s) seguinte(s) Lacre(s) já estão cadastrados:"
-                };
-
-                foreach (LacreModel item in Lacres)
-                {
-                    erros.Add(item.Lacre);
-                }
-
-                return MensagemViewHelper.GetBadRequest(erros);
-            }
-
-            using (IDbContextTransaction transaction = _context.Database.BeginTransaction())
-            {
-                try
-                {
-                    foreach (string Lacre in ListagemLacre)
-                    {
-                        _context.Lacre.Add(new()
-                        {
-                            GrvId = GrvId,
-
-                            UsuarioCadastroId = UsuarioId,
-
-                            Lacre = Lacre
-                        });
-                    }
-
-                    _context.SaveChanges();
-
-                    transaction.Commit();
-                }
-                catch (Exception ex)
-                {
-                    transaction.Rollback();
-
-                    return MensagemViewHelper.GetInternalServerError(ex);
-                }
-            }
-
-            return MensagemViewHelper.GetOkCreate(ListagemLacre.Count, "Lacre(s) cadastrado(s) com sucesso");
-        }
-
-        public async Task<MensagemViewModel> ExcluirLacresAsync(int GrvId, int UsuarioId, List<int> ListagemIdentificadorLacre)
-        {
-            MensagemViewModel ResultView = new GrvService(_context).ValidarInputGrv(GrvId, UsuarioId);
-
-            if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
-            {
-                return ResultView;
-            }
-
-            if (ListagemIdentificadorLacre.Count == 0)
-            {
-                return MensagemViewHelper.GetBadRequest("Informe os Lacres");
-            }
-
-            GrvModel Grv = await GetGrvAsync(GrvId);
-
-            if (!new[] { "E", "G", "L", "R", "T", "U", "V" }.Contains(Grv.StatusOperacaoId))
-            {
-                return MensagemViewHelper.GetBadRequest($"O GRV está em um Status de Operação que impede o exclusão de Lacres. Status atual: {Grv.StatusOperacao.Descricao}");
-            }
-
-            List<LacreModel> Lacres = await _context.Lacre
-                .Where(x => x.GrvId != GrvId
-                         && ListagemIdentificadorLacre.Contains(x.LacreId))
-                .AsNoTracking()
-                .ToListAsync();
-
-            if (Lacres?.Count > 0)
-            {
-                List<string> erros = new()
-                {
-                    $"O(s) seguinte(s) Lacre(s) pertencem à outro GRV:"
-                };
-
-                foreach (LacreModel item in Lacres)
-                {
-                    erros.Add($"Identificador {item.LacreId}");
-                }
-
-                return MensagemViewHelper.GetBadRequest(erros);
-            }
-
-            using (IDbContextTransaction transaction = _context.Database.BeginTransaction())
-            {
-                try
-                {
-                    foreach (int Lacre in ListagemIdentificadorLacre)
-                    {
-                        _context.Lacre.DeleteByKey(Lacre);
-                    }
-
-                    _context.SaveChanges();
-
-                    transaction.Commit();
-                }
-                catch (Exception ex)
-                {
-                    transaction.Rollback();
-
-                    return MensagemViewHelper.GetInternalServerError(ex);
-                }
-            }
-
-            return MensagemViewHelper.GetOkDelete(ListagemIdentificadorLacre.Count, "Lacre(s) excluído(s) com sucesso");
         }
 
         public GrvModel GetGrv(int GrvId)

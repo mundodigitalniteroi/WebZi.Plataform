@@ -10,10 +10,15 @@ namespace WebZi.Plataform.Data.Mappings.Condutor
         {
             builder
                 .ToTable("tb_dep_condutor_documentos", "dbo")
-                .HasKey(e => e.TipoDocumentoIdentificacaoId);
+                .HasKey(e => e.CondutorDocumentoId);
+
+            builder.Property(e => e.CondutorDocumentoId)
+                .HasColumnName("CondutorDocumentoId")
+                .ValueGeneratedOnAdd();
 
             builder.Property(e => e.TipoDocumentoIdentificacaoId)
-                .ValueGeneratedOnAdd();
+                .HasColumnName("TipoDocumentoIdentificacaoId")
+                .IsRequired();
 
             builder.Property(e => e.DataCadastro)
                 .HasDefaultValueSql("(getdate())")

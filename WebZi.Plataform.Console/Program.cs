@@ -23,20 +23,19 @@ class Program
         //    .Where(x => x.CNPJ == "27947093000112")
         //    .ToList();
 
-        var result = _context.Empresa
-            .Include(x => x.Endereco)
-            .Include(x => x.EmpresaClassificacao)
-            .Where(x => x.EmpresaId == 27)
+        var result = _context.AgenciaBancaria
+            .Include(x => x.UsuarioCadastro)
+            .Include(x => x.UsuarioAlteracao)
+            .Include(x => x.Banco)
+            .ThenInclude(x => x.UsuarioCadastro)
+            .Include(x => x.Banco)
+            .ThenInclude(x => x.UsuarioAlteracao)
+            // .Where(x => x.)
             .ToList();
 
         Console.WriteLine("TOTAL:" + result.Count);
 
         // _context.SaveChanges();
-
-        if (true)
-        {
-
-        }
 
         if (true)
         {

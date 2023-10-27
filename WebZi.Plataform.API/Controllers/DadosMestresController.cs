@@ -234,7 +234,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<GrvService>()
-                    .ListarProdutoAsync();
+                    .ListarProdutosAsync();
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }

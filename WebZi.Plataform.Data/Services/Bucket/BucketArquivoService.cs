@@ -193,7 +193,11 @@ namespace WebZi.Plataform.Data.Services.Bucket
 
             if (result?.Count > 0)
             {
-                result = result.OrderBy(x => x.RepositorioArquivoId).ToList();
+                result = result
+                    .OrderBy(x => x.RepositorioArquivoId)
+                    .ToList();
+
+                ResultView.Listagem = new();
 
                 foreach (BucketArquivoModel BucketArquivo in result)
                 {
@@ -201,7 +205,63 @@ namespace WebZi.Plataform.Data.Services.Bucket
                     {
                         Identificador = BucketArquivo.RepositorioArquivoId,
 
-                        Imagem = HttpClientHelper.DownloadFile(BucketArquivo.Url)
+                        Imagem = await HttpClientHelper.DownloadFileAsync(BucketArquivo.Url)
+                    });
+                }
+
+                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
+            }
+            else
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+            }
+
+            return ResultView;
+        }
+
+        public async Task<ImageViewModelList> DownloadFiles(string CodigoTabelaOrigem, List<int> ListagemTabelaOrigemId)
+        {
+            List<string> erros = new();
+
+            if (string.IsNullOrWhiteSpace(CodigoTabelaOrigem))
+            {
+                erros.Add("Primeiro é necessário informar o Código Tabela de Origem");
+            }
+
+            if (ListagemTabelaOrigemId?.Count == 0)
+            {
+                erros.Add("Primeiro é necessário informar os Identificadorer da Tabela de Origem");
+            }
+
+            ImageViewModelList ResultView = new();
+
+            if (erros.Count > 0)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetBadRequest(erros);
+
+                return ResultView;
+            }
+
+            List<BucketArquivoModel> result = await _context.BucketArquivo
+                .Include(x => x.BucketNomeTabelaOrigem)
+                .Where(x => x.BucketNomeTabelaOrigem.Codigo == CodigoTabelaOrigem
+                         && ListagemTabelaOrigemId.Contains(x.TabelaOrigemId))
+                .AsNoTracking()
+                .ToListAsync();
+
+            if (result?.Count > 0)
+            {
+                result = result
+                    .OrderBy(x => x.RepositorioArquivoId)
+                    .ToList();
+
+                foreach (BucketArquivoModel BucketArquivo in result)
+                {
+                    ResultView.Listagem.Add(new()
+                    {
+                        Identificador = BucketArquivo.RepositorioArquivoId,
+
+                        Imagem = await HttpClientHelper.DownloadFileAsync(BucketArquivo.Url)
                     });
                 }
 

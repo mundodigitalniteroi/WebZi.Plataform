@@ -29,11 +29,11 @@ namespace WebZi.Plataform.Domain.Models.Banco
 
         public string SacadoCarteira { get; set; }
 
+        public virtual BancoModel Banco { get; set; }
+
         public virtual UsuarioModel UsuarioCadastro { get; set; }
 
         public virtual UsuarioModel UsuarioAlteracao { get; set; }
-
-        public virtual BancoModel Banco { get; set; }
 
         public virtual ICollection<ClienteModel> Clientes { get; set; }
 

@@ -27,6 +27,8 @@ namespace WebZi.Plataform.Data.Services
         {
             services.AddAutoMapper(typeof(AutoMapperService));
 
+            services.AddHttpClient();
+
             services.AddScoped<AgenciaBancariaService>();
 
             services.AddScoped<AtendimentoService>();

@@ -79,6 +79,34 @@ namespace WebZi.Plataform.API.Controllers
             return ResultView;
         }
 
+        [HttpPost("CadastrarDocumentoCondutor")]
+        // TODO: [Authorize]
+        [IgnoreAntiforgeryToken]
+        public ActionResult<MensagemViewModel> CadastrarDocumentoCondutor([FromBody] CadastroCondutorDocumentoViewModelList ListagemDocumentoCondutor)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            MensagemViewModel ResultView;
+
+            try
+            {
+                ResultView = _provider
+                    .GetService<GrvService>()
+                    .CadastrarDocumentosCondutor(ListagemDocumentoCondutor);
+
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+        }
+
         [HttpPost("CadastrarFotos")]
         // TODO: [Authorize]
         [IgnoreAntiforgeryToken]
@@ -188,6 +216,33 @@ namespace WebZi.Plataform.API.Controllers
                 ResultView = MensagemViewHelper.GetInternalServerError(ex);
 
                 return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+        }
+
+        [HttpGet("ListarDocumentosCondutor")]
+        // TODO: [Authorize]
+        public async Task<ActionResult<ImageViewModelList>> ListarDocumentosCondutor(int IdentificadorGrv, int IdentificadorUsuario)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            ImageViewModelList ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<GrvService>()
+                    .ListarDocumentosCondutorAsync(IdentificadorGrv, IdentificadorUsuario);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
         }
 

@@ -20,6 +20,6 @@ namespace WebZi.Plataform.Domain.Models.Condutor
 
         public virtual TipoDocumentoIdentificacaoModel TipoDocumentoIdentificacao { get; set; }
 
-//        public virtual UsuarioModel UsuarioCadastro { get; set; }
+        public virtual UsuarioModel UsuarioCadastro { get; set; }
     }
 }

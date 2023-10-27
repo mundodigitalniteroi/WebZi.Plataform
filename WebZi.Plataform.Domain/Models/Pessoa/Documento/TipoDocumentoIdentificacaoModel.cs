@@ -1,4 +1,6 @@
-﻿namespace WebZi.Plataform.Domain.Models.Pessoa.Documento
+﻿using WebZi.Plataform.Domain.Models.Condutor;
+
+namespace WebZi.Plataform.Domain.Models.Pessoa.Documento
 {
     public class TipoDocumentoIdentificacaoModel
     {

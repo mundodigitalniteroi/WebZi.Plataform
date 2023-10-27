@@ -29,7 +29,8 @@ namespace WebZi.Plataform.Data.Mappings.Condutor
                 .IsUnicode(false)
                 .HasColumnName("email");
             
-            builder.Property(e => e.PessoaId).HasColumnName("id_pessoa");
+            builder.Property(e => e.PessoaId)
+                .HasColumnName("id_pessoa");
             
             builder.Property(e => e.Identidade)
                 .HasMaxLength(20)
