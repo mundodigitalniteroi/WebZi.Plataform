@@ -1,6 +1,4 @@
-﻿using Newtonsoft.Json.Linq;
-using System.Net;
-using System.Net.Http;
+﻿using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
@@ -37,18 +35,17 @@ namespace WebZi.Plataform.CrossCutting.Web
             return Task.Run(async () => await GetBasicAuthAsync<T>(url, username, password, parameters)).Result;
         }
 
-        private static async Task<T> GetBasicAuthAsync<T>(string url, string username, string password, string parameters) where T : class
+        public static async Task<T> GetBasicAuthAsync<T>(string url, string username, string password, string parameters) where T : class
         {
             InitializeHttpClient(url, parameters);
 
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.ASCII.GetBytes($"{username}:{password}")));
 
-            using (HttpResponseMessage httpResponseMessage = await httpClient.GetAsync(""))
-            {
-                string result = await httpResponseMessage.Content.ReadAsStringAsync();
+            using HttpResponseMessage httpResponseMessage = await httpClient.GetAsync("");
+            
+            string result = await httpResponseMessage.Content.ReadAsStringAsync();
 
-                return JsonHelper.DeserializeObject<T>(result);
-            }
+            return JsonHelper.DeserializeObject<T>(result);
         }
 
         public static T PostBasicAuth<T>(string url, string username, string password, object obj) where T : class
@@ -56,7 +53,7 @@ namespace WebZi.Plataform.CrossCutting.Web
             return Task.Run(async () => await PostBasicAuthAsync<T>(url, username, password, obj)).Result;
         }
 
-        private static async Task<T> PostBasicAuthAsync<T>(string url, string username, string password, object obj) where T : class
+        public static async Task<T> PostBasicAuthAsync<T>(string url, string username, string password, object obj) where T : class
         {
             InitializeHttpClient(url);
 
@@ -78,7 +75,7 @@ namespace WebZi.Plataform.CrossCutting.Web
             return Task.Run(async () => await PostBearerAuthAsync<T>(url, accessToken, obj)).Result;
         }
 
-        private static async Task<T> PostBearerAuthAsync<T>(string url, string accessToken, object obj) where T : class
+        public static async Task<T> PostBearerAuthAsync<T>(string url, string accessToken, object obj) where T : class
         {
             InitializeHttpClient(url);
 
@@ -86,15 +83,13 @@ namespace WebZi.Plataform.CrossCutting.Web
 
             // httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-            using (StringContent stringContent = new(JsonHelper.Serialize(obj), Encoding.UTF8, "application/json"))
-            {
-                using (HttpResponseMessage httpResponseMessage = await httpClient.PostAsync("", stringContent))
-                {
-                    string result = await httpResponseMessage.Content.ReadAsStringAsync();
+            using StringContent stringContent = new(JsonHelper.Serialize(obj), Encoding.UTF8, "application/json");
+            
+            using HttpResponseMessage httpResponseMessage = await httpClient.PostAsync("", stringContent);
+            
+            string result = await httpResponseMessage.Content.ReadAsStringAsync();
 
-                    return JsonHelper.DeserializeObject<T>(result);
-                }
-            }
+            return JsonHelper.DeserializeObject<T>(result);
         }
 
         public static byte[] DownloadFile(string url)
@@ -126,17 +121,16 @@ namespace WebZi.Plataform.CrossCutting.Web
 
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.ASCII.GetBytes($"{username}:{password}")));
 
-            HttpRequestMessage request = new()
+            using HttpRequestMessage request = new()
             {
                 Content = JsonContent.Create(obj),
                 Method = HttpMethod.Delete,
                 RequestUri = new Uri(url)
             };
 
-            using (HttpResponseMessage httpResponseMessage = await httpClient.SendAsync(request))
-            {
-                return JsonHelper.DeserializeObject<T>(await httpResponseMessage.Content.ReadAsStringAsync());
-            }
+            using HttpResponseMessage httpResponseMessage = await httpClient.SendAsync(request);
+            
+            return JsonHelper.DeserializeObject<T>(await httpResponseMessage.Content.ReadAsStringAsync());
         }
     }
 }

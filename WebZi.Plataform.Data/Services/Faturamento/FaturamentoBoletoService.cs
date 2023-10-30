@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using System.Net.Http;
 using WebZi.Plataform.CrossCutting.Date;
 using WebZi.Plataform.CrossCutting.Documents;
 using WebZi.Plataform.CrossCutting.Strings;
@@ -26,11 +27,13 @@ namespace WebZi.Plataform.Data.Services.Faturamento
     {
         private readonly AppDbContext _context;
         private readonly IMapper _mapper;
+        private readonly IHttpClientFactory _httpClientFactory;
 
-        public FaturamentoBoletoService(AppDbContext context, IMapper mapper)
+        public FaturamentoBoletoService(AppDbContext context, IMapper mapper, IHttpClientFactory httpClientFactory)
         {
             _context = context;
             _mapper = mapper;
+            _httpClientFactory = httpClientFactory;
         }
 
         public ImageViewModelList GetBoletoNaoPago(int FaturamentoId, int UsuarioId)
@@ -365,7 +368,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
                     _context.SaveChanges();
 
-                    new BucketArquivoService(_context).SendFile("FATURAMENBOLETO", FaturamentoBoleto.FaturamentoBoletoId, UsuarioId, BoletoGerado.Boleto);
+                    new BucketArquivoService(_context, _httpClientFactory).SendFile("FATURAMENBOLETO", FaturamentoBoleto.FaturamentoBoletoId, UsuarioId, BoletoGerado.Boleto);
 
                     transaction.Commit();
                 }
@@ -402,9 +405,9 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
                     _context.FaturamentoBoletoImagem
                         .Where(w => w.FaturamentoBoletoId == FaturamentoBoleto.FaturamentoBoletoId)
-                        .Delete();
+                    .Delete();
 
-                    new BucketArquivoService(_context)
+                    new BucketArquivoService(_context, _httpClientFactory)
                         .DeleteFile("FATURAMENBOLETO", FaturamentoBoleto.FaturamentoBoletoId);
                 }
             }

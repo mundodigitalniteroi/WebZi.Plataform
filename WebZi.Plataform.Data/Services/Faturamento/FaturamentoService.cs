@@ -21,11 +21,13 @@ namespace WebZi.Plataform.Data.Services.Faturamento
     {
         private readonly AppDbContext _context;
         private readonly IMapper _mapper;
+        private readonly IHttpClientFactory _httpClientFactory;
 
-        public FaturamentoService(AppDbContext context, IMapper mapper)
+        public FaturamentoService(AppDbContext context, IMapper mapper, IHttpClientFactory httpClientFactory)
         {
             _context = context;
             _mapper = mapper;
+            _httpClientFactory = httpClientFactory;
         }
 
         public FaturamentoModel Faturar(CalculoFaturamentoParametroModel ParametrosCalculoFaturamento)
@@ -850,7 +852,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             if (TipoMeioCobrancaAtual.Alias == TipoMeioCobrancaAliasEnum.Boleto ||
                 TipoMeioCobrancaAtual.Alias == TipoMeioCobrancaAliasEnum.BoletoEspecial)
             {
-                new FaturamentoBoletoService(_context, _mapper)
+                new FaturamentoBoletoService(_context, _mapper, _httpClientFactory)
                     .Cancel(FaturamentoId);
             }
             else if (TipoMeioCobrancaAtual.Alias == TipoMeioCobrancaAliasEnum.PixEstatico)

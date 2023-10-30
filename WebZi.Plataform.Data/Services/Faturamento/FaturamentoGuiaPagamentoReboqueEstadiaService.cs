@@ -26,11 +26,13 @@ namespace WebZi.Plataform.Data.Services.Faturamento
     {
         private readonly AppDbContext _context;
         private readonly IMapper _mapper;
+        private readonly IHttpClientFactory _httpClientFactory;
 
-        public FaturamentoGuiaPagamentoReboqueEstadiaService(AppDbContext context, IMapper mapper)
+        public FaturamentoGuiaPagamentoReboqueEstadiaService(AppDbContext context, IMapper mapper, IHttpClientFactory httpClientFactory)
         {
             _context = context;
             _mapper = mapper;
+            _httpClientFactory = httpClientFactory;
         }
 
         public async Task<GerarPagamentoReboqueEstadiaViewModel> GetGuiaPagamentoReboqueEstadiaAsync(int FaturamentoId, int UsuarioId)
@@ -373,7 +375,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
         public async Task<byte[]> GetLogomarca(int ClienteId)
         {
-            ImageViewModelList ResultView = await new BucketArquivoService(_context)
+            ImageViewModelList ResultView = await new BucketArquivoService(_context, _httpClientFactory)
                 .DownloadFiles("CADLOGOCLIENTE", ClienteId);
 
             if (ResultView.Mensagem.QuantidadeRegistros > 0)

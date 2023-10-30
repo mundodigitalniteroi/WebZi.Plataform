@@ -2,6 +2,7 @@
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
+using WebZi.Plataform.Data.Services.Sistema;
 using WebZi.Plataform.Domain.Models.Bucket;
 using WebZi.Plataform.Domain.Models.Bucket.Work;
 using WebZi.Plataform.Domain.Models.Sistema;
@@ -13,10 +14,12 @@ namespace WebZi.Plataform.Data.Services.Bucket
     public class BucketArquivoService
     {
         private readonly AppDbContext _context;
+        private readonly IHttpClientFactory _httpClientFactory;
 
-        public BucketArquivoService(AppDbContext context)
+        public BucketArquivoService(AppDbContext context, IHttpClientFactory httpClientFactory)
         {
             _context = context;
+            _httpClientFactory = httpClientFactory;
         }
 
         public void SendFile(string CodigoTabelaOrigem, int TabelaOrigemId, int UsuarioCadastroId, byte[] File, string TipoCadastro = "")
@@ -59,7 +62,9 @@ namespace WebZi.Plataform.Data.Services.Bucket
                 });
             }
 
-            List<BucketArquivoRetornoModel> BucketArquivosRetorno = HttpClientHelper.PostBasicAuth<List<BucketArquivoRetornoModel>>
+            HttpClientFactoryService Service = new(_httpClientFactory);
+
+            List<BucketArquivoRetornoModel> BucketArquivosRetorno = Service.PostBasicAuth<List<BucketArquivoRetornoModel>>
             (
                 url: Configuracao.RepositorioArquivoUrl,
                 username: Configuracao.RepositorioArquivoUsername,
@@ -109,6 +114,8 @@ namespace WebZi.Plataform.Data.Services.Bucket
 
             List<BucketArquivoEnvioModel> ArquivosEnvio = new();
 
+            HttpClientFactoryService Service = new(_httpClientFactory);
+
             foreach (BucketListaCadastroModel File in Files)
             {
                 NomeArquivo = Guid.NewGuid().ToString() + ".jpg";
@@ -128,7 +135,7 @@ namespace WebZi.Plataform.Data.Services.Bucket
                     NomeArquivoOriginal = NomeArquivo,
                 });
 
-                List<BucketArquivoRetornoModel> BucketArquivosRetorno = HttpClientHelper.PostBasicAuth<List<BucketArquivoRetornoModel>>
+                List<BucketArquivoRetornoModel> BucketArquivosRetorno = Service.PostBasicAuth<List<BucketArquivoRetornoModel>>
                 (
                     url: Configuracao.RepositorioArquivoUrl,
                     username: Configuracao.RepositorioArquivoUsername,
@@ -199,14 +206,16 @@ namespace WebZi.Plataform.Data.Services.Bucket
 
                 ResultView.Listagem = new();
 
+                HttpClientFactoryService Service = new(_httpClientFactory);
+
                 foreach (BucketArquivoModel BucketArquivo in result)
                 {
                     ResultView.Listagem.Add(new()
                     {
                         Identificador = BucketArquivo.RepositorioArquivoId,
 
-                        Imagem = await HttpClientHelper.DownloadFileAsync(BucketArquivo.Url)
-                    });
+                        Imagem = await Service.DownloadFileAsync(BucketArquivo.Url)
+                    }); ;
                 }
 
                 ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
@@ -255,13 +264,15 @@ namespace WebZi.Plataform.Data.Services.Bucket
                     .OrderBy(x => x.RepositorioArquivoId)
                     .ToList();
 
+                HttpClientFactoryService Service = new(_httpClientFactory);
+
                 foreach (BucketArquivoModel BucketArquivo in result)
                 {
                     ResultView.Listagem.Add(new()
                     {
                         Identificador = BucketArquivo.RepositorioArquivoId,
 
-                        Imagem = await HttpClientHelper.DownloadFileAsync(BucketArquivo.Url)
+                        Imagem = await Service.DownloadFileAsync(BucketArquivo.Url)
                     });
                 }
 
@@ -289,6 +300,8 @@ namespace WebZi.Plataform.Data.Services.Bucket
 
             if (BucketArquivos.Count > 0)
             {
+                HttpClientFactoryService Service = new(_httpClientFactory);
+
                 foreach (BucketArquivoModel BucketArquivo in BucketArquivos)
                 {
                     _context.BucketArquivo.Remove(BucketArquivo);
@@ -302,7 +315,7 @@ namespace WebZi.Plataform.Data.Services.Bucket
                         NomePasta = BucketArquivo.BucketNomeTabelaOrigem.DiretorioRemoto
                     };
 
-                    HttpClientHelper.DeleteBasicAuth<BucketMensagemRetornoModel>
+                    Service.DeleteBasicAuth<BucketMensagemRetornoModel>
                     (
                         url: Configuracao.RepositorioArquivoUrl,
                         username: Configuracao.RepositorioArquivoUsername,

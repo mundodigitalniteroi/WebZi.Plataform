@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using System.Net.Http;
 using WebZi.Plataform.CrossCutting.Contacts;
 using WebZi.Plataform.CrossCutting.Documents;
 using WebZi.Plataform.CrossCutting.Localizacao;
@@ -31,11 +32,13 @@ namespace WebZi.Plataform.Data.Services.Atendimento
     {
         private readonly AppDbContext _context;
         private readonly IMapper _mapper;
+        private readonly IHttpClientFactory _httpClientFactory;
 
-        public AtendimentoService(AppDbContext context, IMapper mapper)
+        public AtendimentoService(AppDbContext context, IMapper mapper, IHttpClientFactory httpClientFactory)
         {
             _context = context;
             _mapper = mapper;
+            _httpClientFactory = httpClientFactory;
         }
 
         public async Task<AtendimentoViewModel> GetByIdAsync(int AtendimentoId, int UsuarioId)
@@ -617,7 +620,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
                     ParametrosCalculoFaturamento.Atendimento = Atendimento;
 
-                    ParametrosCalculoFaturamento.Faturamento = new FaturamentoService(_context, _mapper)
+                    ParametrosCalculoFaturamento.Faturamento = new FaturamentoService(_context, _mapper, _httpClientFactory)
                         .Faturar(ParametrosCalculoFaturamento);
 
                     CadastrarFoto(Atendimento.AtendimentoId, AtendimentoInput);
@@ -710,7 +713,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
         {
             if (AtendimentoInput.ResponsavelFoto != null)
             {
-                new BucketArquivoService(_context).SendFile("ATENDIMFOTORESP", AtendimentoId, AtendimentoInput.IdentificadorUsuario, AtendimentoInput.ResponsavelFoto);
+                new BucketArquivoService(_context, _httpClientFactory).SendFile("ATENDIMFOTORESP", AtendimentoId, AtendimentoInput.IdentificadorUsuario, AtendimentoInput.ResponsavelFoto);
             }
         }
 

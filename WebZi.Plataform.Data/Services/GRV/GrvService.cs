@@ -46,6 +46,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
         private readonly AppDbContext _context;
         private readonly IMapper _mapper;
         private readonly IServiceProvider _provider;
+        private readonly IHttpClientFactory _httpClientFactory;
 
         public GrvService(AppDbContext context, IMapper mapper)
         {
@@ -58,11 +59,12 @@ namespace WebZi.Plataform.Domain.Services.GRV
             _context = context;
         }
 
-        public GrvService(AppDbContext context, IMapper mapper, IServiceProvider provider)
+        public GrvService(AppDbContext context, IMapper mapper, IServiceProvider provider, IHttpClientFactory httpClientFactory)
         {
             _context = context;
             _mapper = mapper;
             _provider = provider;
+            _httpClientFactory = httpClientFactory;
         }
 
         public GrvCadastradoViewModel Cadastrar(GrvPersistenciaViewModel GrvPersistencia)
@@ -275,7 +277,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             {
                 if (GrvPersistencia.ListagemFoto?.Count > 0)
                 {
-                    new BucketArquivoService(_context)
+                    new BucketArquivoService(_context, _httpClientFactory)
                         .SendFiles("GRVFOTOSVEICCAD", Grv.GrvId, Grv.UsuarioCadastroId, GrvPersistencia.ListagemFoto);
                 }
             }
@@ -323,7 +325,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 });
             }
 
-            new BucketArquivoService(_context)
+            new BucketArquivoService(_context, _httpClientFactory)
                 .SendFiles("GRV_DOCCONDUTOR", UsuarioId, Files);
         }
 
@@ -374,7 +376,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 return MensagemViewHelper.GetBadRequest($"O Status da Operação deste GRV não permite o envio de Fotos. Status atual: {Grv.StatusOperacao.Descricao}");
             }
 
-            new BucketArquivoService(_context)
+            new BucketArquivoService(_context, _httpClientFactory)
                 .SendFiles("GRVFOTOSVEICCAD", Fotos.IdentificadorGrv, Fotos.IdentificadorUsuario, Fotos.Fotos);
 
             return MensagemViewHelper.GetOkCreate(Fotos.Fotos.Count);
@@ -503,7 +505,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 return MensagemViewHelper.GetBadRequest(erros);
             }
 
-            new BucketArquivoService(_context)
+            new BucketArquivoService(_context, _httpClientFactory)
                 .DeleteFiles("GRVFOTOSVEICCAD", ListagemTabelaOrigemId);
 
             return MensagemViewHelper.GetOkFound(BucketArquivos.Count, "Foto(s) excluída(s) com sucesso");
@@ -773,7 +775,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 .Select(x => x.CondutorDocumentoId)
                 .ToListAsync();
 
-            return await new BucketArquivoService(_context)
+            return await new BucketArquivoService(_context, _httpClientFactory)
                 .DownloadFiles("GRV_DOCCONDUTOR", DocumentosCondutor);
         }
 
@@ -789,7 +791,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 return ResultView;
             }
 
-            return await new BucketArquivoService(_context)
+            return await new BucketArquivoService(_context, _httpClientFactory)
                 .DownloadFiles("GRVFOTOSVEICCAD", GrvId);
         }
 
