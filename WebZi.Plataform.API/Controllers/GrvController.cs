@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Servico;
@@ -180,6 +181,62 @@ namespace WebZi.Plataform.API.Controllers
                 ResultView = await _provider
                     .GetService<GrvService>()
                     .ExcluirFotosAsync(IdentificadorGrv, IdentificadorUsuario, ListagemIdentificadorTabelaOrigem);
+
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+        }
+
+        [HttpDelete("ExcluirGrv")]
+        // TODO: [Authorize]
+        [IgnoreAntiforgeryToken]
+        public async Task<ActionResult<MensagemViewModel>> ExcluirGrv(int IdentificadorGrv, string Login, [DataType(DataType.Password)] string Senha)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            MensagemViewModel ResultView;
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<GrvService>()
+                    .ExcluirGrvAsync(IdentificadorGrv, Login, Senha);
+
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+        }
+
+        [HttpDelete("ExcluirGrvPorProcesso")]
+        // TODO: [Authorize]
+        [IgnoreAntiforgeryToken]
+        public async Task<ActionResult<MensagemViewModel>> ExcluirGrvPorProcesso(string NumeroProcesso, string CodigoProduto, int IdentificadorCliente, int IdentificadorDeposito, string Login, [DataType(DataType.Password)] string Senha)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            MensagemViewModel ResultView;
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<GrvService>()
+                    .ExcluirGrvAsync(NumeroProcesso, CodigoProduto, IdentificadorCliente, IdentificadorDeposito, Login, Senha);
 
                 return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
             }

@@ -131,8 +131,18 @@ namespace WebZi.Plataform.Data.Mappings.Usuario
 
             builder
                 .HasMany(x => x.ListagemUsuarioClienteDeposito)
-                .WithOne(d => d.Usuario)
+                .WithOne(x => x.Usuario)
                 .OnDelete(DeleteBehavior.NoAction);
+
+            builder
+                .HasMany(x => x.ListagemUsuarioLiberacao)
+                .WithOne(x => x.Usuario)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            //builder
+            //    .HasMany(x => x.ListagemUsuarioPermissao)
+            //    .WithOne(x => x.Usuario)
+            //    .OnDelete(DeleteBehavior.NoAction);
         }
     }
 }

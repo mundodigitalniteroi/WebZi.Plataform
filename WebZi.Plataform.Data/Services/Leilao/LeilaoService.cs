@@ -27,12 +27,12 @@ namespace WebZi.Plataform.Data.Services.Leilao
             }
 
             LeilaoLoteModel LeilaoLote = await _context.LeilaoLote
-                .Include(i => i.LeilaoLoteStatus)
-                .Include(i => i.Leilao)
-                .Include(i => i.Leilao.LeilaoStatus)
-                .Include(i => i.Grv)
+                .Include(w => w.LeilaoLoteStatus)
+                .Include(w => w.Leilao)
+                .Include(w => w.Leilao.LeilaoStatus)
+                .Include(w => w.Grv)
                 .Where(w => w.GrvId == GrvId)
-                .OrderByDescending(o => Convert.ToDateTime(o.Leilao.DataLeilao))
+                .OrderByDescending(w => (int)(object)(w.Leilao.DataLeilao.Substring(6, 4) + w.Leilao.DataLeilao.Substring(3, 2) + w.Leilao.DataLeilao.Substring(0, 2)))
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
 
@@ -40,7 +40,7 @@ namespace WebZi.Plataform.Data.Services.Leilao
 
             if (LeilaoLote != null)
             {
-                DateTime DataHoraPorDeposito = new DepositoService(_context, _mapper)
+                DateTime DataHoraPorDeposito = new DepositoService(_context)
                     .GetDataHoraPorDeposito(LeilaoLote.Grv.DepositoId);
 
                 DateTime dataLeilao = DateTime.ParseExact(LeilaoLote.Leilao.DataLeilao, "dd/MM/yyyy", CultureInfo.InvariantCulture);

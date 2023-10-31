@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Domain.Services.Usuario;
 using WebZi.Plataform.Domain.ViewModel.Usuario;
@@ -72,7 +73,7 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("SelecionarPorLoginSenha")]
         // TODO: [Authorize]
-        public async Task<ActionResult<UsuarioViewModel>> SelecionarPorLoginSenha(string Login, string Senha)
+        public async Task<ActionResult<UsuarioViewModel>> SelecionarPorLoginSenha(string Login, [DataType(DataType.Password)] string Senha)
         {
             if (!ModelState.IsValid)
             {

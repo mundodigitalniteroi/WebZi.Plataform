@@ -20,6 +20,11 @@ namespace WebZi.Plataform.Data.Services.Deposito
         private readonly AppDbContext _context;
         private readonly IMapper _mapper;
 
+        public DepositoService(AppDbContext context)
+        {
+            _context = context;
+        }
+
         public DepositoService(AppDbContext context, IMapper mapper)
         {
             _context = context;

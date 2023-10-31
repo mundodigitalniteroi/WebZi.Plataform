@@ -65,33 +65,6 @@ namespace WebZi.Plataform.API.Controllers
             }
         }
 
-        [HttpGet("ListarQualificacaoResponsavel")]
-        // TODO: [Authorize]
-        public async Task<ActionResult<QualificacaoResponsavelViewModelList>> ListarQualificacaoResponsavel()
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            QualificacaoResponsavelViewModelList ResultView = new();
-
-            try
-            {
-                ResultView = await _provider
-                    .GetService<QualificacaoResponsavelService>()
-                    .ListAsync();
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-            catch (Exception ex)
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-        }
-
         [HttpGet("SelecionarPorIdentificador")]
         // TODO: [Authorize]
         public async Task<ActionResult<AtendimentoViewModel>> SelecionarPorIdentificador(int IdentificadorAtendimento, int IdentificadorUsuario)

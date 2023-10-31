@@ -30,11 +30,13 @@ namespace WebZi.Plataform.Data.Mappings.Usuario
                 .HasColumnType("smalldatetime")
                 .HasColumnName("data_cadastro");
 
-            builder.HasOne(d => d.Usuario).WithMany(p => p.ListagemUsuarioDeposito)
+            builder.HasOne(d => d.Usuario)
+                .WithMany(p => p.ListagemUsuarioDeposito)
                 .HasForeignKey(d => d.UsuarioId)
                 .OnDelete(DeleteBehavior.ClientNoAction);
 
-            builder.HasOne(d => d.UsuarioCadastro).WithMany(p => p.ListagemUsuarioDepositoCadastro)
+            builder.HasOne(d => d.UsuarioCadastro)
+                .WithMany(p => p.ListagemUsuarioDepositoCadastro)
                 .HasForeignKey(d => d.UsuarioCadastroId)
                 .OnDelete(DeleteBehavior.ClientNoAction);
         }

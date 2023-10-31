@@ -100,6 +100,8 @@ namespace WebZi.Plataform.Domain.Services.Usuario
 
             if (result != null)
             {
+                ResultView = new();
+
                 ResultView = _mapper.Map<UsuarioViewModel>(result);
 
                 ResultView.Mensagem = MensagemViewHelper.GetOkFound();

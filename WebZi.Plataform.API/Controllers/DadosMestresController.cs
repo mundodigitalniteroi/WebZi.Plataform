@@ -1,21 +1,20 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Helper;
+using WebZi.Plataform.Data.Services.Atendimento;
+using WebZi.Plataform.Data.Services.Faturamento;
+using WebZi.Plataform.Data.Services.GGV;
 using WebZi.Plataform.Data.Services.Sistema;
 using WebZi.Plataform.Data.Services.Veiculo;
+using WebZi.Plataform.Data.Services.Vistoria;
 using WebZi.Plataform.Domain.Services.GRV;
+using WebZi.Plataform.Domain.ViewModel.Atendimento;
 using WebZi.Plataform.Domain.ViewModel.Faturamento;
-using WebZi.Plataform.Domain.ViewModel.Generic;
-using WebZi.Plataform.Domain.ViewModel.GRV.Pesquisa;
 using WebZi.Plataform.Domain.ViewModel.GRV;
+using WebZi.Plataform.Domain.ViewModel.GRV.Pesquisa;
 using WebZi.Plataform.Domain.ViewModel.Sistema;
 using WebZi.Plataform.Domain.ViewModel.Veiculo;
-using WebZi.Plataform.Data.Services.GGV;
-using WebZi.Plataform.Data.Services.Vistoria;
 using WebZi.Plataform.Domain.ViewModel.Vistoria;
-using WebZi.Plataform.Data.Services.Banco.PIX;
-using WebZi.Plataform.Data.Services.Faturamento;
-using WebZi.Plataform.Domain.ViewModel.Banco.PIX;
 
 namespace WebZi.Plataform.API.Controllers
 {
@@ -235,6 +234,33 @@ namespace WebZi.Plataform.API.Controllers
                 ResultView = await _provider
                     .GetService<GrvService>()
                     .ListarProdutosAsync();
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
+
+        [HttpGet("ListarQualificacaoResponsavel")]
+        // TODO: [Authorize]
+        public async Task<ActionResult<QualificacaoResponsavelViewModelList>> ListarQualificacaoResponsavel()
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            QualificacaoResponsavelViewModelList ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<QualificacaoResponsavelService>()
+                    .ListAsync();
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }

@@ -174,7 +174,9 @@ namespace WebZi.Plataform.Domain.Models.GRV
         public virtual DepositoModel Deposito { get; set; }
         
         public virtual FaturamentoProdutoModel FaturamentoProduto { get; set; }
-        
+
+        public virtual LiberacaoModel Liberacao { get; set; }
+
         public virtual MarcaModeloModel MarcaModelo { get; set; }
         
         public virtual MotivoApreensaoModel MotivoApreensao { get; set; }
@@ -199,6 +201,8 @@ namespace WebZi.Plataform.Domain.Models.GRV
 
         public virtual ICollection<CondutorEquipamentoOpcionalModel> ListagemCondutorEquipamentoOpcional { get; set; }
 
+        public virtual ICollection<CondutorDocumentoModel> ListagemCondutorDocumento { get; set; }
+
         public virtual ICollection<EnquadramentoInfracaoGrvModel> ListagemEnquadramentoInfracao { get; set; }
 
         public virtual ICollection<LacreModel> ListagemLacre { get; set; }
@@ -217,7 +221,7 @@ namespace WebZi.Plataform.Domain.Models.GRV
 
         //public virtual GrvDrfa GrvDrfa { get; set; }
 
-        //public virtual Liberacao IdLiberacaoNavigation { get; set; }
+        
 
         //public virtual LiberacaoEspecial LiberacaoEspecial { get; set; }
 

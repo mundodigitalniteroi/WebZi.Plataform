@@ -43,6 +43,8 @@ namespace WebZi.Plataform.Data.Services
 
             services.AddScoped<EnderecoService>();
 
+            services.AddScoped<ExclusaoHierarquicaService>();
+
             services.AddScoped<ClienteService>();
 
             services.AddScoped<DepositoService>();

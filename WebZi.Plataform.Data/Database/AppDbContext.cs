@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Data;
 using System.Reflection;
 using WebZi.Plataform.CrossCutting.Configuration;
 using WebZi.Plataform.Domain.Models.Atendimento;
@@ -10,6 +11,7 @@ using WebZi.Plataform.Domain.Models.Bucket;
 using WebZi.Plataform.Domain.Models.Cliente;
 using WebZi.Plataform.Domain.Models.ClienteDeposito;
 using WebZi.Plataform.Domain.Models.Condutor;
+using WebZi.Plataform.Domain.Models.Database;
 using WebZi.Plataform.Domain.Models.Deposito;
 using WebZi.Plataform.Domain.Models.Documento;
 using WebZi.Plataform.Domain.Models.Empresa;
@@ -43,6 +45,18 @@ namespace WebZi.Plataform.Data.Database
         {
             // Adiciona automaticamente todas as configurações criadas por TypeConfiguration encontradas no Assembly
             modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
+
+            modelBuilder
+                .Entity<StoreProcedurePrimaryKeyModel>()
+                .HasNoKey();
+
+            modelBuilder
+                .Entity<StoreProcedureForeingKeyModel>()
+                .HasNoKey();
+
+            modelBuilder
+                .Entity<GenericIntModel>()
+                .HasNoKey();
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -63,7 +77,15 @@ namespace WebZi.Plataform.Data.Database
             Database.ExecuteSqlRaw($"EXECUTE dbo.sp_set_contextinfo {UsuarioId}");
         }
 
+        [DbFunction(Name = "sp_fkeys", Schema = "dbo", IsBuiltIn = true)]
+        public string GetForeingKeys(string tableName)
+        {
+            throw new NotImplementedException();
+        }
+
         #region DbSets public DbSet<Model> Name { get; set; }
+
+        public DbSet<GenericIntModel> GenericInt { get; set; }
 
         #region Depósito Público
         public DbSet<AtendimentoModel> Atendimento { get; set; }
@@ -261,7 +283,11 @@ namespace WebZi.Plataform.Data.Database
         #region Liberação
         public DbSet<CobrancaLegalModel> CobrancaLegal { get; set; }
 
+        public DbSet<LiberacaoModel> Liberacao { get; set; }
+
         public DbSet<TipoCobrancaLegalModel> TipoCobrancaLegal { get; set; }
+
+        public DbSet<TipoLiberacaoModel> TipoLiberacao { get; set; }
         #endregion Liberação
 
         #region Pessoa

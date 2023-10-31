@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Sistema;
@@ -7,7 +6,6 @@ using WebZi.Plataform.Domain.Models.Bucket;
 using WebZi.Plataform.Domain.Models.Bucket.Work;
 using WebZi.Plataform.Domain.Models.Sistema;
 using WebZi.Plataform.Domain.ViewModel.Generic;
-using Z.EntityFramework.Plus;
 
 namespace WebZi.Plataform.Data.Services.Bucket
 {
@@ -300,12 +298,17 @@ namespace WebZi.Plataform.Data.Services.Bucket
 
             if (BucketArquivos.Count > 0)
             {
-                HttpClientFactoryService Service = new(_httpClientFactory);
-
                 foreach (BucketArquivoModel BucketArquivo in BucketArquivos)
                 {
                     _context.BucketArquivo.Remove(BucketArquivo);
 
+                    _context.SaveChanges();
+                }
+
+                HttpClientFactoryService Service = new(_httpClientFactory);
+
+                foreach (BucketArquivoModel BucketArquivo in BucketArquivos)
+                {
                     DeletarArquivoEnvioModel DeletarArquivoEnvio = new()
                     {
                         NomeBucket = Configuracao.RepositorioArquivoNomeBucket,
@@ -326,9 +329,46 @@ namespace WebZi.Plataform.Data.Services.Bucket
             }
         }
 
-        public void DeleteFile(string CodigoTabelaOrigem, int TabelaOrigemId)
+        public void DeleteFiles(string CodigoTabelaOrigem, int TabelaOrigemId)
         {
-            DeleteFiles(CodigoTabelaOrigem, new() { TabelaOrigemId });
+            DeleteFiles(CodigoTabelaOrigem, (List<int>)new() { TabelaOrigemId });
+        }
+
+        public void DeleteFile(int RepositorioArquivoId)
+        {
+            BucketArquivoModel BucketArquivo = _context.BucketArquivo
+                .Where(w => w.RepositorioArquivoId == RepositorioArquivoId)
+                .FirstOrDefault();
+
+            if (BucketArquivo != null)
+            {
+                ConfiguracaoModel Configuracao = _context.Configuracao
+                    .AsNoTracking()
+                    .FirstOrDefault();
+
+                _context.BucketArquivo.Remove(BucketArquivo);
+
+                _context.SaveChanges();
+
+                HttpClientFactoryService Service = new(_httpClientFactory);
+
+                DeletarArquivoEnvioModel DeletarArquivoEnvio = new()
+                {
+                    NomeBucket = Configuracao.RepositorioArquivoNomeBucket,
+
+                    NomeArquivo = BucketArquivo.NomeArquivo,
+
+                    NomePasta = BucketArquivo.BucketNomeTabelaOrigem.DiretorioRemoto
+                };
+
+                Service.DeleteBasicAuth<BucketMensagemRetornoModel>
+                (
+                    url: Configuracao.RepositorioArquivoUrl,
+                    username: Configuracao.RepositorioArquivoUsername,
+                    password: Configuracao.RepositorioArquivoPassword,
+                    obj: DeletarArquivoEnvio
+                );
+            }
         }
     }
 }

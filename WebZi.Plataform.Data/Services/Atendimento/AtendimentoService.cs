@@ -127,7 +127,8 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 return MensagemViewHelper.GetBadRequest("Identificador da Forma de Pagamento inválido");
             }
 
-            MensagemViewModel ResultView = new GrvService(_context).ValidarInputGrv(AtendimentoCadastro.IdentificadorGrv, AtendimentoCadastro.IdentificadorUsuario);
+            MensagemViewModel ResultView = new GrvService(_context)
+                .ValidarInputGrv(AtendimentoCadastro.IdentificadorGrv, AtendimentoCadastro.IdentificadorUsuario);
 
             if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
             {
@@ -162,7 +163,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             if (ResultView != null)
             {
-                foreach (string item in ResultView.AvisosInformativos)
+                foreach (string item in ResultView.AvisosInformativos.ToList())
                 {
                     ResultView.AvisosInformativos.Add(item);
                 }
@@ -506,7 +507,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
 
-            DateTime DataHoraPorDeposito = new DepositoService(_context, _mapper)
+            DateTime DataHoraPorDeposito = new DepositoService(_context)
                 .GetDataHoraPorDeposito(Grv.DepositoId);
             #endregion Consultas
 
@@ -641,12 +642,9 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 {
                     transaction.Rollback();
 
-                    AtendimentoCadastroResultView.Mensagem.Erros.Add(ex.Message);
-
-                    if (ex.InnerException.Message != null)
-                    {
-                        AtendimentoCadastroResultView.Mensagem.Erros.Add(ex.InnerException.Message);
-                    }
+                    AtendimentoCadastroResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+                    
+                    return AtendimentoCadastroResultView;
                 }
             }
 

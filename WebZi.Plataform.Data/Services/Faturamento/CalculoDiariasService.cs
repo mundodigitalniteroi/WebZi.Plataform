@@ -222,7 +222,6 @@ namespace WebZi.Plataform.Data.Services.Faturamento
         {
             DepositoModel Deposito = _context.Deposito
                 .Include(i => i.Endereco)
-                .ThenInclude(t => t.Municipio)
                 .Where(w => w.DepositoId == CalculoDiarias.DepositoId)
                 .AsNoTracking()
                 .FirstOrDefault();

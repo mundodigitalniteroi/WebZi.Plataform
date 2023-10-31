@@ -1,5 +1,13 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
+using System.Data;
+using System.Reflection.Metadata;
+using System.Text;
 using WebZi.Plataform.Data.Database;
+using WebZi.Plataform.Data.Helper;
+using WebZi.Plataform.Domain.Enums;
+using WebZi.Plataform.Domain.Models.Database;
+using WebZi.Plataform.Domain.Models.GRV;
 
 class Program
 {
@@ -23,19 +31,23 @@ class Program
         //    .Where(x => x.CNPJ == "27947093000112")
         //    .ToList();
 
-        var result = _context.AgenciaBancaria
-            .Include(x => x.UsuarioCadastro)
-            .Include(x => x.UsuarioAlteracao)
-            .Include(x => x.Banco)
-            .ThenInclude(x => x.UsuarioCadastro)
-            .Include(x => x.Banco)
-            .ThenInclude(x => x.UsuarioAlteracao)
-            // .Where(x => x.)
-            .ToList();
+        //var result = _context.AgenciaBancaria
+        //    .Include(x => x.UsuarioCadastro)
+        //    .Include(x => x.UsuarioAlteracao)
+        //    .Include(x => x.Banco)
+        //    .ThenInclude(x => x.UsuarioCadastro)
+        //    .Include(x => x.Banco)
+        //    .ThenInclude(x => x.UsuarioAlteracao)
+        //    // .Where(x => x.)
+        //    .ToList();
 
-        Console.WriteLine("TOTAL:" + result.Count);
+        //DataTable result = _context.GetForeingKeys("tb_dep_grv");
 
-        // _context.SaveChanges();
+        //Console.WriteLine("TOTAL:" + result.Rows.Count);
+
+        // var result = _context.GetForeingKeys("tb_dep_grv");
+
+        // _context.SaveChanges();        
 
         if (true)
         {

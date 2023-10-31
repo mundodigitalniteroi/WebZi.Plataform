@@ -18,7 +18,7 @@
 
         public string FlagAtivo { get; set; } = "S";
 
-        public virtual UsuarioTipoPermissaoModel UsuarioTipoPermissao { get; set; }
+        public virtual UsuarioTipoPermissaoModel TipoPermissao { get; set; }
 
         public virtual UsuarioModel Usuario { get; set; }
 

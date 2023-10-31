@@ -45,17 +45,29 @@ namespace WebZi.Plataform.Data.Mappings.Usuario
                 .IsFixedLength()
                 .HasColumnName("flag_ativo");
 
-            builder.HasOne(d => d.Usuario).WithMany(p => p.ListagemUsuarioPermissao)
+            builder.HasOne(d => d.Usuario)
+                .WithMany(p => p.ListagemUsuarioPermissao)
                 .HasForeignKey(d => d.UsuarioId)
                 .OnDelete(DeleteBehavior.ClientNoAction);
 
-            builder.HasOne(d => d.UsuarioCadastro).WithMany(p => p.ListagemUsuarioPermissaoCadastro)
+            builder.HasOne(d => d.TipoPermissao)
+                .WithMany(p => p.ListagemUsuarioPermissao)
+                .HasForeignKey(d => d.TipoPermissaoId)
+                .OnDelete(DeleteBehavior.ClientNoAction);
+
+            builder.HasOne(d => d.UsuarioCadastro)
+                .WithMany(p => p.ListagemUsuarioPermissaoCadastro)
                 .HasForeignKey(d => d.UsuarioCadastroId)
                 .OnDelete(DeleteBehavior.ClientNoAction);
 
-            builder.HasOne(d => d.UsuarioAlteracao).WithMany(p => p.ListagemUsuarioPermissaoAlteracao)
+            builder.HasOne(d => d.UsuarioAlteracao)
+                .WithMany(p => p.ListagemUsuarioPermissaoAlteracao)
                 .HasForeignKey(d => d.UsuarioAlteracaoId)
                 .OnDelete(DeleteBehavior.ClientNoAction);
+
+            //builder.HasOne(d => d.TipoPermissao).WithMany(p => p.ListagemUsuarioPermissao)
+            //    .HasForeignKey(d => d.UsuarioId)
+            //    .OnDelete(DeleteBehavior.ClientNoAction);
         }
     }
 }

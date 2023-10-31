@@ -38,7 +38,7 @@ namespace WebZi.Plataform.Domain.Models.Deposito
 
         public byte GrvMinimoFotosExigidas { get; set; }
 
-        public byte GrvLimiteMinimoDatahoraGuarda { get; set; }
+        public short GrvLimiteMinimoDatahoraGuarda { get; set; }
 
         public string Latitude { get; set; }
 

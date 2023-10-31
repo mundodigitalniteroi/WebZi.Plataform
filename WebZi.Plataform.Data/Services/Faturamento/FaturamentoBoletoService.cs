@@ -408,7 +408,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     .Delete();
 
                     new BucketArquivoService(_context, _httpClientFactory)
-                        .DeleteFile("FATURAMENBOLETO", FaturamentoBoleto.FaturamentoBoletoId);
+                        .DeleteFiles("FATURAMENBOLETO", FaturamentoBoleto.FaturamentoBoletoId);
                 }
             }
         }
