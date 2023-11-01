@@ -166,6 +166,78 @@ namespace WebZi.Plataform.Data.Services.Bucket
             }
         }
 
+        public void SendFiles(string CodigoTabelaOrigem, int TabelaOrigemId, int UsuarioCadastroId, List<BucketFileModel> Files)
+        {
+            ConfiguracaoModel Configuracao = _context.Configuracao
+                .AsNoTracking()
+                .FirstOrDefault();
+
+            BucketNomeTabelaOrigemModel BucketNomeTabelaOrigem = _context.BucketNomeTabelaOrigem
+                .Where(x => x.Codigo == CodigoTabelaOrigem)
+                .AsNoTracking()
+                .FirstOrDefault();
+
+            string NomeArquivo = string.Empty;
+
+            List<BucketArquivoEnvioModel> ArquivosEnvio = new();
+
+            foreach (var File in Files)
+            {
+                NomeArquivo = Guid.NewGuid().ToString() + ".jpg";
+
+                ArquivosEnvio.Add(new()
+                {
+                    NomeBucket = Configuracao.RepositorioArquivoNomeBucket,
+
+                    NomeArquivo = NomeArquivo,
+
+                    ArquivoBase64 = Convert.ToBase64String(File.File),
+
+                    NomePasta = BucketNomeTabelaOrigem.DiretorioRemoto,
+
+                    NomeArquivoCompleto = NomeArquivo,
+
+                    NomeArquivoOriginal = NomeArquivo,
+                });
+            }
+
+            HttpClientFactoryService Service = new(_httpClientFactory);
+
+            List<BucketArquivoRetornoModel> BucketArquivosRetorno = Service.PostBasicAuth<List<BucketArquivoRetornoModel>>
+            (
+                url: Configuracao.RepositorioArquivoUrl,
+                username: Configuracao.RepositorioArquivoUsername,
+                password: Configuracao.RepositorioArquivoPassword,
+                obj: ArquivosEnvio
+            ).ToList();
+
+            foreach (BucketArquivoRetornoModel BucketArquivoRetorno in BucketArquivosRetorno)
+            {
+                BucketArquivoModel BucketArquivo = new()
+                {
+                    NomeTabelaOrigemId = BucketNomeTabelaOrigem.NomeTabelaOrigemId,
+
+                    TabelaOrigemId = TabelaOrigemId,
+
+                    UsuarioCadastroId = UsuarioCadastroId,
+
+                    NomeArquivo = BucketArquivoRetorno.NomeArquivo,
+
+                    TamanhoBytes = BucketArquivoRetorno.TamanhoBytes,
+
+                    Url = BucketArquivoRetorno.Url,
+
+                    PermissaoAcesso = BucketArquivoRetorno.PermissaoAcesso,
+
+                    // TipoCadastro = TipoCadastro
+                };
+
+                _context.BucketArquivo.Add(BucketArquivo);
+
+                _context.SaveChanges();
+            }
+        }
+
         public async Task<ImageViewModelList> DownloadFiles(string CodigoTabelaOrigem, int TabelaOrigemId)
         {
             List<string> erros = new();

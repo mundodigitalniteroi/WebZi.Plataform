@@ -20,7 +20,7 @@
 
         public string InformacoesAdicionais { get; set; }
 
-        public string StatusAssinaturaCondutor { get; set; }
+        public int IdentificadorAssinaturaCondutor { get; set; }
 
         public string FlagChaveVeiculo { get; set; }
 

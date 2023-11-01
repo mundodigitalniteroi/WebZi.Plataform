@@ -165,6 +165,12 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 Condutor = _mapper.Map<CondutorModel>(GrvPersistencia.Condutor)
             };
 
+            TabelaGenericaModel AssinaturaCondutor = new SistemaService(_context)
+                .ListarTabelaGenericaById("GRV_ASSINATURA_CONDUTOR", GrvPersistencia.Condutor.IdentificadorAssinaturaCondutor)
+                .FirstOrDefault();
+
+            Grv.Condutor.StatusAssinaturaCondutor = AssinaturaCondutor.ValorCadastro;
+
             if (!string.IsNullOrWhiteSpace(GrvPersistencia.EnderecoLocalizacaoVeiculoCEP))
             {
                 EnderecoViewModel Endereco = new EnderecoService(_context, _mapper)
@@ -360,7 +366,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             return MensagemViewHelper.GetOkCreate(ListagemDocumentoCondutor.ListagemDocumentoCondutor.Count);
         }
 
-        public MensagemViewModel CadastrarFotos(CadastroFotoVeiculoViewModel Fotos)
+        public MensagemViewModel CadastrarFotos(CadastroFotoViewModel Fotos)
         {
             MensagemViewModel ResultView = ValidarInputGrv(Fotos.IdentificadorGrv, Fotos.IdentificadorUsuario);
 
@@ -849,34 +855,6 @@ namespace WebZi.Plataform.Domain.Services.GRV
             return ResultView;
         }
 
-        public async Task<StatusAssinaturaCondutorViewModelList> ListarStatusAssinaturaCondutorAsync()
-        {
-            StatusAssinaturaCondutorViewModelList ResultView = new();
-
-            List<TabelaGenericaModel> result = await new SistemaService(_context)
-                .ListarTabelaGenerica("STATUS_ASSINATURA_CONDUTOR");
-
-            if (result?.Count == 0)
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
-
-                return ResultView;
-            }
-
-            foreach (TabelaGenericaModel item in result)
-            {
-                ResultView.Listagem.Add(new()
-                {
-                    IdentificadorStatusAssinaturaCondutor = item.Sigla,
-                    Descricao = item.Valor1
-                });
-            }
-
-            ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
-
-            return ResultView;
-        }
-
         public async Task<AutoridadeResponsavelViewModelList> ListAutoridadeResponsavelAsync(string UF)
         {
             AutoridadeResponsavelViewModelList ResultView = new();
@@ -1135,7 +1113,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (!string.IsNullOrWhiteSpace(GrvPesquisa.FlagVeiculoNaoIdentificado) && GrvPesquisa.FlagVeiculoNaoIdentificado != "S" && GrvPesquisa.FlagVeiculoNaoIdentificado != "N")
             {
-                erros.Add("Flag do Veículo não identificado inválido, informe \"S\" ou \"N\" (sem aspas)");
+                erros.Add("Flag do Veículo não identificado inválida, informe \"S\" ou \"N\" (sem aspas)");
             }
 
             if (!string.IsNullOrWhiteSpace(GrvPesquisa.FlagVeiculoNaoIdentificado))
@@ -1464,7 +1442,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             if (GrvPersistencia.FlagVeiculoNaoUsouReboque != "S"
                 && GrvPersistencia.FlagVeiculoNaoUsouReboque != "N")
             {
-                erros.Add("Flag do Veículo não usou Reboque inválido, informe \"S\" ou \"N\" (sem aspas)");
+                erros.Add("Flag do Veículo não usou Reboque inválida, informe \"S\" ou \"N\" (sem aspas)");
             }
             else if (GrvPersistencia.FlagVeiculoNaoUsouReboque == "N")
             {
@@ -1494,7 +1472,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             if (GrvPersistencia.FlagVeiculoNaoOstentaPlaca != "S"
              && GrvPersistencia.FlagVeiculoNaoOstentaPlaca != "N")
             {
-                erros.Add("Flag do Veículo não ostenta Placa inválido, informe \"S\" ou \"N\" (sem aspas)");
+                erros.Add("Flag do Veículo não ostenta Placa inválida, informe \"S\" ou \"N\" (sem aspas)");
             }
 
             if (GrvPersistencia.IdentificadorAutoridadeResponsavel <= 0)
@@ -1544,7 +1522,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             if (GrvPersistencia.FlagVeiculoNaoIdentificado != "S"
              && GrvPersistencia.FlagVeiculoNaoIdentificado != "N")
             {
-                erros.Add("Flag do Veículo não identificado inválido, informe \"S\" ou \"N\" (sem aspas)");
+                erros.Add("Flag do Veículo não identificado inválida, informe \"S\" ou \"N\" (sem aspas)");
             }
             else if (GrvPersistencia.FlagVeiculoNaoIdentificado == "S")
             {
@@ -1592,7 +1570,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             if (GrvPersistencia.FlagVeiculoSemRegistro != "S"
              && GrvPersistencia.FlagVeiculoSemRegistro != "N")
             {
-                erros.Add("Flag do Veículo sem registro inválido, informe \"S\" ou \"N\" (sem aspas)");
+                erros.Add("Flag do Veículo sem registro inválida, informe \"S\" ou \"N\" (sem aspas)");
             }
             else if (GrvPersistencia.FlagVeiculoSemRegistro == "S")
             {
@@ -1612,7 +1590,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             if (GrvPersistencia.FlagVeiculoRoubadoFurtado != "S"
              && GrvPersistencia.FlagVeiculoRoubadoFurtado != "N")
             {
-                erros.Add("Flag do Veículo Roubado/Furtado inválido, informe \"S\" ou \"N\" (sem aspas)");
+                erros.Add("Flag do Veículo Roubado/Furtado inválida, informe \"S\" ou \"N\" (sem aspas)");
             }
 
             if (!string.IsNullOrWhiteSpace(GrvPersistencia.EnderecoLocalizacaoVeiculoCEP))
@@ -1643,18 +1621,18 @@ namespace WebZi.Plataform.Domain.Services.GRV
                     }
                 }
 
-                if (string.IsNullOrWhiteSpace(GrvPersistencia.Condutor.StatusAssinaturaCondutor))
+                if (GrvPersistencia.Condutor.IdentificadorAssinaturaCondutor < 0)
                 {
-                    erros.Add("Informe o Status da Assinatura do Condutor");
+                    erros.Add("Identificador da Assinatura do Condutor inválido");
                 }
                 else
                 {
-                    List<TabelaGenericaModel> TabelaGenerica = await new SistemaService(_context)
-                        .ListarTabelaGenerica("STATUS_ASSINATURA_CONDUTOR");
+                    List<TabelaGenericaModel> AssinaturaCondutor = await new SistemaService(_context)
+                        .ListarTabelaGenericaByIdAsync("GRV_ASSINATURA_CONDUTOR", GrvPersistencia.Condutor.IdentificadorAssinaturaCondutor);
 
-                    if (!TabelaGenerica.Select(x => x.Sigla).ToList().Contains(GrvPersistencia.Condutor.StatusAssinaturaCondutor))
+                    if (AssinaturaCondutor?.Count == 0)
                     {
-                        erros.Add("Status da Assinatura do Condutor inválido");
+                        erros.Add("Identificador da Assinatura do Condutor inválido");
                     }
                 }
 
@@ -1702,7 +1680,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             if (GrvPersistencia.FlagEstadoLacre != "S"
              && GrvPersistencia.FlagEstadoLacre != "N")
             {
-                erros.Add("Flag do Status dos Lacres inválido, informe \"S\" ou \"N\" (sem aspas)");
+                erros.Add("Flag do Status dos Lacres inválida, informe \"S\" ou \"N\" (sem aspas)");
             }
 
             if (GrvPersistencia.ListagemLacre?.Count == 0)
@@ -1764,7 +1742,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             }
 
             DepositoModel Deposito = await _context.Deposito
-                .Where(x => x.DepositoId == GrvPersistencia.IdentificadorDeposito)
+                //.Where(x => x.DepositoId == GrvPersistencia.IdentificadorDeposito)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
 

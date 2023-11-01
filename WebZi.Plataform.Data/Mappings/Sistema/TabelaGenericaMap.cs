@@ -25,7 +25,16 @@ namespace WebZi.Plataform.Data.Mappings.Sistema
                 .IsUnicode(false)
                 .HasMaxLength(20);
 
-            builder.Property(e => e.Valor1)
+            builder.Property(e => e.ValorCadastro)
+                .IsRequired()
+                .HasMaxLength(20)
+                .IsUnicode(false);
+
+            builder.Property(e => e.Sequencia)
+                .HasDefaultValueSql("(0)")
+                .IsRequired();
+
+            builder.Property(e => e.Descricao)
                 .IsRequired()
                 .IsUnicode(false)
                 .HasMaxLength(100);

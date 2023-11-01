@@ -19,7 +19,37 @@ namespace WebZi.Plataform.Data.Services.Empresa
             _mapper = mapper;
         }
 
-        public async Task<EmpresaViewModelList> ListAsync(string CNPJ, string Nome)
+        public async Task<EmpresaViewModelList> GetById(int EmpresaId)
+        {
+            EmpresaViewModelList ResultView = new();
+
+            if (EmpresaId <= 0)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetBadRequest("Identificador da Empresa inválido");
+
+                return ResultView;
+            }
+
+            List<EmpresaModel> result = await _context.Empresa
+                .Where(x => x.EmpresaId == EmpresaId)
+                .AsNoTracking()
+                .ToListAsync();
+
+            if (result?.Count > 0)
+            {
+                ResultView.Listagem = _mapper.Map<List<EmpresaViewModel>>(result.OrderBy(x => x.Nome).ToList());
+
+                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
+            }
+            else
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound("Empresa não encontrada");
+            }
+
+            return ResultView;
+        }
+
+        public async Task<EmpresaViewModelList> ListAsync(string CNPJ = "", string Nome = "")
         {
             List<string> erros = new();
 

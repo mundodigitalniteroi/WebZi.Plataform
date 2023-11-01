@@ -2,15 +2,10 @@
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.GGV;
-using WebZi.Plataform.Data.Services.Veiculo;
-using WebZi.Plataform.Data.Services.Vistoria;
-using WebZi.Plataform.Domain.Services.GRV;
 using WebZi.Plataform.Domain.ViewModel;
 using WebZi.Plataform.Domain.ViewModel.Generic;
 using WebZi.Plataform.Domain.ViewModel.GGV;
-using WebZi.Plataform.Domain.ViewModel.GRV.Cadastro;
-using WebZi.Plataform.Domain.ViewModel.Veiculo;
-using WebZi.Plataform.Domain.ViewModel.Vistoria;
+using WebZi.Plataform.Domain.ViewModel.GGV.Cadastro;
 
 namespace WebZi.Plataform.API.Controllers
 {
@@ -28,7 +23,7 @@ namespace WebZi.Plataform.API.Controllers
         [HttpPost("CadastrarFotos")]
         // TODO: [Authorize]
         [IgnoreAntiforgeryToken]
-        public ActionResult<MensagemViewModel> CadastrarFotos([FromBody] CadastroFotoVeiculoViewModel Fotos)
+        public ActionResult<MensagemViewModel> CadastrarFotos([FromBody] CadastroFotoGgvViewModel Fotos)
         {
             if (!ModelState.IsValid)
             {
@@ -40,7 +35,7 @@ namespace WebZi.Plataform.API.Controllers
             try
             {
                 ResultView = _provider
-                    .GetService<GrvService>()
+                    .GetService<GgvService>()
                     .CadastrarFotos(Fotos);
 
                 return StatusCode((int)ResultView.HtmlStatusCode, ResultView);

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Atendimento;
@@ -7,9 +8,11 @@ using WebZi.Plataform.Data.Services.GGV;
 using WebZi.Plataform.Data.Services.Sistema;
 using WebZi.Plataform.Data.Services.Veiculo;
 using WebZi.Plataform.Data.Services.Vistoria;
+using WebZi.Plataform.Domain.Models.Sistema;
 using WebZi.Plataform.Domain.Services.GRV;
 using WebZi.Plataform.Domain.ViewModel.Atendimento;
 using WebZi.Plataform.Domain.ViewModel.Faturamento;
+using WebZi.Plataform.Domain.ViewModel.Generic;
 using WebZi.Plataform.Domain.ViewModel.GRV;
 using WebZi.Plataform.Domain.ViewModel.GRV.Pesquisa;
 using WebZi.Plataform.Domain.ViewModel.Sistema;
@@ -27,6 +30,33 @@ namespace WebZi.Plataform.API.Controllers
         public DadosMestresController(IServiceProvider provider)
         {
             _provider = provider;
+        }
+
+        [HttpGet("ListarAssinaturaCondutor")]
+        // TODO: [Authorize]
+        public async Task<ActionResult<TabelaGenericaViewModelList>> ListarAssinaturaCondutor()
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            TabelaGenericaViewModelList ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<SistemaService>()
+                    .ListarViewTabelaGenericaAsync("GRV_ASSINATURA_CONDUTOR");
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
         }
 
         [HttpGet("ListarAutoridadeResponsavel")]
@@ -112,20 +142,20 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("ListarEstadoGeralVeiculo")]
         // TODO: [Authorize]
-        public async Task<ActionResult<VistoriaEstadoGeralVeiculoViewModelList>> ListarEstadoGeralVeiculo()
+        public async Task<ActionResult<TabelaGenericaViewModelList>> ListarEstadoGeralVeiculo()
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            VistoriaEstadoGeralVeiculoViewModelList ResultView = new();
+            TabelaGenericaViewModelList ResultView = new();
 
             try
             {
                 ResultView = await _provider
-                    .GetService<VistoriaService>()
-                    .ListarEstadoGeralVeiculoAsync();
+                    .GetService<SistemaService>()
+                    .ListarViewTabelaGenericaAsync("VISTORIA_ESTADO_GERAL_VEICULO");
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -299,33 +329,6 @@ namespace WebZi.Plataform.API.Controllers
             }
         }
 
-        [HttpGet("ListarStatusAssinaturaCondutor")]
-        // TODO: [Authorize]
-        public async Task<ActionResult<StatusOperacaoViewModelList>> ListarStatusAssinaturaCondutor()
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            StatusAssinaturaCondutorViewModelList ResultView = new();
-
-            try
-            {
-                ResultView = await _provider
-                    .GetService<GrvService>()
-                    .ListarStatusAssinaturaCondutorAsync();
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-            catch (Exception ex)
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-        }
-
         [HttpGet("ListarStatusOperacao")]
         // TODO: [Authorize]
         public async Task<ActionResult<StatusOperacaoViewModelList>> ListarStatusOperacao()
@@ -407,22 +410,49 @@ namespace WebZi.Plataform.API.Controllers
             }
         }
 
-        [HttpGet("ListarTipoDirecao")]
+        [HttpGet("ListarTipoCadastroFotoGGV")]
         // TODO: [Authorize]
-        public async Task<ActionResult<VistoriaTipoDirecaoViewModelList>> ListarTipoDirecao()
+        public async Task<ActionResult<TabelaGenericaViewModelList>> ListarTipoCadastroFotoGGV()
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            VistoriaTipoDirecaoViewModelList ResultView = new();
+            TabelaGenericaViewModelList ResultView = new();
 
             try
             {
                 ResultView = await _provider
-                    .GetService<VistoriaService>()
-                    .ListarTipoDirecaoAsync();
+                    .GetService<SistemaService>()
+                    .ListarViewTabelaGenericaAsync("GGV_TIPO_CADASTRO_FOTO");
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
+
+        [HttpGet("ListarTipoDirecao")]
+        // TODO: [Authorize]
+        public async Task<ActionResult<TabelaGenericaViewModelList>> ListarTipoDirecao()
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            TabelaGenericaViewModelList ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<SistemaService>()
+                    .ListarViewTabelaGenericaAsync("VISTORIA_TIPO_DIRECAO");
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }

@@ -1,24 +1,24 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-using System.Runtime.ConstrainedExecution;
+using WebZi.Plataform.CrossCutting.Veiculo;
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Bucket;
 using WebZi.Plataform.Data.Services.Deposito;
+using WebZi.Plataform.Data.Services.Empresa;
 using WebZi.Plataform.Data.Services.Sistema;
 using WebZi.Plataform.Data.Services.Veiculo;
 using WebZi.Plataform.Data.Services.Vistoria;
 using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Bucket;
-using WebZi.Plataform.Domain.Models.ClienteDeposito;
 using WebZi.Plataform.Domain.Models.GRV;
+using WebZi.Plataform.Domain.Models.Vistoria;
 using WebZi.Plataform.Domain.Services.GRV;
 using WebZi.Plataform.Domain.ViewModel;
 using WebZi.Plataform.Domain.ViewModel.Generic;
 using WebZi.Plataform.Domain.ViewModel.GGV;
-using WebZi.Plataform.Domain.ViewModel.GRV;
-using WebZi.Plataform.Domain.ViewModel.GRV.Cadastro;
+using WebZi.Plataform.Domain.ViewModel.GGV.Cadastro;
 
 namespace WebZi.Plataform.Data.Services.GGV
 {
@@ -35,7 +35,7 @@ namespace WebZi.Plataform.Data.Services.GGV
             _httpClientFactory = httpClientFactory;
         }
 
-        public MensagemViewModel CadastrarFotos(CadastroFotoVeiculoViewModel Fotos)
+        public MensagemViewModel CadastrarFotos(CadastroFotoGgvViewModel Fotos)
         {
             MensagemViewModel ResultView = new GrvService(_context)
                 .ValidarInputGrv(Fotos.IdentificadorGrv, Fotos.IdentificadorUsuario);
@@ -45,22 +45,29 @@ namespace WebZi.Plataform.Data.Services.GGV
                 return ResultView;
             }
 
-            if (Fotos.Fotos.Count == 0)
+            if (Fotos.Listagem?.Count == 0)
             {
                 return MensagemViewHelper.GetBadRequest("Nenhuma imagem enviada para a API");
             }
 
             GrvModel Grv = new GrvService(_context).GetGrv(Fotos.IdentificadorGrv);
-            
+
             if (!new[] { "V", "L", "U", "T", "R", "E", "B", "D", "1", "2", "3", "4" }.Contains(Grv.StatusOperacao.StatusOperacaoId))
             {
                 return MensagemViewHelper.GetBadRequest($"O Status da Operação deste GRV não permite o envio de Fotos. Status atual: {Grv.StatusOperacao.Descricao}");
             }
 
-            new BucketArquivoService(_context, _httpClientFactory)
-                .SendFiles("GGVFOTOSVEICCAD", Fotos.IdentificadorGrv, Fotos.IdentificadorUsuario, Fotos.Fotos);
+            List<BucketFileModel> Files = new();
 
-            return MensagemViewHelper.GetOkCreate(Fotos.Fotos.Count);
+            foreach (CadastroFotoTipoCadastroViewModel item in Fotos.Listagem)
+            {
+                Files.Add(new BucketFileModel { TipoCadastroId = item.IdentificadorTipoCadastro, File = item.Foto });
+            }
+
+            new BucketArquivoService(_context, _httpClientFactory)
+                .SendFiles("GGVFOTOSVEICCAD", Fotos.IdentificadorGrv, Fotos.IdentificadorUsuario, Files);
+
+            return MensagemViewHelper.GetOkCreate(Fotos.Listagem.Count);
         }
 
         public async Task<MensagemViewModel> ExcluirFotosAsync(int GrvId, int UsuarioId, List<int> ListagemTabelaOrigemId)
@@ -115,18 +122,23 @@ namespace WebZi.Plataform.Data.Services.GGV
 
         public async Task<DadosMestresViewModel> ListarDadosMestresAsync(byte TipoVeiculoId)
         {
-            VistoriaService VistoriaService = new(_context);
+            VistoriaService VistoriaService = new(_context, _mapper);
+
+            SistemaService SistemaService = new(_context, _mapper);
 
             DadosMestresViewModel DadosMestres = new()
             {
+                ListagemEmpresa = await new EmpresaService(_context, _mapper)
+                    .ListAsync(),
+
                 ListagemCorOstentada = await new SistemaService(_context, _mapper)
                     .ListarCorAsync(),
 
                 ListagemEquipamento = await new VeiculoService(_context, _mapper)
                     .ListarEquipamentoOpcionalAsync(TipoVeiculoId),
 
-                ListagemEstadoGeralVeiculo = await VistoriaService
-                    .ListarEstadoGeralVeiculoAsync(),
+                ListagemEstadoGeralVeiculo = await SistemaService
+                    .ListarViewTabelaGenericaAsync("VISTORIA_ESTADO_GERAL_VEICULO"),
 
                 ListagemSituacaoChassi = await VistoriaService
                     .ListarSituacaoChassiAsync(),
@@ -137,8 +149,11 @@ namespace WebZi.Plataform.Data.Services.GGV
                 ListagemTipoAvaria = await new TipoAvariaService(_context, _mapper)
                     .ListarTipoAvariaAsync(),
 
-                ListagemTipoDirecao = await VistoriaService
-                    .ListarTipoDirecaoAsync()
+                ListagemTipoCadastroFotoGGV = await SistemaService
+                    .ListarViewTabelaGenericaAsync("GGV_TIPO_CADASTRO_FOTO"),
+
+                ListagemTipoDirecao = await SistemaService
+                    .ListarViewTabelaGenericaAsync("VISTORIA_TIPO_DIRECAO")
             };
 
             return DadosMestres;
@@ -181,6 +196,15 @@ namespace WebZi.Plataform.Data.Services.GGV
             }
             #endregion Validações de IDs
 
+            GrvModel Grv = await _context.Grv
+                .Include(x => x.Deposito)
+                .Where(x => x.GrvId == GrvPersistencia.IdentificadorGrv)
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
+
+            DateTime DataHoraPorDeposito = new DepositoService(_context)
+                .GetDataHoraPorDeposito(Grv.DepositoId);
+
             if (erros.Count > 0)
             {
                 return MensagemViewHelper.GetBadRequest(erros);
@@ -194,62 +218,167 @@ namespace WebZi.Plataform.Data.Services.GGV
                 return ResultView;
             }
 
-            GrvModel Grv = await _context.Grv
-                .Include(x => x.Deposito)
-                .Where(x => x.GrvId == GrvPersistencia.IdentificadorGrv)
-                .AsNoTracking()
-                .FirstOrDefaultAsync();
-
-            DateTime DataHoraPorDeposito = new DepositoService(_context)
-                .GetDataHoraPorDeposito(Grv.DepositoId);
-
             if (GrvPersistencia.DataHoraGuarda.Date > DataHoraPorDeposito.Date)
             {
                 ResultView.AvisosImpeditivos.Add("A Data da Guarda não pode ser maior do que a Data atual");
             }
-            
+
             if (GrvPersistencia.DataHoraGuarda.Hour == 0 && GrvPersistencia.DataHoraGuarda.Minute == 0)
             {
                 ResultView.AvisosImpeditivos.Add("A Hora da Guarda não pode ser igual a 00:00");
             }
-            
+
             if (Grv.DataHoraRemocao > GrvPersistencia.DataHoraGuarda)
             {
-                ResultView.AvisosImpeditivos.Add("• A Data/Hora da Guarda não pode ser maior à Data/Hora da Remoção");
+                ResultView.AvisosImpeditivos.Add("A Data/Hora da Guarda não pode ser maior à Data/Hora da Remoção");
             }
 
             if (Grv.DataHoraRemocao == GrvPersistencia.DataHoraGuarda)
             {
-                ResultView.AvisosImpeditivos.Add("• A Data/Hora da Guarda não pode ser igual à Data/Hora da Remoção");
+                ResultView.AvisosImpeditivos.Add("A Data/Hora da Guarda não pode ser igual à Data/Hora da Remoção");
             }
 
             if (Grv.Deposito.GrvLimiteMinimoDatahoraGuarda == 0)
             {
-                Grv.Deposito.GrvLimiteMinimoDatahoraGuarda = 30;
+                Grv.Deposito.GrvLimiteMinimoDatahoraGuarda = 20; // Anos
             }
 
-            if (((DataHoraPorDeposito.Date - GrvPersistencia.DataHoraGuarda.Date).TotalDays) > Grv.Deposito.GrvLimiteMinimoDatahoraGuarda)
+            if (((DataHoraPorDeposito.Date - GrvPersistencia.DataHoraGuarda.Date).TotalDays) > (Grv.Deposito.GrvLimiteMinimoDatahoraGuarda / 365))
             {
-                if (Grv.Deposito.GrvLimiteMinimoDatahoraGuarda >= 365)
+                if (Grv.Deposito.GrvLimiteMinimoDatahoraGuarda == 1)
                 {
-                    Grv.Deposito.GrvLimiteMinimoDatahoraGuarda /= 365;
-
-                    if (Grv.Deposito.GrvLimiteMinimoDatahoraGuarda >= 1)
-                    {
-                        ResultView.AvisosImpeditivos.Add("A Data da Guarda não pode ser inferior a 1 ano.");
-                    }
-                    else
-                    {
-                        ResultView.AvisosImpeditivos.Add("A Data da Guarda não pode ser inferior a " + Grv.Deposito.GrvLimiteMinimoDatahoraGuarda + " anos.");
-                    }
+                    ResultView.AvisosImpeditivos.Add("A Data da Guarda não pode ser inferior a 1 ano.");
+                }
+                else
+                {
+                    ResultView.AvisosImpeditivos.Add("A Data da Guarda não pode ser inferior a " + Grv.Deposito.GrvLimiteMinimoDatahoraGuarda + " anos.");
                 }
             }
 
-            //ClienteDepositoModel ClienteDeposito = await _context.ClienteDeposito
-            //    .Where(x => x.ClienteId == Grv.ClienteId
-            //             && x.DepositoId == Grv.DepositoId)
-            //    .AsNoTracking()
-            //    .FirstOrDefaultAsync();
+            if (GrvPersistencia.FlagChaveDeposito != "S" && GrvPersistencia.FlagChaveDeposito != "N")
+            {
+                erros.Add("Flag da Chave deixada no Depósito inválida, informe \"S\" ou \"N\" (sem aspas)");
+            }
+            else if (GrvPersistencia.FlagChaveDeposito == "S")
+            {
+                erros.Add("Informe o Número da Chave do Veículo");
+            }
+
+            if (GrvPersistencia.FlagTransbordo != "S" && GrvPersistencia.FlagTransbordo != "N")
+            {
+                erros.Add("Flag do Transbordo inválida, informe \"S\" ou \"N\" (sem aspas)");
+            }
+            else if (GrvPersistencia.FlagTransbordo == "S")
+            {
+                if (!GrvPersistencia.DataTransbordo.HasValue)
+                {
+                    erros.Add("Data do Transbordo inválida");
+                }
+                else if (GrvPersistencia.DataTransbordo.Value > DataHoraPorDeposito)
+                {
+                    erros.Add("Data do Transbordo não pode ser maior do que a Data/Hora atual");
+                }
+            }
+
+            if (Grv.Deposito.GrvMinimoFotosExigidas > 0)
+            {
+                if (GrvPersistencia.Fotos?.Count == 0)
+                {
+                    erros.Add("É necessário enviar pelo menos 1 Foto do Veículo");
+                }
+                else if (Grv.Deposito.GrvMinimoFotosExigidas > GrvPersistencia.Fotos.Count)
+                {
+                    erros.Add($"É necessário enviar pelo menos {Grv.Deposito.GrvMinimoFotosExigidas} Fotos do Veículo");
+                }
+            }
+
+            if (GrvPersistencia.Vistoria != null)
+            {
+                if (GrvPersistencia.Vistoria.FlagVistoria != "S" && GrvPersistencia.Vistoria.FlagVistoria != "N")
+                {
+                    erros.Add("Flag da realização da Vistoria inválida, informe \"S\" ou \"N\" (sem aspas)");
+                }
+                else if (GrvPersistencia.Vistoria.FlagVistoria == "S")
+                {
+                    if (GrvPersistencia.Vistoria.IdentificadorEmpresaVistoria > 0)
+                    {
+                        if (await _context.Empresa
+                            .Where(w => w.EmpresaId == GrvPersistencia.Vistoria.IdentificadorEmpresaVistoria)
+                            .AsNoTracking()
+                            .FirstOrDefaultAsync() == null)
+                        {
+                            erros.Add("Identificador da Empresa inválido");
+                        }
+                    }
+
+                    if (GrvPersistencia.Vistoria.IdentificadorStatusVistoria > 0)
+                    {
+
+                    }
+
+                    if (GrvPersistencia.Vistoria.IdentificadorSituacaoChassi <= 0)
+                    {
+                        erros.Add("Identificador da Situação do Chassi inválido");
+                    }
+                    else if (await _context.VistoriaSituacaoChassi
+                        .Where(w => w.VistoriaSituacaoChassiId == GrvPersistencia.Vistoria.IdentificadorSituacaoChassi)
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync() == null)
+                    {
+                        erros.Add("Identificador da Situação do Chassi inexistente");
+                    }
+
+                    if (GrvPersistencia.Vistoria.IdentificadorTipoDirecao > 0)
+                    {
+
+                    }
+
+                    if (GrvPersistencia.Vistoria.IdentificadorEstadoGeralVeiculo <= 0)
+                    {
+                        erros.Add("Identificador do Estado Geral do Veículo inválido");
+                    }
+                    else
+                    {
+
+                    }
+
+                    if (GrvPersistencia.Vistoria.DataVistoria > DataHoraPorDeposito)
+                    {
+                        erros.Add("A Data da Vistoria não pode ser maior do que a Data Atual");
+                    }
+
+                    if (GrvPersistencia.Vistoria.FlagPossuiRestricoes != "S" && GrvPersistencia.Vistoria.FlagPossuiRestricoes != "N")
+                    {
+                        erros.Add("Flag Possui Restrições inválida, informe \"S\" ou \"N\" (sem aspas)");
+                    }
+
+                    if (GrvPersistencia.Vistoria.FlagPossuiVidroEletrico != "S" && GrvPersistencia.Vistoria.FlagPossuiVidroEletrico != "N")
+                    {
+                        erros.Add("Flag Possui Vidro Elétrico inválida, informe \"S\" ou \"N\" (sem aspas)");
+                    }
+
+                    if (GrvPersistencia.Vistoria.FlagPossuiTravaEletrica != "S" && GrvPersistencia.Vistoria.FlagPossuiTravaEletrica != "N")
+                    {
+                        erros.Add("Flag Possui Trava Elétrica inválida, informe \"S\" ou \"N\" (sem aspas)");
+                    }
+
+                    if (GrvPersistencia.Vistoria.FlagPossuiPlaca != "S" && GrvPersistencia.Vistoria.FlagPossuiPlaca != "N")
+                    {
+                        erros.Add("Flag Possui Placa inválida, informe \"S\" ou \"N\" (sem aspas)");
+                    }
+                    else if (GrvPersistencia.Vistoria.FlagPossuiPlaca == "S")
+                    {
+                        if (string.IsNullOrWhiteSpace(GrvPersistencia.Vistoria.PlacaOstentada))
+                        {
+                            erros.Add("Informe a Placa Ostentada");
+                        }
+                        else if (!VeiculoHelper.IsPlaca(GrvPersistencia.Vistoria.PlacaOstentada))
+                        {
+                            erros.Add("Placa Ostentada inválida");
+                        }
+                    }
+                }
+            }
 
             return ResultView;
         }

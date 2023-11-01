@@ -8,6 +8,10 @@
 
         public string Sigla { get; set; }
 
-        public string Valor1 { get; set; }
+        public string ValorCadastro { get; set; }
+
+        public byte Sequencia { get; set; }
+
+        public string Descricao { get; set; }
     }
 }

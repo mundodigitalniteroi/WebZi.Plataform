@@ -12,12 +12,14 @@ using WebZi.Plataform.Domain.Models.Servico;
 using WebZi.Plataform.Domain.Models.Sistema;
 using WebZi.Plataform.Domain.Models.Usuario;
 using WebZi.Plataform.Domain.Models.Veiculo;
+using WebZi.Plataform.Domain.Models.Vistoria;
 using WebZi.Plataform.Domain.ViewModel.Atendimento;
 using WebZi.Plataform.Domain.ViewModel.Banco;
 using WebZi.Plataform.Domain.ViewModel.Cliente;
 using WebZi.Plataform.Domain.ViewModel.Deposito;
 using WebZi.Plataform.Domain.ViewModel.Empresa;
 using WebZi.Plataform.Domain.ViewModel.Faturamento;
+using WebZi.Plataform.Domain.ViewModel.Generic;
 using WebZi.Plataform.Domain.ViewModel.GRV;
 using WebZi.Plataform.Domain.ViewModel.GRV.Cadastro;
 using WebZi.Plataform.Domain.ViewModel.GRV.Pesquisa;
@@ -27,6 +29,7 @@ using WebZi.Plataform.Domain.ViewModel.Servico;
 using WebZi.Plataform.Domain.ViewModel.Sistema;
 using WebZi.Plataform.Domain.ViewModel.Usuario;
 using WebZi.Plataform.Domain.ViewModel.Veiculo;
+using WebZi.Plataform.Domain.ViewModel.Vistoria;
 using WebZi.Plataform.Domain.Views.Localizacao;
 using WebZi.Plataform.Domain.Views.Usuario;
 
@@ -129,6 +132,9 @@ namespace WebZi.Plataform.Data.Services.AutoMapper
                 .ForMember(dest => dest.IdentificadorCliente, opt => opt.MapFrom(src => src.ClienteId))
                 .ForMember(dest => dest.IdentificadorDeposito, opt => opt.MapFrom(src => src.DepositoId));
 
+            CreateMap<TabelaGenericaModel, TabelaGenericaViewModel>()
+                .ForMember(dest => dest.Identificador, opt => opt.MapFrom(src => src.TabelaGenericaId));
+
             CreateMap<TipoAvariaModel, TipoAvariaViewModel>()
                 .ForMember(dest => dest.IdentificadorTipoAvaria, opt => opt.MapFrom(src => src.TipoAvariaId));
 
@@ -146,6 +152,9 @@ namespace WebZi.Plataform.Data.Services.AutoMapper
 
             CreateMap<UsuarioModel, UsuarioViewModel>()
                 .ForMember(dest => dest.IdentificadorUsuario, opt => opt.MapFrom(src => src.UsuarioId));
+
+            CreateMap<VistoriaSituacaoChassiModel, VistoriaSituacaoChassiViewModel>()
+                .ForMember(dest => dest.IdentificadorSituacaoChassi, opt => opt.MapFrom(src => src.VistoriaSituacaoChassiId));
 
             CreateMap<ViewEnderecoCompletoModel, EnderecoViewModel>()
                 .ForMember(dest => dest.IdentificadorCEP, opt => opt.MapFrom(src => src.CEPId))

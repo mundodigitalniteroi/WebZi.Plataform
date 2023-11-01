@@ -2,19 +2,12 @@
 using System.ComponentModel.DataAnnotations;
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Helper;
-using WebZi.Plataform.Data.Services.Servico;
-using WebZi.Plataform.Data.Services.Sistema;
-using WebZi.Plataform.Data.Services.Veiculo;
 using WebZi.Plataform.Domain.Services.GRV;
 using WebZi.Plataform.Domain.ViewModel;
-using WebZi.Plataform.Domain.ViewModel.Faturamento;
 using WebZi.Plataform.Domain.ViewModel.Generic;
 using WebZi.Plataform.Domain.ViewModel.GRV;
 using WebZi.Plataform.Domain.ViewModel.GRV.Cadastro;
 using WebZi.Plataform.Domain.ViewModel.GRV.Pesquisa;
-using WebZi.Plataform.Domain.ViewModel.Servico;
-using WebZi.Plataform.Domain.ViewModel.Sistema;
-using WebZi.Plataform.Domain.ViewModel.Veiculo;
 
 namespace WebZi.Plataform.API.Controllers
 {
@@ -111,13 +104,13 @@ namespace WebZi.Plataform.API.Controllers
         [HttpPost("CadastrarFotos")]
         // TODO: [Authorize]
         [IgnoreAntiforgeryToken]
-        public ActionResult<MensagemViewModel> CadastrarFotos([FromBody] CadastroFotoVeiculoViewModel Fotos)
+        public ActionResult<MensagemViewModel> CadastrarFotos([FromBody] CadastroFotoViewModel Fotos)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
-            
+
             MensagemViewModel ResultView;
 
             try

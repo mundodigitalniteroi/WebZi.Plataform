@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Domain.Models.Sistema;
+using WebZi.Plataform.Domain.ViewModel.Generic;
 using WebZi.Plataform.Domain.ViewModel.Sistema;
 
 namespace WebZi.Plataform.Data.Services.Sistema
@@ -50,11 +51,11 @@ namespace WebZi.Plataform.Data.Services.Sistema
 
         /// <summary>
         /// Retorna registros da Tabela Genérica.
-        /// Por padrão, a ordenação é realizada na propriedade Valor1.
+        /// Por padrão, a ordenação é realizada na propriedade Sequencia seguido de Valor1.
         /// </summary>
         /// <param name="Codigo"></param>
         /// <returns></returns>
-        public async Task<List<TabelaGenericaModel>> ListarTabelaGenerica(string Codigo)
+        public async Task<List<TabelaGenericaModel>> ListarTabelaGenericaAsync(string Codigo)
         {
             List<TabelaGenericaModel> result = await _context.TabelaGenerica
                 .Where(x => x.Codigo == Codigo)
@@ -62,11 +63,61 @@ namespace WebZi.Plataform.Data.Services.Sistema
                 .ToListAsync();
 
             return result?.Count > 0 ? result
-                .OrderBy(x => x.Valor1)
+                .OrderBy(x => x.Sequencia)
+                .ThenBy(x => x.Descricao)
                 .ToList() : null;
         }
 
-        public async Task<ConfiguracaoModel> SelecionarConfiguracaoSistema()
+        public List<TabelaGenericaModel> ListarTabelaGenericaById(string Codigo, int TabelaGenericaId)
+        {
+            List<TabelaGenericaModel> result = _context.TabelaGenerica
+                .Where(x => x.Codigo == Codigo
+                         && x.TabelaGenericaId == TabelaGenericaId)
+                .AsNoTracking()
+                .ToList();
+
+            return result?.Count > 0 ? result
+                .OrderBy(x => x.Sequencia)
+                .ThenBy(x => x.Descricao)
+                .ToList() : null;
+        }
+
+        public async Task<List<TabelaGenericaModel>> ListarTabelaGenericaByIdAsync(string Codigo, int TabelaGenericaId)
+        {
+            List<TabelaGenericaModel> result = await _context.TabelaGenerica
+                .Where(x => x.Codigo == Codigo
+                         && x.TabelaGenericaId == TabelaGenericaId)
+                .AsNoTracking()
+                .ToListAsync();
+
+            return result?.Count > 0 ? result
+                .OrderBy(x => x.Sequencia)
+                .ThenBy(x => x.Descricao)
+                .ToList() : null;
+        }
+
+        public async Task<TabelaGenericaViewModelList> ListarViewTabelaGenericaAsync(string Codigo)
+        {
+            TabelaGenericaViewModelList ResultView = new();
+
+            List<TabelaGenericaModel> result = await ListarTabelaGenericaAsync(Codigo);
+
+            if (result?.Count == 0)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+
+                return ResultView;
+            }
+
+            ResultView.Listagem = _mapper
+                .Map<List<TabelaGenericaViewModel>>(result);
+
+            ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
+
+            return ResultView;
+        }
+
+        public async Task<ConfiguracaoModel> SelecionarConfiguracaoSistemaAsync()
         {
             return await _context.Configuracao
                 .FirstOrDefaultAsync();
