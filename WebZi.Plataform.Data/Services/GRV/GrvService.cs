@@ -43,6 +43,7 @@ using WebZi.Plataform.Domain.ViewModel.Localizacao;
 using WebZi.Plataform.Domain.ViewModel.Usuario;
 using WebZi.Plataform.Domain.Views.Usuario;
 using Z.EntityFramework.Plus;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace WebZi.Plataform.Domain.Services.GRV
 {
@@ -269,38 +270,16 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 }
             }
 
-            try
+            if (GrvPersistencia.ListagemDocumentoCondutor?.Count > 0)
             {
-                if (GrvPersistencia.ListagemDocumentoCondutor?.Count > 0)
-                {
-                    CadastrarDocumentosCondutor(Grv.GrvId, Grv.UsuarioCadastroId, GrvPersistencia.ListagemDocumentoCondutor);
-                }
-            }
-            catch (Exception ex)
-            {
-                if (true)
-                {
-
-                }
+                CadastrarDocumentosCondutor(Grv.GrvId, Grv.UsuarioCadastroId, GrvPersistencia.ListagemDocumentoCondutor);
             }
 
-            try
+            if (GrvPersistencia.ListagemFoto?.Count > 0)
             {
-                if (GrvPersistencia.ListagemFoto?.Count > 0)
-                {
-                    new BucketArquivoService(_context, _httpClientFactory)
-                        .SendFiles("GRVFOTOSVEICCAD", Grv.GrvId, Grv.UsuarioCadastroId, GrvPersistencia.ListagemFoto);
-                }
+                new BucketArquivoService(_context, _httpClientFactory)
+                    .SendFiles("GRVFOTOSVEICCAD", Grv.GrvId, Grv.UsuarioCadastroId, GrvPersistencia.ListagemFoto);
             }
-            catch (Exception ex)
-            {
-                if (true)
-                {
-
-                }
-            }
-
-
 
             ResultView.Mensagem = MensagemViewHelper.GetOkCreate();
 
@@ -1236,6 +1215,23 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
         public MensagemViewModel ValidarInputGrv(int GrvId, int UsuarioId)
         {
+            List<string> erros = new();
+
+            if (GrvId <= 0)
+            {
+                erros.Add(MensagemPadraoEnum.IdentificadorGrvInvalido);
+            }
+
+            if (UsuarioId <= 0)
+            {
+                erros.Add(MensagemPadraoEnum.IdentificadorUsuarioInvalido);
+            }
+
+            if (erros.Count > 0)
+            {
+                return MensagemViewHelper.GetBadRequest(erros);
+            }
+
             return ValidarInputGrv(GrvId, UsuarioId, "", "", 0, 0);
         }
 

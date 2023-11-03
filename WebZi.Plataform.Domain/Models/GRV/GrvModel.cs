@@ -146,7 +146,7 @@ namespace WebZi.Plataform.Domain.Models.GRV
 
         public string FlagEstadoLacre { get; set; } = "N";
 
-        public string FlagVeiculoMesmasCondicoes { get; set; } = "N";
+        public string FlagVeiculoMesmasCondicoes { get; set; } = "S";
 
         /// <summary>
         /// Flag que identifica se o GGV já foi cadastrado
@@ -188,7 +188,9 @@ namespace WebZi.Plataform.Domain.Models.GRV
         public virtual StatusOperacaoModel StatusOperacao { get; set; }
         
         public virtual TipoVeiculoModel TipoVeiculo { get; set; }
-        
+
+        public virtual VistoriaModel Vistoria { get; set; }
+
         public virtual UsuarioModel UsuarioAlteracao { get; set; }
         
         public virtual UsuarioModel UsuarioCadastro { get; set; }

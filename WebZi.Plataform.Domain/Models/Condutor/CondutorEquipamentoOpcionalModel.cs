@@ -33,6 +33,6 @@ namespace WebZi.Plataform.Domain.Models.Condutor
 
         //public virtual UsuarioModel UsuarioAlteracao { get; set; }
 
-        public virtual ICollection<CondutorEquipamentoOpcionalNaoConformidadeModel> CondutorEquipamentosOpcionaisNaoConformidades { get; set; }
+        public virtual ICollection<CondutorEquipamentoOpcionalNaoConformidadeModel> ListagemCondutorEquipamentoOpcionalNaoConformidade { get; set; }
     }
 }

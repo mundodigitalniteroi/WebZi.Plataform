@@ -14,7 +14,15 @@ namespace WebZi.Plataform.Domain.ViewModel.GGV
 
         public string FlagChaveDeposito { get; set; }
 
+        public string NumeroChave { get; set; }
+
+        public string EstacionamentoSetor { get; set; }
+
+        public string EstacionamentoNumeroVaga { get; set; }
+
         public string FlagTransbordo { get; set; }
+
+        public List<CadastroEquipamentoOpcionalViewModel> ListagemEquipamentoOpcional { get; set; }
 
         public CadastroVistoriaViewModel Vistoria { get; set; }
 

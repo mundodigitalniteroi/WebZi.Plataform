@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using WebZi.Plataform.CrossCutting.Veiculo;
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
@@ -12,6 +13,7 @@ using WebZi.Plataform.Data.Services.Veiculo;
 using WebZi.Plataform.Data.Services.Vistoria;
 using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Bucket;
+using WebZi.Plataform.Domain.Models.Cliente;
 using WebZi.Plataform.Domain.Models.GRV;
 using WebZi.Plataform.Domain.Models.Vistoria;
 using WebZi.Plataform.Domain.Services.GRV;
@@ -33,6 +35,87 @@ namespace WebZi.Plataform.Data.Services.GGV
             _context = context;
             _mapper = mapper;
             _httpClientFactory = httpClientFactory;
+        }
+
+        public async Task<MensagemViewModel> Cadastrar(GgvPersistenciaViewModel GrvPersistencia)
+        {
+            MensagemViewModel ResultView = await ValidarInformacoesPersistenciaAsync(GrvPersistencia);
+
+            if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+            {
+                return ResultView;
+            }
+
+            GrvModel Grv = await _context.Grv
+                .Where(x => x.GrvId == GrvPersistencia.IdentificadorGrv)
+                .FirstOrDefaultAsync();
+
+            DateTime DataHoraPorDeposito = new DepositoService(_context)
+                .GetDataHoraPorDeposito(Grv.DepositoId);
+
+            Grv.UsuarioCadastroGgvId = GrvPersistencia.IdentificadorUsuario;
+            Grv.DataAlteracao = DataHoraPorDeposito;
+            Grv.DataHoraGuarda = GrvPersistencia.DataHoraGuarda;
+            Grv.FlagChaveDeposito = GrvPersistencia.FlagChaveDeposito;
+
+            if (GrvPersistencia.FlagChaveDeposito == "S")
+            {
+                Grv.NumeroChave = GrvPersistencia.NumeroChave;
+            }
+
+            Grv.EstacionamentoSetor = GrvPersistencia.EstacionamentoSetor;
+
+            Grv.EstacionamentoNumeroVaga = GrvPersistencia.EstacionamentoNumeroVaga;
+
+            if (GrvPersistencia.FlagTransbordo == "S")
+            {
+                Grv.FlagTransbordo = "S";
+
+                Grv.DataTransbordo = GrvPersistencia.DataTransbordo;
+            }
+
+            // TODO:
+            // CadastrarEquipamentos()
+
+            using (IDbContextTransaction transaction = _context.Database.BeginTransaction())
+            {
+                try
+                {
+                    if (GrvPersistencia.Vistoria != null)
+                    {
+                        VistoriaModel Vistoria = new();
+
+                        Grv.Vistoria = Vistoria;
+                    }
+
+                    _context.Grv.Update(Grv);
+
+                    _context.SaveChanges();
+
+                    transaction.Commit();
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+
+                    return MensagemViewHelper.GetInternalServerError(ex);
+                }
+            }
+
+            if (GrvPersistencia.Fotos?.Count > 0)
+            {
+                List<BucketFileModel> Files = new();
+
+                foreach (CadastroFotoTipoCadastroViewModel item in GrvPersistencia.Fotos)
+                {
+                    Files.Add(new BucketFileModel { TipoCadastroId = item.IdentificadorTipoCadastro, File = item.Foto });
+                }
+
+                new BucketArquivoService(_context, _httpClientFactory)
+                    .SendFiles("GGVFOTOSVEICCAD", GrvPersistencia.IdentificadorGrv, GrvPersistencia.IdentificadorUsuario, Files);
+            }
+
+            return MensagemViewHelper.GetOkCreate(1);
         }
 
         public MensagemViewModel CadastrarFotos(CadastroFotoGgvViewModel Fotos)
@@ -182,19 +265,15 @@ namespace WebZi.Plataform.Data.Services.GGV
                 return MensagemViewHelper.GetBadRequest("O Modelo está nulo");
             }
 
-            #region Validações de IDs
+            MensagemViewModel ResultView = new GrvService(_context)
+                .ValidarInputGrv(GrvPersistencia.IdentificadorGrv, GrvPersistencia.IdentificadorUsuario);
+
+            if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+            {
+                return ResultView;
+            }
+
             List<string> erros = new();
-
-            if (GrvPersistencia.IdentificadorGrv <= 0)
-            {
-                erros.Add(MensagemPadraoEnum.IdentificadorGrvInvalido);
-            }
-
-            if (GrvPersistencia.IdentificadorUsuario <= 0)
-            {
-                erros.Add(MensagemPadraoEnum.IdentificadorUsuarioInvalido);
-            }
-            #endregion Validações de IDs
 
             GrvModel Grv = await _context.Grv
                 .Include(x => x.Deposito)
@@ -205,37 +284,24 @@ namespace WebZi.Plataform.Data.Services.GGV
             DateTime DataHoraPorDeposito = new DepositoService(_context)
                 .GetDataHoraPorDeposito(Grv.DepositoId);
 
-            if (erros.Count > 0)
-            {
-                return MensagemViewHelper.GetBadRequest(erros);
-            }
-
-            MensagemViewModel ResultView = new GrvService(_context)
-                .ValidarInputGrv(GrvPersistencia.IdentificadorGrv, GrvPersistencia.IdentificadorUsuario);
-
-            if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
-            {
-                return ResultView;
-            }
-
             if (GrvPersistencia.DataHoraGuarda.Date > DataHoraPorDeposito.Date)
             {
-                ResultView.AvisosImpeditivos.Add("A Data da Guarda não pode ser maior do que a Data atual");
+                erros.Add("A Data da Guarda não pode ser maior do que a Data atual");
             }
 
             if (GrvPersistencia.DataHoraGuarda.Hour == 0 && GrvPersistencia.DataHoraGuarda.Minute == 0)
             {
-                ResultView.AvisosImpeditivos.Add("A Hora da Guarda não pode ser igual a 00:00");
+                erros.Add("A Hora da Guarda não pode ser igual a 00:00");
             }
 
             if (Grv.DataHoraRemocao > GrvPersistencia.DataHoraGuarda)
             {
-                ResultView.AvisosImpeditivos.Add("A Data/Hora da Guarda não pode ser maior à Data/Hora da Remoção");
+                erros.Add("A Data/Hora da Guarda não pode ser maior à Data/Hora da Remoção");
             }
 
             if (Grv.DataHoraRemocao == GrvPersistencia.DataHoraGuarda)
             {
-                ResultView.AvisosImpeditivos.Add("A Data/Hora da Guarda não pode ser igual à Data/Hora da Remoção");
+                erros.Add("A Data/Hora da Guarda não pode ser igual à Data/Hora da Remoção");
             }
 
             if (Grv.Deposito.GrvLimiteMinimoDatahoraGuarda == 0)
@@ -247,11 +313,11 @@ namespace WebZi.Plataform.Data.Services.GGV
             {
                 if (Grv.Deposito.GrvLimiteMinimoDatahoraGuarda == 1)
                 {
-                    ResultView.AvisosImpeditivos.Add("A Data da Guarda não pode ser inferior a 1 ano.");
+                    erros.Add("A Data da Guarda não pode ser inferior a 1 ano.");
                 }
                 else
                 {
-                    ResultView.AvisosImpeditivos.Add("A Data da Guarda não pode ser inferior a " + Grv.Deposito.GrvLimiteMinimoDatahoraGuarda + " anos.");
+                    erros.Add("A Data da Guarda não pode ser inferior a " + Grv.Deposito.GrvLimiteMinimoDatahoraGuarda + " anos.");
                 }
             }
 
@@ -259,7 +325,7 @@ namespace WebZi.Plataform.Data.Services.GGV
             {
                 erros.Add("Flag da Chave deixada no Depósito inválida, informe \"S\" ou \"N\" (sem aspas)");
             }
-            else if (GrvPersistencia.FlagChaveDeposito == "S")
+            else if (GrvPersistencia.FlagChaveDeposito == "S" && string.IsNullOrWhiteSpace(GrvPersistencia.NumeroChave))
             {
                 erros.Add("Informe o Número da Chave do Veículo");
             }
@@ -292,6 +358,27 @@ namespace WebZi.Plataform.Data.Services.GGV
                 }
             }
 
+            if (GrvPersistencia.ListagemEquipamentoOpcional?.Count > 0)
+            {
+                foreach (CadastroEquipamentoOpcionalViewModel EquipamentoOpcional in GrvPersistencia.ListagemEquipamentoOpcional)
+                {
+                    if (EquipamentoOpcional.IdentificadorEquipamentoOpcional <= 0)
+                    {
+                        erros.Add("Identificador do Equipamento Opcional inválido");
+                    }
+
+                    if (EquipamentoOpcional.FlagEquipamentoAvariado != "S" && EquipamentoOpcional.FlagEquipamentoAvariado != "N")
+                    {
+                        erros.Add("Flag de Equipamento Avariado inválida, informe \"S\" ou \"N\" (sem aspas)");
+                    }
+                    else if (EquipamentoOpcional.FlagEquipamentoAvariado == "S"
+                        && EquipamentoOpcional.IdentificadorTipoAvariaId <= 0)
+                    {
+                        erros.Add("Identificador do Tipo da Avaria inválido");
+                    }
+                }
+            }
+
             if (GrvPersistencia.Vistoria != null)
             {
                 if (GrvPersistencia.Vistoria.FlagVistoria != "S" && GrvPersistencia.Vistoria.FlagVistoria != "N")
@@ -307,13 +394,19 @@ namespace WebZi.Plataform.Data.Services.GGV
                             .AsNoTracking()
                             .FirstOrDefaultAsync() == null)
                         {
-                            erros.Add("Identificador da Empresa inválido");
+                            erros.Add("Identificador da Empresa inexistente");
                         }
                     }
 
                     if (GrvPersistencia.Vistoria.IdentificadorStatusVistoria > 0)
                     {
-
+                        if (await _context.VistoriaStatus
+                            .Where(x => x.VistoriaStatusId == GrvPersistencia.Vistoria.IdentificadorStatusVistoria)
+                            .AsNoTracking()
+                            .FirstOrDefaultAsync() == null)
+                        {
+                            erros.Add("Identificador do Status da Vistoria inexistente");
+                        }
                     }
 
                     if (GrvPersistencia.Vistoria.IdentificadorSituacaoChassi <= 0)
@@ -321,7 +414,7 @@ namespace WebZi.Plataform.Data.Services.GGV
                         erros.Add("Identificador da Situação do Chassi inválido");
                     }
                     else if (await _context.VistoriaSituacaoChassi
-                        .Where(w => w.VistoriaSituacaoChassiId == GrvPersistencia.Vistoria.IdentificadorSituacaoChassi)
+                        .Where(x => x.VistoriaSituacaoChassiId == GrvPersistencia.Vistoria.IdentificadorSituacaoChassi)
                         .AsNoTracking()
                         .FirstOrDefaultAsync() == null)
                     {
@@ -330,7 +423,14 @@ namespace WebZi.Plataform.Data.Services.GGV
 
                     if (GrvPersistencia.Vistoria.IdentificadorTipoDirecao > 0)
                     {
-
+                        if (await _context.TabelaGenerica
+                            .Where(x => x.Codigo == "VISTORIA_TIPO_DIRECAO"
+                                && x.TabelaGenericaId == GrvPersistencia.Vistoria.IdentificadorTipoDirecao)
+                            .AsNoTracking()
+                            .FirstOrDefaultAsync() == null)
+                        {
+                            erros.Add("Identificador do Tipo de Direção inexistente");
+                        }
                     }
 
                     if (GrvPersistencia.Vistoria.IdentificadorEstadoGeralVeiculo <= 0)
@@ -339,7 +439,14 @@ namespace WebZi.Plataform.Data.Services.GGV
                     }
                     else
                     {
-
+                        if (await _context.TabelaGenerica
+                            .Where(x => x.Codigo == "VISTORIA_ESTADO_GERAL_VEICULO"
+                                && x.TabelaGenericaId == GrvPersistencia.Vistoria.IdentificadorEstadoGeralVeiculo)
+                            .AsNoTracking()
+                            .FirstOrDefaultAsync() == null)
+                        {
+                            erros.Add("Identificador do Estado Geral do Veículo inexistente");
+                        }
                     }
 
                     if (GrvPersistencia.Vistoria.DataVistoria > DataHoraPorDeposito)
@@ -380,7 +487,7 @@ namespace WebZi.Plataform.Data.Services.GGV
                 }
             }
 
-            return ResultView;
+            return erros.Count == 0 ? MensagemViewHelper.GetOk() : MensagemViewHelper.GetBadRequest(erros);
         }
     }
 }
