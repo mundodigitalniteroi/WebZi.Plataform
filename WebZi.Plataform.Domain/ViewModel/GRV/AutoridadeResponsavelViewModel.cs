@@ -9,7 +9,5 @@
         public string Divisao { get; set; }
 
         public string FlagAtivo { get; set; } = "S";
-
-        public int? IdentificadorSistemaExterno { get; set; }
     }
 }

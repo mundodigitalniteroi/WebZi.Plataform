@@ -22,7 +22,7 @@
 
         public decimal? ClienteMetragemGuarda { get; set; }
 
-        public string ClienteCodigoSap { get; set; }
+        public string ClienteCodigoERP { get; set; }
 
         public string ClienteHoraDiaria { get; set; }
 
@@ -32,7 +32,7 @@
 
         public string ClienteFlagUsarHoraDiaria { get; set; }
 
-        public string ClienteFlagEmissaoNotaFiscalSap { get; set; }
+        public string ClienteFlagEmissaoNotaFiscalERP { get; set; }
 
         public string ClienteFlagCobrarDiariasDiasCorridos { get; set; }
 
@@ -52,7 +52,7 @@
 
         public byte? TipoMeioCobrancaId { get; set; }
 
-        public string TiposMeiosCobrancasCodigoSap { get; set; }
+        public string TiposMeiosCobrancasCodigoERP { get; set; }
 
         public string TiposMeiosCobrancasDescricao { get; set; }
 
@@ -62,21 +62,21 @@
 
         public int FaturamentoServicoTipoId { get; set; }
 
-        public int SapTipoComposicaoId { get; set; }
+        public int TipoComposicaoERPId { get; set; }
 
         public string ServicoDescricao { get; set; }
 
         public string CodigoMaterial { get; set; }
 
-        public string SapDescricao { get; set; }
+        public string DescricaoERP { get; set; }
 
-        public string SapCodigoDescricao { get; set; }
+        public string CodigoDescricaoERP { get; set; }
 
-        public byte? SapCondicaoPagamentoId { get; set; }
+        public byte? CondicaoPagamentoERPId { get; set; }
 
-        public string SapCondicaoPagamentoCodigo { get; set; }
+        public string CondicaoPagamentoCodigoERP { get; set; }
 
-        public string SapCondicaoPagamentoDescricao { get; set; }
+        public string CondicaoPagamentoDescricaoERP { get; set; }
 
         public string TipoCobranca { get; set; }
 

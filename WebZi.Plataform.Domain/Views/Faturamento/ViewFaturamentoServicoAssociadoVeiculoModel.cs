@@ -48,17 +48,17 @@
 
         public byte? TipoMeioCobrancaId { get; set; }
 
-        public string TiposMeiosCobrancasCodigoSap { get; set; }
+        public string TipoMeioCobrancaCodigoERP { get; set; }
 
-        public string TiposMeiosCobrancasDescricao { get; set; }
+        public string TipoMeioCobrancaDescricao { get; set; }
 
-        public string TiposMeiosCobrancasFlagBanco { get; set; }
+        public string TipoMeioCobrancaFlagBanco { get; set; }
 
-        public string TiposMeiosCobrancasFlagPossuiCodigoAutorizacaoCartao { get; set; }
+        public string TipoMeioCobrancaFlagPossuiCodigoAutorizacaoCartao { get; set; }
 
         public int FaturamentoServicoTipoId { get; set; }
 
-        public int IdSapTipoComposicao { get; set; }
+        public int TipoComposicaoERPId { get; set; }
 
         public string ServicoDescricao { get; set; }
 
@@ -66,13 +66,13 @@
 
         public string SapDescricao { get; set; }
 
-        public string SapCodigoDescricao { get; set; }
+        public string CodigoDescricaoERP { get; set; }
 
-        public byte? SapCondicaoPagamentoId { get; set; }
+        public byte? CondicaoPagamentoERPId { get; set; }
 
-        public string SapCondicaoPagamentoCodigo { get; set; }
+        public string CondicaoPagamentoCodigoERP { get; set; }
 
-        public string SapCondicaoPagamentoDescricao { get; set; }
+        public string CondicaoPagamentoDescricaoERP { get; set; }
 
         public string TipoCobranca { get; set; }
 
@@ -80,7 +80,7 @@
 
         public string FlagServicoObrigatorioGlobal { get; set; }
 
-        public string FlagCobrarTelaGrv { get; set; }
+        public string FlagCobrarGgv { get; set; }
 
         public string FlagNaoCobrarSeNaoUsouReboque { get; set; }
 

@@ -4,6 +4,7 @@ using WebZi.Plataform.Domain.Models.Banco;
 using WebZi.Plataform.Domain.Models.Cliente;
 using WebZi.Plataform.Domain.Models.Condutor;
 using WebZi.Plataform.Domain.Models.Deposito;
+using WebZi.Plataform.Domain.Models.Documento;
 using WebZi.Plataform.Domain.Models.Empresa;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.GRV;
@@ -17,6 +18,7 @@ using WebZi.Plataform.Domain.ViewModel.Atendimento;
 using WebZi.Plataform.Domain.ViewModel.Banco;
 using WebZi.Plataform.Domain.ViewModel.Cliente;
 using WebZi.Plataform.Domain.ViewModel.Deposito;
+using WebZi.Plataform.Domain.ViewModel.Documento;
 using WebZi.Plataform.Domain.ViewModel.Empresa;
 using WebZi.Plataform.Domain.ViewModel.Faturamento;
 using WebZi.Plataform.Domain.ViewModel.Generic;
@@ -53,8 +55,7 @@ namespace WebZi.Plataform.Data.Services.AutoMapper
 
             CreateMap<AutoridadeResponsavelModel, AutoridadeResponsavelViewModel>()
                 .ForMember(dest => dest.IdentificadorAutoridadeResponsavel, opt => opt.MapFrom(src => src.AutoridadeResponsavelId))
-                .ForMember(dest => dest.IdentificadorOrgaoEmissor, opt => opt.MapFrom(src => src.OrgaoEmissorId))
-                .ForMember(dest => dest.IdentificadorSistemaExterno, opt => opt.MapFrom(src => src.SistemaExternoId));
+                .ForMember(dest => dest.IdentificadorOrgaoEmissor, opt => opt.MapFrom(src => src.OrgaoEmissorId));
 
             CreateMap<BancoModel, BancoViewModel>()
                 .ForMember(dest => dest.IdentificadorBanco, opt => opt.MapFrom(src => src.BancoId));
@@ -118,6 +119,10 @@ namespace WebZi.Plataform.Data.Services.AutoMapper
 
             CreateMap<MotivoApreensaoModel, MotivoApreensaoViewModel>()
                 .ForMember(dest => dest.IdentificadorMotivoApreensao, opt => opt.MapFrom(src => src.MotivoApreensaoId));
+
+            CreateMap<OrgaoEmissorModel, OrgaoEmissorViewModel>()
+                .ForMember(dest => dest.IdentificadorOrgaoEmissor, opt => opt.MapFrom(src => src.OrgaoEmissorId))
+                .ForMember(dest => dest.Nome, opt => opt.MapFrom(src => src.Descricao));
 
             CreateMap<QualificacaoResponsavelModel, QualificacaoResponsavelViewModel>()
                 .ForMember(dest => dest.IdentificadorQualificacaoResponsavel, opt => opt.MapFrom(src => src.QualificacaoResponsavelId));

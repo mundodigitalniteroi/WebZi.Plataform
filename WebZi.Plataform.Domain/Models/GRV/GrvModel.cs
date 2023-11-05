@@ -21,7 +21,7 @@ namespace WebZi.Plataform.Domain.Models.GRV
 
         public int DepositoId { get; set; }
 
-        public byte? TipoVeiculoId { get; set; }
+        public byte TipoVeiculoId { get; set; }
 
         public int? ReboquistaId { get; set; }
 
@@ -210,8 +210,6 @@ namespace WebZi.Plataform.Domain.Models.GRV
         public virtual ICollection<LacreModel> ListagemLacre { get; set; }
 
         public virtual ICollection<FaturamentoServicoGrvModel> ListagemServico { get; set; }
-
-        public virtual ICollection<VistoriaModel> ListagemVistoria { get; set; }
 
         public virtual ViewUsuarioClienteDepositoGrvModel UsuarioClienteDepositoGrv { get; set; }
 

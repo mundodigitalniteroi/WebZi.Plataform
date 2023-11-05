@@ -175,7 +175,7 @@ namespace WebZi.Plataform.Data.Mappings.Faturamento.View
                 .IsFixedLength()
                 .HasColumnName("flag_cobrar_somente_primeira_fatura");
             
-            builder.Property(e => e.FlagCobrarTelaGrv)
+            builder.Property(e => e.FlagCobrarGgv)
                 .IsRequired()
                 .HasMaxLength(1)
                 .IsUnicode(false)
@@ -272,10 +272,10 @@ namespace WebZi.Plataform.Data.Mappings.Faturamento.View
             builder.Property(e => e.FaturamentoServicoTipoVeiculoId)
                 .HasColumnName("id_faturamento_servico_tipo_veiculo");
             
-            builder.Property(e => e.SapCondicaoPagamentoId)
+            builder.Property(e => e.CondicaoPagamentoERPId)
                 .HasColumnName("id_sap_condicao_pagamento");
             
-            builder.Property(e => e.IdSapTipoComposicao)
+            builder.Property(e => e.TipoComposicaoERPId)
                 .HasColumnName("id_sap_tipo_composicao");
             
             builder.Property(e => e.TipoMeioCobrancaId)
@@ -308,19 +308,19 @@ namespace WebZi.Plataform.Data.Mappings.Faturamento.View
                 .HasColumnType("smallmoney")
                 .HasColumnName("preco_valor_minimo");
             
-            builder.Property(e => e.SapCodigoDescricao)
+            builder.Property(e => e.CodigoDescricaoERP)
                 .IsRequired()
                 .HasMaxLength(63)
                 .IsUnicode(false)
                 .HasColumnName("sap_codigo_descricao");
             
-            builder.Property(e => e.SapCondicaoPagamentoCodigo)
+            builder.Property(e => e.CondicaoPagamentoCodigoERP)
                 .HasMaxLength(4)
                 .IsUnicode(false)
                 .IsFixedLength()
                 .HasColumnName("sap_condicao_pagamento_codigo");
             
-            builder.Property(e => e.SapCondicaoPagamentoDescricao)
+            builder.Property(e => e.CondicaoPagamentoDescricaoERP)
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("sap_condicao_pagamento_descricao");
@@ -364,24 +364,24 @@ namespace WebZi.Plataform.Data.Mappings.Faturamento.View
                 .IsUnicode(false)
                 .HasColumnName("tipo_veiculos_nome");
             
-            builder.Property(e => e.TiposMeiosCobrancasCodigoSap)
+            builder.Property(e => e.TipoMeioCobrancaCodigoERP)
                 .HasMaxLength(1)
                 .IsUnicode(false)
                 .IsFixedLength()
                 .HasColumnName("tipos_meios_cobrancas_codigo_sap");
             
-            builder.Property(e => e.TiposMeiosCobrancasDescricao)
+            builder.Property(e => e.TipoMeioCobrancaDescricao)
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("tipos_meios_cobrancas_descricao");
             
-            builder.Property(e => e.TiposMeiosCobrancasFlagBanco)
+            builder.Property(e => e.TipoMeioCobrancaFlagBanco)
                 .HasMaxLength(1)
                 .IsUnicode(false)
                 .IsFixedLength()
                 .HasColumnName("tipos_meios_cobrancas_flag_banco");
             
-            builder.Property(e => e.TiposMeiosCobrancasFlagPossuiCodigoAutorizacaoCartao)
+            builder.Property(e => e.TipoMeioCobrancaFlagPossuiCodigoAutorizacaoCartao)
                 .HasMaxLength(1)
                 .IsUnicode(false)
                 .IsFixedLength()

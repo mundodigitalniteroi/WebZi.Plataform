@@ -56,8 +56,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 .Where(w => w.ClienteId == ParametrosCalculoFaturamento.Grv.ClienteId &&
                             w.DepositoId == ParametrosCalculoFaturamento.Grv.DepositoId &&
                             w.TipoVeiculoId == ParametrosCalculoFaturamento.Grv.TipoVeiculoId &&
-                            w.FaturamentoProdutoId == ParametrosCalculoFaturamento.Grv.FaturamentoProdutoId
-                )
+                            w.FaturamentoProdutoId == ParametrosCalculoFaturamento.Grv.FaturamentoProdutoId)
                 .AsNoTracking()
                 .ToList();
 

@@ -18,9 +18,13 @@ using WebZi.Plataform.Domain.Models.GRV;
 using WebZi.Plataform.Domain.Models.Vistoria;
 using WebZi.Plataform.Domain.Services.GRV;
 using WebZi.Plataform.Domain.ViewModel;
+using WebZi.Plataform.Domain.ViewModel.Faturamento;
 using WebZi.Plataform.Domain.ViewModel.Generic;
 using WebZi.Plataform.Domain.ViewModel.GGV;
 using WebZi.Plataform.Domain.ViewModel.GGV.Cadastro;
+using WebZi.Plataform.Domain.ViewModel.Veiculo;
+using WebZi.Plataform.Domain.Views.Faturamento;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace WebZi.Plataform.Data.Services.GGV
 {
@@ -108,11 +112,18 @@ namespace WebZi.Plataform.Data.Services.GGV
 
                 foreach (CadastroFotoTipoCadastroViewModel item in GrvPersistencia.Fotos)
                 {
-                    Files.Add(new BucketFileModel { TipoCadastroId = item.IdentificadorTipoCadastro, File = item.Foto });
+                    Files.Add(new BucketFileModel
+                    {
+                        TipoCadastroId = item.IdentificadorTipoCadastro,
+                        File = item.Foto
+                    });
                 }
 
                 new BucketArquivoService(_context, _httpClientFactory)
-                    .SendFiles("GGVFOTOSVEICCAD", GrvPersistencia.IdentificadorGrv, GrvPersistencia.IdentificadorUsuario, Files);
+                    .SendFiles("GGVFOTOSVEICCAD",
+                        GrvPersistencia.IdentificadorGrv,
+                        GrvPersistencia.IdentificadorUsuario,
+                        Files);
             }
 
             return MensagemViewHelper.GetOkCreate(1);
@@ -203,7 +214,7 @@ namespace WebZi.Plataform.Data.Services.GGV
             return MensagemViewHelper.GetOkDelete(BucketArquivos.Count, "Foto(s) excluída(s) com sucesso");
         }
 
-        public async Task<DadosMestresViewModel> ListarDadosMestresAsync(byte TipoVeiculoId)
+        public async Task<DadosMestresViewModel> ListarDadosMestresAsync()
         {
             VistoriaService VistoriaService = new(_context, _mapper);
 
@@ -211,14 +222,13 @@ namespace WebZi.Plataform.Data.Services.GGV
 
             DadosMestresViewModel DadosMestres = new()
             {
+                Mensagem = MensagemViewHelper.GetOk(),
+
                 ListagemEmpresa = await new EmpresaService(_context, _mapper)
                     .ListAsync(),
 
                 ListagemCorOstentada = await new SistemaService(_context, _mapper)
                     .ListarCorAsync(),
-
-                ListagemEquipamento = await new VeiculoService(_context, _mapper)
-                    .ListarEquipamentoOpcionalAsync(TipoVeiculoId),
 
                 ListagemEstadoGeralVeiculo = await SistemaService
                     .ListarViewTabelaGenericaAsync("VISTORIA_ESTADO_GERAL_VEICULO"),
@@ -240,6 +250,84 @@ namespace WebZi.Plataform.Data.Services.GGV
             };
 
             return DadosMestres;
+        }
+
+        public async Task<ServicoAssociadoTipoVeiculoViewModelList> ListarServicoAssociadoTipoVeiculoAsync(int IdentificadorGrv, int IdentificadorUsuario)
+        {
+            ServicoAssociadoTipoVeiculoViewModelList ListagemServicoAssociadoTipoVeiculo = new();
+
+            MensagemViewModel Mensagem = new GrvService(_context)
+                .ValidarInputGrv(IdentificadorGrv, IdentificadorUsuario);
+
+            if (Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+            {
+                ListagemServicoAssociadoTipoVeiculo.Mensagem = Mensagem;
+
+                return ListagemServicoAssociadoTipoVeiculo;
+            }
+
+            GrvModel Grv = await _context.Grv
+                .Where(x => x.GrvId == IdentificadorGrv)
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
+
+            List<ViewFaturamentoServicoAssociadoVeiculoModel> ListagemFaturamentoServicoAssociadoTipoVeiculo = _context
+                .ViewFaturamentoServicoAssociadoVeiculo
+                .Where(w => w.ClienteId == Grv.ClienteId &&
+                            w.DepositoId == Grv.DepositoId &&
+                            w.TipoVeiculoId == Grv.TipoVeiculoId &&
+                            w.FaturamentoProdutoId == Grv.FaturamentoProdutoId &&
+                            (new[] { "DEP", "DRF" }.Contains(Grv.FaturamentoProdutoId) ? w.FlagCobrarGgv == "S" : true))
+                .AsNoTracking()
+                .ToList();
+
+            if (ListagemFaturamentoServicoAssociadoTipoVeiculo?.Count > 0)
+            {
+                foreach (var item in ListagemFaturamentoServicoAssociadoTipoVeiculo)
+                {
+                    if (item.FlagNaoCobrarSeNaoUsouReboque == "N" && Grv.FlagComboio == "S")
+                    {
+                        continue;
+                    }
+                    else if (item.FlagServicoObrigatorio == "S" || item.FlagServicoObrigatorioGlobal == "S")
+                    {
+                        continue;
+                    }
+
+                    ListagemServicoAssociadoTipoVeiculo.Listagem.Add(new()
+                    {
+                        FaturamentoServicoTipoVeiculoId = item.FaturamentoServicoTipoVeiculoId,
+
+                        ServicoDescricao = item.ServicoDescricao,
+
+                        TipoCobranca = item.TipoCobranca,
+
+                        FlagPermiteAlteracaoValor = item.FlagPermiteAlteracaoValor,
+
+                        PrecoPadrao = item.PrecoPadrao,
+
+                        PrecoValorMinimo = item.PrecoValorMinimo,
+
+                        DataVigenciaInicial = item.DataVigenciaInicial
+                    });
+                }
+
+                if (ListagemServicoAssociadoTipoVeiculo.Listagem.Count > 0)
+                {
+                    ListagemServicoAssociadoTipoVeiculo.Mensagem = MensagemViewHelper
+                        .GetOkFound(ListagemServicoAssociadoTipoVeiculo.Listagem.Count);
+                }
+                else
+                {
+                    ListagemServicoAssociadoTipoVeiculo.Mensagem = MensagemViewHelper.GetNotFound();
+                }
+            }
+            else
+            {
+                ListagemServicoAssociadoTipoVeiculo.Mensagem = MensagemViewHelper.GetNotFound();
+            }
+
+            return ListagemServicoAssociadoTipoVeiculo;
         }
 
         public async Task<ImageViewModelList> ListarFotosAsync(int GrvId, int UsuarioId)
@@ -346,36 +434,78 @@ namespace WebZi.Plataform.Data.Services.GGV
                 }
             }
 
+            if (true)
+            {
+
+            }
+
             if (Grv.Deposito.GrvMinimoFotosExigidas > 0)
             {
                 if (GrvPersistencia.Fotos?.Count == 0)
                 {
                     erros.Add("É necessário enviar pelo menos 1 Foto do Veículo");
                 }
-                else if (Grv.Deposito.GrvMinimoFotosExigidas > GrvPersistencia.Fotos.Count)
+                else
                 {
-                    erros.Add($"É necessário enviar pelo menos {Grv.Deposito.GrvMinimoFotosExigidas} Fotos do Veículo");
+                    if (Grv.Deposito.GrvMinimoFotosExigidas > GrvPersistencia.Fotos.Count)
+                    {
+                        erros.Add($"É necessário enviar pelo menos {Grv.Deposito.GrvMinimoFotosExigidas} Fotos do Veículo");
+                    }
+
+                    int count = GrvPersistencia.Fotos
+                        .Where(x => x.IdentificadorTipoCadastro <= 0)
+                        .Count();
+
+                    if (count == 1)
+                    {
+                        erros.Add($"Foi indentificado um Identificador do Tipo do Cadastro da Foto inválido");
+                    }
+                    else if (count > 1)
+                    {
+                        erros.Add($"Foram indentificados {count} Identificador do Tipo do Cadastro da Foto inválido");
+                    }
                 }
             }
 
             if (GrvPersistencia.ListagemEquipamentoOpcional?.Count > 0)
             {
-                foreach (CadastroEquipamentoOpcionalViewModel EquipamentoOpcional in GrvPersistencia.ListagemEquipamentoOpcional)
-                {
-                    if (EquipamentoOpcional.IdentificadorEquipamentoOpcional <= 0)
-                    {
-                        erros.Add("Identificador do Equipamento Opcional inválido");
-                    }
+                int count = GrvPersistencia.ListagemEquipamentoOpcional
+                    .Where(x => x.IdentificadorEquipamentoOpcional <= 0)
+                    .Count();
 
-                    if (EquipamentoOpcional.FlagEquipamentoAvariado != "S" && EquipamentoOpcional.FlagEquipamentoAvariado != "N")
-                    {
-                        erros.Add("Flag de Equipamento Avariado inválida, informe \"S\" ou \"N\" (sem aspas)");
-                    }
-                    else if (EquipamentoOpcional.FlagEquipamentoAvariado == "S"
-                        && EquipamentoOpcional.IdentificadorTipoAvariaId <= 0)
-                    {
-                        erros.Add("Identificador do Tipo da Avaria inválido");
-                    }
+                if (count == 1)
+                {
+                    erros.Add($"Foi indentificado um Identificador do Equipamento Opcional inválido");
+                }
+                else if (count > 1)
+                {
+                    erros.Add($"Foram indentificados {count} Identificador do Equipamento Opcional inválido");
+                }
+
+                count = GrvPersistencia.ListagemEquipamentoOpcional
+                    .Where(x => x.FlagEquipamentoAvariado != "S" && x.FlagEquipamentoAvariado != "N")
+                    .Count();
+
+                if (count == 1)
+                {
+                    erros.Add($"Foi indentificado uma Flag de Equipamento Avariado inválida, informe \"S\" ou \"N\" (sem aspas)");
+                }
+                else if (count > 1)
+                {
+                    erros.Add($"Foram indentificados {count} Flags de Equipamento Avariado inválida, informe \"S\" ou \"N\" (sem aspas)");
+                }
+
+                count = GrvPersistencia.ListagemEquipamentoOpcional
+                    .Where(x => x.FlagEquipamentoAvariado == "S" && x.IdentificadorTipoAvariaId <= 0)
+                    .Count();
+
+                if (count == 1)
+                {
+                    erros.Add($"Foi indentificado um Identificador do Tipo da Avaria inválido");
+                }
+                else if (count > 1)
+                {
+                    erros.Add($"Foram indentificados {count} Identificador do Tipo da Avaria inválido");
                 }
             }
 

@@ -16,6 +16,9 @@ namespace WebZi.Plataform.Data.Mappings.Vistoria
                 .HasColumnName("id_grv_vistoria")
                 .ValueGeneratedOnAdd();
 
+            builder.Property(e => e.GrvId)
+                .HasColumnName("id_grv");
+
             builder.Property(e => e.EstadoGeralVeiculo)
                 .HasMaxLength(1)
                 .IsUnicode(false)
@@ -23,40 +26,9 @@ namespace WebZi.Plataform.Data.Mappings.Vistoria
                 .HasComment("B: BOM;\r\nE: EXCELENTE;\r\nP: PÉSSIMO;\r\nR: RUIM")
                 .HasColumnName("estado_geral_veiculo");
             
-            builder.Property(e => e.FlagPossuiPlaca)
-                .HasMaxLength(1)
-                .IsUnicode(false)
-                .HasDefaultValueSql("('N')")
-                .IsFixedLength()
-                .HasColumnName("flag_possui_placa");
-            
-            builder.Property(e => e.FlagPossuiRestricoes)
-                .HasMaxLength(1)
-                .IsUnicode(false)
-                .HasDefaultValueSql("('N')")
-                .IsFixedLength()
-                .HasColumnName("flag_possui_restricoes");
-            
-            builder.Property(e => e.FlagPossuiTravaEletrica)
-                .HasMaxLength(1)
-                .IsUnicode(false)
-                .HasDefaultValueSql("('N')")
-                .IsFixedLength()
-                .HasColumnName("flag_possui_trava_eletrica");
-            
-            builder.Property(e => e.FlagPossuiVidroEletrico)
-                .HasMaxLength(1)
-                .IsUnicode(false)
-                .HasDefaultValueSql("('N')")
-                .IsFixedLength()
-                .HasColumnName("flag_possui_vidro_eletrico");
-            
             builder.Property(e => e.EmpresaVistoriaId)
                 .HasComment("Faz referência à Tabela db_global.dbo.tb_glo_emp_empresas")
                 .HasColumnName("id_empresa_vistoria");
-            
-            builder.Property(e => e.GrvId)
-                .HasColumnName("id_grv");
             
             builder.Property(e => e.VistoriaSituacaoChassiId)
                 .HasColumnName("id_grv_vistoria_situacao_chassi");
@@ -114,6 +86,34 @@ namespace WebZi.Plataform.Data.Mappings.Vistoria
             builder.Property(e => e.DataAlteracao)
                 .HasColumnType("smalldatetime")
                 .HasColumnName("data_alteracao");
+
+            builder.Property(e => e.FlagPossuiPlaca)
+                .HasMaxLength(1)
+                .IsUnicode(false)
+                .HasDefaultValueSql("('N')")
+                .IsFixedLength()
+                .HasColumnName("flag_possui_placa");
+
+            builder.Property(e => e.FlagPossuiRestricoes)
+                .HasMaxLength(1)
+                .IsUnicode(false)
+                .HasDefaultValueSql("('N')")
+                .IsFixedLength()
+                .HasColumnName("flag_possui_restricoes");
+
+            builder.Property(e => e.FlagPossuiTravaEletrica)
+                .HasMaxLength(1)
+                .IsUnicode(false)
+                .HasDefaultValueSql("('N')")
+                .IsFixedLength()
+                .HasColumnName("flag_possui_trava_eletrica");
+
+            builder.Property(e => e.FlagPossuiVidroEletrico)
+                .HasMaxLength(1)
+                .IsUnicode(false)
+                .HasDefaultValueSql("('N')")
+                .IsFixedLength()
+                .HasColumnName("flag_possui_vidro_eletrico");
         }
     }
 }

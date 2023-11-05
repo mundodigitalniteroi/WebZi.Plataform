@@ -1,20 +1,21 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Atendimento;
 using WebZi.Plataform.Data.Services.Faturamento;
 using WebZi.Plataform.Data.Services.GGV;
+using WebZi.Plataform.Data.Services.Servico;
 using WebZi.Plataform.Data.Services.Sistema;
 using WebZi.Plataform.Data.Services.Veiculo;
 using WebZi.Plataform.Data.Services.Vistoria;
-using WebZi.Plataform.Domain.Models.Sistema;
 using WebZi.Plataform.Domain.Services.GRV;
 using WebZi.Plataform.Domain.ViewModel.Atendimento;
+using WebZi.Plataform.Domain.ViewModel.Documento;
 using WebZi.Plataform.Domain.ViewModel.Faturamento;
 using WebZi.Plataform.Domain.ViewModel.Generic;
 using WebZi.Plataform.Domain.ViewModel.GRV;
 using WebZi.Plataform.Domain.ViewModel.GRV.Pesquisa;
+using WebZi.Plataform.Domain.ViewModel.Servico;
 using WebZi.Plataform.Domain.ViewModel.Sistema;
 using WebZi.Plataform.Domain.ViewModel.Veiculo;
 using WebZi.Plataform.Domain.ViewModel.Vistoria;
@@ -74,7 +75,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<GrvService>()
-                    .ListAutoridadeResponsavelAsync(UF);
+                    .ListarAutoridadeResponsavelAsync(UF);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -248,6 +249,33 @@ namespace WebZi.Plataform.API.Controllers
             }
         }
 
+        [HttpGet("ListarOrgaoEmissor")]
+        // TODO: [Authorize]
+        public async Task<ActionResult<OrgaoEmissorViewModelList>> ListarOrgaoEmissor(string UF)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            OrgaoEmissorViewModelList ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<GrvService>()
+                    .ListarOrgaoEmissorAsync(UF);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
+
         [HttpGet("ListarProduto")]
         // TODO: [Authorize]
         public async Task<ActionResult<FaturamentoProdutoViewModelList>> ListarProduto()
@@ -291,6 +319,60 @@ namespace WebZi.Plataform.API.Controllers
                 ResultView = await _provider
                     .GetService<QualificacaoResponsavelService>()
                     .ListAsync();
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
+
+        [HttpGet("ListarReboque")]
+        // TODO: [Authorize]
+        public async Task<ActionResult<ReboqueViewModelList>> ListarReboque(int IdentificadorCliente, int IdentificadorDeposito)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            ReboqueViewModelList ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<ServicoService>()
+                    .ListarReboqueAsync(IdentificadorCliente, IdentificadorDeposito);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
+
+        [HttpGet("ListarReboquista")]
+        // TODO: [Authorize]
+        public async Task<ActionResult<ReboquistaViewModelList>> ListarReboquista(int IdentificadorCliente, int IdentificadorDeposito)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            ReboquistaViewModelList ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<ServicoService>()
+                    .ListarReboquistaAsync(IdentificadorCliente, IdentificadorDeposito);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -507,6 +589,87 @@ namespace WebZi.Plataform.API.Controllers
                 ResultView = await _provider
                     .GetService<VeiculoService>()
                     .ListarTipoVeiculoAsync();
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
+
+        [HttpGet("SelecionarReboquePorIdentificador")]
+        // TODO: [Authorize]
+        public async Task<ActionResult<ReboqueViewModelList>> SelecionarReboquePorIdentificador(int IdentificadorReboque)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            ReboqueViewModelList ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<ServicoService>()
+                    .GetReboqueByIdAsync(IdentificadorReboque);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
+
+        [HttpGet("SelecionarReboquePorPlaca")]
+        // TODO: [Authorize]
+        public async Task<ActionResult<ReboqueViewModelList>> SelecionarReboquePorPlaca(string Placa, int IdentificadorCliente, int IdentificadorDeposito)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            ReboqueViewModelList ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<ServicoService>()
+                    .GetReboqueByPlacaAsync(Placa, IdentificadorCliente, IdentificadorDeposito);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
+
+        [HttpGet("SelecionarReboquistaPorIdentificador")]
+        // TODO: [Authorize]
+        public async Task<ActionResult<ReboquistaViewModelList>> SelecionarReboquistaPorIdentificador(int IdentificadorReboquista)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            ReboquistaViewModelList ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<ServicoService>()
+                    .GetByReboquistaIdAsync(IdentificadorReboquista);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }

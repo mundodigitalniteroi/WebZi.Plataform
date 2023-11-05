@@ -34,6 +34,7 @@ using WebZi.Plataform.Domain.Models.Usuario;
 using WebZi.Plataform.Domain.Models.Veiculo;
 using WebZi.Plataform.Domain.Services.Usuario;
 using WebZi.Plataform.Domain.ViewModel;
+using WebZi.Plataform.Domain.ViewModel.Documento;
 using WebZi.Plataform.Domain.ViewModel.Faturamento;
 using WebZi.Plataform.Domain.ViewModel.Generic;
 using WebZi.Plataform.Domain.ViewModel.GRV;
@@ -227,7 +228,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 .AsNoTracking()
                 .FirstOrDefault();
 
-            if (ClienteDeposito.FlagCadastrarGrvBloqueado == "S")
+            if (ClienteDeposito.FlagCadastrarGrvComStatusOperacaoBloqueado == "S")
             {
                 Grv.StatusOperacaoId = "B";
             }
@@ -834,7 +835,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             return ResultView;
         }
 
-        public async Task<AutoridadeResponsavelViewModelList> ListAutoridadeResponsavelAsync(string UF)
+        public async Task<AutoridadeResponsavelViewModelList> ListarAutoridadeResponsavelAsync(string UF)
         {
             AutoridadeResponsavelViewModelList ResultView = new();
 
@@ -990,6 +991,51 @@ namespace WebZi.Plataform.Domain.Services.GRV
             if (result?.Count > 0)
             {
                 ResultView.Listagem = _mapper.Map<List<MotivoApreensaoViewModel>>(result
+                    .OrderBy(o => o.Descricao)
+                    .ToList());
+
+                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
+            }
+            else
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+            }
+
+            return ResultView;
+        }
+
+        public async Task<OrgaoEmissorViewModelList> ListarOrgaoEmissorAsync(string UF)
+        {
+            OrgaoEmissorViewModelList ResultView = new();
+
+            if (string.IsNullOrWhiteSpace(UF))
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetBadRequest("Informe a Unidade Federativa");
+
+                return ResultView;
+            }
+            else if (!LocalizacaoHelper.IsUF(UF))
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetBadRequest("Unidade Federativa inválida");
+
+                return ResultView;
+            }
+
+            List<OrgaoEmissorModel> result = await _context.OrgaoEmissor
+                .Where(w => w.UF == UF.ToUpperTrim())
+                .AsNoTracking()
+                .ToListAsync();
+
+            if (result == null)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound("Unidade Federativa sem Órgão Emissor cadastrado");
+
+                return ResultView;
+            }
+
+            if (result?.Count > 0)
+            {
+                ResultView.Listagem = _mapper.Map<List<OrgaoEmissorViewModel>>(result
                     .OrderBy(o => o.Descricao)
                     .ToList());
 
@@ -1738,7 +1784,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             }
 
             DepositoModel Deposito = await _context.Deposito
-                //.Where(x => x.DepositoId == GrvPersistencia.IdentificadorDeposito)
+                .Where(x => x.DepositoId == GrvPersistencia.IdentificadorDeposito)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
 
@@ -1756,7 +1802,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             {
                 ResultView.AvisosImpeditivos.Add("O Cliente e Depósito informados não são associados");
             }
-            else if (ClienteDeposito.FlagCadastrarGrvBloqueado == "S")
+            else if (ClienteDeposito.FlagCadastrarGrvComStatusOperacaoBloqueado == "S")
             {
                 StatusOperacaoModel StatusOperacao = await _context.StatusOperacao
                     .Where(x => x.StatusOperacaoId == "B")

@@ -8,11 +8,11 @@ namespace WebZi.Plataform.Domain.ViewModel.GGV
 {
     public class DadosMestresViewModel
     {
+        public MensagemViewModel Mensagem { get; set; }
+
         public CorViewModelList ListagemCorOstentada { get; set; }
 
         public EmpresaViewModelList ListagemEmpresa { get; set; }
-
-        public EquipamentoOpcionalViewModelList ListagemEquipamento { get; set; }
 
         public TabelaGenericaViewModelList ListagemEstadoGeralVeiculo { get; set; }
 

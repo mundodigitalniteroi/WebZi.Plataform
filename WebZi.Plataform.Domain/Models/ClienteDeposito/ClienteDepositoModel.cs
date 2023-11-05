@@ -29,7 +29,7 @@ namespace WebZi.Plataform.Domain.Models.ClienteDeposito
 
         public string FlagUtilizaSistemaMobileGgv { get; set; } = "N";
 
-        public string FlagCadastrarGrvBloqueado { get; set; } = "S";
+        public string FlagCadastrarGrvComStatusOperacaoBloqueado { get; set; } = "S";
 
         public string FlagValorIssIgualProdutoBaseCalculoAliquota { get; set; } = "N";
 

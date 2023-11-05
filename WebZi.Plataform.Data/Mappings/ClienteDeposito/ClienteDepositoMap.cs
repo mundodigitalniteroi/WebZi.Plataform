@@ -66,7 +66,7 @@ namespace WebZi.Plataform.Data.Mappings.ClienteDeposito
                 .IsFixedLength()
                 .HasColumnName("flag_ativo");
             
-            builder.Property(e => e.FlagCadastrarGrvBloqueado)
+            builder.Property(e => e.FlagCadastrarGrvComStatusOperacaoBloqueado)
                 .IsRequired()
                 .HasMaxLength(1)
                 .IsUnicode(false)

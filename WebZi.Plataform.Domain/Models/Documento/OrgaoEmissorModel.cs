@@ -12,13 +12,13 @@ namespace WebZi.Plataform.Domain.Models.Documento
 
         public string UF { get; set; }
 
+        public string CodigoOrgao { get; set; }
+
         public string FlagAutoridadeResponsavel { get; set; } = "N";
 
         public string FlagDetran { get; set; } = "N";
 
         public string FlagAtivo { get; set; } = "S";
-
-        public string CodigoOrgao { get; set; }
 
         public virtual ICollection<AutoridadeResponsavelModel> AutoridadesResponsaveis { get; set; }
 
