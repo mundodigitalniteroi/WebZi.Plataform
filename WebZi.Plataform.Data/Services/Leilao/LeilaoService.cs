@@ -27,7 +27,7 @@ namespace WebZi.Plataform.Data.Services.Leilao
             }
 
             LeilaoLoteModel LeilaoLote = await _context.LeilaoLote
-                .Include(w => w.LeilaoLoteStatus)
+                .Include(x => x.LeilaoLoteStatus)
                 .Include(w => w.Leilao)
                 .Include(w => w.Leilao.LeilaoStatus)
                 .Include(w => w.Grv)

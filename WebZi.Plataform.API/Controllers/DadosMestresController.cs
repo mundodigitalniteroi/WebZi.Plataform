@@ -2,6 +2,7 @@
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Atendimento;
+using WebZi.Plataform.Data.Services.Documento;
 using WebZi.Plataform.Data.Services.Faturamento;
 using WebZi.Plataform.Data.Services.GGV;
 using WebZi.Plataform.Data.Services.Servico;
@@ -48,7 +49,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<SistemaService>()
-                    .ListarViewTabelaGenericaAsync("GRV_ASSINATURA_CONDUTOR");
+                    .ListarTabelaGenericaViewModelAsync("GRV_ASSINATURA_CONDUTOR");
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -156,7 +157,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<SistemaService>()
-                    .ListarViewTabelaGenericaAsync("VISTORIA_ESTADO_GERAL_VEICULO");
+                    .ListarTabelaGenericaViewModelAsync("VISTORIA_ESTADO_GERAL_VEICULO");
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -263,7 +264,7 @@ namespace WebZi.Plataform.API.Controllers
             try
             {
                 ResultView = await _provider
-                    .GetService<GrvService>()
+                    .GetService<DocumentoService>()
                     .ListarOrgaoEmissorAsync(UF);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
@@ -290,7 +291,7 @@ namespace WebZi.Plataform.API.Controllers
             try
             {
                 ResultView = await _provider
-                    .GetService<GrvService>()
+                    .GetService<FaturamentoService>()
                     .ListarProdutosAsync();
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
@@ -507,7 +508,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<SistemaService>()
-                    .ListarViewTabelaGenericaAsync("GGV_TIPO_CADASTRO_FOTO");
+                    .ListarTabelaGenericaViewModelAsync("GGV_TIPO_CADASTRO_FOTO");
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -534,7 +535,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<SistemaService>()
-                    .ListarViewTabelaGenericaAsync("VISTORIA_TIPO_DIRECAO");
+                    .ListarTabelaGenericaViewModelAsync("VISTORIA_TIPO_DIRECAO");
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }

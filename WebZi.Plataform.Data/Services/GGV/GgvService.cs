@@ -231,7 +231,7 @@ namespace WebZi.Plataform.Data.Services.GGV
                     .ListarCorAsync(),
 
                 ListagemEstadoGeralVeiculo = await SistemaService
-                    .ListarViewTabelaGenericaAsync("VISTORIA_ESTADO_GERAL_VEICULO"),
+                    .ListarTabelaGenericaViewModelAsync("VISTORIA_ESTADO_GERAL_VEICULO"),
 
                 ListagemSituacaoChassi = await VistoriaService
                     .ListarSituacaoChassiAsync(),
@@ -243,91 +243,13 @@ namespace WebZi.Plataform.Data.Services.GGV
                     .ListarTipoAvariaAsync(),
 
                 ListagemTipoCadastroFotoGGV = await SistemaService
-                    .ListarViewTabelaGenericaAsync("GGV_TIPO_CADASTRO_FOTO"),
+                    .ListarTabelaGenericaViewModelAsync("GGV_TIPO_CADASTRO_FOTO"),
 
                 ListagemTipoDirecao = await SistemaService
-                    .ListarViewTabelaGenericaAsync("VISTORIA_TIPO_DIRECAO")
+                    .ListarTabelaGenericaViewModelAsync("VISTORIA_TIPO_DIRECAO")
             };
 
             return DadosMestres;
-        }
-
-        public async Task<ServicoAssociadoTipoVeiculoViewModelList> ListarServicoAssociadoTipoVeiculoAsync(int IdentificadorGrv, int IdentificadorUsuario)
-        {
-            ServicoAssociadoTipoVeiculoViewModelList ListagemServicoAssociadoTipoVeiculo = new();
-
-            MensagemViewModel Mensagem = new GrvService(_context)
-                .ValidarInputGrv(IdentificadorGrv, IdentificadorUsuario);
-
-            if (Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
-            {
-                ListagemServicoAssociadoTipoVeiculo.Mensagem = Mensagem;
-
-                return ListagemServicoAssociadoTipoVeiculo;
-            }
-
-            GrvModel Grv = await _context.Grv
-                .Where(x => x.GrvId == IdentificadorGrv)
-                .AsNoTracking()
-                .FirstOrDefaultAsync();
-
-            List<ViewFaturamentoServicoAssociadoVeiculoModel> ListagemFaturamentoServicoAssociadoTipoVeiculo = _context
-                .ViewFaturamentoServicoAssociadoVeiculo
-                .Where(w => w.ClienteId == Grv.ClienteId &&
-                            w.DepositoId == Grv.DepositoId &&
-                            w.TipoVeiculoId == Grv.TipoVeiculoId &&
-                            w.FaturamentoProdutoId == Grv.FaturamentoProdutoId &&
-                            (new[] { "DEP", "DRF" }.Contains(Grv.FaturamentoProdutoId) ? w.FlagCobrarGgv == "S" : true))
-                .AsNoTracking()
-                .ToList();
-
-            if (ListagemFaturamentoServicoAssociadoTipoVeiculo?.Count > 0)
-            {
-                foreach (var item in ListagemFaturamentoServicoAssociadoTipoVeiculo)
-                {
-                    if (item.FlagNaoCobrarSeNaoUsouReboque == "N" && Grv.FlagComboio == "S")
-                    {
-                        continue;
-                    }
-                    else if (item.FlagServicoObrigatorio == "S" || item.FlagServicoObrigatorioGlobal == "S")
-                    {
-                        continue;
-                    }
-
-                    ListagemServicoAssociadoTipoVeiculo.Listagem.Add(new()
-                    {
-                        FaturamentoServicoTipoVeiculoId = item.FaturamentoServicoTipoVeiculoId,
-
-                        ServicoDescricao = item.ServicoDescricao,
-
-                        TipoCobranca = item.TipoCobranca,
-
-                        FlagPermiteAlteracaoValor = item.FlagPermiteAlteracaoValor,
-
-                        PrecoPadrao = item.PrecoPadrao,
-
-                        PrecoValorMinimo = item.PrecoValorMinimo,
-
-                        DataVigenciaInicial = item.DataVigenciaInicial
-                    });
-                }
-
-                if (ListagemServicoAssociadoTipoVeiculo.Listagem.Count > 0)
-                {
-                    ListagemServicoAssociadoTipoVeiculo.Mensagem = MensagemViewHelper
-                        .GetOkFound(ListagemServicoAssociadoTipoVeiculo.Listagem.Count);
-                }
-                else
-                {
-                    ListagemServicoAssociadoTipoVeiculo.Mensagem = MensagemViewHelper.GetNotFound();
-                }
-            }
-            else
-            {
-                ListagemServicoAssociadoTipoVeiculo.Mensagem = MensagemViewHelper.GetNotFound();
-            }
-
-            return ListagemServicoAssociadoTipoVeiculo;
         }
 
         public async Task<ImageViewModelList> ListarFotosAsync(int GrvId, int UsuarioId)

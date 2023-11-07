@@ -343,7 +343,12 @@ namespace WebZi.Plataform.Data.Mappings.Faturamento.View
                 .IsUnicode(false)
                 .IsFixedLength()
                 .HasColumnName("tipo_cobranca");
-            
+
+            builder.Property(e => e.TipoCobrancaDescricao)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("tipo_cobranca_descricao");
+
             builder.Property(e => e.TipoVeiculosFlagAtivo)
                 .IsRequired()
                 .HasMaxLength(1)

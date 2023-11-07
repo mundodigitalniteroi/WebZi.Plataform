@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Banco.PIX;
 using WebZi.Plataform.Data.Services.Faturamento;
+using WebZi.Plataform.Data.Services.Sistema;
 using WebZi.Plataform.Domain.ViewModel;
 using WebZi.Plataform.Domain.ViewModel.Banco.PIX;
 using WebZi.Plataform.Domain.ViewModel.Faturamento;
@@ -144,6 +146,87 @@ namespace WebZi.Plataform.API.Controllers
                 ResultView = _provider
                     .GetService<PixEstaticoService>()
                     .Create(IdentificadorFaturamento, IdentificadorUsuario);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
+
+        [HttpGet("ListarServicoAssociadoTipoVeiculo")]
+        // TODO: [Authorize]
+        public async Task<ActionResult<ServicoAssociadoTipoVeiculoViewModelList>> ListarServicoAssociadoTipoVeiculo(int IdentificadorGrv, int IdentificadorUsuario)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            ServicoAssociadoTipoVeiculoViewModelList ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<FaturamentoService>()
+                    .ListarServicoAssociadoTipoVeiculoAsync(IdentificadorGrv, IdentificadorUsuario);
+
+                return StatusCode((int)HtmlStatusCodeEnum.Ok, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
+
+        [HttpGet("ListarServicoAssociadoGrv")]
+        // TODO: [Authorize]
+        public async Task<ActionResult<ServicoAssociadoTipoVeiculoViewModelList>> ListarServicoAssociadoGrv(int IdentificadorGrv, int IdentificadorUsuario)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            ServicoAssociadoTipoVeiculoViewModelList ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<FaturamentoService>()
+                    .ListarServicoAssociadoTipoVeiculoAsync(IdentificadorGrv, IdentificadorUsuario);
+
+                return StatusCode((int)HtmlStatusCodeEnum.Ok, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
+
+        [HttpGet("ListarTipoCobranca")]
+        // TODO: [Authorize]
+        public async Task<ActionResult<TabelaGenericaViewModelList>> ListarTipoCobranca()
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            TabelaGenericaViewModelList ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<SistemaService>()
+                    .ListarTabelaGenericaViewModelAsync("FAT_TIPO_COBRANCA");
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }

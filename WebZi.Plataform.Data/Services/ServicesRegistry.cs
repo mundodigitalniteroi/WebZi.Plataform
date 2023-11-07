@@ -6,6 +6,7 @@ using WebZi.Plataform.Data.Services.Banco.PIX;
 using WebZi.Plataform.Data.Services.Bucket;
 using WebZi.Plataform.Data.Services.Cliente;
 using WebZi.Plataform.Data.Services.Deposito;
+using WebZi.Plataform.Data.Services.Documento;
 using WebZi.Plataform.Data.Services.Empresa;
 using WebZi.Plataform.Data.Services.Faturamento;
 using WebZi.Plataform.Data.Services.GGV;
@@ -38,6 +39,8 @@ namespace WebZi.Plataform.Data.Services
             services.AddScoped<BucketArquivoService>();
 
             services.AddScoped<CalculoDiariasService>();
+
+            services.AddScoped<DocumentoService>();
 
             services.AddScoped<EmpresaService>();
 

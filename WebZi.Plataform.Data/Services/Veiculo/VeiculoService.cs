@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Domain.Models.Veiculo;
-using WebZi.Plataform.Domain.ViewModel.Servico;
 using WebZi.Plataform.Domain.ViewModel.Veiculo;
 
 namespace WebZi.Plataform.Data.Services.Veiculo

@@ -2,17 +2,19 @@
 {
     public class ServicoAssociadoTipoVeiculoViewModel
     {
-        public int FaturamentoServicoTipoVeiculoId { get; set; }
+        public int IdentificadorServicoAssociadoTipoVeiculo { get; set; }
 
-        public string ServicoDescricao { get; set; }
+        public string DescricaoServico { get; set; }
 
         public string TipoCobranca { get; set; }
+
+        public string DescricaoTipoCobranca { get; set; }
 
         public string FlagPermiteAlteracaoValor { get; set; }
 
         public decimal PrecoPadrao { get; set; }
 
-        public decimal PrecoValorMinimo { get; set; }
+        public decimal PrecoMinimoObrigatorio { get; set; }
 
         public DateTime DataVigenciaInicial { get; set; }
     }

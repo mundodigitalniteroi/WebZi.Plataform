@@ -5,12 +5,19 @@ using System.Data;
 using WebZi.Plataform.CrossCutting.Date;
 using WebZi.Plataform.CrossCutting.Number;
 using WebZi.Plataform.CrossCutting.Strings;
+using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
+using WebZi.Plataform.Data.Services.Sistema;
 using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Faturamento;
+using WebZi.Plataform.Domain.Models.GRV;
+using WebZi.Plataform.Domain.Models.Sistema;
+using WebZi.Plataform.Domain.Services.GRV;
 using WebZi.Plataform.Domain.Services.Usuario;
 using WebZi.Plataform.Domain.ViewModel;
+using WebZi.Plataform.Domain.ViewModel.Faturamento;
+using WebZi.Plataform.Domain.ViewModel.Generic;
 using WebZi.Plataform.Domain.Views.Faturamento;
 using WebZi.Plataform.Domain.Views.Localizacao;
 using Z.EntityFramework.Plus;
@@ -866,6 +873,176 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     .Where(w => w.FaturamentoId == FaturamentoId)
                     .Delete();
             }
+        }
+
+        public async Task<FaturamentoProdutoViewModelList> ListarProdutosAsync()
+        {
+            FaturamentoProdutoViewModelList ResultView = new();
+
+            List<FaturamentoProdutoModel> result = await _context.FaturamentoProduto
+                .AsNoTracking()
+                .ToListAsync();
+
+            ResultView.Listagem = _mapper.Map<List<FaturamentoProdutoViewModel>>(result.OrderBy(x => x.Descricao).ToList());
+
+            ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
+
+            return ResultView;
+        }
+
+        public async Task<ServicoAssociadoTipoVeiculoViewModelList> ListarServicoAssociadoTipoVeiculoAsync(int GrvId, int UsuarioId)
+        {
+            ServicoAssociadoTipoVeiculoViewModelList ResultView = new();
+
+            MensagemViewModel Mensagem = new GrvService(_context)
+                .ValidarInputGrv(GrvId, UsuarioId);
+
+            if (Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+            {
+                ResultView.Mensagem = Mensagem;
+
+                return ResultView;
+            }
+
+            GrvModel Grv = await _context.Grv
+                .Where(x => x.GrvId == GrvId)
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
+
+            List<ViewFaturamentoServicoAssociadoVeiculoModel> result = _context
+                .ViewFaturamentoServicoAssociadoVeiculo
+                .Where(x => x.ClienteId == Grv.ClienteId &&
+                            x.DepositoId == Grv.DepositoId &&
+                            x.TipoVeiculoId == Grv.TipoVeiculoId &&
+                            x.FaturamentoProdutoId == Grv.FaturamentoProdutoId &&
+                            (new[] { "DEP", "DRF" }.Contains(Grv.FaturamentoProdutoId) ? x.FlagCobrarGgv == "S" : true) &&
+                            x.DataVigenciaFinal == null)
+                .AsNoTracking()
+                .ToList();
+
+            if (result?.Count > 0)
+            {
+                foreach (var item in result)
+                {
+                    if (item.FlagNaoCobrarSeNaoUsouReboque == "N" && Grv.FlagComboio == "S")
+                    {
+                        continue;
+                    }
+                    else if (item.FlagServicoObrigatorio == "S" || item.FlagServicoObrigatorioGlobal == "S")
+                    {
+                        continue;
+                    }
+
+                    ResultView.Listagem.Add(new()
+                    {
+                        IdentificadorServicoAssociadoTipoVeiculo = item.FaturamentoServicoTipoVeiculoId,
+
+                        DescricaoServico = item.ServicoDescricao,
+
+                        TipoCobranca = item.TipoCobranca,
+
+                        DescricaoTipoCobranca = item.TipoCobrancaDescricao,
+
+                        FlagPermiteAlteracaoValor = item.FlagPermiteAlteracaoValor,
+
+                        PrecoPadrao = item.PrecoPadrao,
+
+                        PrecoMinimoObrigatorio = item.PrecoValorMinimo,
+
+                        DataVigenciaInicial = item.DataVigenciaInicial.Date
+                    });
+                }
+
+                if (ResultView.Listagem.Count > 0)
+                {
+                    ResultView.Mensagem = MensagemViewHelper
+                        .GetOkFound(ResultView.Listagem.Count);
+                }
+                else
+                {
+                    ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+                }
+            }
+            else
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+            }
+
+            return ResultView;
+        }
+
+        public async Task<ServicoAssociadoGrvViewModelList> ListarServicoAssociadoGrvAsync(int GrvId, int UsuarioId)
+        {
+            ServicoAssociadoGrvViewModelList ResultView = new();
+
+            MensagemViewModel Mensagem = new GrvService(_context)
+                .ValidarInputGrv(GrvId, UsuarioId);
+
+            if (Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+            {
+                ResultView.Mensagem = Mensagem;
+
+                return ResultView;
+            }
+
+            GrvModel Grv = await _context.Grv
+                .Where(x => x.GrvId == GrvId)
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
+
+            var result = _context
+                .ViewFaturamentoServicoGrv
+                .Where(w => w.GrvId == GrvId)
+                .AsNoTracking()
+                .ToList();
+
+            if (result?.Count > 0)
+            {
+                foreach (var item in result)
+                {
+                    if (item.FlagNaoCobrarSeNaoUsouReboque == "N" && Grv.FlagComboio == "S")
+                    {
+                        continue;
+                    }
+                    else if (item.FlagServicoObrigatorio == "S" || item.FlagServicoObrigatorioGlobal == "S")
+                    {
+                        continue;
+                    }
+
+                    //ResultView.Listagem.Add(new()
+                    //{
+                    //    ServicoAssociadoTipoVeiculoId = item.FaturamentoServicoTipoVeiculoId,
+
+                    //    ServicoDescricao = item.ServicoDescricao,
+
+                    //    TipoCobranca = item.TipoCobranca,
+
+                    //    FlagPermiteAlteracaoValor = item.FlagPermiteAlteracaoValor,
+
+                    //    PrecoPadrao = item.PrecoPadrao,
+
+                    //    PrecoValorMinimo = item.PrecoValorMinimo,
+
+                    //    DataVigenciaInicial = item.DataVigenciaInicial
+                    //});
+                }
+
+                if (ResultView.Listagem.Count > 0)
+                {
+                    ResultView.Mensagem = MensagemViewHelper
+                        .GetOkFound(ResultView.Listagem.Count);
+                }
+                else
+                {
+                    ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+                }
+            }
+            else
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+            }
+
+            return ResultView;
         }
     }
 }

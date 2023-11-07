@@ -53,8 +53,8 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             }
 
             GrvModel Grv = await _context.Grv
-                .Include(i => i.Atendimento)
-                .Where(w => w.Atendimento.AtendimentoId == AtendimentoId)
+                .Include(x => x.Atendimento)
+                .Where(x => x.Atendimento.AtendimentoId == AtendimentoId)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
 

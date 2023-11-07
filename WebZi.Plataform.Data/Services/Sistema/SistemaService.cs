@@ -68,18 +68,22 @@ namespace WebZi.Plataform.Data.Services.Sistema
                 .ToList() : null;
         }
 
-        public List<TabelaGenericaModel> ListarTabelaGenericaById(string Codigo, int TabelaGenericaId)
+        public TabelaGenericaModel GetById(string Codigo, int TabelaGenericaId)
         {
-            List<TabelaGenericaModel> result = _context.TabelaGenerica
+            return _context.TabelaGenerica
                 .Where(x => x.Codigo == Codigo
                          && x.TabelaGenericaId == TabelaGenericaId)
                 .AsNoTracking()
-                .ToList();
+                .FirstOrDefault();
+        }
 
-            return result?.Count > 0 ? result
-                .OrderBy(x => x.Sequencia)
-                .ThenBy(x => x.Descricao)
-                .ToList() : null;
+        public async Task<TabelaGenericaModel> GetByIdAsync(string Codigo, int TabelaGenericaId)
+        {
+            return await _context.TabelaGenerica
+                .Where(x => x.Codigo == Codigo
+                         && x.TabelaGenericaId == TabelaGenericaId)
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
         }
 
         public async Task<List<TabelaGenericaModel>> ListarTabelaGenericaByIdAsync(string Codigo, int TabelaGenericaId)
@@ -96,7 +100,7 @@ namespace WebZi.Plataform.Data.Services.Sistema
                 .ToList() : null;
         }
 
-        public async Task<TabelaGenericaViewModelList> ListarViewTabelaGenericaAsync(string Codigo)
+        public async Task<TabelaGenericaViewModelList> ListarTabelaGenericaViewModelAsync(string Codigo)
         {
             TabelaGenericaViewModelList ResultView = new();
 

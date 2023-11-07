@@ -27,10 +27,10 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             for (int ano = AnoInicial; ano <= AnoFinal; ano++)
             {
                 Feriados = _context.Feriado
-                    .Where(w => (w.Ano == null || w.Ano == ano) &&
-                                ((w.FlagFeriadoNacional == "S") ||
-                                 (w.UF == UF && w.MunicipioId == null) ||
-                                 (w.MunicipioId == MunicipioId)))
+                    .Where(x => (x.Ano == null || x.Ano == ano) &&
+                                ((x.FlagFeriadoNacional == "S") ||
+                                 (x.UF == UF && x.MunicipioId == null) ||
+                                 (x.MunicipioId == MunicipioId)))
                     .ToList();
 
                 foreach (FeriadoModel item in Feriados)

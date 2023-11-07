@@ -15,6 +15,7 @@ using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Bucket;
 using WebZi.Plataform.Data.Services.Cliente;
 using WebZi.Plataform.Data.Services.Deposito;
+using WebZi.Plataform.Data.Services.Faturamento;
 using WebZi.Plataform.Data.Services.Localizacao;
 using WebZi.Plataform.Data.Services.Sistema;
 using WebZi.Plataform.Domain.Enums;
@@ -55,15 +56,15 @@ namespace WebZi.Plataform.Domain.Services.GRV
         private readonly IServiceProvider _provider;
         private readonly IHttpClientFactory _httpClientFactory;
 
+        public GrvService(AppDbContext context)
+        {
+            _context = context;
+        }
+
         public GrvService(AppDbContext context, IMapper mapper)
         {
             _context = context;
             _mapper = mapper;
-        }
-
-        public GrvService(AppDbContext context)
-        {
-            _context = context;
         }
 
         public GrvService(AppDbContext context, IMapper mapper, IServiceProvider provider, IHttpClientFactory httpClientFactory)
@@ -168,8 +169,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             };
 
             TabelaGenericaModel AssinaturaCondutor = new SistemaService(_context)
-                .ListarTabelaGenericaById("GRV_ASSINATURA_CONDUTOR", GrvPersistencia.Condutor.IdentificadorAssinaturaCondutor)
-                .FirstOrDefault();
+                .GetById("GRV_ASSINATURA_CONDUTOR", GrvPersistencia.Condutor.IdentificadorAssinaturaCondutor);
 
             Grv.Condutor.StatusAssinaturaCondutor = AssinaturaCondutor.ValorCadastro;
 
@@ -502,7 +502,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             return MensagemViewHelper.GetOkFound(BucketArquivos.Count, "Foto(s) excluída(s) com sucesso");
         }
 
-        public async Task<MensagemViewModel> ExcluirGrvAsync(string NumeroFormularioGrv, string CodigoProduto, int ClienteId, int DepositoId, string Login, string Senha)
+        public async Task<MensagemViewModel> ExcluirGrvAsync(string NumeroFormularioGrv, string FaturamentoProdutoId, int ClienteId, int DepositoId, string Login, string Senha)
         {
             UsuarioViewModel Usuario = await new UsuarioService(_context, _mapper)
                 .GetByLoginAsync(Login, Senha);
@@ -512,7 +512,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 return Usuario.Mensagem;
             }
 
-            MensagemViewModel ResultView = ValidarInputGrv(NumeroFormularioGrv, CodigoProduto, ClienteId, DepositoId, Usuario.IdentificadorUsuario);
+            MensagemViewModel ResultView = ValidarInputGrv(NumeroFormularioGrv, FaturamentoProdutoId, ClienteId, DepositoId, Usuario.IdentificadorUsuario);
 
             if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
             {
@@ -520,7 +520,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             }
 
             GrvModel Grv = await _context.Grv
-                .Where(x => x.FaturamentoProdutoId == CodigoProduto
+                .Where(x => x.FaturamentoProdutoId == FaturamentoProdutoId
                          && x.ClienteId == ClienteId
                          && x.DepositoId == DepositoId
                          && x.NumeroFormularioGrv == NumeroFormularioGrv)
@@ -764,11 +764,11 @@ namespace WebZi.Plataform.Domain.Services.GRV
             return ResultView;
         }
 
-        public async Task<GrvViewModelList> GetByNumeroFormularioGrvAsync(string NumeroFormularioGrv, string CodigoProduto, int ClienteId, int DepositoId, int UsuarioId)
+        public async Task<GrvViewModelList> GetByNumeroFormularioGrvAsync(string NumeroFormularioGrv, string FaturamentoProdutoId, int ClienteId, int DepositoId, int UsuarioId)
         {
             GrvViewModelList ResultView = new()
             {
-                Mensagem = ValidarInputGrv(NumeroFormularioGrv, CodigoProduto, ClienteId, DepositoId, UsuarioId)
+                Mensagem = ValidarInputGrv(NumeroFormularioGrv, FaturamentoProdutoId, ClienteId, DepositoId, UsuarioId)
             };
 
             if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
@@ -780,7 +780,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 .Where(x => x.NumeroFormularioGrv == NumeroFormularioGrv
                          && x.ClienteId == ClienteId
                          && x.DepositoId == DepositoId
-                         && x.FaturamentoProdutoId == CodigoProduto)
+                         && x.FaturamentoProdutoId == FaturamentoProdutoId)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
 
@@ -923,7 +923,9 @@ namespace WebZi.Plataform.Domain.Services.GRV
         {
             return new()
             {
-                ListagemProduto = await ListarProdutosAsync(),
+                ListagemProduto = await _provider
+                    .GetService<FaturamentoService>()
+                    .ListarProdutosAsync(),
 
                 ListagemCliente = await _provider
                     .GetService<ClienteService>()
@@ -1004,66 +1006,6 @@ namespace WebZi.Plataform.Domain.Services.GRV
             return ResultView;
         }
 
-        public async Task<OrgaoEmissorViewModelList> ListarOrgaoEmissorAsync(string UF)
-        {
-            OrgaoEmissorViewModelList ResultView = new();
-
-            if (string.IsNullOrWhiteSpace(UF))
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest("Informe a Unidade Federativa");
-
-                return ResultView;
-            }
-            else if (!LocalizacaoHelper.IsUF(UF))
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest("Unidade Federativa inválida");
-
-                return ResultView;
-            }
-
-            List<OrgaoEmissorModel> result = await _context.OrgaoEmissor
-                .Where(w => w.UF == UF.ToUpperTrim())
-                .AsNoTracking()
-                .ToListAsync();
-
-            if (result == null)
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound("Unidade Federativa sem Órgão Emissor cadastrado");
-
-                return ResultView;
-            }
-
-            if (result?.Count > 0)
-            {
-                ResultView.Listagem = _mapper.Map<List<OrgaoEmissorViewModel>>(result
-                    .OrderBy(o => o.Descricao)
-                    .ToList());
-
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
-            }
-            else
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
-            }
-
-            return ResultView;
-        }
-
-        public async Task<FaturamentoProdutoViewModelList> ListarProdutosAsync()
-        {
-            FaturamentoProdutoViewModelList ResultView = new();
-
-            List<FaturamentoProdutoModel> result = await _context.FaturamentoProduto
-                .AsNoTracking()
-                .ToListAsync();
-
-            ResultView.Listagem = _mapper.Map<List<FaturamentoProdutoViewModel>>(result.OrderBy(x => x.Descricao).ToList());
-
-            ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
-
-            return ResultView;
-        }
-
         public async Task<StatusOperacaoViewModelList> ListarStatusOperacaoAsync()
         {
             StatusOperacaoViewModelList ResultView = new();
@@ -1096,20 +1038,27 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (GrvPesquisa.ListagemCodigoProduto.Count == 0)
             {
-                erros.Add("Informe ao menos um Código de Produto");
+                erros.Add("Informe ao menos um Código do Produto");
             }
             else
             {
-                List<string> Produtos = await _context.FaturamentoProduto
-                    .Select(x => x.FaturamentoProdutoId)
-                    .AsNoTracking()
-                    .ToListAsync();
-
-                foreach (string Codigo in GrvPesquisa.ListagemCodigoProduto)
+                if (GrvPesquisa.ListagemCodigoProduto.Where(string.IsNullOrWhiteSpace).ToList().Count > 0)
                 {
-                    if (Produtos.FirstOrDefault(f => f == Codigo.ToUpperTrim()) == null)
+                    erros.Add("Na listagem do Código do Produto, existem itens vazios");
+                }
+                else
+                {
+                    List<string> Produtos = await _context.FaturamentoProduto
+                        .Select(x => x.FaturamentoProdutoId)
+                        .AsNoTracking()
+                        .ToListAsync();
+
+                    foreach (string Codigo in GrvPesquisa.ListagemCodigoProduto)
                     {
-                        erros.Add($"{MensagemPadraoEnum.NaoEncontradoFaturamentoProduto}: {Codigo}");
+                        if (Produtos.FirstOrDefault(f => f == Codigo.ToUpperTrim()) == null)
+                        {
+                            erros.Add($"{MensagemPadraoEnum.NaoEncontradoFaturamentoProduto}: {Codigo}");
+                        }
                     }
                 }
             }
@@ -1123,6 +1072,11 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
                 foreach (string StatusOperacao in GrvPesquisa.ListagemStatusOperacao)
                 {
+                    if (string.IsNullOrWhiteSpace(StatusOperacao))
+                    {
+                        continue;
+                    }
+
                     if (StatusOperacoes.FirstOrDefault(f => f == StatusOperacao.ToUpperTrim()) == null)
                     {
                         erros.Add($"Status Operação inexistente: {StatusOperacao}");
@@ -1216,7 +1170,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                             (!string.IsNullOrWhiteSpace(GrvPesquisa.FlagVeiculoNaoIdentificado) ? x.FlagVeiculoNaoIdentificado == GrvPesquisa.FlagVeiculoNaoIdentificado : true) &&
                             (GrvPesquisa.IdentificadorCliente > 0 ? x.ClienteId == GrvPesquisa.IdentificadorCliente : true) &&
                             (GrvPesquisa.IdentificadorDeposito > 0 ? x.DepositoId == GrvPesquisa.IdentificadorDeposito : true))
-                .OrderBy(o => Convert.ToInt64(o.NumeroFormularioGrv))
+                .OrderBy(x => Convert.ToInt64(x.NumeroFormularioGrv))
                 .Take(100)
                 .AsNoTracking()
                 .ToListAsync();
@@ -1286,12 +1240,12 @@ namespace WebZi.Plataform.Domain.Services.GRV
             return ValidarInputGrv(Grv.GrvId, UsuarioId, Grv.NumeroFormularioGrv, Grv.FaturamentoProdutoId, Grv.ClienteId, Grv.DepositoId);
         }
 
-        public MensagemViewModel ValidarInputGrv(string NumeroFormularioGrv, string CodigoProduto, int ClienteId, int DepositoId, int UsuarioId)
+        public MensagemViewModel ValidarInputGrv(string NumeroFormularioGrv, string FaturamentoProdutoId, int ClienteId, int DepositoId, int UsuarioId)
         {
-            return ValidarInputGrv(0, UsuarioId, NumeroFormularioGrv, CodigoProduto, ClienteId, DepositoId);
+            return ValidarInputGrv(0, UsuarioId, NumeroFormularioGrv, FaturamentoProdutoId, ClienteId, DepositoId);
         }
 
-        private MensagemViewModel ValidarInputGrv(int GrvId, int UsuarioId, string NumeroFormularioGrv, string CodigoProduto, int ClienteId, int DepositoId)
+        private MensagemViewModel ValidarInputGrv(int GrvId, int UsuarioId, string NumeroFormularioGrv, string FaturamentoProdutoId, int ClienteId, int DepositoId)
         {
             if (!new UsuarioService(_context).IsUserActive(UsuarioId))
             {
@@ -1311,7 +1265,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                     erros.Add(MensagemPadraoEnum.NumeroProcessoInvalido);
                 }
 
-                if (string.IsNullOrWhiteSpace(CodigoProduto))
+                if (string.IsNullOrWhiteSpace(FaturamentoProdutoId))
                 {
                     erros.Add(MensagemPadraoEnum.InformeCodigoProduto);
                 }
@@ -1340,7 +1294,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             if (GrvId <= 0)
             {
                 FaturamentoProdutoModel FaturamentoProduto = _context.FaturamentoProduto
-                    .Where(x => x.FaturamentoProdutoId == CodigoProduto)
+                    .Where(x => x.FaturamentoProdutoId == FaturamentoProdutoId)
                     .AsNoTracking()
                     .FirstOrDefault();
 
@@ -1398,7 +1352,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             else
             {
                 Grv = _context.ViewUsuarioClienteDepositoGrv
-                    .Where(x => x.FaturamentoProdutoCodigo == CodigoProduto
+                    .Where(x => x.FaturamentoProdutoCodigo == FaturamentoProdutoId
                              && x.ClienteId == ClienteId
                              && x.DepositoId == DepositoId
                              && x.NumeroFormularioGrv == NumeroFormularioGrv)

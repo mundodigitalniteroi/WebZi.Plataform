@@ -69,7 +69,7 @@ namespace WebZi.Plataform.Data.Mappings.Condutor
                 .HasDefaultValueSql("('2')")
                 .IsFixedLength()
                 .HasComment("1 = ASSINOU;\r\n2 = AUSENTE;\r\n3 = EVADIU-SE;\r\n4 = RECUSOU-SE.")
-                .HasColumnName("GRV_ASSINATURA_CONDUTOR");
+                .HasColumnName("status_assinatura_condutor");
             
             builder.Property(e => e.Telefone)
                 .HasMaxLength(9)

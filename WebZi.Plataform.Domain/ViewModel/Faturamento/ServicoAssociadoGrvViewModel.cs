@@ -1,10 +1,14 @@
-﻿namespace WebZi.Plataform.Domain.Views.Faturamento
+﻿namespace WebZi.Plataform.Domain.ViewModel.Faturamento
 {
-    public class ViewFaturamentoServicoAssociadoVeiculoModel
+    public class ServicoAssociadoGrvViewModel
     {
+        public int GrvId { get; set; }
+
+        public string NumeroFormularioGrv { get; set; }
+
         public int ClienteId { get; set; }
 
-        public short ClienteAgenciaBancariaId { get; set; }
+        public short ClienteIdAgenciaBancaria { get; set; }
 
         public byte? ClienteTipoMeioCobrancaId { get; set; }
 
@@ -18,7 +22,7 @@
 
         public decimal? ClienteMetragemGuarda { get; set; }
 
-        public string ClienteCodigoSap { get; set; }
+        public string ClienteCodigoERP { get; set; }
 
         public string ClienteHoraDiaria { get; set; }
 
@@ -28,7 +32,7 @@
 
         public string ClienteFlagUsarHoraDiaria { get; set; }
 
-        public string ClienteFlagEmissaoNotaFiscalSap { get; set; }
+        public string ClienteFlagEmissaoNotaFiscalERP { get; set; }
 
         public string ClienteFlagCobrarDiariasDiasCorridos { get; set; }
 
@@ -48,13 +52,13 @@
 
         public byte? TipoMeioCobrancaId { get; set; }
 
-        public string TipoMeioCobrancaCodigoERP { get; set; }
+        public string TiposMeiosCobrancasCodigoERP { get; set; }
 
-        public string TipoMeioCobrancaDescricao { get; set; }
+        public string TiposMeiosCobrancasDescricao { get; set; }
 
-        public string TipoMeioCobrancaFlagBanco { get; set; }
+        public string TiposMeiosCobrancasFlagBanco { get; set; }
 
-        public string TipoMeioCobrancaFlagPossuiCodigoAutorizacaoCartao { get; set; }
+        public string TiposMeiosCobrancasFlagPossuiCodigoAutorizacaoCartao { get; set; }
 
         public int FaturamentoServicoTipoId { get; set; }
 
@@ -64,7 +68,7 @@
 
         public string CodigoMaterial { get; set; }
 
-        public string SapDescricao { get; set; }
+        public string DescricaoERP { get; set; }
 
         public string CodigoDescricaoERP { get; set; }
 
@@ -76,13 +80,11 @@
 
         public string TipoCobranca { get; set; }
 
-        public string TipoCobrancaDescricao { get; set; }
-
         public byte OrdemImpressao { get; set; }
 
         public string FlagServicoObrigatorioGlobal { get; set; }
 
-        public string FlagCobrarGgv { get; set; }
+        public string FlagCobrarTelaGrv { get; set; }
 
         public string FlagNaoCobrarSeNaoUsouReboque { get; set; }
 
@@ -97,8 +99,6 @@
         public string FaturamentoProdutoDescricao { get; set; }
 
         public int FaturamentoServicoAssociadoId { get; set; }
-
-        public short? FaturamentoRegraId { get; set; }
 
         public string Descricao { get; set; }
 
@@ -120,24 +120,6 @@
 
         public string FlagCobrarSomentePrimeiraFatura { get; set; }
 
-        public short? FaturamentoRegraTipoId { get; set; }
-
-        public string FaturamentoRegraTipoCodigo { get; set; }
-
-        public string FaturamentoRegraTipoDescricao { get; set; }
-
-        public string FaturamentoRegraTipoFlagPossuiValor { get; set; }
-
-        public string FaturamentoRegraTipoFlagAtivo { get; set; }
-
-        public string NomeUsuarioCadastro { get; set; }
-
-        public DateTime DataCadastro { get; set; }
-
-        public string NomeUsuarioAlteracao { get; set; }
-
-        public DateTime? DataAlteracao { get; set; }
-
         public int FaturamentoServicoTipoVeiculoId { get; set; }
 
         public byte TipoVeiculoId { get; set; }
@@ -149,5 +131,35 @@
         public string TipoVeiculosFlagNaoRequerCnhNaLiberacao { get; set; }
 
         public string TipoVeiculosFlagAtivo { get; set; }
+
+        public short? FaturamentoRegraTipoId { get; set; }
+
+        public string FaturamentoRegraTipoCodigo { get; set; }
+
+        public string FaturamentoRegraTipoDescricao { get; set; }
+
+        public string FaturamentoRegraTipoFlagPossuiValor { get; set; }
+
+        public string FaturamentoRegraTipoFlagAtivo { get; set; }
+
+        public int? FaturamentoServicoGrvId { get; set; }
+
+        public decimal? Valor { get; set; }
+
+        public string TempoTrabalhado { get; set; }
+
+        public string FlagRealizarCobranca { get; set; }
+
+        public int? UsuarioDescontoId { get; set; }
+
+        public string TipoDesconto { get; set; }
+
+        public int? QuantidadeDesconto { get; set; }
+
+        public decimal? ValorDesconto { get; set; }
+
+        public string ObservacaoDesconto { get; set; }
+
+        public string NomeUsuarioDesconto { get; set; }
     }
 }

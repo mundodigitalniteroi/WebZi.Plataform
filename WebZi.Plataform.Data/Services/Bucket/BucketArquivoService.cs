@@ -363,9 +363,9 @@ namespace WebZi.Plataform.Data.Services.Bucket
                 .FirstOrDefault();
 
             List<BucketArquivoModel> BucketArquivos = _context.BucketArquivo
-                .Include(i => i.BucketNomeTabelaOrigem)
-                .Where(w => w.BucketNomeTabelaOrigem.Codigo == CodigoTabelaOrigem
-                         && ListagemTabelaOrigemId.Contains(w.TabelaOrigemId))
+                .Include(x => x.BucketNomeTabelaOrigem)
+                .Where(x => x.BucketNomeTabelaOrigem.Codigo == CodigoTabelaOrigem
+                         && ListagemTabelaOrigemId.Contains(x.TabelaOrigemId))
                 .ToList();
 
             if (BucketArquivos.Count > 0)
