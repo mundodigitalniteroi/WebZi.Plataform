@@ -299,7 +299,7 @@ namespace WebZi.Plataform.CrossCutting.Date
                     // Connect to the server (at port 13) and get the response
                     string serverResponse = string.Empty;
 
-                    using (StreamReader reader = new StreamReader(new System.Net.Sockets.TcpClient(server, 13).GetStream()))
+                    using (StreamReader reader = new(new System.Net.Sockets.TcpClient(server, 13).GetStream()))
                     {
                         serverResponse = reader.ReadToEnd();
                     }
@@ -679,7 +679,7 @@ namespace WebZi.Plataform.CrossCutting.Date
 
         public static bool IsBiggerThenNow(string inputDateTime)
         {
-            DateTime dateTime = new DateTime();
+            DateTime dateTime = new();
 
             if (dateTime.Date > DateTime.Now.Date)
             {

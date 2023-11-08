@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Data;
 using System.Reflection.Metadata;
 using System.Text;
+using WebZi.Plataform.CrossCutting.Secutity;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Domain.Enums;
@@ -48,6 +49,14 @@ class Program
         // var result = _context.GetForeingKeys("tb_dep_grv");
 
         // _context.SaveChanges();        
+
+        byte[] textoAsBytes = Encoding.ASCII.GetBytes("OEXTERMINADORDOFUTURO12345678901");
+
+        string key = Convert.ToBase64String(textoAsBytes);
+
+        string encrypted = CryptographyHelper.EncryptString(key, "TESTE");
+
+        string decrypted = CryptographyHelper.DecryptString(key, encrypted);
 
         if (true)
         {

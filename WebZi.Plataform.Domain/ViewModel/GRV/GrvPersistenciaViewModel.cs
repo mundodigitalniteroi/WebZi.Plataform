@@ -1,4 +1,5 @@
-﻿using WebZi.Plataform.Domain.ViewModel.GRV.Cadastro;
+﻿using WebZi.Plataform.Domain.ViewModel.GGV.Cadastro;
+using WebZi.Plataform.Domain.ViewModel.GRV.Cadastro;
 
 namespace WebZi.Plataform.Domain.ViewModel.GRV
 {
@@ -97,6 +98,8 @@ namespace WebZi.Plataform.Domain.ViewModel.GRV
         public List<CadastroCondutorDocumentoViewModel> ListagemDocumentoCondutor { get; set; }
 
         public List<CadastroEnquadramentoInfracaoGrvViewModel> ListagemEnquadramentoInfracao { get; set; }
+
+        public List<CadastroEquipamentoOpcionalViewModel> ListagemEquipamentoOpcional { get; set; }
 
         public List<byte[]> ListagemFoto { get; set; }
 

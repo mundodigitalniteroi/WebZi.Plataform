@@ -77,8 +77,6 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
         public GrvCadastradoViewModel Cadastrar(GrvPersistenciaViewModel GrvPersistencia)
         {
-            GrvCadastradoViewModel ResultView = new();
-
             GrvModel Grv = new()
             {
                 ClienteId = GrvPersistencia.IdentificadorCliente,
@@ -221,6 +219,25 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 }
             }
 
+            if (GrvPersistencia.ListagemEquipamentoOpcional?.Count > 0)
+            {
+                Grv.ListagemCondutorEquipamentoOpcional = new HashSet<CondutorEquipamentoOpcionalModel>();
+
+                foreach (var item in GrvPersistencia.ListagemEquipamentoOpcional)
+                {
+                    Grv.ListagemCondutorEquipamentoOpcional.Add(new CondutorEquipamentoOpcionalModel
+                    { 
+                        EquipamentoOpcionalId = item.IdentificadorEquipamentoOpcional,
+                        
+                        Avariado = item.FlagEquipamentoAvariado,
+
+                        CodigoAvaria = item.IdentificadorTipoAvariaId,
+                        
+                        UsuarioCadastroId = GrvPersistencia.IdentificadorUsuario
+                    });
+                }
+            }
+
             ClienteDepositoModel ClienteDeposito = _context.ClienteDeposito
                 .Include(x => x.Cliente)
                 .Where(x => x.ClienteId == GrvPersistencia.IdentificadorCliente
@@ -232,6 +249,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
             {
                 Grv.StatusOperacaoId = "B";
             }
+
+            GrvCadastradoViewModel ResultView = new();
 
             using (IDbContextTransaction transaction = _context.Database.BeginTransaction())
             {
@@ -1707,6 +1726,24 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 }
             }
 
+            if (GrvPersistencia.ListagemEquipamentoOpcional?.Count > 0)
+            {
+                if (GrvPersistencia.ListagemEquipamentoOpcional.Where(x => x.IdentificadorEquipamentoOpcional <= 0).ToList().Count > 0)
+                {
+                    erros.Add("Existe um ou mais Identificador do Equipamento Opcional inválido");
+                }
+
+                if (GrvPersistencia.ListagemEquipamentoOpcional.Where(x => x.IdentificadorEquipamentoOpcional <= 0).ToList().Count > 0)
+                {
+                    erros.Add("Existe um ou mais Flag de Equipamento Opcional avariado inválido, informe \"S\" ou \"N\" (sem aspas)");
+                }
+
+                if (GrvPersistencia.ListagemEquipamentoOpcional.Where(x => x.FlagEquipamentoAvariado == "S" && x.IdentificadorTipoAvariaId <= 0).ToList().Count > 0)
+                {
+                    erros.Add("Existe um ou mais Identificador do Tipo de Avaria inválido, informe \"S\" ou \"N\" (sem aspas)");
+                }
+            }
+
             if (erros.Count > 0)
             {
                 return MensagemViewHelper.GetBadRequest(erros);
@@ -1943,6 +1980,44 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 if (IdentificadorTipoDocumentoIdentificacao.Where(x => TiposDocumentosIdentificacoes.All(y => y != x)).ToList().Count > 0)
                 {
                     ResultView.AvisosImpeditivos.Add("Existem Identificador do Tipo de Documento de Identificação inválido");
+                }
+            }
+
+            if (GrvPersistencia.ListagemEquipamentoOpcional?.Count > 0)
+            {
+                List<decimal> EquipamentoOpcionalIds = GrvPersistencia.ListagemEquipamentoOpcional
+                    .Select(x => x.IdentificadorEquipamentoOpcional)
+                    .ToList();
+
+                int ListagemEncontrada = _context.EquipamentoOpcional
+                    .Where(x => EquipamentoOpcionalIds.Contains(x.EquipamentoOpcionalId))
+                    .AsNoTracking()
+                    .Count();
+
+                if (EquipamentoOpcionalIds.Count != ListagemEncontrada)
+                {
+                    ResultView.AvisosImpeditivos.Add("A listagem de Equipamento Opcional possui um ou mais Identificador inexistente");
+                }
+
+                if (GrvPersistencia.ListagemEquipamentoOpcional.Where(x => x.IdentificadorTipoAvariaId > 0).ToList().Count > 0)
+                {
+                    List<int?> ListagemIdentificadorTipoAvariaIdIds = GrvPersistencia.ListagemEquipamentoOpcional
+                        .Where(x => x.IdentificadorTipoAvariaId > 0)
+                        .Select(x => x.IdentificadorTipoAvariaId)
+                        .ToList();
+
+                    if (ListagemIdentificadorTipoAvariaIdIds?.Count > 0)
+                    {
+                        int TipoAvariaIds = _context.TipoAvaria
+                            .Where(x => ListagemIdentificadorTipoAvariaIdIds.Contains(x.TipoAvariaId))
+                            .AsNoTracking()
+                            .Count();
+
+                        if (EquipamentoOpcionalIds.Count != ListagemEncontrada)
+                        {
+                            ResultView.AvisosImpeditivos.Add("A listagem de Equipamento Opcional possui um ou mais Identificador de Tipo de Avaria inexistente");
+                        }
+                    }
                 }
             }
 
