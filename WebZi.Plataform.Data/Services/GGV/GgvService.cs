@@ -411,7 +411,7 @@ namespace WebZi.Plataform.Data.Services.GGV
                 }
 
                 count = GrvPersistencia.ListagemEquipamentoOpcional
-                    .Where(x => x.FlagEquipamentoAvariado == "S" && x.IdentificadorTipoAvariaId <= 0)
+                    .Where(x => x.FlagEquipamentoAvariado == "S" && x.IdentificadorTipoAvaria <= 0)
                     .Count();
 
                 if (count == 1)

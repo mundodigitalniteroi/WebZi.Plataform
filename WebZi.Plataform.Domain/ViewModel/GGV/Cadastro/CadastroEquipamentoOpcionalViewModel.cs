@@ -6,6 +6,6 @@
 
         public string FlagEquipamentoAvariado { get; set; }
 
-        public int? IdentificadorTipoAvariaId { get; set; }
+        public int? IdentificadorTipoAvaria { get; set; }
     }
 }

@@ -226,13 +226,13 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 foreach (var item in GrvPersistencia.ListagemEquipamentoOpcional)
                 {
                     Grv.ListagemCondutorEquipamentoOpcional.Add(new CondutorEquipamentoOpcionalModel
-                    { 
+                    {
                         EquipamentoOpcionalId = item.IdentificadorEquipamentoOpcional,
-                        
+
                         Avariado = item.FlagEquipamentoAvariado,
 
-                        CodigoAvaria = item.IdentificadorTipoAvariaId,
-                        
+                        CodigoAvaria = item.IdentificadorTipoAvaria,
+
                         UsuarioCadastroId = GrvPersistencia.IdentificadorUsuario
                     });
                 }
@@ -1733,14 +1733,14 @@ namespace WebZi.Plataform.Domain.Services.GRV
                     erros.Add("Existe um ou mais Identificador do Equipamento Opcional inválido");
                 }
 
-                if (GrvPersistencia.ListagemEquipamentoOpcional.Where(x => x.IdentificadorEquipamentoOpcional <= 0).ToList().Count > 0)
+                if (GrvPersistencia.ListagemEquipamentoOpcional.Where(x => x.FlagEquipamentoAvariado != "S" && x.FlagEquipamentoAvariado != "N").ToList().Count > 0)
                 {
-                    erros.Add("Existe um ou mais Flag de Equipamento Opcional avariado inválido, informe \"S\" ou \"N\" (sem aspas)");
+                    erros.Add("Existe uma ou mais Flag de Equipamento Opcional avariado inválido, informe \"S\" ou \"N\" (sem aspas)");
                 }
 
-                if (GrvPersistencia.ListagemEquipamentoOpcional.Where(x => x.FlagEquipamentoAvariado == "S" && x.IdentificadorTipoAvariaId <= 0).ToList().Count > 0)
+                if (GrvPersistencia.ListagemEquipamentoOpcional.Where(x => x.FlagEquipamentoAvariado == "S" && x.IdentificadorTipoAvaria <= 0).ToList().Count > 0)
                 {
-                    erros.Add("Existe um ou mais Identificador do Tipo de Avaria inválido, informe \"S\" ou \"N\" (sem aspas)");
+                    erros.Add("Existe um ou mais Identificador do Tipo de Avaria inválido");
                 }
             }
 
@@ -1987,23 +1987,50 @@ namespace WebZi.Plataform.Domain.Services.GRV
             {
                 List<decimal> EquipamentoOpcionalIds = GrvPersistencia.ListagemEquipamentoOpcional
                     .Select(x => x.IdentificadorEquipamentoOpcional)
+                    .Distinct()
                     .ToList();
 
-                int ListagemEncontrada = _context.EquipamentoOpcional
+                int ListagemEquipamentoOpcionalEncontrada = _context.EquipamentoOpcional
                     .Where(x => EquipamentoOpcionalIds.Contains(x.EquipamentoOpcionalId))
                     .AsNoTracking()
                     .Count();
 
-                if (EquipamentoOpcionalIds.Count != ListagemEncontrada)
+                if (EquipamentoOpcionalIds.Count != ListagemEquipamentoOpcionalEncontrada)
                 {
                     ResultView.AvisosImpeditivos.Add("A listagem de Equipamento Opcional possui um ou mais Identificador inexistente");
                 }
+                else if (GrvPersistencia.IdentificadorTipoVeiculo > 0)
+                {
+                    int CountTipoVeiculoEquipamentoAssociacao = _context.TipoVeiculoEquipamentoAssociacao
+                        .Where(x => EquipamentoOpcionalIds.Contains(x.EquipamentoOpcionalId) && x.TipoVeiculoId == GrvPersistencia.IdentificadorTipoVeiculo)
+                        .AsNoTracking()
+                        .Count();
 
-                if (GrvPersistencia.ListagemEquipamentoOpcional.Where(x => x.IdentificadorTipoAvariaId > 0).ToList().Count > 0)
+                    if (CountTipoVeiculoEquipamentoAssociacao != ListagemEquipamentoOpcionalEncontrada)
+                    {
+                        ResultView.AvisosImpeditivos.Add("A listagem de Equipamento Opcional possui um ou mais Identificador não associado ao Tipo de Veículo");
+                    }
+                }
+
+                // Verificar duplicidade
+                int duplicado = GrvPersistencia.ListagemEquipamentoOpcional
+                    .Where(x => x.IdentificadorEquipamentoOpcional > 0)
+                    .Select(x => x.IdentificadorEquipamentoOpcional)
+                    .GroupBy(x => x)
+                    .Where(x => x.Count() > 1)
+                    .Count();
+
+                if (duplicado >= 1)
+                {
+                    ResultView.AvisosImpeditivos.Add("Existe Identificador do Equipamento Opcional duplicado");
+                }
+
+                if (GrvPersistencia.ListagemEquipamentoOpcional.Where(x => x.IdentificadorTipoAvaria > 0).ToList().Count > 0)
                 {
                     List<int?> ListagemIdentificadorTipoAvariaIdIds = GrvPersistencia.ListagemEquipamentoOpcional
-                        .Where(x => x.IdentificadorTipoAvariaId > 0)
-                        .Select(x => x.IdentificadorTipoAvariaId)
+                        .Where(x => x.IdentificadorTipoAvaria > 0)
+                        .Select(x => x.IdentificadorTipoAvaria)
+                        .Distinct()
                         .ToList();
 
                     if (ListagemIdentificadorTipoAvariaIdIds?.Count > 0)
@@ -2013,7 +2040,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                             .AsNoTracking()
                             .Count();
 
-                        if (EquipamentoOpcionalIds.Count != ListagemEncontrada)
+                        if (TipoAvariaIds != ListagemIdentificadorTipoAvariaIdIds?.Count)
                         {
                             ResultView.AvisosImpeditivos.Add("A listagem de Equipamento Opcional possui um ou mais Identificador de Tipo de Avaria inexistente");
                         }
@@ -2033,6 +2060,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             {
                 ResultView.AvisosImpeditivos.Add("GRV já cadastrado");
             }
+
             #endregion Consultas
 
             if (ResultView.AvisosImpeditivos.Count > 0)
