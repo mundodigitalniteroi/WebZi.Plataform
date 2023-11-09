@@ -20,6 +20,8 @@
 
         public string NomeArquivoOriginal { get; set; }
 
+        public string TipoCadastro { get; set; }
+
         public byte[] Imagem { get; set; }
     }
 }

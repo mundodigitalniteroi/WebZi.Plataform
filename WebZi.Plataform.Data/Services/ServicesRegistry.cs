@@ -78,6 +78,8 @@ namespace WebZi.Plataform.Data.Services
 
             services.AddScoped<SistemaService>();
 
+            services.AddScoped<TabelaGenericaService>();
+
             services.AddScoped<TipoAvariaService>();
 
             services.AddScoped<TipoMeioCobrancaService>();

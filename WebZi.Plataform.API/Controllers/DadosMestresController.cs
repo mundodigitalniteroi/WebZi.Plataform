@@ -48,8 +48,8 @@ namespace WebZi.Plataform.API.Controllers
             try
             {
                 ResultView = await _provider
-                    .GetService<SistemaService>()
-                    .ListarTabelaGenericaViewModelAsync("GRV_ASSINATURA_CONDUTOR");
+                    .GetService<TabelaGenericaService>()
+                    .ListToViewModelAsync("GRV_ASSINATURA_CONDUTOR");
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -156,8 +156,8 @@ namespace WebZi.Plataform.API.Controllers
             try
             {
                 ResultView = await _provider
-                    .GetService<SistemaService>()
-                    .ListarTabelaGenericaViewModelAsync("VISTORIA_ESTADO_GERAL_VEICULO");
+                    .GetService<TabelaGenericaService>()
+                    .ListToViewModelAsync("VISTORIA_ESTADO_GERAL_VEICULO");
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -507,8 +507,8 @@ namespace WebZi.Plataform.API.Controllers
             try
             {
                 ResultView = await _provider
-                    .GetService<SistemaService>()
-                    .ListarTabelaGenericaViewModelAsync("GGV_TIPO_CADASTRO_FOTO");
+                    .GetService<TabelaGenericaService>()
+                    .ListToViewModelAsync("GGV_TIPO_CADASTRO_FOTO");
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -534,8 +534,8 @@ namespace WebZi.Plataform.API.Controllers
             try
             {
                 ResultView = await _provider
-                    .GetService<SistemaService>()
-                    .ListarTabelaGenericaViewModelAsync("VISTORIA_TIPO_DIRECAO");
+                    .GetService<TabelaGenericaService>()
+                    .ListToViewModelAsync("VISTORIA_TIPO_DIRECAO");
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }

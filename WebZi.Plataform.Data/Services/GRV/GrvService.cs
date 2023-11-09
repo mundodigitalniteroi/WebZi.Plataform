@@ -166,8 +166,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 Condutor = _mapper.Map<CondutorModel>(GrvPersistencia.Condutor)
             };
 
-            TabelaGenericaModel AssinaturaCondutor = new SistemaService(_context)
-                .GetById("GRV_ASSINATURA_CONDUTOR", GrvPersistencia.Condutor.IdentificadorAssinaturaCondutor);
+            TabelaGenericaModel AssinaturaCondutor = new TabelaGenericaService(_context)
+                .GetById(GrvPersistencia.Condutor.IdentificadorAssinaturaCondutor);
 
             Grv.Condutor.StatusAssinaturaCondutor = AssinaturaCondutor.ValorCadastro;
 
@@ -223,18 +223,27 @@ namespace WebZi.Plataform.Domain.Services.GRV
             {
                 Grv.ListagemCondutorEquipamentoOpcional = new HashSet<CondutorEquipamentoOpcionalModel>();
 
+                CondutorEquipamentoOpcionalModel CondutorEquipamentoOpcional = new();
+
                 foreach (var item in GrvPersistencia.ListagemEquipamentoOpcional)
                 {
-                    Grv.ListagemCondutorEquipamentoOpcional.Add(new CondutorEquipamentoOpcionalModel
+                    CondutorEquipamentoOpcional = new()
                     {
                         EquipamentoOpcionalId = item.IdentificadorEquipamentoOpcional,
 
-                        Avariado = item.FlagEquipamentoAvariado,
-
-                        CodigoAvaria = item.IdentificadorTipoAvaria,
+                        FlagPossuiEquipamento = item.FlagPossuiEquipamento,
 
                         UsuarioCadastroId = GrvPersistencia.IdentificadorUsuario
-                    });
+                    };
+
+                    if (item.FlagPossuiEquipamento == "S")
+                    {
+                        CondutorEquipamentoOpcional.FlagEquipamentoAvariado = item.FlagEquipamentoAvariado;
+
+                        CondutorEquipamentoOpcional.CodigoAvaria = item.IdentificadorTipoAvaria;
+                    }
+
+                    Grv.ListagemCondutorEquipamentoOpcional.Add(CondutorEquipamentoOpcional);
                 }
             }
 
@@ -357,7 +366,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (!new[] { "G", "V", "L", "U", "T", "R", "E", "B", "D", "1", "2", "3", "4" }.Contains(Grv.StatusOperacao.StatusOperacaoId))
             {
-                return MensagemViewHelper.GetBadRequest($"O Status da Operação deste GRV não permite o envio de Fotos. Status atual: {Grv.StatusOperacao.Descricao}");
+                return MensagemViewHelper.GetBadRequest($"O Status atual deste GRV não permite o envio de Fotos. Status atual: {Grv.StatusOperacao.Descricao}");
             }
 
             CadastrarDocumentosCondutor(ListagemDocumentoCondutor.IdentificadorGrv, ListagemDocumentoCondutor.IdentificadorUsuario, ListagemDocumentoCondutor.ListagemDocumentoCondutor);
@@ -383,7 +392,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (!new[] { "G", "V", "L", "U", "T", "R", "E", "B", "D", "1", "2", "3", "4" }.Contains(Grv.StatusOperacao.StatusOperacaoId))
             {
-                return MensagemViewHelper.GetBadRequest($"O Status da Operação deste GRV não permite o envio de Fotos. Status atual: {Grv.StatusOperacao.Descricao}");
+                return MensagemViewHelper.GetBadRequest($"O Status atual deste GRV não permite o envio de Fotos. Status atual: {Grv.StatusOperacao.Descricao}");
             }
 
             new BucketArquivoService(_context, _httpClientFactory)
@@ -416,7 +425,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (!new[] { "E", "G", "L", "R", "T", "U", "V" }.Contains(Grv.StatusOperacaoId))
             {
-                return MensagemViewHelper.GetBadRequest($"O GRV está em um Status de Operação que impede o cadastro de Lacres. Status atual: {Grv.StatusOperacao.Descricao}");
+                return MensagemViewHelper.GetBadRequest($"O Status atual deste GRV não permite o cadastro de Lacres. Status atual: {Grv.StatusOperacao.Descricao}");
             }
 
             List<LacreModel> Lacres = await _context.Lacre
@@ -489,7 +498,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (!new[] { "E", "G", "L", "R", "T", "U", "V" }.Contains(Grv.StatusOperacaoId))
             {
-                return MensagemViewHelper.GetBadRequest($"O GRV está em um Status de Operação que impede a exclusão de Fotos. Status atual: {Grv.StatusOperacao.Descricao}");
+                return MensagemViewHelper.GetBadRequest($"O Status atual deste GRV não permite a exclusão de Fotos. Status atual: {Grv.StatusOperacao.Descricao}");
             }
 
             List<BucketArquivoModel> BucketArquivos = await _context.BucketArquivo
@@ -604,7 +613,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             }
             else if (!new[] { "M", "P", "G", "V" }.Contains(Grv.StatusOperacaoId))
             {
-                return MensagemViewHelper.GetBadRequest($"O Status da Operação deste GRV não permite a exclusão. Status atual: {Grv.StatusOperacao.Descricao}");
+                return MensagemViewHelper.GetBadRequest($"O Status atual deste GRV não permite a exclusão. Status atual: {Grv.StatusOperacao.Descricao}");
             }
 
             List<FaturamentoModel> Faturamentos = null;
@@ -700,7 +709,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (!new[] { "E", "G", "L", "R", "T", "U", "V" }.Contains(Grv.StatusOperacaoId))
             {
-                return MensagemViewHelper.GetBadRequest($"O GRV está em um Status de Operação que impede o exclusão de Lacres. Status atual: {Grv.StatusOperacao.Descricao}");
+                return MensagemViewHelper.GetBadRequest($"O Status atual deste GRV não permite a exclusão de Lacres. Status atual: {Grv.StatusOperacao.Descricao}");
             }
 
             List<LacreModel> Lacres = await _context.Lacre
@@ -1642,10 +1651,10 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 }
                 else
                 {
-                    List<TabelaGenericaModel> AssinaturaCondutor = await new SistemaService(_context)
-                        .ListarTabelaGenericaByIdAsync("GRV_ASSINATURA_CONDUTOR", GrvPersistencia.Condutor.IdentificadorAssinaturaCondutor);
+                    TabelaGenericaModel AssinaturaCondutor = await new TabelaGenericaService(_context)
+                        .GetByIdAsync(GrvPersistencia.Condutor.IdentificadorAssinaturaCondutor);
 
-                    if (AssinaturaCondutor?.Count == 0)
+                    if (AssinaturaCondutor == null)
                     {
                         erros.Add("Identificador da Assinatura do Condutor inválido");
                     }
@@ -1733,12 +1742,17 @@ namespace WebZi.Plataform.Domain.Services.GRV
                     erros.Add("Existe um ou mais Identificador do Equipamento Opcional inválido");
                 }
 
-                if (GrvPersistencia.ListagemEquipamentoOpcional.Where(x => x.FlagEquipamentoAvariado != "S" && x.FlagEquipamentoAvariado != "N").ToList().Count > 0)
+                if (GrvPersistencia.ListagemEquipamentoOpcional.Where(x => x.FlagPossuiEquipamento != "S" && x.FlagPossuiEquipamento != "N").ToList().Count > 0)
+                {
+                    erros.Add("Existe uma ou mais Flag Possui Equipamento Opcional inválido, informe \"S\" ou \"N\" (sem aspas)");
+                }
+
+                if (GrvPersistencia.ListagemEquipamentoOpcional.Where(x => x.FlagPossuiEquipamento == "S" && (x.FlagEquipamentoAvariado != "S" && x.FlagEquipamentoAvariado != "N")).ToList().Count > 0)
                 {
                     erros.Add("Existe uma ou mais Flag de Equipamento Opcional avariado inválido, informe \"S\" ou \"N\" (sem aspas)");
                 }
 
-                if (GrvPersistencia.ListagemEquipamentoOpcional.Where(x => x.FlagEquipamentoAvariado == "S" && x.IdentificadorTipoAvaria <= 0).ToList().Count > 0)
+                if (GrvPersistencia.ListagemEquipamentoOpcional.Where(x => x.FlagEquipamentoAvariado == "S" && (x.IdentificadorTipoAvaria <= 0 || x.IdentificadorTipoAvaria == null)).ToList().Count > 0)
                 {
                     erros.Add("Existe um ou mais Identificador do Tipo de Avaria inválido");
                 }

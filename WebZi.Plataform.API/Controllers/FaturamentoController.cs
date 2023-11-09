@@ -225,8 +225,8 @@ namespace WebZi.Plataform.API.Controllers
             try
             {
                 ResultView = await _provider
-                    .GetService<SistemaService>()
-                    .ListarTabelaGenericaViewModelAsync("FAT_TIPO_COBRANCA");
+                    .GetService<TabelaGenericaService>()
+                    .ListToViewModelAsync("FAT_TIPO_COBRANCA");
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }

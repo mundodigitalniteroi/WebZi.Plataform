@@ -4,6 +4,8 @@
     {
         public decimal IdentificadorEquipamentoOpcional { get; set; }
 
+        public string FlagPossuiEquipamento { get; set; }
+
         public string FlagEquipamentoAvariado { get; set; }
 
         public int? IdentificadorTipoAvaria { get; set; }

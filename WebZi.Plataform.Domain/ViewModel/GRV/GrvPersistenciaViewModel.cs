@@ -104,8 +104,5 @@ namespace WebZi.Plataform.Domain.ViewModel.GRV
         public List<byte[]> ListagemFoto { get; set; }
 
         public List<string> ListagemLacre { get; set; }
-
-        // Isso é cadastrado no GGV
-        // public ICollection<CondutorEquipamentoOpcionalCadastroViewModel> CondutorEquipamentosOpcionais { get; set; }
     }
 }

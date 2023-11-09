@@ -2,7 +2,7 @@
 {
     public class BucketFileModel
     {
-        public int TipoCadastroId { get; set; }
+        public string TipoCadastro { get; set; }
 
         public byte[] File { get; set; }
     }

@@ -198,6 +198,8 @@ namespace WebZi.Plataform.Data.Services.Bucket
                     NomeArquivoCompleto = NomeArquivo,
 
                     NomeArquivoOriginal = NomeArquivo,
+
+                    TipoArquivo = File.TipoCadastro
                 });
             }
 
@@ -210,6 +212,8 @@ namespace WebZi.Plataform.Data.Services.Bucket
                 password: Configuracao.RepositorioArquivoPassword,
                 obj: ArquivosEnvio
             ).ToList();
+
+            string TipoCadastro = string.Empty;
 
             foreach (BucketArquivoRetornoModel BucketArquivoRetorno in BucketArquivosRetorno)
             {
@@ -227,10 +231,18 @@ namespace WebZi.Plataform.Data.Services.Bucket
 
                     Url = BucketArquivoRetorno.Url,
 
-                    PermissaoAcesso = BucketArquivoRetorno.PermissaoAcesso,
-
-                    // TipoCadastro = TipoCadastro
+                    PermissaoAcesso = BucketArquivoRetorno.PermissaoAcesso
                 };
+
+                TipoCadastro = ArquivosEnvio
+                    .Where(x => x.NomeArquivo == BucketArquivoRetorno.NomeArquivo)
+                    .Select(x => x.TipoArquivo)
+                    .FirstOrDefault();
+
+                if (!string.IsNullOrWhiteSpace(TipoCadastro))
+                {
+                    BucketArquivo.TipoCadastro = TipoCadastro;
+                }
 
                 _context.BucketArquivo.Add(BucketArquivo);
 

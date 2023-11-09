@@ -17,7 +17,7 @@ namespace WebZi.Plataform.Domain.Models.Condutor
 
         public int? CodigoAvaria { get; set; }
 
-        public string Avariado { get; set; }
+        public string FlagEquipamentoAvariado { get; set; } = "N";
 
         public DateTime? DataCadastro { get; set; }
 

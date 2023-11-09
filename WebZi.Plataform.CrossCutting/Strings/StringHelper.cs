@@ -83,12 +83,17 @@ namespace WebZi.Plataform.CrossCutting.Strings
 
         public static string ToLowerTrim(this string input)
         {
-            return input != null ? input.ToLower().Trim() : null;
+            return !string.IsNullOrWhiteSpace(input) ? input.ToLower().Trim() : null;
         }
 
         public static string ToUpperTrim(this string input)
         {
-            return input != null ? input.ToUpper().Trim() : null;
+            return !string.IsNullOrWhiteSpace(input) ? input.ToUpper().Trim() : null;
+        }
+
+        public static string ToNullIfEmpty(this string input)
+        {
+            return !string.IsNullOrWhiteSpace(input) ? input.Trim() : null;
         }
         #endregion Extension Methods
     }

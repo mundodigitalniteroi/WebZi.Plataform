@@ -30,7 +30,7 @@ namespace WebZi.Plataform.Data.Mappings.Condutor
             builder.Property(e => e.UsuarioAlteracaoId)
                 .HasColumnName("id_usuario_atualizacao");
 
-            builder.Property(e => e.Avariado)
+            builder.Property(e => e.FlagEquipamentoAvariado)
                 .HasMaxLength(1)
                 .IsUnicode(false)
                 .IsFixedLength()

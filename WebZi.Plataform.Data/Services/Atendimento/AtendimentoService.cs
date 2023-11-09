@@ -147,9 +147,8 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             if (!new[] { "B", "D", "V", "L", "E", "1", "2", "3", "4", "7" }.Contains(Grv.StatusOperacao.StatusOperacaoId))
             {
-                return MensagemViewHelper.GetBadRequest($"Status do GRV não está apto para o cadastro do Atendimento. " +
-                    $"Descrição do Status atual: {Grv.StatusOperacao.Descricao.ToUpper()} " +
-                    $"(Identificador {Grv.StatusOperacao.StatusOperacaoId})");
+                return MensagemViewHelper.GetBadRequest($"O Status atual deste GRV não permite o cadastro do Atendimento. " +
+                    $"Descrição do Status atual: {Grv.StatusOperacao.Descricao.ToUpper()}");
             }
             else if (Grv.Atendimento != null)
             {

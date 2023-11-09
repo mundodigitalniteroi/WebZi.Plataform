@@ -2,11 +2,14 @@
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.GGV;
+using WebZi.Plataform.Domain.Services.GRV;
 using WebZi.Plataform.Domain.ViewModel;
 using WebZi.Plataform.Domain.ViewModel.Faturamento;
 using WebZi.Plataform.Domain.ViewModel.Generic;
 using WebZi.Plataform.Domain.ViewModel.GGV;
 using WebZi.Plataform.Domain.ViewModel.GGV.Cadastro;
+using WebZi.Plataform.Domain.ViewModel.GRV.Cadastro;
+using WebZi.Plataform.Domain.ViewModel.GRV;
 using WebZi.Plataform.Domain.ViewModel.Veiculo;
 
 namespace WebZi.Plataform.API.Controllers
@@ -20,6 +23,57 @@ namespace WebZi.Plataform.API.Controllers
         public GgvController(IServiceProvider provider)
         {
             _provider = provider;
+        }
+
+        [HttpPost("Cadastrar")]
+        // TODO: [Authorize]
+        [IgnoreAntiforgeryToken]
+        public async Task<ActionResult<MensagemViewModel>> Cadastrar([FromBody] GgvPersistenciaViewModel Ggv)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            MensagemViewModel ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<GgvService>()
+                    .ValidarInformacoesPersistenciaAsync(Ggv);
+
+                if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+                {
+                    return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+                }
+            }
+            catch (Exception ex)
+            {
+                ResultView = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<GgvService>()
+                    .Cadastrar(Ggv);
+
+                if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+                {
+                    return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+                }
+            }
+            catch (Exception ex)
+            {
+                ResultView = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+
+            return ResultView;
         }
 
         [HttpPost("CadastrarFotos")]
