@@ -53,7 +53,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<AtendimentoService>()
-                    .Cadastrar(Atendimento);
+                    .InsertAtendimento(Atendimento);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView.Mensagem);
             }

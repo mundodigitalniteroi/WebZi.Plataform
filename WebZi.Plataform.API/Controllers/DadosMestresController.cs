@@ -76,7 +76,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<GrvService>()
-                    .ListarAutoridadeResponsavelAsync(UF);
+                    .ListAutoridadeResponsavelAsync(UF);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -104,6 +104,33 @@ namespace WebZi.Plataform.API.Controllers
                 ResultView = await _provider
                     .GetService<SistemaService>()
                     .ListarCorAsync(Cor);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
+
+        [HttpGet("ListarEnquadramentoInfracao")]
+        // TODO: [Authorize]
+        public async Task<ActionResult<EnquadramentoInfracaoViewModelList>> ListarEnquadramentoInfracao()
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            EnquadramentoInfracaoViewModelList ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<GrvService>()
+                    .ListEnquadramentoInfracaoAsync();
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -184,7 +211,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<GrvService>()
-                    .ListarItemPesquisaAsync(IdentificadorUsuario);
+                    .ListItemPesquisaAsync(IdentificadorUsuario);
 
                 return StatusCode((int)HtmlStatusCodeEnum.Ok, ResultView);
             }
@@ -238,7 +265,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<GrvService>()
-                    .ListarMotivoApreensaoAsync();
+                    .ListMotivoApreensaoAsync();
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -318,8 +345,8 @@ namespace WebZi.Plataform.API.Controllers
             try
             {
                 ResultView = await _provider
-                    .GetService<QualificacaoResponsavelService>()
-                    .ListAsync();
+                    .GetService<AtendimentoService>()
+                    .ListQualificacaoResponsavelViewModelAsync();
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -427,7 +454,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<GrvService>()
-                    .ListarStatusOperacaoAsync();
+                    .ListStatusOperacaoAsync();
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }

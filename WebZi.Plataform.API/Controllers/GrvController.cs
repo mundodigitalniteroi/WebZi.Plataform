@@ -56,7 +56,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = _provider
                     .GetService<GrvService>()
-                    .Cadastrar(Grv);
+                    .InsertGrv(Grv);
 
                 if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
                 {
@@ -89,7 +89,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = _provider
                     .GetService<GrvService>()
-                    .CadastrarDocumentosCondutor(ListagemDocumentoCondutor);
+                    .InsertDocumentosCondutor(ListagemDocumentoCondutor);
 
                 return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
             }
@@ -117,7 +117,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = _provider
                     .GetService<GrvService>()
-                    .CadastrarFotos(Fotos);
+                    .InsertFotos(Fotos);
 
                 return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
             }
@@ -145,7 +145,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<GrvService>()
-                    .CadastrarLacresAsync(IdentificadorGrv, IdentificadorUsuario, ListagemLacre);
+                    .InsertLacresAsync(IdentificadorGrv, IdentificadorUsuario, ListagemLacre);
 
                 return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
             }
@@ -173,7 +173,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<GrvService>()
-                    .ExcluirFotosAsync(IdentificadorGrv, IdentificadorUsuario, ListagemIdentificadorTabelaOrigem);
+                    .DeleteFotosAsync(IdentificadorGrv, IdentificadorUsuario, ListagemIdentificadorTabelaOrigem);
 
                 return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
             }
@@ -201,7 +201,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<GrvService>()
-                    .ExcluirGrvAsync(IdentificadorGrv, Login, Senha);
+                    .DeleteGrvAsync(IdentificadorGrv, Login, Senha);
 
                 return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
             }
@@ -229,7 +229,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<GrvService>()
-                    .ExcluirGrvAsync(NumeroProcesso, CodigoProduto, IdentificadorCliente, IdentificadorDeposito, Login, Senha);
+                    .DeleteGrvAsync(NumeroProcesso, CodigoProduto, IdentificadorCliente, IdentificadorDeposito, Login, Senha);
 
                 return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
             }
@@ -257,7 +257,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<GrvService>()
-                    .ExcluirLacresAsync(IdentificadorGrv, IdentificadorUsuario, ListagemIdentificadorLacre);
+                    .DeleteLacresAsync(IdentificadorGrv, IdentificadorUsuario, ListagemIdentificadorLacre);
 
                 return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
             }
@@ -284,7 +284,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<GrvService>()
-                    .ListarDocumentosCondutorAsync(IdentificadorGrv, IdentificadorUsuario);
+                    .ListDocumentosCondutorAsync(IdentificadorGrv, IdentificadorUsuario);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -311,7 +311,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<GrvService>()
-                    .ListarFotoAsync(IdentificadorGrv, IdentificadorUsuario);
+                    .ListFotoAsync(IdentificadorGrv, IdentificadorUsuario);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -338,7 +338,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<GrvService>()
-                    .ListarLacreAsync(IdentificadorGrv, IdentificadorUsuario);
+                    .ListLacreAsync(IdentificadorGrv, IdentificadorUsuario);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }

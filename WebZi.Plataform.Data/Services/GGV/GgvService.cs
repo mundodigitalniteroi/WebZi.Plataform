@@ -39,7 +39,7 @@ namespace WebZi.Plataform.Data.Services.GGV
             _httpClientFactory = httpClientFactory;
         }
 
-        public async Task<MensagemViewModel> Cadastrar(GgvPersistenciaViewModel GrvPersistencia)
+        public async Task<MensagemViewModel> InsertGgv(GgvPersistenciaViewModel GrvPersistencia)
         {
             MensagemViewModel ResultView = await ValidarInformacoesPersistenciaAsync(GrvPersistencia);
 
@@ -171,6 +171,8 @@ namespace WebZi.Plataform.Data.Services.GGV
 
             if (GrvPersistencia.Vistoria != null)
             {
+                Vistoria.UsuarioCadastroId = GrvPersistencia.IdentificadorUsuario;
+
                 if (GrvPersistencia.Vistoria.FlagVistoria == "N")
                 {
                     if (!string.IsNullOrWhiteSpace(GrvPersistencia.Vistoria.MotivoNaoRealizacaoVistoria))
@@ -186,6 +188,8 @@ namespace WebZi.Plataform.Data.Services.GGV
                 {
                     Vistoria = new()
                     {
+                        UsuarioCadastroId = GrvPersistencia.IdentificadorUsuario,
+
                         MotivoNaoRealizacaoVistoria = null,
 
                         FlagPossuiRestricoes = GrvPersistencia.Vistoria.FlagPossuiRestricoes,
@@ -303,7 +307,7 @@ namespace WebZi.Plataform.Data.Services.GGV
             return MensagemViewHelper.GetOkCreate(1);
         }
 
-        public MensagemViewModel CadastrarFotos(CadastroFotoGgvViewModel Fotos)
+        public MensagemViewModel InsertFotos(CadastroFotoGgvViewModel Fotos)
         {
             MensagemViewModel ResultView = new GrvService(_context)
                 .ValidarInputGrv(Fotos.IdentificadorGrv, Fotos.IdentificadorUsuario);
@@ -346,7 +350,7 @@ namespace WebZi.Plataform.Data.Services.GGV
             return MensagemViewHelper.GetOkCreate(Fotos.Listagem.Count);
         }
 
-        public async Task<MensagemViewModel> ExcluirFotosAsync(int GrvId, int UsuarioId, List<int> ListagemTabelaOrigemId)
+        public async Task<MensagemViewModel> DeleteFotosAsync(int GrvId, int UsuarioId, List<int> ListagemTabelaOrigemId)
         {
             if (ListagemTabelaOrigemId.Count == 0)
             {
@@ -396,7 +400,7 @@ namespace WebZi.Plataform.Data.Services.GGV
             return MensagemViewHelper.GetOkDelete(BucketArquivos.Count, "Foto(s) excluída(s) com sucesso");
         }
 
-        public async Task<DadosMestresViewModel> ListarDadosMestresAsync()
+        public async Task<DadosMestresViewModel> ListDadosMestresAsync()
         {
             TabelaGenericaService TabelaGenericaService = new(_context, _mapper);
 
@@ -434,7 +438,7 @@ namespace WebZi.Plataform.Data.Services.GGV
             return DadosMestres;
         }
 
-        public async Task<ImageViewModelList> ListarFotosAsync(int GrvId, int UsuarioId)
+        public async Task<ImageViewModelList> ListFotosAsync(int GrvId, int UsuarioId)
         {
             ImageViewModelList ResultView = new()
             {
@@ -508,7 +512,7 @@ namespace WebZi.Plataform.Data.Services.GGV
                 Grv.Deposito.GrvLimiteMinimoDatahoraGuarda = 20; // Anos
             }
 
-            if (((DataHoraPorDeposito.Date - GrvPersistencia.DataHoraGuarda.Date).TotalDays) > (Grv.Deposito.GrvLimiteMinimoDatahoraGuarda / 365))
+            if (((DataHoraPorDeposito.Date - GrvPersistencia.DataHoraGuarda.Date).TotalDays) > (Grv.Deposito.GrvLimiteMinimoDatahoraGuarda * 365))
             {
                 if (Grv.Deposito.GrvLimiteMinimoDatahoraGuarda == 1)
                 {

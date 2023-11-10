@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using WebZi.Plataform.Data.Services.Atendimento;
-using WebZi.Plataform.Data.Services.AutoMapper;
 using WebZi.Plataform.Data.Services.Banco;
 using WebZi.Plataform.Data.Services.Banco.PIX;
 using WebZi.Plataform.Data.Services.Bucket;
@@ -71,8 +70,6 @@ namespace WebZi.Plataform.Data.Services
             services.AddScoped<PixDinamicoService>();
 
             services.AddScoped<PixEstaticoService>();
-
-            services.AddScoped<QualificacaoResponsavelService>();
 
             services.AddScoped<ServicoService>();
 

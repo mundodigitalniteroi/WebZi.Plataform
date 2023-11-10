@@ -59,7 +59,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<GgvService>()
-                    .Cadastrar(Ggv);
+                    .InsertGgv(Ggv);
 
                 if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
                 {
@@ -92,7 +92,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = _provider
                     .GetService<GgvService>()
-                    .CadastrarFotos(Fotos);
+                    .InsertFotos(Fotos);
 
                 return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
             }
@@ -120,7 +120,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<GgvService>()
-                    .ExcluirFotosAsync(IdentificadorGrv, IdentificadorUsuario, ListagemIdentificadorTabelaOrigem);
+                    .DeleteFotosAsync(IdentificadorGrv, IdentificadorUsuario, ListagemIdentificadorTabelaOrigem);
 
                 return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
             }
@@ -147,7 +147,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<GgvService>()
-                    .ListarDadosMestresAsync();
+                    .ListDadosMestresAsync();
 
                 return StatusCode((int)HtmlStatusCodeEnum.Ok, ResultView);
             }
@@ -174,7 +174,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<GgvService>()
-                    .ListarFotosAsync(IdentificadorGrv, IdentificadorUsuario);
+                    .ListFotosAsync(IdentificadorGrv, IdentificadorUsuario);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }

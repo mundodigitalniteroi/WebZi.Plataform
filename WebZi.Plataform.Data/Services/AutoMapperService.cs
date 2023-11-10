@@ -35,7 +35,7 @@ using WebZi.Plataform.Domain.ViewModel.Vistoria;
 using WebZi.Plataform.Domain.Views.Localizacao;
 using WebZi.Plataform.Domain.Views.Usuario;
 
-namespace WebZi.Plataform.Data.Services.AutoMapper
+namespace WebZi.Plataform.Data.Services
 {
     public class AutoMapperService : Profile
     {
@@ -92,6 +92,10 @@ namespace WebZi.Plataform.Data.Services.AutoMapper
                 .ForMember(dest => dest.IdentificadorTipoLogradouro, opt => opt.MapFrom(src => src.TipoLogradouroId))
                 .ForMember(dest => dest.IdentificadorCNAE, opt => opt.MapFrom(src => src.CnaeId))
                 .ForMember(dest => dest.IdentificadorCNAEListaServico, opt => opt.MapFrom(src => src.CnaeListaServicoId));
+
+            CreateMap<EnquadramentoInfracaoModel, EnquadramentoInfracaoViewModel>()
+                .ForMember(dest => dest.IdentificadorEnquadramentoInfracao, opt => opt.MapFrom(src => src.EnquadramentoInfracaoId))
+                .ForMember(dest => dest.FlagAtivo, opt => opt.MapFrom(src => src.Status));
 
             CreateMap<FaturamentoProdutoModel, FaturamentoProdutoViewModel>()
                 .ForMember(dest => dest.CodigoProduto, opt => opt.MapFrom(src => src.FaturamentoProdutoId));

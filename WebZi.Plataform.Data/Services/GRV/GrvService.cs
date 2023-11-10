@@ -75,7 +75,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             _httpClientFactory = httpClientFactory;
         }
 
-        public GrvCadastradoViewModel Cadastrar(GrvPersistenciaViewModel GrvPersistencia)
+        public GrvCadastradoViewModel InsertGrv(GrvPersistenciaViewModel GrvPersistencia)
         {
             GrvModel Grv = new()
             {
@@ -301,7 +301,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (GrvPersistencia.ListagemDocumentoCondutor?.Count > 0)
             {
-                CadastrarDocumentosCondutor(Grv.GrvId, Grv.UsuarioCadastroId, GrvPersistencia.ListagemDocumentoCondutor);
+                InsertDocumentosCondutor(Grv.GrvId, Grv.UsuarioCadastroId, GrvPersistencia.ListagemDocumentoCondutor);
             }
 
             if (GrvPersistencia.ListagemFoto?.Count > 0)
@@ -315,7 +315,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             return ResultView;
         }
 
-        private void CadastrarDocumentosCondutor(int GrvId, int UsuarioId, List<CadastroCondutorDocumentoViewModel> ListagemDocumentoCondutor)
+        private void InsertDocumentosCondutor(int GrvId, int UsuarioId, List<CadastroCondutorDocumentoViewModel> ListagemDocumentoCondutor)
         {
             List<BucketListaCadastroModel> Files = new();
 
@@ -348,7 +348,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 .SendFiles("GRV_DOCCONDUTOR", UsuarioId, Files);
         }
 
-        public MensagemViewModel CadastrarDocumentosCondutor(CadastroCondutorDocumentoViewModelList ListagemDocumentoCondutor)
+        public MensagemViewModel InsertDocumentosCondutor(CadastroCondutorDocumentoViewModelList ListagemDocumentoCondutor)
         {
             MensagemViewModel ResultView = ValidarInputGrv(ListagemDocumentoCondutor.IdentificadorGrv, ListagemDocumentoCondutor.IdentificadorUsuario);
 
@@ -369,12 +369,12 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 return MensagemViewHelper.GetBadRequest($"O Status atual deste GRV não permite o envio de Fotos. Status atual: {Grv.StatusOperacao.Descricao}");
             }
 
-            CadastrarDocumentosCondutor(ListagemDocumentoCondutor.IdentificadorGrv, ListagemDocumentoCondutor.IdentificadorUsuario, ListagemDocumentoCondutor.ListagemDocumentoCondutor);
+            InsertDocumentosCondutor(ListagemDocumentoCondutor.IdentificadorGrv, ListagemDocumentoCondutor.IdentificadorUsuario, ListagemDocumentoCondutor.ListagemDocumentoCondutor);
 
             return MensagemViewHelper.GetOkCreate(ListagemDocumentoCondutor.ListagemDocumentoCondutor.Count);
         }
 
-        public MensagemViewModel CadastrarFotos(CadastroFotoViewModel Fotos)
+        public MensagemViewModel InsertFotos(CadastroFotoViewModel Fotos)
         {
             MensagemViewModel ResultView = ValidarInputGrv(Fotos.IdentificadorGrv, Fotos.IdentificadorUsuario);
 
@@ -401,7 +401,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             return MensagemViewHelper.GetOkCreate(Fotos.Fotos.Count);
         }
 
-        public async Task<MensagemViewModel> CadastrarLacresAsync(int GrvId, int UsuarioId, List<string> ListagemLacre)
+        public async Task<MensagemViewModel> InsertLacresAsync(int GrvId, int UsuarioId, List<string> ListagemLacre)
         {
             MensagemViewModel ResultView = ValidarInputGrv(GrvId, UsuarioId);
 
@@ -480,7 +480,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             return MensagemViewHelper.GetOkCreate(ListagemLacre.Count, "Lacre(s) cadastrado(s) com sucesso");
         }
 
-        public async Task<MensagemViewModel> ExcluirFotosAsync(int GrvId, int UsuarioId, List<int> ListagemTabelaOrigemId)
+        public async Task<MensagemViewModel> DeleteFotosAsync(int GrvId, int UsuarioId, List<int> ListagemTabelaOrigemId)
         {
             MensagemViewModel ResultView = ValidarInputGrv(GrvId, UsuarioId);
 
@@ -530,7 +530,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             return MensagemViewHelper.GetOkFound(BucketArquivos.Count, "Foto(s) excluída(s) com sucesso");
         }
 
-        public async Task<MensagemViewModel> ExcluirGrvAsync(string NumeroFormularioGrv, string FaturamentoProdutoId, int ClienteId, int DepositoId, string Login, string Senha)
+        public async Task<MensagemViewModel> DeleteGrvAsync(string NumeroFormularioGrv, string FaturamentoProdutoId, int ClienteId, int DepositoId, string Login, string Senha)
         {
             UsuarioViewModel Usuario = await new UsuarioService(_context, _mapper)
                 .GetByLoginAsync(Login, Senha);
@@ -555,10 +555,10 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
 
-            return await ExcluirGrvAsync(Grv.GrvId, Usuario.IdentificadorUsuario);
+            return await DeleteGrvAsync(Grv.GrvId, Usuario.IdentificadorUsuario);
         }
 
-        public async Task<MensagemViewModel> ExcluirGrvAsync(int GrvId, string Login, string Senha)
+        public async Task<MensagemViewModel> DeleteGrvAsync(int GrvId, string Login, string Senha)
         {
             UsuarioViewModel Usuario = await new UsuarioService(_context, _mapper)
                 .GetByLoginAsync(Login, Senha);
@@ -579,10 +579,10 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 return ResultView;
             }
 
-            return await ExcluirGrvAsync(GrvId, Usuario.IdentificadorUsuario);
+            return await DeleteGrvAsync(GrvId, Usuario.IdentificadorUsuario);
         }
 
-        private async Task<MensagemViewModel> ExcluirGrvAsync(int GrvId, int UsuarioId)
+        private async Task<MensagemViewModel> DeleteGrvAsync(int GrvId, int UsuarioId)
         {
             MensagemViewModel ResultView = new();
 
@@ -691,7 +691,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             return MensagemViewHelper.GetOk("GRV excluído com sucesso");
         }
 
-        public async Task<MensagemViewModel> ExcluirLacresAsync(int GrvId, int UsuarioId, List<int> ListagemIdentificadorLacre)
+        public async Task<MensagemViewModel> DeleteLacresAsync(int GrvId, int UsuarioId, List<int> ListagemIdentificadorLacre)
         {
             MensagemViewModel ResultView = ValidarInputGrv(GrvId, UsuarioId);
 
@@ -863,7 +863,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             return ResultView;
         }
 
-        public async Task<AutoridadeResponsavelViewModelList> ListarAutoridadeResponsavelAsync(string UF)
+        public async Task<AutoridadeResponsavelViewModelList> ListAutoridadeResponsavelAsync(string UF)
         {
             AutoridadeResponsavelViewModelList ResultView = new();
 
@@ -909,7 +909,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             return ResultView;
         }
 
-        public async Task<ImageViewModelList> ListarDocumentosCondutorAsync(int GrvId, int UsuarioId)
+        public async Task<ImageViewModelList> ListDocumentosCondutorAsync(int GrvId, int UsuarioId)
         {
             ImageViewModelList ResultView = new()
             {
@@ -931,7 +931,31 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 .DownloadFiles("GRV_DOCCONDUTOR", DocumentosCondutor);
         }
 
-        public async Task<ImageViewModelList> ListarFotoAsync(int GrvId, int UsuarioId)
+        public async Task<EnquadramentoInfracaoViewModelList> ListEnquadramentoInfracaoAsync()
+        {
+            EnquadramentoInfracaoViewModelList ResultView = new();
+
+            List<EnquadramentoInfracaoModel> result = await _context.EnquadramentoInfracao
+                .AsNoTracking()
+                .ToListAsync();
+
+            if (result?.Count > 0)
+            {
+                ResultView.Listagem = _mapper.Map<List<EnquadramentoInfracaoViewModel>>(result
+                    .OrderBy(o => o.Descricao)
+                    .ToList());
+
+                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
+            }
+            else
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+            }
+
+            return ResultView;
+        }
+
+        public async Task<ImageViewModelList> ListFotoAsync(int GrvId, int UsuarioId)
         {
             ImageViewModelList ResultView = new()
             {
@@ -947,7 +971,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 .DownloadFiles("GRVFOTOSVEICCAD", GrvId);
         }
 
-        public async Task<GrvPesquisaDadosMestresViewModel> ListarItemPesquisaAsync(int UsuarioId)
+        public async Task<GrvPesquisaDadosMestresViewModel> ListItemPesquisaAsync(int UsuarioId)
         {
             return new()
             {
@@ -965,7 +989,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
                 ListagemStatusOperacao = await _provider
                     .GetService<GrvService>()
-                    .ListarStatusOperacaoAsync(),
+                    .ListStatusOperacaoAsync(),
 
                 //ListagemReboque = await _provider
                 //    .GetService<UsuarioService>()
@@ -977,7 +1001,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             };
         }
 
-        public async Task<LacreViewModelList> ListarLacreAsync(int GrvId, int UsuarioId)
+        public async Task<LacreViewModelList> ListLacreAsync(int GrvId, int UsuarioId)
         {
             LacreViewModelList ResultView = new()
             {
@@ -1010,7 +1034,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             return ResultView;
         }
 
-        public async Task<MotivoApreensaoViewModelList> ListarMotivoApreensaoAsync()
+        public async Task<MotivoApreensaoViewModelList> ListMotivoApreensaoAsync()
         {
             MotivoApreensaoViewModelList ResultView = new();
 
@@ -1034,7 +1058,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             return ResultView;
         }
 
-        public async Task<StatusOperacaoViewModelList> ListarStatusOperacaoAsync()
+        public async Task<StatusOperacaoViewModelList> ListStatusOperacaoAsync()
         {
             StatusOperacaoViewModelList ResultView = new();
 
@@ -1932,6 +1956,26 @@ namespace WebZi.Plataform.Domain.Services.GRV
                     if (EnquadramentosInfracoes.Count >= 1)
                     {
                         ResultView.AvisosImpeditivos.Add("Existem Enquadramento da Infração duplicados");
+                    }
+                    else
+                    {
+                        if (GrvPersistencia.ListagemEnquadramentoInfracao.Exists(x => x.IdentificadorEnquadramentoInfracao > 0))
+                        {
+                            List<decimal> ids = GrvPersistencia.ListagemEnquadramentoInfracao
+                                .Where(x => x.IdentificadorEnquadramentoInfracao > 0 /*&& x.IdentificadorEnquadramentoInfracao < 9999*/)
+                                .Select(x => x.IdentificadorEnquadramentoInfracao)
+                                .ToList();
+
+                            int count = _context.EnquadramentoInfracao
+                                .Where(x => ids.Contains(x.EnquadramentoInfracaoId))
+                                .AsNoTracking()
+                                .Count();
+
+                            if (ids.Count != count)
+                            {
+                                ResultView.AvisosImpeditivos.Add("Existem Enquadramento da Infração inexistentes");
+                            }
+                        }
                     }
 
                     List<IGrouping<string, string>> NumeroInfracao = GrvPersistencia.ListagemEnquadramentoInfracao

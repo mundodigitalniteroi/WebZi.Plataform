@@ -64,8 +64,6 @@
 
         public string FlagPossuiClienteCodigoIdentificacao { get; set; }
 
-        public string FlagAtivo { get; set; }
-
         public string CodigoOrgao { get; set; }
 
         public string FlagPossuiPIXEstatico { get; set; }
@@ -73,5 +71,7 @@
         public string ChavePIX { get; set; }
 
         public string FlagPossuiPIXDinamico { get; set; }
+
+        public string FlagAtivo { get; set; }
     }
 }

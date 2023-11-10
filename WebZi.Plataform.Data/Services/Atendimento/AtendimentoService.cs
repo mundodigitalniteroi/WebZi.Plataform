@@ -496,7 +496,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             return mensagem;
         }
 
-        public async Task<AtendimentoCadastroResultViewModel> Cadastrar(AtendimentoCadastroInputViewModel AtendimentoInput)
+        public async Task<AtendimentoCadastroResultViewModel> InsertAtendimento(AtendimentoCadastroInputViewModel AtendimentoInput)
         {
             #region Consultas
             GrvModel Grv = await _context.Grv
@@ -623,13 +623,13 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                     ParametrosCalculoFaturamento.Faturamento = new FaturamentoService(_context, _mapper, _httpClientFactory)
                         .Faturar(ParametrosCalculoFaturamento);
 
-                    CadastrarFoto(Atendimento.AtendimentoId, AtendimentoInput);
+                    InsertFotoResponsavel(Atendimento.AtendimentoId, AtendimentoInput);
 
-                    AtualizarStatusERP(ParametrosCalculoFaturamento);
+                    UpdateStatusERP(ParametrosCalculoFaturamento);
 
-                    CadastrarLiberacaoLeilao(ParametrosCalculoFaturamento);
+                    InsertLiberacaoLeilao(ParametrosCalculoFaturamento);
 
-                    AtualizarGrv(ParametrosCalculoFaturamento);
+                    UpdateGrv(ParametrosCalculoFaturamento);
 
                     _context.SaveChanges();
 
@@ -706,15 +706,16 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             return ParametrosCalculoFaturamento;
         }
 
-        private void CadastrarFoto(int AtendimentoId, AtendimentoCadastroInputViewModel AtendimentoInput)
+        private void InsertFotoResponsavel(int AtendimentoId, AtendimentoCadastroInputViewModel AtendimentoInput)
         {
             if (AtendimentoInput.ResponsavelFoto != null)
             {
-                new BucketArquivoService(_context, _httpClientFactory).SendFile("ATENDIMFOTORESP", AtendimentoId, AtendimentoInput.IdentificadorUsuario, AtendimentoInput.ResponsavelFoto);
+                new BucketArquivoService(_context, _httpClientFactory)
+                    .SendFile("ATENDIMFOTORESP", AtendimentoId, AtendimentoInput.IdentificadorUsuario, AtendimentoInput.ResponsavelFoto);
             }
         }
 
-        private void AtualizarStatusERP(CalculoFaturamentoParametroModel ParametrosCalculoFaturamento)
+        private void UpdateStatusERP(CalculoFaturamentoParametroModel ParametrosCalculoFaturamento)
         {
             if (ParametrosCalculoFaturamento.Cliente.FlagEmissaoNotaFiscal == "S" && !string.IsNullOrWhiteSpace(ParametrosCalculoFaturamento.ClienteDeposito.CodigoERPOrdemVenda))
             {
@@ -729,7 +730,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             }
         }
 
-        private void CadastrarLiberacaoLeilao(CalculoFaturamentoParametroModel ParametrosCalculoFaturamento)
+        private void InsertLiberacaoLeilao(CalculoFaturamentoParametroModel ParametrosCalculoFaturamento)
         {
             if (new[] { "1", "2", "3" }.Contains(ParametrosCalculoFaturamento.StatusOperacaoLeilaoId))
             {
@@ -744,7 +745,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             }
         }
 
-        private void AtualizarGrv(CalculoFaturamentoParametroModel ParametrosCalculoFaturamento)
+        private void UpdateGrv(CalculoFaturamentoParametroModel ParametrosCalculoFaturamento)
         {
             GrvModel Grv = _context.Grv
                 .Where(w => w.GrvId == ParametrosCalculoFaturamento.Grv.GrvId)
@@ -838,5 +839,31 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
         //    return;
         //}
+
+        public async Task<QualificacaoResponsavelViewModelList> ListQualificacaoResponsavelViewModelAsync()
+        {
+            QualificacaoResponsavelViewModelList ResultView = new();
+
+            List<QualificacaoResponsavelModel> result = await _context.QualificacaoResponsavel
+                .AsNoTracking()
+                .ToListAsync();
+
+            if (result?.Count > 0)
+            {
+                ResultView.Listagem = _mapper.Map<List<QualificacaoResponsavelViewModel>>(result
+                    .OrderBy(o => o.Descricao)
+                    .ToList());
+
+                ResultView.Mensagem = MensagemViewHelper.GetOkFound(ResultView.Listagem.Count);
+
+                return ResultView;
+            }
+            else
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+
+                return ResultView;
+            }
+        }
     }
 }
