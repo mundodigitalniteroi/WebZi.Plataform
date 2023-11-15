@@ -6,6 +6,8 @@ namespace WebZi.Plataform.CrossCutting.Strings
 {
     public static class StringHelper
     {
+        public static string GetNumbersFromString(this string input) => string.IsNullOrWhiteSpace(input) ? input : Regex.Replace(input, @"[^\d]", string.Empty);
+
         public static string Left(string input, int lengh)
         {
             return input[..lengh];
@@ -81,14 +83,39 @@ namespace WebZi.Plataform.CrossCutting.Strings
             return string.Join(" ", words);
         }
 
+        public static string RemoveString(this string input, string oldValue)
+        {
+            return input?.Replace(oldValue, string.Empty);
+        }
+
+        public static string RemoveStrings(this string input, string[] oldValues)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                return input;
+            }
+
+            foreach (string item in oldValues)
+            {
+                input = input.Replace(item, string.Empty);
+            }
+
+            return input;
+        }
+
+        public static string ReplaceSecure(this string input, string oldValue, string newValue)
+        {
+            return input?.Replace(oldValue, newValue);
+        }
+
         public static string ToLowerTrim(this string input)
         {
-            return !string.IsNullOrWhiteSpace(input) ? input.ToLower().Trim() : null;
+            return input?.ToLower().Trim();
         }
 
         public static string ToUpperTrim(this string input)
         {
-            return !string.IsNullOrWhiteSpace(input) ? input.ToUpper().Trim() : null;
+            return input?.ToUpper().Trim();
         }
 
         public static string ToNullIfEmpty(this string input)

@@ -1,8 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
-using WebZi.Plataform.Data.Database;
+﻿using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Domain.Models.Localizacao;
 
-namespace WebZi.Plataform.Data.Services.Faturamento
+namespace WebZi.Plataform.Data.Services.Localizacao
 {
     public class FeriadoService
     {
@@ -28,9 +27,9 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             {
                 Feriados = _context.Feriado
                     .Where(x => (x.Ano == null || x.Ano == ano) &&
-                                ((x.FlagFeriadoNacional == "S") ||
-                                 (x.UF == UF && x.MunicipioId == null) ||
-                                 (x.MunicipioId == MunicipioId)))
+                                (x.FlagFeriadoNacional == "S" ||
+                                 x.UF == UF && x.MunicipioId == null ||
+                                 x.MunicipioId == MunicipioId))
                     .ToList();
 
                 foreach (FeriadoModel item in Feriados)

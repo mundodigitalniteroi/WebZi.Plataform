@@ -21,15 +21,9 @@ namespace WebZi.Plataform.CrossCutting.Number
             return value * percentage;
         }
 
-        public static string FormatMoney(decimal value)
-        {
-            return value.ToString("C2", CultureInfo.GetCultureInfo("pt-br"));
-        }
+        public static string FormatMoney(decimal value) => value.ToString("C2", CultureInfo.GetCultureInfo("pt-br"));
 
-        public static string FormatNumber(decimal value)
-        {
-            return value.ToString("0.00", CultureInfo.GetCultureInfo("pt-br"));
-        }
+        public static string FormatNumber(decimal value) => value.ToString("0.00", CultureInfo.GetCultureInfo("pt-br"));
 
         public static bool IsNumber(string value)
         {

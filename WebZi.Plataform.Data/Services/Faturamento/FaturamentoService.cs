@@ -30,6 +30,11 @@ namespace WebZi.Plataform.Data.Services.Faturamento
         private readonly IMapper _mapper;
         private readonly IHttpClientFactory _httpClientFactory;
 
+        public FaturamentoService(AppDbContext context)
+        {
+            _context = context;
+        }
+
         public FaturamentoService(AppDbContext context, IMapper mapper, IHttpClientFactory httpClientFactory)
         {
             _context = context;

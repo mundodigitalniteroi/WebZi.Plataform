@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using WebZi.Plataform.CrossCutting.Strings;
 using WebZi.Plataform.Domain.Models.Atendimento;
 using WebZi.Plataform.Domain.Models.Banco;
 using WebZi.Plataform.Domain.Models.Cliente;
@@ -198,11 +199,17 @@ namespace WebZi.Plataform.Data.Services
                 .ForMember(dest => dest.FlagAtivo, opt => opt.MapFrom(src => src.ReboquistaFlagAtivo));
 
             // ViewModel to Model
-            CreateMap<CadastroCondutorViewModel, CondutorModel>();
+            CreateMap<CadastroCondutorViewModel, CondutorModel>()
+                .ForMember(x => x.Email, o => o.MapFrom(s => s.Email.ToLowerTrim()))
+                .AddTransform<string>(s => s
+                    .ToNullIfEmpty()
+                    .ToUpperTrim())
+                .ForMember(x => x.Documento, o => o.MapFrom(s => s.Documento.GetNumbersFromString()))
+                .ForMember(x => x.Identidade, o => o.MapFrom(s => s.Identidade.GetNumbersFromString()));
 
             CreateMap<UsuarioClienteDepositoReboqueViewModel, UsuarioClienteDepositoReboqueViewModel>();
 
-            CreateMap<CadastroEnquadramentoInfracaoGrvViewModel, EnquadramentoInfracaoGrvModel>()
+            CreateMap<CadastroEnquadramentoInfracaoViewModel, EnquadramentoInfracaoGrvModel>()
                 .ForMember(dest => dest.EnquadramentoInfracaoId, opt => opt.MapFrom(src => src.IdentificadorEnquadramentoInfracao));
         }
     }

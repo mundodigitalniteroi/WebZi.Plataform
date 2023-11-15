@@ -3,6 +3,7 @@ using System.Data;
 using WebZi.Plataform.CrossCutting.Date;
 using WebZi.Plataform.CrossCutting.Strings;
 using WebZi.Plataform.Data.Database;
+using WebZi.Plataform.Data.Services.Localizacao;
 using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Deposito;
 using WebZi.Plataform.Domain.Models.Faturamento;
@@ -95,10 +96,18 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             CalculoDiarias.DataHoraOntem = CalculoDiarias.DataHoraFinalParaCalculo.Value.AddDays(-1);
 
-            CalculoDiarias.DataHoraOntem = new DateTime(CalculoDiarias.DataHoraOntem.Year, CalculoDiarias.DataHoraOntem.Month, CalculoDiarias.DataHoraOntem.Day, 23, 59, 59);
+            CalculoDiarias.DataHoraOntem = new DateTime(CalculoDiarias.DataHoraOntem.Year,
+                                                        CalculoDiarias.DataHoraOntem.Month,
+                                                        CalculoDiarias.DataHoraOntem.Day,
+                                                        23,
+                                                        59,
+                                                        59);
 
             CalculoDiarias.Feriados = new FeriadoService(_context)
-                .SelecionarDatasFeriados(CalculoDiarias.UF, CalculoDiarias.MunicipioId, CalculoDiarias.DataHoraInicialParaCalculo.Date.Year, CalculoDiarias.DataHoraDiaria.Date.AddDays(10).Year);
+                .SelecionarDatasFeriados(CalculoDiarias.UF,
+                                         CalculoDiarias.MunicipioId,
+                                         CalculoDiarias.DataHoraInicialParaCalculo.Date.Year,
+                                         CalculoDiarias.DataHoraDiaria.Date.AddDays(10).Year);
 
             CalculoDiarias.QuantidadeDiariasPagas = QuantidadeDiariasPagas(CalculoDiarias);
 
@@ -125,7 +134,9 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 CalculoDiarias.Diarias = DateTimeHelper.GetDaysBetweenTwoDates(CalculoDiarias.DataHoraInicialParaCalculo.Date, CalculoDiarias.DataHoraDiaria.Date);
             }
 
-            CalculoDiarias.QuantidadeDiasUteis = GetDiasUteis(CalculoDiarias.DataHoraInicialParaCalculo.Date, CalculoDiarias.DataHoraOntem.Date, CalculoDiarias.Feriados);
+            CalculoDiarias.QuantidadeDiasUteis = GetDiasUteis(CalculoDiarias.DataHoraInicialParaCalculo.Date,
+                                                              CalculoDiarias.DataHoraOntem.Date,
+                                                              CalculoDiarias.Feriados);
 
             // Se a data da guarda for hoje
             if ((CalculoDiarias.DataHoraInicialParaCalculo.Date == CalculoDiarias.DataHoraDiaria.Date) &&

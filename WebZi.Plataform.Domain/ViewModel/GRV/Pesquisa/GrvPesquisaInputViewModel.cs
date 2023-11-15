@@ -1,4 +1,6 @@
-﻿namespace WebZi.Plataform.Domain.ViewModel.GRV.Pesquisa
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace WebZi.Plataform.Domain.ViewModel.GRV.Pesquisa
 {
     public class GrvPesquisaInputViewModel
     {
@@ -26,6 +28,7 @@
 
         public string NomeReboquista { get; set; }
 
+        [Required(ErrorMessage = "Propriedade obrigatória")]
         public int IdentificadorUsuario { get; set; }
     }
 }

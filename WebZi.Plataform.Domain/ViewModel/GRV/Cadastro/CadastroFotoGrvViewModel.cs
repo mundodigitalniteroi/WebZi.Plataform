@@ -2,7 +2,7 @@
 
 namespace WebZi.Plataform.Domain.ViewModel.GRV.Cadastro
 {
-    public class CadastroCondutorDocumentoViewModelList
+    public class CadastroFotoGrvViewModel
     {
         [Required(ErrorMessage = "Propriedade obrigatória")]
         public int IdentificadorGrv { get; set; }
@@ -10,6 +10,7 @@ namespace WebZi.Plataform.Domain.ViewModel.GRV.Cadastro
         [Required(ErrorMessage = "Propriedade obrigatória")]
         public int IdentificadorUsuario { get; set; }
 
-        public List<CadastroCondutorDocumentoViewModel> ListagemDocumentoCondutor { get; set; }
+        [Required(ErrorMessage = "Propriedade obrigatória")]
+        public List<byte[]> Fotos { get; set; }
     }
 }

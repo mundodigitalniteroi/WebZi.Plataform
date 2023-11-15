@@ -376,7 +376,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
         public async Task<byte[]> GetLogomarca(int ClienteId)
         {
             ImageViewModelList ResultView = await new BucketArquivoService(_context, _httpClientFactory)
-                .DownloadFiles("CADLOGOCLIENTE", ClienteId);
+                .DownloadFileAsync("CADLOGOCLIENTE", ClienteId);
 
             if (ResultView.Mensagem.QuantidadeRegistros > 0)
             {

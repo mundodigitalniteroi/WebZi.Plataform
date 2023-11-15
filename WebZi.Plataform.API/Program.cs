@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Text.Json.Serialization;
+using WebZi.Plataform.CrossCutting.Configuration;
 using WebZi.Plataform.Data.Services;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);

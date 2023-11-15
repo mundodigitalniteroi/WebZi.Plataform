@@ -4,6 +4,7 @@ using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Domain.Services.GRV;
 using WebZi.Plataform.Domain.ViewModel;
+using WebZi.Plataform.Domain.ViewModel.Bucket;
 using WebZi.Plataform.Domain.ViewModel.Generic;
 using WebZi.Plataform.Domain.ViewModel.GRV;
 using WebZi.Plataform.Domain.ViewModel.GRV.Cadastro;
@@ -25,14 +26,14 @@ namespace WebZi.Plataform.API.Controllers
         [HttpPost("Cadastrar")]
         // TODO: [Authorize]
         [IgnoreAntiforgeryToken]
-        public async Task<ActionResult<GrvCadastradoViewModel>> Cadastrar([FromBody] GrvPersistenciaViewModel Grv)
+        public async Task<ActionResult<ResultadoCadastroGrvViewModel>> Cadastrar([FromBody] CadastroGrvViewModel Grv)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            GrvCadastradoViewModel ResultView = new();
+            ResultadoCadastroGrvViewModel ResultView = new();
 
             try
             {
@@ -73,6 +74,62 @@ namespace WebZi.Plataform.API.Controllers
             return ResultView;
         }
 
+        [HttpPost("CadastrarAssinaturaAgente")]
+        // TODO: [Authorize]
+        [IgnoreAntiforgeryToken]
+        public async Task<ActionResult<MensagemViewModel>> CadastrarAssinaturaAgente([FromBody] BucketCadastroViewModel Json)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            MensagemViewModel ResultView;
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<GrvService>()
+                    .InsertAssinaturaAgente(Json.IdentificadorTabelaOrigem, Json.IdentificadorUsuario, Json.Imagem);
+
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+        }
+
+        [HttpPost("CadastrarAssinaturaCondutor")]
+        // TODO: [Authorize]
+        [IgnoreAntiforgeryToken]
+        public async Task<ActionResult<MensagemViewModel>> CadastrarAssinaturaCondutor([FromBody] BucketCadastroViewModel Json)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            MensagemViewModel ResultView;
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<GrvService>()
+                    .InsertAssinaturaCondutor(Json.IdentificadorTabelaOrigem, Json.IdentificadorUsuario, Json.Imagem);
+
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+        }
+
         [HttpPost("CadastrarDocumentoCondutor")]
         // TODO: [Authorize]
         [IgnoreAntiforgeryToken]
@@ -104,7 +161,7 @@ namespace WebZi.Plataform.API.Controllers
         [HttpPost("CadastrarFotos")]
         // TODO: [Authorize]
         [IgnoreAntiforgeryToken]
-        public ActionResult<MensagemViewModel> CadastrarFotos([FromBody] CadastroFotoViewModel Fotos)
+        public ActionResult<MensagemViewModel> CadastrarFotos([FromBody] CadastroFotoGrvViewModel Fotos)
         {
             if (!ModelState.IsValid)
             {
@@ -146,6 +203,60 @@ namespace WebZi.Plataform.API.Controllers
                 ResultView = await _provider
                     .GetService<GrvService>()
                     .InsertLacresAsync(IdentificadorGrv, IdentificadorUsuario, ListagemLacre);
+
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+        }
+
+        [HttpDelete("ExcluirAssinaturaAgente")]
+        // TODO: [Authorize]
+        public async Task<ActionResult<MensagemViewModel>> ExcluirAssinaturaAgente(int IdentificadorGrv, int IdentificadorUsuario)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            MensagemViewModel ResultView;
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<GrvService>()
+                    .DeleteAssinaturaAgente(IdentificadorGrv, IdentificadorUsuario);
+
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+        }
+
+        [HttpDelete("ExcluirAssinaturaCondutor")]
+        // TODO: [Authorize]
+        public async Task<ActionResult<MensagemViewModel>> ExcluirAssinaturaCondutor(int IdentificadorGrv, int IdentificadorUsuario)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            MensagemViewModel ResultView;
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<GrvService>()
+                    .DeleteAssinaturaCondutor(IdentificadorGrv, IdentificadorUsuario);
 
                 return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
             }
@@ -378,6 +489,60 @@ namespace WebZi.Plataform.API.Controllers
             }
         }
 
+        [HttpGet("SelecionarAssinaturaAgente")]
+        // TODO: [Authorize]
+        public async Task<ActionResult<GrvViewModelList>> SelecionarAssinaturaAgente(int GrvId, int UsuarioId)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            ImageViewModelList ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<GrvService>()
+                    .GetAssinaturaAgenteAsync(GrvId, UsuarioId);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
+
+        [HttpGet("SelecionarAssinaturaCondutor")]
+        // TODO: [Authorize]
+        public async Task<ActionResult<GrvViewModelList>> SelecionarAssinaturaCondutor(int GrvId, int UsuarioId)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            ImageViewModelList ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<GrvService>()
+                    .GetAssinaturaCondutorAsync(GrvId, UsuarioId);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
+
         [HttpGet("SelecionarPorIdentificador")]
         // TODO: [Authorize]
         public async Task<ActionResult<GrvViewModel>> SelecionarPorIdentificador(int IdentificadorGrv, int IdentificadorUsuario)
@@ -405,37 +570,10 @@ namespace WebZi.Plataform.API.Controllers
             }
         }
 
-        [HttpGet("SelecionarPorProcesso")]
-        // TODO: [Authorize]
-        public async Task<ActionResult<GrvViewModelList>> SelecionarPorProcesso(string NumeroProcesso, string CodigoProduto, int IdentificadorCliente, int IdentificadorDeposito, int IdentificadorUsuario)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            GrvViewModelList ResultView = new();
-
-            try
-            {
-                ResultView = await _provider
-                    .GetService<GrvService>()
-                    .GetByNumeroFormularioGrvAsync(NumeroProcesso, CodigoProduto, IdentificadorCliente, IdentificadorDeposito, IdentificadorUsuario);
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-            catch (Exception ex)
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-        }
-
         [HttpPost("ValidarInformacoesParaCadastro")]
         [IgnoreAntiforgeryToken]
         // TODO: [Authorize]
-        public async Task<ActionResult<MensagemViewModel>> ValidarInformacoesParaCadastro([FromBody] GrvPersistenciaViewModel Grv)
+        public async Task<ActionResult<MensagemViewModel>> ValidarInformacoesParaCadastro([FromBody] CadastroGrvViewModel Grv)
         {
             if (!ModelState.IsValid)
             {

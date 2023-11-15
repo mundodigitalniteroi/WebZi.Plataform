@@ -1,15 +1,14 @@
-﻿namespace WebZi.Plataform.Domain.ViewModel.GRV.Cadastro
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace WebZi.Plataform.Domain.ViewModel.GRV.Cadastro
 {
     public class CadastroEnquadramentoInfracaoViewModel
     {
-        public int IdentificadorUsuarioCadastro { get; set; }
+        [Required(ErrorMessage = "Propriedade obrigatória")]
+        public decimal IdentificadorEnquadramentoInfracao { get; set; }
 
-        public string CodigoInfracao { get; set; }
-
-        public short? Artigo { get; set; }
-
-        public string Inciso { get; set; }
-
-        public string Descricao { get; set; }
+        [Required(ErrorMessage = "Propriedade obrigatória")]
+        [MaxLength(20)]
+        public string NumeroInfracao { get; set; }
     }
 }

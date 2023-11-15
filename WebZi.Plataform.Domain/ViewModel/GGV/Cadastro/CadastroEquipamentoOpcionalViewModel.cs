@@ -1,11 +1,18 @@
-﻿namespace WebZi.Plataform.Domain.ViewModel.GGV.Cadastro
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace WebZi.Plataform.Domain.ViewModel.GGV.Cadastro
 {
     public class CadastroEquipamentoOpcionalViewModel
     {
+        [Required(ErrorMessage = "Propriedade obrigatória")]
         public decimal IdentificadorEquipamentoOpcional { get; set; }
 
+        [Required(ErrorMessage = "Propriedade obrigatória")]
+        [RegularExpression("S|N", ErrorMessage = "Valor da Flag inválido, informe S ou N")]
         public string FlagPossuiEquipamento { get; set; }
 
+        [Required(ErrorMessage = "Propriedade obrigatória")]
+        [RegularExpression("S|N", ErrorMessage = "Valor da Flag inválido, informe S ou N")]
         public string FlagEquipamentoAvariado { get; set; }
 
         public int? IdentificadorTipoAvaria { get; set; }

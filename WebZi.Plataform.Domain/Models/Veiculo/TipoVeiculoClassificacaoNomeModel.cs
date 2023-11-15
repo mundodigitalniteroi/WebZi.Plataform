@@ -2,7 +2,7 @@
 {
     public class TipoVeiculoClassificacaoNomeModel
     {
-        public byte IdTipoVeiculoClassificacaoNome { get; set; }
+        public int TipoVeiculoClassificacaoNomeId { get; set; }
 
         public string Descricao { get; set; }
 

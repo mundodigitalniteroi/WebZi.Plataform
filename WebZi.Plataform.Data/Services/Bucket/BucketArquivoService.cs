@@ -250,7 +250,7 @@ namespace WebZi.Plataform.Data.Services.Bucket
             }
         }
 
-        public async Task<ImageViewModelList> DownloadFiles(string CodigoTabelaOrigem, int TabelaOrigemId)
+        public async Task<ImageViewModelList> DownloadFileAsync(string CodigoTabelaOrigem, int TabelaOrigemId)
         {
             List<string> erros = new();
 
@@ -310,7 +310,7 @@ namespace WebZi.Plataform.Data.Services.Bucket
             return ResultView;
         }
 
-        public async Task<ImageViewModelList> DownloadFiles(string CodigoTabelaOrigem, List<int> ListagemTabelaOrigemId)
+        public async Task<ImageViewModelList> DownloadFilesAsync(string CodigoTabelaOrigem, List<int> ListagemTabelaOrigemId)
         {
             List<string> erros = new();
 

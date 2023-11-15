@@ -1,4 +1,5 @@
 ﻿using WebZi.Plataform.Domain.ViewModel.Empresa;
+using WebZi.Plataform.Domain.ViewModel.Faturamento;
 using WebZi.Plataform.Domain.ViewModel.Generic;
 using WebZi.Plataform.Domain.ViewModel.Sistema;
 using WebZi.Plataform.Domain.ViewModel.Veiculo;
@@ -25,5 +26,7 @@ namespace WebZi.Plataform.Domain.ViewModel.GGV
         public TabelaGenericaViewModelList ListagemTipoCadastroFotoGGV { get; set; }
 
         public TabelaGenericaViewModelList ListagemTipoDirecao { get; set; }
+
+        public ServicoAssociadoTipoVeiculoViewModelList ListagemServicoAssociadoVeiculo { get; set; }
     }
 }

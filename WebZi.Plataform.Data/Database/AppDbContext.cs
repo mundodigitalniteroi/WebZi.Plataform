@@ -62,14 +62,14 @@ namespace WebZi.Plataform.Data.Database
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder
-                .UseSqlServer(new AppSettingsHelper().GetConnectionString("DefaultConnection"), providerOptions => providerOptions.CommandTimeout(120))
+                .UseSqlServer(AppSettingsHelper.GetConnectionString("DefaultConnection"), providerOptions => providerOptions.CommandTimeout(120))
                 .LogTo(Console.WriteLine, LogLevel.Information) // Exibe as queries executadas no BD pelo EF
                 .EnableSensitiveDataLogging(); // Configura o EF para exibir os dados sensíveis
         }
 
         public string GetConnectionString()
         {
-            return new AppSettingsHelper().GetConnectionString("DefaultConnection");
+            return AppSettingsHelper.GetConnectionString("DefaultConnection");
         }
 
         public void SetUserContextInfo(int UsuarioId)
