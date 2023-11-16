@@ -89,10 +89,10 @@ namespace WebZi.Plataform.Data.Services.GGV
                     .Distinct()
                     .ToList();
 
-                List<CondutorEquipamentoOpcionalModel> ListagemCondutorEquipamentoOpcional = _context.CondutorEquipamentoOpcional
+                List<CondutorEquipamentoOpcionalModel> ListagemCondutorEquipamentoOpcional = await _context.CondutorEquipamentoOpcional
                     .Where(x => EquipamentoOpcionalIds.Contains(x.EquipamentoOpcionalId) && x.GrvId == Grv.GrvId)
                     .AsNoTracking()
-                    .ToList();
+                    .ToListAsync();
 
                 Grv.ListagemCondutorEquipamentoOpcional = new HashSet<CondutorEquipamentoOpcionalModel>();
 
@@ -100,9 +100,9 @@ namespace WebZi.Plataform.Data.Services.GGV
 
                 CondutorEquipamentoOpcionalModel CondutorEquipamentoOpcional = new();
 
-                List<TipoAvariaModel> ListagemTipoAvaria = _context.TipoAvaria
+                List<TipoAvariaModel> ListagemTipoAvaria = await _context.TipoAvaria
                     .AsNoTracking()
-                    .ToList();
+                    .ToListAsync();
 
                 foreach (var item in GgvPersistencia.ListagemEquipamentoOpcional)
                 {
@@ -242,27 +242,81 @@ namespace WebZi.Plataform.Data.Services.GGV
                         Grv.CorOstentadaId = GgvPersistencia.Vistoria.IdentificadorCorOstentada;
                     }
                 }
+
+                Grv.Vistoria = Vistoria;
             }
             else
             {
                 Vistoria = null;
             }
 
+            if (GgvPersistencia.ListagemFaturamentoServicoGrv?.Count > 0)
+            {
+                Grv.ListagemFaturamentoServicoGrv = new HashSet<FaturamentoServicoGrvModel>();
+
+                List<int> ids = GgvPersistencia.ListagemFaturamentoServicoGrv
+                    .Where(x => x.IdentificadorServicoAssociadoTipoVeiculo > 0)
+                    .Select(x => x.IdentificadorServicoAssociadoTipoVeiculo)
+                    .Distinct()
+                    .ToList();
+
+                List<FaturamentoServicoTipoVeiculoModel> FaturamentoServicoTipoVeiculoList = await _context.FaturamentoServicoTipoVeiculo
+                    .Include(x => x.FaturamentoServicoAssociado)
+                    .ThenInclude(x => x.FaturamentoServicoTipo)
+                    .Where(x => ids.Contains(x.FaturamentoServicoTipoVeiculoId))
+                    .AsNoTracking()
+                    .ToListAsync();
+
+                FaturamentoServicoTipoVeiculoModel FaturamentoServicoTipoVeiculo = new();
+
+                FaturamentoServicoGrvModel FaturamentoServicoGrv = new();
+
+                foreach (var item in GgvPersistencia.ListagemFaturamentoServicoGrv)
+                {
+                    FaturamentoServicoGrv = new()
+                    {
+                        GrvId = GgvPersistencia.IdentificadorGrv,
+
+                        FaturamentoServicoTipoVeiculoId = item.IdentificadorServicoAssociadoTipoVeiculo
+                    };
+
+                    FaturamentoServicoTipoVeiculo = FaturamentoServicoTipoVeiculoList
+                        .Where(x => x.FaturamentoServicoTipoVeiculoId == item.IdentificadorServicoAssociadoTipoVeiculo)
+                        .FirstOrDefault();
+
+                    switch (FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.FaturamentoServicoTipo.TipoCobranca)
+                    {
+                        case "V":
+
+                            FaturamentoServicoGrv.Valor = decimal.Parse(item.ValorTipoCobrancaInformado.Replace(".", ","));
+
+                            break;
+
+                        case "D":
+                        case "P":
+                        case "Q":
+                        case "T":
+
+                            FaturamentoServicoGrv.Valor = int.Parse(item.ValorTipoCobrancaInformado);
+
+                            break;
+
+                        case "H":
+
+                            FaturamentoServicoGrv.TempoTrabalhado = item.ValorTipoCobrancaInformado;
+
+                            break;
+                    }
+
+                    Grv.ListagemFaturamentoServicoGrv.Add(FaturamentoServicoGrv);
+                }
+            }
+
             using (IDbContextTransaction transaction = _context.Database.BeginTransaction())
             {
                 try
                 {
-                    if (GgvPersistencia.Vistoria != null)
-                    {
-                        Grv.Vistoria = Vistoria;
-                    }
-
-                    if (GgvPersistencia.ListagemFaturamentoServicoGrv?.Count > 0)
-                    {
-
-                    }
-
-                    _context.Grv.Update(Grv);
+                    // _context.Grv.Update(Grv);
 
                     foreach (var item in ListagemCadastroCondutorEquipamentoOpcional)
                     {
@@ -490,7 +544,7 @@ namespace WebZi.Plataform.Data.Services.GGV
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
 
-            if (Grv.StatusOperacao.StatusOperacaoId != "G")
+            if (Grv.StatusOperacao.StatusOperacaoId != "G" && Grv.StatusOperacao.StatusOperacaoId != "V")
             {
                 erros.Add($"O Status do GRV não está apto para o cadastro do GGV. " +
                     $"Status atual: {Grv.StatusOperacao.Descricao.ToUpper()}");
@@ -528,11 +582,11 @@ namespace WebZi.Plataform.Data.Services.GGV
             {
                 if (Grv.Deposito.GrvLimiteMinimoDatahoraGuarda == 1)
                 {
-                    erros.Add("A Data da Guarda não pode ser inferior a 1 ano.");
+                    erros.Add("A Data da Guarda não pode ser inferior a 1 ano");
                 }
                 else
                 {
-                    erros.Add("A Data da Guarda não pode ser inferior a " + Grv.Deposito.GrvLimiteMinimoDatahoraGuarda + " anos.");
+                    erros.Add("A Data da Guarda não pode ser inferior a " + Grv.Deposito.GrvLimiteMinimoDatahoraGuarda + " anos");
                 }
             }
 
@@ -705,7 +759,7 @@ namespace WebZi.Plataform.Data.Services.GGV
 
                 if (duplicados > 0)
                 {
-                    ResultView.AvisosImpeditivos.Add("Existem Serviços duplicados");
+                    erros.Add("Existem Serviços duplicados");
                 }
 
                 int invalidos = GgvPersistencia.ListagemFaturamentoServicoGrv
@@ -714,7 +768,7 @@ namespace WebZi.Plataform.Data.Services.GGV
 
                 if (invalidos > 0)
                 {
-                    ResultView.AvisosImpeditivos.Add("Existem Identificador dos Serviços inválidos");
+                    erros.Add("Existem Identificador dos Serviços inválidos");
                 }
 
                 if (duplicados == 0 && invalidos == 0)
@@ -734,124 +788,159 @@ namespace WebZi.Plataform.Data.Services.GGV
 
                     if (ids.Count != FaturamentoServicoTipoVeiculoList.Count)
                     {
-                        ResultView.AvisosImpeditivos.Add("A listagem de Serviço possui um ou mais Identificador inexistente");
+                        erros.Add("A listagem de Serviço possui um ou mais Identificador inexistente");
                     }
                     else
                     {
                         FaturamentoServicoTipoVeiculoModel FaturamentoServicoTipoVeiculo = new();
 
+                        FaturamentoServicoGrvModel FaturamentoServicoGrv = new();
+
+                        List<FaturamentoServicoGrvModel> FaturamentoServicoGrvList = _context.FaturamentoServicoGrv
+                            .Include(x => x.FaturamentoServicoTipoVeiculo)
+                            .ThenInclude(x => x.FaturamentoServicoAssociado)
+                            .Where(x => x.GrvId == GgvPersistencia.IdentificadorGrv)
+                            .AsNoTracking()
+                            .ToList();
+
                         foreach (var item in GgvPersistencia.ListagemFaturamentoServicoGrv)
                         {
-                            FaturamentoServicoTipoVeiculo = FaturamentoServicoTipoVeiculoList
-                                .Where(x => x.FaturamentoServicoTipoVeiculoId == item.IdentificadorServicoAssociadoTipoVeiculo)
-                                .FirstOrDefault();
-
-                            if (FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.FaturamentoServicoTipo.FlagCobrarTelaGrv == "N")
+                            if (FaturamentoServicoGrvList?.Count > 0)
                             {
-                                ResultView.AvisosImpeditivos.Add("Foi identificado um Serviço que não pode ser cobrado antes do Atendimento");
+                                FaturamentoServicoGrv = FaturamentoServicoGrvList.Where(x => x.FaturamentoServicoTipoVeiculoId == item.IdentificadorServicoAssociadoTipoVeiculo).FirstOrDefault();
+
+                                if (FaturamentoServicoGrv != null)
+                                {
+                                    erros.Add($"O Serviço {FaturamentoServicoGrv.FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.Descricao} já está cadastrado para este GRV");
+                                }
                             }
                             else
                             {
-                                switch (FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.FaturamentoServicoTipo.TipoCobranca)
+                                FaturamentoServicoTipoVeiculo = FaturamentoServicoTipoVeiculoList
+                                    .Where(x => x.FaturamentoServicoTipoVeiculoId == item.IdentificadorServicoAssociadoTipoVeiculo)
+                                    .FirstOrDefault();
+
+                                if (FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.FaturamentoServicoTipo.FlagCobrarTelaGrv == "N")
                                 {
-                                    // Diárias
-                                    case "D":
-
-                                        if (!NumberHelper.IsNumber(item.ValorTipoCobrancaInformado))
-                                        {
-
-                                        }
-
-                                        break;
-
-                                    // Horas
-                                    case "H":
-
-                                        if (!NumberHelper.IsNumber(item.ValorTipoCobrancaInformado.RemoveString(":")))
-                                        {
-
-                                        }
-                                        else
-                                        {
-                                            string[] aux = item.ValorTipoCobrancaInformado.Split(':');
-
-                                            if (aux.Length != 2)
-                                            {
-
-                                            }
-                                            else if (int.Parse(aux[0]) < 0 || int.Parse(aux[0]) > 23 || int.Parse(aux[1]) < 0 || int.Parse(aux[1]) > 59)
-                                            {
-
-                                            }
-                                        }
-
-                                        break;
-
-                                    // Percentual
-                                    case "P":
-
-                                        if (!NumberHelper.IsNumber(item.ValorTipoCobrancaInformado))
-                                        {
-
-                                        }
-                                        else if (int.Parse(item.ValorTipoCobrancaInformado) < 0 || int.Parse(item.ValorTipoCobrancaInformado) > 100)
-                                        {
-
-                                        }
-
-                                        break;
-
-                                    // Quantidade
-                                    case "Q":
-
-                                        if (!NumberHelper.IsNumber(item.ValorTipoCobrancaInformado))
-                                        {
-
-                                        }
-                                        else if (int.Parse(item.ValorTipoCobrancaInformado) < 0)
-                                        {
-
-                                        }
-
-                                        break;
-
-                                    // Tempo/Espaço
-                                    case "T":
-
-                                        if (!NumberHelper.IsNumber(item.ValorTipoCobrancaInformado))
-                                        {
-
-                                        }
-                                        else if (int.Parse(item.ValorTipoCobrancaInformado) < 0)
-                                        {
-
-                                        }
-
-                                        break;
-
-                                    // Valor Monetário
-                                    case "V":
-
-                                        if (!NumberHelper.IsNumber(item.ValorTipoCobrancaInformado.RemoveStrings(new[] { ".", "," })))
-                                        {
-
-                                        }
-                                        else if (!decimal.TryParse(item.ValorTipoCobrancaInformado.ReplaceSecure(",", "."), out decimal value))
-                                        {
-
-                                        }
-                                        else if (decimal.Parse(item.ValorTipoCobrancaInformado.ReplaceSecure(",", ".")) < 0)
-                                        {
-
-                                        }
-
-                                        break;
+                                    erros.Add($"Foi identificado um Serviço que não pode ser cobrado antes do Atendimento. Serviço informado: {FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.Descricao}");
                                 }
-                            }
+                                else
+                                {
+                                    item.ValorTipoCobrancaInformado = item.ValorTipoCobrancaInformado.Replace(".", ",");
 
-                            if (true)
-                            {
+                                    switch (FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.FaturamentoServicoTipo.TipoCobranca)
+                                    {
+                                        // Diárias
+                                        case "D":
 
+                                            if (!NumberHelper.IsNumber(item.ValorTipoCobrancaInformado))
+                                            {
+                                                erros.Add($"Valor do Tipo de Cobrança Diárias inválido. Valor informado: {item.ValorTipoCobrancaInformado}");
+                                            }
+
+                                            break;
+
+                                        // Horas
+                                        case "H":
+
+                                            if (!NumberHelper.IsNumber(item.ValorTipoCobrancaInformado.RemoveString(":")))
+                                            {
+                                                erros.Add($"Valor do Tipo de Cobrança Horas inválido. Valor informado: {item.ValorTipoCobrancaInformado}. Informe no padrão HH:MM");
+                                            }
+                                            else
+                                            {
+                                                string[] aux = item.ValorTipoCobrancaInformado.Split(':');
+
+                                                if (aux.Length != 2)
+                                                {
+                                                    erros.Add($"Valor do Tipo de Cobrança Horas inválido. Valor informado: {item.ValorTipoCobrancaInformado}. Informe no padrão HH:MM");
+                                                }
+                                                else if (int.Parse(aux[0]) < 0 || int.Parse(aux[0]) > 23 || int.Parse(aux[1]) < 0 || int.Parse(aux[1]) > 59)
+                                                {
+                                                    erros.Add($"Valor do Tipo de Cobrança Horas inválido. Valor informado: {item.ValorTipoCobrancaInformado}. Informe no padrão HH:MM");
+                                                }
+                                                else if (int.Parse(aux[0]) == 0 && int.Parse(aux[1]) == 0)
+                                                {
+                                                    erros.Add($"Informe o Tempo trabalhado");
+                                                }
+                                            }
+
+                                            break;
+
+                                        // Percentual
+                                        case "P":
+
+                                            if (!NumberHelper.IsNumber(item.ValorTipoCobrancaInformado))
+                                            {
+                                                erros.Add($"Valor do Tipo de Cobrança Percentual inválido. Valor informado: {item.ValorTipoCobrancaInformado}");
+                                            }
+                                            else if (int.Parse(item.ValorTipoCobrancaInformado) < 0 || int.Parse(item.ValorTipoCobrancaInformado) > 100)
+                                            {
+                                                erros.Add($"Valor do Tipo de Cobrança Percentual inválido. Valor informado: {item.ValorTipoCobrancaInformado}");
+                                            }
+
+                                            break;
+
+                                        // Quantidade
+                                        case "Q":
+
+                                            if (!NumberHelper.IsNumber(item.ValorTipoCobrancaInformado))
+                                            {
+                                                erros.Add($"Valor do Tipo de Cobrança Quantidade inválido. Valor informado: {item.ValorTipoCobrancaInformado}");
+                                            }
+                                            else if (int.Parse(item.ValorTipoCobrancaInformado) < 0)
+                                            {
+                                                erros.Add($"Valor do Tipo de Cobrança Quantidade inválido. Valor informado: {item.ValorTipoCobrancaInformado}");
+                                            }
+
+                                            break;
+
+                                        // Tempo/Espaço
+                                        case "T":
+
+                                            if (!NumberHelper.IsNumber(item.ValorTipoCobrancaInformado))
+                                            {
+                                                erros.Add($"Valor do Tipo de Cobrança Tempo inválido. Valor informado: {item.ValorTipoCobrancaInformado}");
+                                            }
+                                            else if (int.Parse(item.ValorTipoCobrancaInformado) < 0)
+                                            {
+                                                erros.Add($"Valor do Tipo de Cobrança Tempo inválido. Valor informado: {item.ValorTipoCobrancaInformado}");
+                                            }
+
+                                            break;
+
+                                        // Valor Monetário
+                                        case "V":
+
+                                            if (!NumberHelper.IsNumber(item.ValorTipoCobrancaInformado.RemoveStrings(new[] { ".", "," })))
+                                            {
+                                                erros.Add($"Valor do Tipo de Cobrança Valor Monetário inválido. Valor informado: {item.ValorTipoCobrancaInformado}");
+                                            }
+                                            else if (!decimal.TryParse(item.ValorTipoCobrancaInformado, out _))
+                                            {
+                                                erros.Add($"Valor do Tipo de Cobrança Valor Monetário inválido. Valor informado: {item.ValorTipoCobrancaInformado}");
+                                            }
+                                            else if (decimal.Parse(item.ValorTipoCobrancaInformado) < 0)
+                                            {
+                                                erros.Add($"Valor do Tipo de Cobrança Valor Monetário inválido. Valor informado: {item.ValorTipoCobrancaInformado}");
+                                            }
+                                            else
+                                            {
+                                                if (FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.FlagPermiteAlteracaoValor == "N"
+                                                    && FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.PrecoPadrao != decimal.Parse(item.ValorTipoCobrancaInformado))
+                                                {
+                                                    erros.Add($"Valor do Tipo de Cobrança Valor Monetário não pode ser diferente do Preço Padrão. Valor informado: {item.ValorTipoCobrancaInformado}");
+                                                }
+                                                else if (decimal.Parse(item.ValorTipoCobrancaInformado) < FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.PrecoValorMinimo)
+                                                {
+                                                    erros.Add($"Valor do Tipo de Cobrança Valor Monetário não pode ser menor do que o valor do Preço Mínimo parametrizado" +
+                                                        $". Valor informado: {item.ValorTipoCobrancaInformado}");
+                                                }
+                                            }
+
+                                            break;
+                                    }
+                                }
                             }
                         }
                     }

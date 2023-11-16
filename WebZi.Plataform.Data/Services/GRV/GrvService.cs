@@ -1727,7 +1727,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (string.IsNullOrWhiteSpace(GrvPersistencia.MatriculaAutoridadeResponsavel))
             {
-                erros.Add("Informe a Matrícula da Autoridade Responsável.");
+                erros.Add("Informe a Matrícula da Autoridade Responsável");
             }
 
             if (GrvPersistencia.IdentificadorCor <= 0)
@@ -2004,7 +2004,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             }
             else if (GrvPersistencia.DataHoraRemocao.Hour == 0 && GrvPersistencia.DataHoraRemocao.Minute == 0)
             {
-                ResultView.AvisosImpeditivos.Add("A Hora da Remoção não pode ser igual a 00:00.");
+                ResultView.AvisosImpeditivos.Add("A Hora da Remoção não pode ser igual a 00:00");
             }
 
             TipoVeiculoModel TipoVeiculo = await _context.TipoVeiculo

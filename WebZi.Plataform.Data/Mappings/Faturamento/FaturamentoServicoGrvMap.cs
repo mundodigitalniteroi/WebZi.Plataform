@@ -67,6 +67,11 @@ namespace WebZi.Plataform.Data.Mappings.Faturamento
                 .HasDefaultValueSql("('S')")
                 .IsFixedLength()
                 .HasColumnName("flag_realizar_cobranca");
+
+            builder.HasOne(d => d.Grv)
+                .WithMany(p => p.ListagemFaturamentoServicoGrv)
+                .HasForeignKey(d => d.GrvId)
+                .OnDelete(DeleteBehavior.NoAction);
         }
     }
 }

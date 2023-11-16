@@ -207,9 +207,9 @@ namespace WebZi.Plataform.Domain.Models.GRV
 
         public virtual ICollection<EnquadramentoInfracaoGrvModel> ListagemEnquadramentoInfracao { get; set; }
 
-        public virtual ICollection<LacreModel> ListagemLacre { get; set; }
+        public virtual ICollection<FaturamentoServicoGrvModel> ListagemFaturamentoServicoGrv { get; set; }
 
-        public virtual ICollection<FaturamentoServicoGrvModel> ListagemServico { get; set; }
+        public virtual ICollection<LacreModel> ListagemLacre { get; set; }
 
         public virtual ViewUsuarioClienteDepositoGrvModel UsuarioClienteDepositoGrv { get; set; }
 
