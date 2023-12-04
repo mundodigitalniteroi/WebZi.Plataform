@@ -110,7 +110,7 @@ namespace WebZi.Plataform.Data.Services.Deposito
                 return DataHoraAtual;
             }
 
-            ViewEnderecoCompletoModel CEP = _context.Endereco
+            ViewEnderecoCompletoModel CEP = _context.EnderecoCompleto
                 .Where(w => w.CEPId == Deposito.CEPId)
                 .AsNoTracking()
                 .FirstOrDefault();

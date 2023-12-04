@@ -316,7 +316,7 @@ namespace WebZi.Plataform.Data.Services.GGV
             {
                 try
                 {
-                    // _context.Grv.Update(Grv);
+                    _context.Grv.Update(Grv);
 
                     foreach (var item in ListagemCadastroCondutorEquipamentoOpcional)
                     {

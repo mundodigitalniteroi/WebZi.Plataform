@@ -65,6 +65,33 @@ namespace WebZi.Plataform.API.Controllers
             }
         }
 
+        [HttpGet("SelecionarFotoResponsavel")]
+        // TODO: [Authorize]
+        public async Task<ActionResult<ImageViewModelList>> SelecionarFotoResponsavel(int IdentificadorAtendimento, int IdentificadorUsuario)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            ImageViewModelList ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<AtendimentoService>()
+                    .GetResponsavelFotoAsync(IdentificadorAtendimento, IdentificadorUsuario);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
+
         [HttpGet("SelecionarPorIdentificador")]
         // TODO: [Authorize]
         public async Task<ActionResult<AtendimentoViewModel>> SelecionarPorIdentificador(int IdentificadorAtendimento, int IdentificadorUsuario)
@@ -108,33 +135,6 @@ namespace WebZi.Plataform.API.Controllers
                 ResultView = await _provider
                     .GetService<AtendimentoService>()
                     .GetByProcessoAsync(NumeroProcesso, CodigoProduto, IdentificadorCliente, IdentificadorDeposito, IdentificadorUsuario);
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-            catch (Exception ex)
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-        }
-
-        [HttpGet("SelecionarFotoResponsavel")]
-        // TODO: [Authorize]
-        public async Task<ActionResult<ImageViewModelList>> SelecionarFotoResponsavel(int IdentificadorAtendimento, int IdentificadorUsuario)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            ImageViewModelList ResultView = new();
-
-            try
-            {
-                ResultView = await _provider
-                    .GetService<AtendimentoService>()
-                    .GetResponsavelFotoAsync(IdentificadorAtendimento, IdentificadorUsuario);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }

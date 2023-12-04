@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Data;
 using System.Reflection;
 using WebZi.Plataform.CrossCutting.Configuration;
 using WebZi.Plataform.Domain.Models.Atendimento;
@@ -31,6 +30,7 @@ using WebZi.Plataform.Domain.Models.Veiculo;
 using WebZi.Plataform.Domain.Models.Vistoria;
 using WebZi.Plataform.Domain.Views.Faturamento;
 using WebZi.Plataform.Domain.Views.Localizacao;
+using WebZi.Plataform.Domain.Views.Report;
 using WebZi.Plataform.Domain.Views.Usuario;
 
 namespace WebZi.Plataform.Data.Database
@@ -86,6 +86,26 @@ namespace WebZi.Plataform.Data.Database
         #region DbSets public DbSet<Model> Name { get; set; }
 
         public DbSet<GenericIntModel> GenericInt { get; set; }
+
+        #region Banco
+        public DbSet<AgenciaBancariaModel> AgenciaBancaria { get; set; }
+
+        public DbSet<BancoModel> Banco { get; set; }
+
+        public DbSet<PixEstaticoModel> PixEstatico { get; set; }
+
+        public DbSet<PixDinamicoModel> PixDinamico { get; set; }
+
+        public DbSet<PixDinamicoConfiguracaoModel> PixDinamicoConfiguracao { get; set; }
+
+        public DbSet<PixDinamicoConsultaModel> PixDinamicoConsulta { get; set; }
+
+        public DbSet<PixDinamicoSenhaConfirmacaoTranferenciaModel> PixDinamicoSenhaConfirmacaoTranferencia { get; set; }
+
+        public DbSet<PixDinamicoTipoStatusGeracaoModel> PixDinamicoTipoStatusGeracao { get; set; }
+
+        public DbSet<PixDinamicoUrlModel> PixDinamicoUrl { get; set; }
+        #endregion Banco
 
         #region Depósito Público
         public DbSet<AtendimentoModel> Atendimento { get; set; }
@@ -172,26 +192,6 @@ namespace WebZi.Plataform.Data.Database
 
         public DbSet<WebServiceUrlModel> WebServiceUrl { get; set; }
         #endregion Depósito Público
-
-        #region Banco
-        public DbSet<AgenciaBancariaModel> AgenciaBancaria { get; set; }
-
-        public DbSet<BancoModel> Banco { get; set; }
-
-        public DbSet<PixEstaticoModel> PixEstatico { get; set; }
-
-        public DbSet<PixDinamicoModel> PixDinamico { get; set; }
-
-        public DbSet<PixDinamicoConfiguracaoModel> PixDinamicoConfiguracao { get; set; }
-
-        public DbSet<PixDinamicoConsultaModel> PixDinamicoConsulta { get; set; }
-
-        public DbSet<PixDinamicoSenhaConfirmacaoTranferenciaModel> PixDinamicoSenhaConfirmacaoTranferencia { get; set; }
-
-        public DbSet<PixDinamicoTipoStatusGeracaoModel> PixDinamicoTipoStatusGeracao { get; set; }
-
-        public DbSet<PixDinamicoUrlModel> PixDinamicoUrl { get; set; }
-        #endregion Banco
 
         #region Endereço
         public DbSet<BairroModel> Bairro { get; set; }
@@ -307,6 +307,14 @@ namespace WebZi.Plataform.Data.Database
         #endregion Vistoria
 
         #region Views
+        public DbSet<ViewFaturamentoBoletoModel> ViewFaturamentoBoleto { get; set; }
+
+        public DbSet<ViewFaturamentoServicoAssociadoVeiculoModel> ViewFaturamentoServicoAssociadoVeiculo { get; set; }
+
+        public DbSet<ViewFaturamentoServicoGrvModel> ViewFaturamentoServicoGrv { get; set; }
+
+        public DbSet<ViewGuiaPagamentoReboqueEstadiaModel> ViewGuiaPagamentoReboqueEstadia { get; set; }
+
         public DbSet<ViewUsuarioClienteDepositoGrvModel> ViewUsuarioClienteDepositoGrv { get; set; }
 
         public DbSet<ViewUsuarioClienteDepositoReboqueModel> ViewUsuarioClienteDepositoReboque { get; set; }
@@ -315,13 +323,7 @@ namespace WebZi.Plataform.Data.Database
 
         public DbSet<ViewUsuarioClienteDepositoModel> ViewUsuarioClienteDeposito { get; set; }
 
-        public DbSet<ViewFaturamentoBoletoModel> ViewFaturamentoBoleto { get; set; }
-
-        public DbSet<ViewFaturamentoServicoGrvModel> ViewFaturamentoServicoGrv { get; set; }
-
-        public DbSet<ViewFaturamentoServicoAssociadoVeiculoModel> ViewFaturamentoServicoAssociadoVeiculo { get; set; }
-
-        public DbSet<ViewEnderecoCompletoModel> Endereco { get; set; }
+        public DbSet<ViewEnderecoCompletoModel> EnderecoCompleto { get; set; }
         #endregion Views
 
         #endregion DbSets

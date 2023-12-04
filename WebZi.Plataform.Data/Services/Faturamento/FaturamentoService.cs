@@ -622,7 +622,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 return null;
             }
 
-            ViewEnderecoCompletoModel Endereco = _context.Endereco
+            ViewEnderecoCompletoModel Endereco = _context.EnderecoCompleto
                 .Where(w => w.CEPId == ParametrosCalculoFaturamento.Grv.Deposito.CEPId)
                 .AsNoTracking()
                 .FirstOrDefault();
