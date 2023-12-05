@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
-using System.Net.Http;
 using WebZi.Plataform.CrossCutting.Contacts;
 using WebZi.Plataform.CrossCutting.Documents;
 using WebZi.Plataform.CrossCutting.Localizacao;
@@ -118,6 +117,74 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             ResultView.Mensagem = MensagemViewHelper.GetOkFound();
 
             return ResultView;
+        }
+        
+        public async Task<ImageViewModelList> GetResponsavelFotoAsync(int AtendimentoId, int UsuarioId)
+        {
+            ImageViewModelList ResultView = new();
+
+            List<string> erros = new();
+
+            if (AtendimentoId <= 0)
+            {
+                erros.Add(MensagemPadraoEnum.IdentificadorAtendimentoInvalido);
+            }
+
+            if (UsuarioId <= 0)
+            {
+                erros.Add(MensagemPadraoEnum.IdentificadorUsuarioInvalido);
+            }
+
+            if (erros.Count > 0)
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetBadRequest(erros);
+
+                return ResultView;
+            }
+
+            if (!new UsuarioService(_context).IsUserActive(UsuarioId))
+            {
+                ResultView.Mensagem = MensagemViewHelper.GetUnauthorized();
+
+                return ResultView;
+            }
+
+            BucketArquivoModel BucketArquivo = _context.BucketArquivo
+                .Include(i => i.BucketNomeTabelaOrigem)
+                .Where(w => w.BucketNomeTabelaOrigem.Codigo == BucketNomeTabelaOrigemEnum.AtendimentoFotoResponsavel)
+                .AsNoTracking()
+                .FirstOrDefault();
+
+            if (BucketArquivo != null)
+            {
+                ResultView.Listagem.Add(new ImageViewModel { Imagem = HttpClientHelper.DownloadFile(BucketArquivo.Url) });
+
+                ResultView.Mensagem = MensagemViewHelper.GetOkFound();
+
+                return ResultView;
+            }
+            else
+            {
+                AtendimentoFotoResponsavelModel AtendimentoFotoResponsavel = await _context.AtendimentoFotoResponsavel
+                    .Where(w => w.AtendimentoId == AtendimentoId)
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync();
+
+                if (AtendimentoFotoResponsavel != null)
+                {
+                    ResultView.Listagem.Add(new ImageViewModel { Imagem = AtendimentoFotoResponsavel.Foto });
+
+                    ResultView.Mensagem = MensagemViewHelper.GetOkFound();
+
+                    return ResultView;
+                }
+                else
+                {
+                    ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+
+                    return ResultView;
+                }
+            }
         }
 
         public async Task<MensagemViewModel> ValidarInformacoesParaCadastroAsync(AtendimentoCadastroInputViewModel AtendimentoCadastro)
@@ -756,73 +823,6 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             _context.Grv.Update(Grv);
         }
 
-        public async Task<ImageViewModelList> GetResponsavelFotoAsync(int AtendimentoId, int UsuarioId)
-        {
-            ImageViewModelList ResultView = new();
-
-            List<string> erros = new();
-
-            if (AtendimentoId <= 0)
-            {
-                erros.Add(MensagemPadraoEnum.IdentificadorAtendimentoInvalido);
-            }
-
-            if (UsuarioId <= 0)
-            {
-                erros.Add(MensagemPadraoEnum.IdentificadorUsuarioInvalido);
-            }
-
-            if (erros.Count > 0)
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest(erros);
-
-                return ResultView;
-            }
-
-            if (!new UsuarioService(_context).IsUserActive(UsuarioId))
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetUnauthorized();
-
-                return ResultView;
-            }
-
-            BucketArquivoModel BucketArquivo = _context.BucketArquivo
-                .Include(i => i.BucketNomeTabelaOrigem)
-                .Where(w => w.BucketNomeTabelaOrigem.Codigo == BucketNomeTabelaOrigemEnum.AtendimentoFotoResponsavel)
-                .AsNoTracking()
-                .FirstOrDefault();
-
-            if (BucketArquivo != null)
-            {
-                ResultView.Listagem.Add(new ImageViewModel { Imagem = HttpClientHelper.DownloadFile(BucketArquivo.Url) });
-
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound();
-
-                return ResultView;
-            }
-            else
-            {
-                AtendimentoFotoResponsavelModel AtendimentoFotoResponsavel = await _context.AtendimentoFotoResponsavel
-                    .Where(w => w.AtendimentoId == AtendimentoId)
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync();
-
-                if (AtendimentoFotoResponsavel != null)
-                {
-                    ResultView.Listagem.Add(new ImageViewModel { Imagem = AtendimentoFotoResponsavel.Foto });
-
-                    ResultView.Mensagem = MensagemViewHelper.GetOkFound();
-
-                    return ResultView;
-                }
-                else
-                {
-                    ResultView.Mensagem = MensagemViewHelper.GetNotFound();
-
-                    return ResultView;
-                }
-            }
-        }
 
         //private async void GerarFormaPagamento(CalculoFaturamentoParametroModel ParametrosCalculoFaturamento)
         //{

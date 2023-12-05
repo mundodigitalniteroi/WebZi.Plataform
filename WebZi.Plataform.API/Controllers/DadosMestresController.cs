@@ -373,7 +373,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<ServicoService>()
-                    .ListarReboqueAsync(IdentificadorCliente, IdentificadorDeposito);
+                    .ListReboqueAsync(IdentificadorCliente, IdentificadorDeposito);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -400,7 +400,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<ServicoService>()
-                    .ListarReboquistaAsync(IdentificadorCliente, IdentificadorDeposito);
+                    .ListReboquistaAsync(IdentificadorCliente, IdentificadorDeposito);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }

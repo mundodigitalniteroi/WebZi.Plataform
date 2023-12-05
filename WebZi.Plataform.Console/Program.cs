@@ -3,7 +3,9 @@ using Microsoft.EntityFrameworkCore;
 using System.Data;
 using System.Reflection.Metadata;
 using System.Text;
+using WebZi.Plataform.CrossCutting.Configuration;
 using WebZi.Plataform.CrossCutting.Secutity;
+using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Domain.Enums;
@@ -50,9 +52,11 @@ class Program
 
         // _context.SaveChanges();        
 
-        byte[] textoAsBytes = Encoding.ASCII.GetBytes("OEXTERMINADORDOFUTURO12345678901");
+        byte[] textoAsBytes = Encoding.ASCII.GetBytes("O_EXTERMINADOR#DO@FUTURO12345678");
 
         string key = Convert.ToBase64String(textoAsBytes);
+
+        key = AppSettingsHelper.GetValue("Segredo", "QRCode");
 
         string encrypted = CryptographyHelper.EncryptString(key, "TESTE");
 

@@ -144,6 +144,58 @@ namespace WebZi.Plataform.Data.Services.Localizacao
 
             Endereco.Append("/" + input.UF);
 
+            return Endereco.ToString();
+        }
+
+        public string FormatarEndereco(string TipoLogradouro, string Logradouro, string Numero, string Complemento, string Bairro, string Municipio, string UF)
+        {
+            StringBuilder Endereco = new();
+
+            if (!string.IsNullOrWhiteSpace(TipoLogradouro))
+            {
+                Endereco.Append(TipoLogradouro);
+
+                Endereco.Append(' ');
+            }
+
+            Endereco.Append(Logradouro);
+
+            if (string.IsNullOrWhiteSpace(Numero))
+            {
+                Endereco.Append(", S/N");
+            }
+            else
+            {
+                Endereco.Append(", " + Numero);
+            }
+
+            if (!string.IsNullOrWhiteSpace(Complemento))
+            {
+                Endereco.Append(", " + Complemento);
+            }
+
+            if (!string.IsNullOrWhiteSpace(Bairro))
+            {
+                if (string.IsNullOrWhiteSpace(Endereco.ToString()))
+                {
+                    Endereco.Append(Bairro);
+                }
+                else
+                {
+                    Endereco.Append(", " + Bairro);
+                }
+            }
+
+            if (string.IsNullOrWhiteSpace(Endereco.ToString()))
+            {
+                Endereco.Append(Municipio);
+            }
+            else
+            {
+                Endereco.Append(" - " + Municipio);
+            }
+
+            Endereco.Append("/" + UF);
 
             return Endereco.ToString();
         }

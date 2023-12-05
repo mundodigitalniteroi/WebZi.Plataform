@@ -30,6 +30,32 @@ namespace WebZi.Plataform.CrossCutting.Secutity
             return Convert.ToBase64String(array);
         }
 
+        //public static string EncryptString(byte[] key, string plainText)
+        //{
+        //    byte[] iv = new byte[16];
+        //    byte[] array;
+
+        //    using (Aes aes = Aes.Create())
+        //    {
+        //        aes.KeySize = 256;
+        //        aes.Key = Convert.FromBase64String(key);
+        //        aes.IV = iv;
+
+        //        ICryptoTransform encryptor = aes.CreateEncryptor(aes.Key, aes.IV);
+
+        //        using MemoryStream memoryStream = new();
+        //        using CryptoStream cryptoStream = new(memoryStream, encryptor, CryptoStreamMode.Write);
+        //        using (StreamWriter streamWriter = new(cryptoStream))
+        //        {
+        //            streamWriter.Write(plainText);
+        //        }
+
+        //        array = memoryStream.ToArray();
+        //    }
+
+        //    return Convert.ToBase64String(array);
+        //}
+
         public static string DecryptString(string key, string cipherText)
         {
             byte[] iv = new byte[16];

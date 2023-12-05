@@ -1,9 +1,15 @@
-﻿using System.Text.RegularExpressions;
+﻿using WebZi.Plataform.CrossCutting.Strings;
+using System.Text.RegularExpressions;
 
 namespace WebZi.Plataform.CrossCutting.Veiculo
 {
     public static class VeiculoHelper
     {
+        public static string FormatPlaca(string placa)
+        {
+                return placa.Left(3) + "-" + placa.Right(4);
+        }
+
         public static bool IsPlaca(string input)
         {
             string aux = input.Replace("-", "").Trim();

@@ -6,9 +6,7 @@ namespace WebZi.Plataform.CrossCutting.Localizacao
     {
         public static bool IsCEP(string cep)
         {
-            cep = cep.Replace("-", "").Trim();
-
-            return Regex.IsMatch(cep, @"^\d{5}-\d{3}|(\d{8})$");
+            return Regex.IsMatch(cep.Trim(), @"^\d{5}-\d{3}|(\d{8})$");
         }
 
         public static bool IsUF(string uf)

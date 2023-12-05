@@ -7,9 +7,7 @@ using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Usuario;
-using WebZi.Plataform.Domain.ViewModel.GRV.Pesquisa;
 using WebZi.Plataform.Domain.ViewModel.Usuario;
-using WebZi.Plataform.Domain.Views.Usuario;
 
 namespace WebZi.Plataform.Domain.Services.Usuario
 {
@@ -29,7 +27,7 @@ namespace WebZi.Plataform.Domain.Services.Usuario
             _mapper = mapper;
         }
 
-        private async Task<UsuarioViewModel> Get(int UsuarioId, string Login, string Password = "")
+        private async Task<UsuarioViewModel> GetAsync(int UsuarioId, string Login, string Password = "")
         {
             UsuarioViewModel ResultView = new();
 
@@ -141,12 +139,12 @@ namespace WebZi.Plataform.Domain.Services.Usuario
 
         public async Task<UsuarioViewModel> GetByIdAsync(int UsuarioId)
         {
-            return await Get(UsuarioId, string.Empty);
+            return await GetAsync(UsuarioId, string.Empty);
         }
 
         public async Task<UsuarioViewModel> GetByLoginAsync(string Login, string Password = "")
         {
-            return await Get(0, Login, Password);
+            return await GetAsync(0, Login, Password);
         }
 
         public bool IsUserActive(int UsuarioId)
@@ -157,92 +155,6 @@ namespace WebZi.Plataform.Domain.Services.Usuario
                 .FirstOrDefault();
 
             return Usuario != null && Usuario.FlagAtivo != "N";
-        }
-
-        public async Task<UsuarioClienteDepositoReboqueViewModelList> ListarUsuarioClienteDepositoReboque(int UsuarioId)
-        {
-            UsuarioClienteDepositoReboqueViewModelList ResultView = new();
-
-            List<ViewUsuarioClienteDepositoReboqueModel> result = await _context.ViewUsuarioClienteDepositoReboque
-                .Where(x => x.UsuarioId == UsuarioId)
-                .AsNoTracking()
-                .ToListAsync();
-
-            if (result?.Count > 0)
-            {
-                ResultView.Listagem = _mapper.Map<List<UsuarioClienteDepositoReboqueViewModel>>(result.OrderBy(o => o.ReboquePlaca).ToList());
-
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
-            }
-            else
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
-            }
-
-            return ResultView;
-        }
-        
-        public async Task<UsuarioClienteDepositoReboquistaViewModelList> ListarUsuarioClienteDepositoReboquista(int UsuarioId)
-        {
-            UsuarioClienteDepositoReboquistaViewModelList ResultView = new();
-
-            List<ViewUsuarioClienteDepositoReboquistaModel> result = await _context.ViewUsuarioClienteDepositoReboquista
-                .Where(x => x.UsuarioId == UsuarioId)
-                .AsNoTracking()
-                .ToListAsync();
-
-            if (result?.Count > 0)
-            {
-                ResultView.Listagem = _mapper.Map<List<UsuarioClienteDepositoReboquistaViewModel>>(result.OrderBy(o => o.ReboquistaNome).ToList());
-
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
-            }
-            else
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
-            }
-
-            return ResultView;
-        }
-
-        public async Task<ReboqueSimplificadoViewModelList> ListarUsuarioClienteDepositoReboqueSimplificada(int UsuarioId)
-        {
-            ReboqueSimplificadoViewModelList ResultView = new();
-
-            UsuarioClienteDepositoReboqueViewModelList result = await ListarUsuarioClienteDepositoReboque(UsuarioId);
-
-            if (result.Listagem?.Count > 0)
-            {
-                ResultView.Listagem = _mapper.Map<List<ReboqueSimplificadoViewModel>>(result.Listagem);
-
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Listagem.Count);
-            }
-            else
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
-            }
-
-            return ResultView;
-        }
-
-        public async Task<ReboquistaSimplificadoViewModelList> ListarUsuarioClienteDepositoReboquistaSimplificada(int UsuarioId)
-        {
-            ReboquistaSimplificadoViewModelList ResultView = new();
-
-            UsuarioClienteDepositoReboquistaViewModelList result = await ListarUsuarioClienteDepositoReboquista(UsuarioId);
-
-            if (result.Listagem?.Count > 0)
-            {
-                ResultView.Listagem = _mapper.Map<List<ReboquistaSimplificadoViewModel>>(result.Listagem);
-
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Listagem.Count);
-            }
-            else
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
-            }
-
-            return ResultView;
         }
     }
 }

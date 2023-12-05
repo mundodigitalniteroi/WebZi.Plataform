@@ -72,6 +72,11 @@ namespace WebZi.Plataform.Data.Database
             return AppSettingsHelper.GetConnectionString("DefaultConnection");
         }
 
+        public bool IsProd()
+        {
+            return AppSettingsHelper.GetConnectionString("DefaultConnection").Contains("Producao", StringComparison.CurrentCultureIgnoreCase);
+        }
+
         public void SetUserContextInfo(int UsuarioId)
         {
             Database.ExecuteSqlRaw($"EXECUTE dbo.sp_set_contextinfo {UsuarioId}");
@@ -314,6 +319,8 @@ namespace WebZi.Plataform.Data.Database
         public DbSet<ViewFaturamentoServicoGrvModel> ViewFaturamentoServicoGrv { get; set; }
 
         public DbSet<ViewGuiaPagamentoReboqueEstadiaModel> ViewGuiaPagamentoReboqueEstadia { get; set; }
+
+        public DbSet<ViewUsuarioModel> ViewUsuario { get; set; }
 
         public DbSet<ViewUsuarioClienteDepositoGrvModel> ViewUsuarioClienteDepositoGrv { get; set; }
 

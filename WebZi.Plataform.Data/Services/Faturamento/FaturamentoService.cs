@@ -1049,5 +1049,33 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             return ResultView;
         }
+
+        public async Task<int> GetUltimoFaturamentoId(int GrvId)
+        {
+            GrvModel Grv = await _context.Grv
+                .Include(x => x.Atendimento)
+                .Where(x => x.GrvId == GrvId)
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
+
+            if (Grv == null)
+            {
+                return 0;
+            }
+
+            int? FaturamentoId = await _context.Faturamento
+                .Where(x => x.AtendimentoId == Grv.Atendimento.AtendimentoId && x.Status != "C")
+                .AsNoTracking()
+                .OrderByDescending(x => x.FaturamentoId)
+                .Select(x => x.FaturamentoId)
+                .FirstOrDefaultAsync();
+
+            if (FaturamentoId == null)
+            {
+                return 0;
+            }
+
+            return FaturamentoId.Value;
+        }
     }
 }

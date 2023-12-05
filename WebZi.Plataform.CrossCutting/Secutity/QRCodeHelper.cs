@@ -4,7 +4,7 @@ namespace WebZi.Plataform.CrossCutting.Secutity
 {
     public static class QRCodeHelper
     {
-        public static byte[] CreateAsByteArray(string QRCodeValue, string imageFormat = "JPG")
+        public static byte[] CreateImageAsByteArray(string QRCodeValue, string imageFormat = "JPG")
         {
             GeneratedBarcode GeneratedBarcode = QRCodeWriter.CreateQrCode(QRCodeValue);
 

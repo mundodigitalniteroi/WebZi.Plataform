@@ -8,14 +8,19 @@ namespace WebZi.Plataform.CrossCutting.Strings
     {
         public static string GetNumbersFromString(this string input) => string.IsNullOrWhiteSpace(input) ? input : Regex.Replace(input, @"[^\d]", string.Empty);
 
-        public static string Left(string input, int lengh)
+        public static string Left(this string input, int lengh)
         {
             return input[..lengh];
         }
 
-        public static string Right(string input, int lengh)
+        public static string Right(this string input, int lengh)
         {
             return input.Substring(input.Length - lengh, lengh);
+        }
+
+        public static bool IsNullOrWhiteSpace(this string input)
+        {
+            return string.IsNullOrWhiteSpace(input);
         }
 
         public static string Mid(string input, int index, int lengh)
@@ -81,6 +86,11 @@ namespace WebZi.Plataform.CrossCutting.Strings
             }
 
             return string.Join(" ", words);
+        }
+
+        public static int ToInt(this string input)
+        {
+            return int.Parse(input);
         }
 
         public static string RemoveString(this string input, string oldValue)

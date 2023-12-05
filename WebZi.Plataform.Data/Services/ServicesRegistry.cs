@@ -10,6 +10,7 @@ using WebZi.Plataform.Data.Services.Empresa;
 using WebZi.Plataform.Data.Services.Faturamento;
 using WebZi.Plataform.Data.Services.GGV;
 using WebZi.Plataform.Data.Services.Leilao;
+using WebZi.Plataform.Data.Services.Liberacao;
 using WebZi.Plataform.Data.Services.Localizacao;
 using WebZi.Plataform.Data.Services.Pessoa;
 using WebZi.Plataform.Data.Services.Servico;
@@ -64,6 +65,8 @@ namespace WebZi.Plataform.Data.Services
             services.AddScoped<GrvService>();
 
             services.AddScoped<LeilaoService>();
+
+            services.AddScoped<LiberacaoService>();
 
             services.AddScoped<PessoaService>();
 

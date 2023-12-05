@@ -78,6 +78,8 @@
 
         public string FaturamentoDataVencimento { get; set; }
 
+        public string PrazoRetiradaVeiculo { get; set; }
+
 
         public int QuantidadeEstadias { get; set; }
 
