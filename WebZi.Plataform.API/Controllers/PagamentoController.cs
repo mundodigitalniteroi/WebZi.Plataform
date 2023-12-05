@@ -28,7 +28,7 @@ namespace WebZi.Plataform.API.Controllers
 
             MensagemViewModel mensagem = await _provider
                 .GetService<AtendimentoService>()
-                .ValidarInformacoesParaPagamentoAsync(Atendimento);
+                .CheckInformacoesParaPagamentoAsync(Atendimento);
 
             if (mensagem.Erros.Count == 0)
             {

@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-using System;
 using WebZi.Plataform.CrossCutting.Configuration;
 using WebZi.Plataform.CrossCutting.Date;
 using WebZi.Plataform.CrossCutting.Documents;
@@ -18,7 +17,6 @@ using WebZi.Plataform.Data.Services.Localizacao;
 using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.GRV;
 using WebZi.Plataform.Domain.Models.Localizacao;
-using WebZi.Plataform.Domain.Models.Sistema;
 using WebZi.Plataform.Domain.Services.GRV;
 using WebZi.Plataform.Domain.ViewModel.Faturamento;
 using WebZi.Plataform.Domain.ViewModel.Generic;
@@ -50,7 +48,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
             GuiaAutorizacaoRetiradaVeiculoViewModel ResultView = new()
             {
                 Mensagem = new GrvService(_context)
-                    .ValidarInputGrv(GrvId, UsuarioId)
+                    .ValidateInputGrv(GrvId, UsuarioId)
             };
 
             if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
@@ -58,11 +56,33 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                 return ResultView;
             }
 
-            int FaturamentoId = await new FaturamentoService(_context).GetUltimoFaturamentoId(GrvId);
+            GrvModel Grv = await _context.Grv
+                .Include(x => x.StatusOperacao)
+                .Include(x => x.Cliente)
+                .Include(x => x.Liberacao)
+                .Where(x => x.GrvId == GrvId)
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
+
+            if (Grv.StatusOperacaoId is not "R" and not "T" and not "E")
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest($"O Status atual deste GRV não permite a geração do Documento. Status atual: {Grv.StatusOperacao.Descricao}");
+
+                return ResultView;
+            }
+            else if (Grv.StatusOperacaoId == "E")
+            {
+                if (DateTime.Now.Date > Grv.Liberacao.DataCadastro.Date)
+                {
+                    ResultView.Mensagem.Alertas.Add($"Este GRV foi entregue em {Grv.Liberacao.DataCadastro:dd/MM/yyyy}, as informações impressas no Documento estão desatualizadas");
+                }
+            }
+
+            int FaturamentoId = await new FaturamentoService(_context).GetUltimoFaturamentoIdAsync(GrvId);
 
             if (FaturamentoId == 0)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound("Faturamento não encontrado");
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound("Faturamento não encontrado");
 
                 return ResultView;
             }
@@ -72,7 +92,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
 
             if (GuiaPagamentoReboqueEstadia == null)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound("Informações para a Guia de Autorização para a Retirada do Veículo não encontradas");
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound("Informações para a geração da Guia de Autorização para a Retirada do Veículo não encontradas");
 
                 return ResultView;
             }
@@ -81,32 +101,29 @@ namespace WebZi.Plataform.Data.Services.Liberacao
 
             ResultView.ClienteEndereco = GuiaPagamentoReboqueEstadia.ClienteEndereco;
 
-            ResultView.DadosCodigoAutorizacao = GuiaPagamentoReboqueEstadia.FaturamentoNumeroIdentificacao;
+            ResultView.DadosCodigoAutorizacao = "Link para validação";
 
             ResultView.DadosProcessoGrv = "Dados do Processo GRV: " + GuiaPagamentoReboqueEstadia.NumeroFormularioGrv + " - " + "Depósito: " + GuiaPagamentoReboqueEstadia.DepositoNome;
 
             ResultView.DadosTipoProcesso = "REGISTRO DE APREENSÃO";
 
-            ResultView.DadosReboque = !string.IsNullOrWhiteSpace(GuiaPagamentoReboqueEstadia.ReboquePlaca) ? VeiculoHelper.FormatPlaca(GuiaPagamentoReboqueEstadia.ReboquePlaca) : string.Empty;
+            ResultView.DadosReboque = !string.IsNullOrWhiteSpace(GuiaPagamentoReboqueEstadia.ReboquePlaca) ? 
+                VeiculoHelper.FormatPlaca(GuiaPagamentoReboqueEstadia.ReboquePlaca) : 
+                string.Empty;
 
             ResultView.DadosDataEntrada = GuiaPagamentoReboqueEstadia.DataHoraGuarda.Left(10);
 
             ResultView.DadosHoraEntrada = GuiaPagamentoReboqueEstadia.DataHoraGuarda.Right(5);
 
-            if (GuiaPagamentoReboqueEstadia.QuantidadeEstadias == 1)
-            {
-                ResultView.DadosPermanencia = GuiaPagamentoReboqueEstadia.QuantidadeEstadias.ToString() + " dia";
-            }
-            else
-            {
-                ResultView.DadosPermanencia = GuiaPagamentoReboqueEstadia.QuantidadeEstadias.ToString() + " dias";
-            }
+            ResultView.DadosPermanencia = GuiaPagamentoReboqueEstadia.QuantidadeEstadias == 1 ? 
+                GuiaPagamentoReboqueEstadia.QuantidadeEstadias.ToString() + " dia" : 
+                GuiaPagamentoReboqueEstadia.QuantidadeEstadias.ToString() + " dias";
 
             ResultView.DadosAutorizadaRetiradaVeiculoEm = GuiaPagamentoReboqueEstadia.FaturamentoDataVencimento.Left(10);
 
             ResultView.VeiculoMarcaModelo = GuiaPagamentoReboqueEstadia.MarcaModelo;
 
-            ResultView.VeiculoPlaca = GuiaPagamentoReboqueEstadia.Placa;
+            ResultView.VeiculoPlaca = VeiculoHelper.FormatPlaca(GuiaPagamentoReboqueEstadia.Placa);
 
             ResultView.VeiculoRenavam = GuiaPagamentoReboqueEstadia.Renavam;
 
@@ -122,11 +139,11 @@ namespace WebZi.Plataform.Data.Services.Liberacao
 
             ResultView.ProprietarioCpf = "CPF: " + GuiaPagamentoReboqueEstadia.AtendimentoResponsavelDocumento;
 
-            ResultView.GrvEstacionamentoSetor = GuiaPagamentoReboqueEstadia.EstacionamentoSetor;
+            ResultView.GrvEstacionamentoSetor = !GuiaPagamentoReboqueEstadia.EstacionamentoSetor.IsNullOrWhiteSpace() ? GuiaPagamentoReboqueEstadia.EstacionamentoSetor : "Não informado";
 
-            ResultView.GrvEstacionamentoNumeroVaga = GuiaPagamentoReboqueEstadia.EstacionamentoNumeroVaga;
+            ResultView.GrvEstacionamentoNumeroVaga = !GuiaPagamentoReboqueEstadia.EstacionamentoNumeroVaga.IsNullOrWhiteSpace() ? GuiaPagamentoReboqueEstadia.EstacionamentoNumeroVaga : "Não informado";
 
-            ResultView.GrvNumeroChave = GuiaPagamentoReboqueEstadia.NumeroChave;
+            ResultView.GrvNumeroChave = GuiaPagamentoReboqueEstadia.NumeroChave.IsNullOrWhiteSpace() ? GuiaPagamentoReboqueEstadia.NumeroChave : "Não informado";
 
             ViewUsuarioModel Usuario = await _context.ViewUsuario
                 .Where(x => x.UsuarioId == UsuarioId)
@@ -169,12 +186,6 @@ namespace WebZi.Plataform.Data.Services.Liberacao
             }
             #endregion FORMA DE LIBERAÇÃO
 
-            GrvModel Grv = await _context.Grv
-                .Include(x => x.Cliente)
-                .Where(x => x.GrvId == GrvId)
-                .AsNoTracking()
-                .FirstOrDefaultAsync();
-
             // LOGOMARCA
             ImageViewModelList Listagem = await new ClienteService(_context, _mapper, _httpClientFactory)
                 .GetLogomarcaAsync(Grv.ClienteId);
@@ -192,7 +203,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
 
             ResultView.QRCode = QRCodeHelper.CreateImageAsByteArray(encrypted, "PNG");
 
-            ResultView.Mensagem = MensagemViewHelper.GetOk("Documento gerado com sucesso");
+            ResultView.Mensagem = MensagemViewHelper.SetOk(ResultView.Mensagem, "Documento gerado com sucesso");
 
             return ResultView;
         }
@@ -203,7 +214,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
 
             if (input.IsNullOrWhiteSpace())
             {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest("Parâmetro inválido");
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Parâmetro inválido");
 
                 return ResultView;
             }
@@ -218,7 +229,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
             }
             catch (Exception)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest("Parâmetro inválido");
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Parâmetro inválido");
 
                 return ResultView;
             }
@@ -227,21 +238,15 @@ namespace WebZi.Plataform.Data.Services.Liberacao
 
             if (splitted.Length != 3 || !NumberHelper.IsNumber(splitted[0]) || !DateTimeHelper.IsDate(splitted[1] + splitted[2], "yyyyMMddHH:mm:ss"))
             {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest("Parâmetro inválido");
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Parâmetro inválido");
 
                 return ResultView;
             }
-            //else if (!NumberHelper.IsNumber(splitted[0]) || !NumberHelper.IsNumber(splitted[1]) || !DateTimeHelper.IsDate(splitted[2] + splitted[3], "yyyyMMddHH:mm:ss"))
-            //{
-            //    ResultView.Mensagem = MensagemViewHelper.GetBadRequest("Parâmetro inválido");
-
-            //    return ResultView;
-            //}
 
             ResultView = new()
             {
                 Mensagem = new GrvService(_context)
-                    .ValidarInputGrv(splitted[0].ToInt(), UsuarioId)
+                    .ValidateInputGrv(splitted[0].ToInt(), UsuarioId)
             };
 
             if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
@@ -250,6 +255,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
             }
 
             GrvModel Grv = await _context.Grv
+                .Include(x => x.StatusOperacao)
                 .Include(x => x.Cliente)
                 .Include(x => x.Deposito)
                 .ThenInclude(x => x.Endereco)
@@ -263,9 +269,16 @@ namespace WebZi.Plataform.Data.Services.Liberacao
 
             if (Grv == null)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest(MensagemPadraoEnum.NaoEncontradoGrv);
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest(MensagemPadraoEnum.NaoEncontradoGrv);
 
                 return ResultView;
+            }
+            else if (Grv.StatusOperacaoId == "E")
+            {
+                if (DateTime.Now.Date > Grv.Liberacao.DataCadastro.Date)
+                {
+                    ResultView.Mensagem.Alertas.Add($"Este GRV foi entregue em {Grv.Liberacao.DataCadastro:dd/MM/yyyy}");
+                }
             }
 
             string EnderecoDeposito = string.Empty;
@@ -288,17 +301,31 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                         .FirstOrDefaultAsync();
 
                     EnderecoDeposito = new EnderecoService(_context, _mapper)
-                        .FormatarEndereco(string.Empty, Grv.Deposito.Logradouro, Grv.Deposito.NumeroEndereco, Grv.Deposito.ComplementoEndereco, Bairro.NomePtbr, Bairro.Municipio.NomePtbr, Bairro.Municipio.UF);
+                        .FormatarEndereco(string.Empty,
+                                          Grv.Deposito.Logradouro,
+                                          Grv.Deposito.NumeroEndereco,
+                                          Grv.Deposito.ComplementoEndereco,
+                                          Bairro.NomePtbr,
+                                          Bairro.Municipio.NomePtbr,
+                                          Bairro.Municipio.UF);
                 }
                 else
                 {
                     EnderecoDeposito = new EnderecoService(_context, _mapper)
-                        .FormatarEndereco(string.Empty, Grv.Deposito.Logradouro, Grv.Deposito.NumeroEndereco, Grv.Deposito.ComplementoEndereco, string.Empty, string.Empty, string.Empty);
+                        .FormatarEndereco(string.Empty,
+                                          Grv.Deposito.Logradouro,
+                                          Grv.Deposito.NumeroEndereco,
+                                          Grv.Deposito.ComplementoEndereco,
+                                          string.Empty,
+                                          string.Empty,
+                                          string.Empty);
                 }
             }
 
             ResultView = new()
             {
+                IdentificadorGrv = splitted[0].ToInt(),
+
                 Cliente = Grv.Cliente.Nome,
 
                 Deposito = Grv.Deposito.Nome,
@@ -335,8 +362,8 @@ namespace WebZi.Plataform.Data.Services.Liberacao
 
                 PessoaResponsavelLiberacao = Grv.Atendimento.ResponsavelNome,
 
-                DocumentoPessoaResponsavelLiberacao = Grv.Atendimento.ResponsavelDocumento.Length == 11 ? 
-                    DocumentHelper.FormatCPF(Grv.Atendimento.ResponsavelDocumento) : 
+                DocumentoPessoaResponsavelLiberacao = Grv.Atendimento.ResponsavelDocumento.Length == 11 ?
+                    DocumentHelper.FormatCPF(Grv.Atendimento.ResponsavelDocumento) :
                     DocumentHelper.FormatCNPJ(Grv.Atendimento.ResponsavelDocumento),
 
                 ResponsavelNome = Grv.Atendimento.ResponsavelNome,
@@ -353,7 +380,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
 
                 FormaLiberacaoPlaca = Grv.Atendimento.FormaLiberacaoPlaca,
 
-                Mensagem = MensagemViewHelper.GetOk()
+                Mensagem = MensagemViewHelper.SetOk()
             };
 
             if (Grv.ListagemLacre?.Count > 0)

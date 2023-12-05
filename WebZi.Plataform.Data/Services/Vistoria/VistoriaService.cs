@@ -2,10 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
-using WebZi.Plataform.Data.Services.Sistema;
-using WebZi.Plataform.Domain.Models.Sistema;
 using WebZi.Plataform.Domain.Models.Vistoria;
-using WebZi.Plataform.Domain.ViewModel;
 using WebZi.Plataform.Domain.ViewModel.Vistoria;
 
 namespace WebZi.Plataform.Data.Services.Vistoria
@@ -21,7 +18,7 @@ namespace WebZi.Plataform.Data.Services.Vistoria
             _mapper = mapper;
         }
 
-        public async Task<VistoriaStatusViewModelList> ListarStatusVistoriaAsync()
+        public async Task<VistoriaStatusViewModelList> ListStatusVistoriaAsync()
         {
             VistoriaStatusViewModelList ResultView = new();
 
@@ -42,12 +39,12 @@ namespace WebZi.Plataform.Data.Services.Vistoria
                 });
             }
 
-            ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
+            ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
 
             return ResultView;
         }
 
-        public async Task<VistoriaSituacaoChassiViewModelList> ListarSituacaoChassiAsync()
+        public async Task<VistoriaSituacaoChassiViewModelList> ListSituacaoChassiAsync()
         {
             VistoriaSituacaoChassiViewModelList ResultView = new();
 
@@ -59,7 +56,7 @@ namespace WebZi.Plataform.Data.Services.Vistoria
                 .OrderBy(o => o.Descricao)
                 .ToList());
 
-            ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
+            ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
 
             return ResultView;
         }

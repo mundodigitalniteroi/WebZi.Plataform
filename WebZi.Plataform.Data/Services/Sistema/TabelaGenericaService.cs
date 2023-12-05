@@ -39,16 +39,6 @@ namespace WebZi.Plataform.Data.Services.Sistema
                 .FirstOrDefaultAsync();
         }
 
-        public string GetValorCadastro(int TabelaGenericaId)
-        {
-            TabelaGenericaModel result = _context.TabelaGenerica
-                .Where(x => x.TabelaGenericaId == TabelaGenericaId)
-                .AsNoTracking()
-                .FirstOrDefault();
-
-            return result != null ? result.ValorCadastro : string.Empty;
-        }
-
         public async Task<string> GetValorCadastroAsync(int TabelaGenericaId)
         {
             TabelaGenericaModel result = await _context.TabelaGenerica
@@ -57,19 +47,6 @@ namespace WebZi.Plataform.Data.Services.Sistema
                 .FirstOrDefaultAsync();
 
             return result != null ? result.ValorCadastro : string.Empty;
-        }
-
-        public List<TabelaGenericaModel> List(string Codigo)
-        {
-            List<TabelaGenericaModel> result = _context.TabelaGenerica
-                .Where(x => x.Codigo == Codigo)
-                .AsNoTracking()
-                .ToList();
-
-            return result?.Count > 0 ? result
-                .OrderBy(x => x.Sequencia)
-                .ThenBy(x => x.Descricao)
-                .ToList() : null;
         }
 
         /// <summary>
@@ -99,7 +76,7 @@ namespace WebZi.Plataform.Data.Services.Sistema
 
             if (result?.Count == 0)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound();
 
                 return ResultView;
             }
@@ -107,7 +84,7 @@ namespace WebZi.Plataform.Data.Services.Sistema
             ResultView.Listagem = _mapper
                 .Map<List<TabelaGenericaViewModel>>(result);
 
-            ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
+            ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
 
             return ResultView;
         }

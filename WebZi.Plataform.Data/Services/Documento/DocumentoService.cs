@@ -20,19 +20,19 @@ namespace WebZi.Plataform.Data.Services.Documento
             _mapper = mapper;
         }
 
-        public async Task<OrgaoEmissorViewModelList> ListarOrgaoEmissorAsync(string UF)
+        public async Task<OrgaoEmissorViewModelList> ListOrgaoEmissorAsync(string UF)
         {
             OrgaoEmissorViewModelList ResultView = new();
 
             if (string.IsNullOrWhiteSpace(UF))
             {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest("Informe a Unidade Federativa");
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Informe a Unidade Federativa");
 
                 return ResultView;
             }
             else if (!LocalizacaoHelper.IsUF(UF))
             {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest("Unidade Federativa inválida");
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Unidade Federativa inválida");
 
                 return ResultView;
             }
@@ -44,7 +44,7 @@ namespace WebZi.Plataform.Data.Services.Documento
 
             if (result == null)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound("Unidade Federativa sem Órgão Emissor cadastrado");
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound("Unidade Federativa sem Órgão Emissor cadastrado");
 
                 return ResultView;
             }
@@ -55,11 +55,11 @@ namespace WebZi.Plataform.Data.Services.Documento
                     .OrderBy(o => o.Descricao)
                     .ToList());
 
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
+                ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
             }
             else
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound();
             }
 
             return ResultView;

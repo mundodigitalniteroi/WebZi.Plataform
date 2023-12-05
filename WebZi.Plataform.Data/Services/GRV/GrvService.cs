@@ -76,9 +76,9 @@ namespace WebZi.Plataform.Domain.Services.GRV
             _httpClientFactory = httpClientFactory;
         }
 
-        public async Task<MensagemViewModel> InsertAssinaturaAgente(int GrvId, int UsuarioId, byte[] Imagem)
+        public async Task<MensagemViewModel> CreateAssinaturaAgenteAsync(int GrvId, int UsuarioId, byte[] Imagem)
         {
-            MensagemViewModel ResultView = ValidarInputGrv(GrvId, UsuarioId);
+            MensagemViewModel ResultView = ValidateInputGrv(GrvId, UsuarioId);
 
             if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
             {
@@ -87,14 +87,14 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (Imagem == null)
             {
-                return MensagemViewHelper.GetBadRequest("Nenhuma imagem enviada para a API");
+                return MensagemViewHelper.SetBadRequest("Nenhuma imagem enviada para a API");
             }
 
-            GrvModel Grv = await GetGrvAsync(GrvId);
+            GrvModel Grv = await GetByIdAsync(GrvId);
 
             if (Grv.StatusOperacao.StatusOperacaoId != "G")
             {
-                return MensagemViewHelper.GetBadRequest($"O Status atual deste GRV não permite o envio da Imagem da Assinatura do Agente. Status atual: {Grv.StatusOperacao.Descricao}");
+                return MensagemViewHelper.SetBadRequest($"O Status atual deste GRV não permite o envio da Imagem da Assinatura do Agente. Status atual: {Grv.StatusOperacao.Descricao}");
             }
 
             BucketArquivoModel BucketArquivo = await _context.BucketArquivo
@@ -105,18 +105,18 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (BucketArquivo != null)
             {
-                return MensagemViewHelper.GetBadRequest("Já existe uma Imagem da Assinatura do Agente cadastrada");
+                return MensagemViewHelper.SetBadRequest("Já existe uma Imagem da Assinatura do Agente cadastrada");
             }
 
             new BucketArquivoService(_context, _httpClientFactory)
                 .SendFile("GRVASSINAAGENTE", GrvId, UsuarioId, Imagem);
 
-            return MensagemViewHelper.GetOkCreate();
+            return MensagemViewHelper.SetCreateSuccess();
         }
 
-        public async Task<MensagemViewModel> InsertAssinaturaCondutor(int GrvId, int UsuarioId, byte[] Imagem)
+        public async Task<MensagemViewModel> CreateAssinaturaCondutorAsync(int GrvId, int UsuarioId, byte[] Imagem)
         {
-            MensagemViewModel ResultView = ValidarInputGrv(GrvId, UsuarioId);
+            MensagemViewModel ResultView = ValidateInputGrv(GrvId, UsuarioId);
 
             if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
             {
@@ -125,14 +125,14 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (Imagem == null)
             {
-                return MensagemViewHelper.GetBadRequest("Nenhuma imagem enviada para a API");
+                return MensagemViewHelper.SetBadRequest("Nenhuma imagem enviada para a API");
             }
 
-            GrvModel Grv = await GetGrvAsync(GrvId);
+            GrvModel Grv = await GetByIdAsync(GrvId);
 
             if (Grv.StatusOperacao.StatusOperacaoId != "G")
             {
-                return MensagemViewHelper.GetBadRequest($"O Status atual deste GRV não permite o envio da Imagem da Assinatura do Condutor. Status atual: {Grv.StatusOperacao.Descricao}");
+                return MensagemViewHelper.SetBadRequest($"O Status atual deste GRV não permite o envio da Imagem da Assinatura do Condutor. Status atual: {Grv.StatusOperacao.Descricao}");
             }
 
             BucketArquivoModel BucketArquivo = await _context.BucketArquivo
@@ -143,16 +143,16 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (BucketArquivo != null)
             {
-                return MensagemViewHelper.GetBadRequest("Já existe uma Imagem da Assinatura do Condutor cadastrada");
+                return MensagemViewHelper.SetBadRequest("Já existe uma Imagem da Assinatura do Condutor cadastrada");
             }
 
             new BucketArquivoService(_context, _httpClientFactory)
                 .SendFile("GRVASSINACONDUT", GrvId, UsuarioId, Imagem);
 
-            return MensagemViewHelper.GetOkCreate();
+            return MensagemViewHelper.SetCreateSuccess();
         }
 
-        public ResultadoCadastroGrvViewModel InsertGrv(CadastroGrvViewModel GrvPersistencia)
+        public ResultadoCadastroGrvViewModel CreateGrv(CadastroGrvViewModel GrvPersistencia)
         {
             GrvModel Grv = new()
             {
@@ -370,7 +370,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 {
                     transaction.Rollback();
 
-                    ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+                    ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
 
                     return ResultView;
                 }
@@ -378,7 +378,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (GrvPersistencia.ListagemDocumentoCondutor?.Count > 0)
             {
-                InsertDocumentosCondutor(Grv.GrvId, Grv.UsuarioCadastroId, GrvPersistencia.ListagemDocumentoCondutor);
+                CreateDocumentosCondutor(Grv.GrvId, Grv.UsuarioCadastroId, GrvPersistencia.ListagemDocumentoCondutor);
             }
 
             if (GrvPersistencia.ListagemFoto?.Count > 0)
@@ -399,12 +399,12 @@ namespace WebZi.Plataform.Domain.Services.GRV
                     .SendFile("GRVASSINACONDUT", Grv.GrvId, Grv.UsuarioCadastroId, GrvPersistencia.ImagemAssinaturaAgente);
             }
 
-            ResultView.Mensagem = MensagemViewHelper.GetOkCreate();
+            ResultView.Mensagem = MensagemViewHelper.SetCreateSuccess();
 
             return ResultView;
         }
 
-        private void InsertDocumentosCondutor(int GrvId, int UsuarioId, List<CadastroCondutorDocumentoViewModel> ListagemDocumentoCondutor)
+        private void CreateDocumentosCondutor(int GrvId, int UsuarioId, List<CadastroCondutorDocumentoViewModel> ListagemDocumentoCondutor)
         {
             List<BucketListaCadastroModel> Files = new();
 
@@ -437,9 +437,9 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 .SendFiles("GRV_DOCCONDUTOR", UsuarioId, Files);
         }
 
-        public MensagemViewModel InsertDocumentosCondutor(CadastroCondutorDocumentoViewModelList ListagemDocumentoCondutor)
+        public MensagemViewModel CreateDocumentosCondutor(CadastroCondutorDocumentoViewModelList ListagemDocumentoCondutor)
         {
-            MensagemViewModel ResultView = ValidarInputGrv(ListagemDocumentoCondutor.IdentificadorGrv, ListagemDocumentoCondutor.IdentificadorUsuario);
+            MensagemViewModel ResultView = ValidateInputGrv(ListagemDocumentoCondutor.IdentificadorGrv, ListagemDocumentoCondutor.IdentificadorUsuario);
 
             if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
             {
@@ -448,24 +448,24 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (ListagemDocumentoCondutor.ListagemDocumentoCondutor?.Count == 0)
             {
-                return MensagemViewHelper.GetBadRequest("Nenhuma imagem enviada para a API");
+                return MensagemViewHelper.SetBadRequest("Nenhuma imagem enviada para a API");
             }
 
-            GrvModel Grv = GetGrv(ListagemDocumentoCondutor.IdentificadorGrv);
+            GrvModel Grv = GetById(ListagemDocumentoCondutor.IdentificadorGrv);
 
             if (!new[] { "G", "V", "L", "U", "T", "R", "E", "B", "D", "1", "2", "3", "4" }.Contains(Grv.StatusOperacao.StatusOperacaoId))
             {
-                return MensagemViewHelper.GetBadRequest($"O Status atual deste GRV não permite o envio de Fotos. Status atual: {Grv.StatusOperacao.Descricao}");
+                return MensagemViewHelper.SetBadRequest($"O Status atual deste GRV não permite o envio de Fotos. Status atual: {Grv.StatusOperacao.Descricao}");
             }
 
-            InsertDocumentosCondutor(ListagemDocumentoCondutor.IdentificadorGrv, ListagemDocumentoCondutor.IdentificadorUsuario, ListagemDocumentoCondutor.ListagemDocumentoCondutor);
+            CreateDocumentosCondutor(ListagemDocumentoCondutor.IdentificadorGrv, ListagemDocumentoCondutor.IdentificadorUsuario, ListagemDocumentoCondutor.ListagemDocumentoCondutor);
 
-            return MensagemViewHelper.GetOkCreate(ListagemDocumentoCondutor.ListagemDocumentoCondutor.Count);
+            return MensagemViewHelper.SetCreateSuccess(ListagemDocumentoCondutor.ListagemDocumentoCondutor.Count);
         }
 
-        public MensagemViewModel InsertFotos(CadastroFotoGrvViewModel Fotos)
+        public MensagemViewModel CreateFotos(CadastroFotoGrvViewModel Fotos)
         {
-            MensagemViewModel ResultView = ValidarInputGrv(Fotos.IdentificadorGrv, Fotos.IdentificadorUsuario);
+            MensagemViewModel ResultView = ValidateInputGrv(Fotos.IdentificadorGrv, Fotos.IdentificadorUsuario);
 
             if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
             {
@@ -474,25 +474,25 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (Fotos.Fotos.Count == 0)
             {
-                return MensagemViewHelper.GetBadRequest("Nenhuma imagem enviada para a API");
+                return MensagemViewHelper.SetBadRequest("Nenhuma imagem enviada para a API");
             }
 
-            GrvModel Grv = GetGrv(Fotos.IdentificadorGrv);
+            GrvModel Grv = GetById(Fotos.IdentificadorGrv);
 
             if (!new[] { "G", "V", "L", "U", "T", "R", "E", "B", "D", "1", "2", "3", "4" }.Contains(Grv.StatusOperacao.StatusOperacaoId))
             {
-                return MensagemViewHelper.GetBadRequest($"O Status atual deste GRV não permite o envio de Fotos. Status atual: {Grv.StatusOperacao.Descricao}");
+                return MensagemViewHelper.SetBadRequest($"O Status atual deste GRV não permite o envio de Fotos. Status atual: {Grv.StatusOperacao.Descricao}");
             }
 
             new BucketArquivoService(_context, _httpClientFactory)
                 .SendFiles("GRVFOTOSVEICCAD", Fotos.IdentificadorGrv, Fotos.IdentificadorUsuario, Fotos.Fotos);
 
-            return MensagemViewHelper.GetOkCreate(Fotos.Fotos.Count);
+            return MensagemViewHelper.SetCreateSuccess(Fotos.Fotos.Count);
         }
 
-        public async Task<MensagemViewModel> InsertLacresAsync(int GrvId, int UsuarioId, List<string> ListagemLacre)
+        public async Task<MensagemViewModel> CreateLacresAsync(int GrvId, int UsuarioId, List<string> ListagemLacre)
         {
-            MensagemViewModel ResultView = ValidarInputGrv(GrvId, UsuarioId);
+            MensagemViewModel ResultView = ValidateInputGrv(GrvId, UsuarioId);
 
             if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
             {
@@ -501,7 +501,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (ListagemLacre.Count == 0)
             {
-                return MensagemViewHelper.GetBadRequest("Informe os Lacres");
+                return MensagemViewHelper.SetBadRequest("Informe os Lacres");
             }
 
             ListagemLacre = ListagemLacre
@@ -510,11 +510,11 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 .OrderBy(x => x)
                 .ToList();
 
-            GrvModel Grv = await GetGrvAsync(GrvId);
+            GrvModel Grv = await GetByIdAsync(GrvId);
 
             if (!new[] { "E", "G", "L", "R", "T", "U", "V" }.Contains(Grv.StatusOperacaoId))
             {
-                return MensagemViewHelper.GetBadRequest($"O Status atual deste GRV não permite o cadastro de Lacres. Status atual: {Grv.StatusOperacao.Descricao}");
+                return MensagemViewHelper.SetBadRequest($"O Status atual deste GRV não permite o cadastro de Lacres. Status atual: {Grv.StatusOperacao.Descricao}");
             }
 
             List<LacreModel> Lacres = await _context.Lacre
@@ -535,7 +535,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                     erros.Add(item.Lacre);
                 }
 
-                return MensagemViewHelper.GetBadRequest(erros);
+                return MensagemViewHelper.SetBadRequest(erros);
             }
 
             using (IDbContextTransaction transaction = _context.Database.BeginTransaction())
@@ -562,27 +562,27 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 {
                     transaction.Rollback();
 
-                    return MensagemViewHelper.GetInternalServerError(ex);
+                    return MensagemViewHelper.SetInternalServerError(ex);
                 }
             }
 
-            return MensagemViewHelper.GetOkCreate(ListagemLacre.Count, "Lacre(s) cadastrado(s) com sucesso");
+            return MensagemViewHelper.SetCreateSuccess(ListagemLacre.Count, "Lacre(s) cadastrado(s) com sucesso");
         }
 
-        public async Task<MensagemViewModel> DeleteAssinaturaAgente(int GrvId, int UsuarioId)
+        public async Task<MensagemViewModel> DeleteAssinaturaAgenteAsync(int GrvId, int UsuarioId)
         {
-            MensagemViewModel ResultView = ValidarInputGrv(GrvId, UsuarioId);
+            MensagemViewModel ResultView = ValidateInputGrv(GrvId, UsuarioId);
 
             if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
             {
                 return ResultView;
             }
 
-            GrvModel Grv = await GetGrvAsync(GrvId);
+            GrvModel Grv = await GetByIdAsync(GrvId);
 
             if (Grv.StatusOperacao.StatusOperacaoId != "G")
             {
-                return MensagemViewHelper.GetBadRequest($"O Status atual deste GRV não permite a exclusão da Imagem da Assinatura do Agente. Status atual: {Grv.StatusOperacao.Descricao}");
+                return MensagemViewHelper.SetBadRequest($"O Status atual deste GRV não permite a exclusão da Imagem da Assinatura do Agente. Status atual: {Grv.StatusOperacao.Descricao}");
             }
 
             BucketArquivoModel BucketArquivo = await _context.BucketArquivo
@@ -593,29 +593,29 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (BucketArquivo == null)
             {
-                return MensagemViewHelper.GetBadRequest("Registro da Imagem da Assinatura do Agente inexistente");
+                return MensagemViewHelper.SetBadRequest("Registro da Imagem da Assinatura do Agente inexistente");
             }
 
             new BucketArquivoService(_context, _httpClientFactory)
                 .DeleteFile(BucketArquivo.RepositorioArquivoId);
 
-            return MensagemViewHelper.GetOkDelete();
+            return MensagemViewHelper.SetDeleteSuccess();
         }
 
-        public async Task<MensagemViewModel> DeleteAssinaturaCondutor(int GrvId, int UsuarioId)
+        public async Task<MensagemViewModel> DeleteAssinaturaCondutorAsync(int GrvId, int UsuarioId)
         {
-            MensagemViewModel ResultView = ValidarInputGrv(GrvId, UsuarioId);
+            MensagemViewModel ResultView = ValidateInputGrv(GrvId, UsuarioId);
 
             if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
             {
                 return ResultView;
             }
 
-            GrvModel Grv = await GetGrvAsync(GrvId);
+            GrvModel Grv = await GetByIdAsync(GrvId);
 
             if (Grv.StatusOperacao.StatusOperacaoId != "G")
             {
-                return MensagemViewHelper.GetBadRequest($"O Status atual deste GRV não permite a exclusão da Imagem da Assinatura do Condutor. Status atual: {Grv.StatusOperacao.Descricao}");
+                return MensagemViewHelper.SetBadRequest($"O Status atual deste GRV não permite a exclusão da Imagem da Assinatura do Condutor. Status atual: {Grv.StatusOperacao.Descricao}");
             }
 
             BucketArquivoModel BucketArquivo = await _context.BucketArquivo
@@ -626,18 +626,18 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (BucketArquivo == null)
             {
-                return MensagemViewHelper.GetBadRequest("Registro da Imagem da Assinatura do Condutor inexistente");
+                return MensagemViewHelper.SetBadRequest("Registro da Imagem da Assinatura do Condutor inexistente");
             }
 
             new BucketArquivoService(_context, _httpClientFactory)
                 .DeleteFile(BucketArquivo.RepositorioArquivoId);
 
-            return MensagemViewHelper.GetOkDelete();
+            return MensagemViewHelper.SetDeleteSuccess();
         }
 
         public async Task<MensagemViewModel> DeleteFotosAsync(int GrvId, int UsuarioId, List<int> ListagemTabelaOrigemId)
         {
-            MensagemViewModel ResultView = ValidarInputGrv(GrvId, UsuarioId);
+            MensagemViewModel ResultView = ValidateInputGrv(GrvId, UsuarioId);
 
             if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
             {
@@ -646,14 +646,14 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (ListagemTabelaOrigemId.Count == 0)
             {
-                return MensagemViewHelper.GetBadRequest("Informe os Identificadores das Fotos");
+                return MensagemViewHelper.SetBadRequest("Informe os Identificadores das Fotos");
             }
 
-            GrvModel Grv = await GetGrvAsync(GrvId);
+            GrvModel Grv = await GetByIdAsync(GrvId);
 
             if (!new[] { "E", "G", "L", "R", "T", "U", "V" }.Contains(Grv.StatusOperacaoId))
             {
-                return MensagemViewHelper.GetBadRequest($"O Status atual deste GRV não permite a exclusão de Fotos. Status atual: {Grv.StatusOperacao.Descricao}");
+                return MensagemViewHelper.SetBadRequest($"O Status atual deste GRV não permite a exclusão de Fotos. Status atual: {Grv.StatusOperacao.Descricao}");
             }
 
             List<BucketArquivoModel> BucketArquivos = await _context.BucketArquivo
@@ -676,13 +676,13 @@ namespace WebZi.Plataform.Domain.Services.GRV
                     erros.Add(BucketArquivo.RepositorioArquivoId.ToString());
                 }
 
-                return MensagemViewHelper.GetBadRequest(erros);
+                return MensagemViewHelper.SetBadRequest(erros);
             }
 
             new BucketArquivoService(_context, _httpClientFactory)
                 .DeleteFiles("GRVFOTOSVEICCAD", ListagemTabelaOrigemId);
 
-            return MensagemViewHelper.GetOkFound(BucketArquivos.Count, "Foto(s) excluída(s) com sucesso");
+            return MensagemViewHelper.SetFound(BucketArquivos.Count, "Foto(s) excluída(s) com sucesso");
         }
 
         public async Task<MensagemViewModel> DeleteGrvAsync(string NumeroFormularioGrv, string FaturamentoProdutoId, int ClienteId, int DepositoId, string Login, string Senha)
@@ -695,7 +695,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 return Usuario.Mensagem;
             }
 
-            MensagemViewModel ResultView = ValidarInputGrv(NumeroFormularioGrv, FaturamentoProdutoId, ClienteId, DepositoId, Usuario.IdentificadorUsuario);
+            MensagemViewModel ResultView = ValidateInputGrv(NumeroFormularioGrv, FaturamentoProdutoId, ClienteId, DepositoId, Usuario.IdentificadorUsuario);
 
             if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
             {
@@ -724,10 +724,10 @@ namespace WebZi.Plataform.Domain.Services.GRV
             }
             else if (GrvId <= 0)
             {
-                return MensagemViewHelper.GetBadRequest(MensagemPadraoEnum.IdentificadorGrvInvalido);
+                return MensagemViewHelper.SetBadRequest(MensagemPadraoEnum.IdentificadorGrvInvalido);
             }
 
-            MensagemViewModel ResultView = ValidarInputGrv(GrvId, Usuario.IdentificadorUsuario);
+            MensagemViewModel ResultView = ValidateInputGrv(GrvId, Usuario.IdentificadorUsuario);
 
             if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
             {
@@ -750,7 +750,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (UsuarioPermissao == null)
             {
-                return MensagemViewHelper.GetUnauthorized("Usuário não possui permissão para excluir GRV");
+                return MensagemViewHelper.SetUnauthorized("Usuário não possui permissão para excluir GRV");
             }
 
             GrvModel Grv = await _context.Grv
@@ -764,11 +764,11 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (Grv == null)
             {
-                return MensagemViewHelper.GetNotFound(MensagemPadraoEnum.NaoEncontradoGrv);
+                return MensagemViewHelper.SetNotFound(MensagemPadraoEnum.NaoEncontradoGrv);
             }
             else if (!new[] { "M", "P", "G", "V" }.Contains(Grv.StatusOperacaoId))
             {
-                return MensagemViewHelper.GetBadRequest($"O Status atual deste GRV não permite a exclusão. Status atual: {Grv.StatusOperacao.Descricao}");
+                return MensagemViewHelper.SetBadRequest($"O Status atual deste GRV não permite a exclusão. Status atual: {Grv.StatusOperacao.Descricao}");
             }
 
             List<FaturamentoModel> Faturamentos = null;
@@ -805,7 +805,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             {
                 transaction.Rollback();
 
-                return MensagemViewHelper.GetInternalServerError(ex);
+                return MensagemViewHelper.SetInternalServerError(ex);
             }
 
             new BucketArquivoService(_context, _httpClientFactory)
@@ -843,12 +843,12 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 }
             }
 
-            return MensagemViewHelper.GetOk("GRV excluído com sucesso");
+            return MensagemViewHelper.SetOk("GRV excluído com sucesso");
         }
 
         public async Task<MensagemViewModel> DeleteLacresAsync(int GrvId, int UsuarioId, List<int> ListagemIdentificadorLacre)
         {
-            MensagemViewModel ResultView = ValidarInputGrv(GrvId, UsuarioId);
+            MensagemViewModel ResultView = ValidateInputGrv(GrvId, UsuarioId);
 
             if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
             {
@@ -857,14 +857,14 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (ListagemIdentificadorLacre.Count == 0)
             {
-                return MensagemViewHelper.GetBadRequest("Informe os Lacres");
+                return MensagemViewHelper.SetBadRequest("Informe os Lacres");
             }
 
-            GrvModel Grv = await GetGrvAsync(GrvId);
+            GrvModel Grv = await GetByIdAsync(GrvId);
 
             if (!new[] { "E", "G", "L", "R", "T", "U", "V" }.Contains(Grv.StatusOperacaoId))
             {
-                return MensagemViewHelper.GetBadRequest($"O Status atual deste GRV não permite a exclusão de Lacres. Status atual: {Grv.StatusOperacao.Descricao}");
+                return MensagemViewHelper.SetBadRequest($"O Status atual deste GRV não permite a exclusão de Lacres. Status atual: {Grv.StatusOperacao.Descricao}");
             }
 
             List<LacreModel> Lacres = await _context.Lacre
@@ -885,7 +885,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                     erros.Add($"Identificador {item.LacreId}");
                 }
 
-                return MensagemViewHelper.GetBadRequest(erros);
+                return MensagemViewHelper.SetBadRequest(erros);
             }
 
             using (IDbContextTransaction transaction = _context.Database.BeginTransaction())
@@ -905,18 +905,36 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 {
                     transaction.Rollback();
 
-                    return MensagemViewHelper.GetInternalServerError(ex);
+                    return MensagemViewHelper.SetInternalServerError(ex);
                 }
             }
 
-            return MensagemViewHelper.GetOkDelete(ListagemIdentificadorLacre.Count, "Lacre(s) excluído(s) com sucesso");
+            return MensagemViewHelper.SetDeleteSuccess(ListagemIdentificadorLacre.Count, "Lacre(s) excluído(s) com sucesso");
+        }
+
+        public GrvModel GetById(int GrvId)
+        {
+            return _context.Grv
+                .Include(x => x.StatusOperacao)
+                .Where(x => x.GrvId == GrvId)
+                .AsNoTracking()
+                .FirstOrDefault();
+        }
+
+        public async Task<GrvModel> GetByIdAsync(int GrvId)
+        {
+            return await _context.Grv
+                .Include(x => x.StatusOperacao)
+                .Where(x => x.GrvId == GrvId)
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
         }
 
         public async Task<GrvViewModelList> GetByIdAsync(int GrvId, int UsuarioId)
         {
             GrvViewModelList ResultView = new()
             {
-                Mensagem = ValidarInputGrv(GrvId, UsuarioId)
+                Mensagem = ValidateInputGrv(GrvId, UsuarioId)
             };
 
             if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
@@ -924,16 +942,16 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 return ResultView;
             }
 
-            GrvModel Grv = await GetGrvAsync(GrvId);
+            GrvModel Grv = await GetByIdAsync(GrvId);
 
             if (Grv == null)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadraoEnum.NaoEncontradoGrv);
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound(MensagemPadraoEnum.NaoEncontradoGrv);
 
                 return ResultView;
             }
 
-            ResultView.Mensagem = ValidarInputGrv(Grv, UsuarioId);
+            ResultView.Mensagem = ValidateInputGrv(Grv, UsuarioId);
 
             if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
             {
@@ -942,7 +960,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             ResultView.Listagem.Add(_mapper.Map<GrvViewModel>(Grv));
 
-            ResultView.Mensagem = MensagemViewHelper.GetOkFound();
+            ResultView.Mensagem = MensagemViewHelper.SetFound();
 
             return ResultView;
         }
@@ -951,7 +969,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
         {
             GrvViewModelList ResultView = new()
             {
-                Mensagem = ValidarInputGrv(NumeroFormularioGrv, FaturamentoProdutoId, ClienteId, DepositoId, UsuarioId)
+                Mensagem = ValidateInputGrv(NumeroFormularioGrv, FaturamentoProdutoId, ClienteId, DepositoId, UsuarioId)
             };
 
             if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
@@ -969,12 +987,12 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (Grv == null)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadraoEnum.NaoEncontradoGrv);
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound(MensagemPadraoEnum.NaoEncontradoGrv);
 
                 return ResultView;
             }
 
-            ResultView.Mensagem = ValidarInputGrv(Grv, UsuarioId);
+            ResultView.Mensagem = ValidateInputGrv(Grv, UsuarioId);
 
             if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
             {
@@ -983,7 +1001,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             ResultView.Listagem.Add(_mapper.Map<GrvViewModel>(Grv));
 
-            ResultView.Mensagem = MensagemViewHelper.GetOkFound();
+            ResultView.Mensagem = MensagemViewHelper.SetFound();
 
             return ResultView;
         }
@@ -992,7 +1010,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
         {
             ImageViewModelList ResultView = new()
             {
-                Mensagem = ValidarInputGrv(GrvId, UsuarioId)
+                Mensagem = ValidateInputGrv(GrvId, UsuarioId)
             };
 
             if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
@@ -1008,7 +1026,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (BucketArquivo == null)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest("Registro da Imagem da Assinatura do Agente inexistente");
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Registro da Imagem da Assinatura do Agente inexistente");
 
                 return ResultView;
             }
@@ -1021,7 +1039,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
         {
             ImageViewModelList ResultView = new()
             {
-                Mensagem = ValidarInputGrv(GrvId, UsuarioId)
+                Mensagem = ValidateInputGrv(GrvId, UsuarioId)
             };
 
             if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
@@ -1037,7 +1055,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (BucketArquivo == null)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest("Registro da Imagem da Assinatura do Condutor inexistente");
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Registro da Imagem da Assinatura do Condutor inexistente");
 
                 return ResultView;
             }
@@ -1052,7 +1070,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (string.IsNullOrWhiteSpace(StatusOperacaoId))
             {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest("Identificador do Status da Operação inválido");
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Identificador do Status da Operação inválido");
 
                 return ResultView;
             }
@@ -1066,11 +1084,11 @@ namespace WebZi.Plataform.Domain.Services.GRV
             {
                 ResultView.Listagem.Add(result);
 
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound();
+                ResultView.Mensagem = MensagemViewHelper.SetFound();
             }
             else
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound();
             }
 
             return ResultView;
@@ -1082,13 +1100,13 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (string.IsNullOrWhiteSpace(UF))
             {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest("Informe a Unidade Federativa");
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Informe a Unidade Federativa");
 
                 return ResultView;
             }
             else if (!LocalizacaoHelper.IsUF(UF))
             {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest("Unidade Federativa inválida");
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Unidade Federativa inválida");
 
                 return ResultView;
             }
@@ -1101,7 +1119,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (result == null)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound("Unidade Federativa sem Órgão Emissor cadastrado");
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound("Unidade Federativa sem Órgão Emissor cadastrado");
 
                 return ResultView;
             }
@@ -1112,11 +1130,11 @@ namespace WebZi.Plataform.Domain.Services.GRV
                     .OrderBy(o => o.Divisao)
                     .ToList());
 
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.AutoridadesResponsaveis.Count);
+                ResultView.Mensagem = MensagemViewHelper.SetFound(result.AutoridadesResponsaveis.Count);
             }
             else
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound();
             }
 
             return ResultView;
@@ -1126,7 +1144,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
         {
             ImageViewModelList ResultView = new()
             {
-                Mensagem = ValidarInputGrv(GrvId, UsuarioId)
+                Mensagem = ValidateInputGrv(GrvId, UsuarioId)
             };
 
             if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
@@ -1158,11 +1176,11 @@ namespace WebZi.Plataform.Domain.Services.GRV
                     .OrderBy(o => o.Descricao.Trim())
                     .ToList());
 
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
+                ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
             }
             else
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound();
             }
 
             return ResultView;
@@ -1172,7 +1190,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
         {
             ImageViewModelList ResultView = new()
             {
-                Mensagem = ValidarInputGrv(GrvId, UsuarioId)
+                Mensagem = ValidateInputGrv(GrvId, UsuarioId)
             };
 
             if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
@@ -1190,15 +1208,15 @@ namespace WebZi.Plataform.Domain.Services.GRV
             {
                 ListagemProduto = await _provider
                     .GetService<FaturamentoService>()
-                    .ListarProdutosAsync(),
+                    .ListProdutosAsync(),
 
                 ListagemCliente = await _provider
                     .GetService<ClienteService>()
-                    .ListagemSimplificada(UsuarioId),
+                    .ListResumeAsync(UsuarioId),
 
                 ListagemDeposito = await _provider
                     .GetService<DepositoService>()
-                    .ListagemSimplificada(UsuarioId),
+                    .ListResumeAsync(UsuarioId),
 
                 ListagemStatusOperacao = await _provider
                     .GetService<GrvService>()
@@ -1218,7 +1236,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
         {
             LacreViewModelList ResultView = new()
             {
-                Mensagem = ValidarInputGrv(GrvId, UsuarioId)
+                Mensagem = ValidateInputGrv(GrvId, UsuarioId)
             };
 
             if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
@@ -1237,11 +1255,11 @@ namespace WebZi.Plataform.Domain.Services.GRV
                     .OrderBy(x => x.Lacre)
                     .ToList());
 
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
+                ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
             }
             else
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound();
             }
 
             return ResultView;
@@ -1261,11 +1279,11 @@ namespace WebZi.Plataform.Domain.Services.GRV
                     .OrderBy(o => o.Descricao)
                     .ToList());
 
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
+                ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
             }
             else
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound();
             }
 
             return ResultView;
@@ -1287,11 +1305,11 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
                 ResultView.Listagem = result;
 
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
+                ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
             }
             else
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound();
             }
 
             return ResultView;
@@ -1408,7 +1426,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (erros.Count > 0)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest(erros);
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest(erros);
 
                 return ResultView;
             }
@@ -1437,7 +1455,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (result?.Count == 0)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound("A pesquisa não retornou registro");
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound("A pesquisa não retornou registro");
 
                 return ResultView;
             }
@@ -1468,12 +1486,12 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 });
             }
 
-            ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
+            ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
 
             return ResultView;
         }
 
-        public MensagemViewModel ValidarInputGrv(int GrvId, int UsuarioId)
+        public MensagemViewModel ValidateInputGrv(int GrvId, int UsuarioId)
         {
             List<string> erros = new();
 
@@ -1489,27 +1507,27 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (erros.Count > 0)
             {
-                return MensagemViewHelper.GetBadRequest(erros);
+                return MensagemViewHelper.SetBadRequest(erros);
             }
 
-            return ValidarInputGrv(GrvId, UsuarioId, "", "", 0, 0);
+            return ValidateInputGrv(GrvId, UsuarioId, "", "", 0, 0);
         }
 
-        public MensagemViewModel ValidarInputGrv(GrvModel Grv, int UsuarioId)
+        public MensagemViewModel ValidateInputGrv(GrvModel Grv, int UsuarioId)
         {
-            return ValidarInputGrv(Grv.GrvId, UsuarioId, Grv.NumeroFormularioGrv, Grv.FaturamentoProdutoId, Grv.ClienteId, Grv.DepositoId);
+            return ValidateInputGrv(Grv.GrvId, UsuarioId, Grv.NumeroFormularioGrv, Grv.FaturamentoProdutoId, Grv.ClienteId, Grv.DepositoId);
         }
 
-        public MensagemViewModel ValidarInputGrv(string NumeroFormularioGrv, string FaturamentoProdutoId, int ClienteId, int DepositoId, int UsuarioId)
+        public MensagemViewModel ValidateInputGrv(string NumeroFormularioGrv, string FaturamentoProdutoId, int ClienteId, int DepositoId, int UsuarioId)
         {
-            return ValidarInputGrv(0, UsuarioId, NumeroFormularioGrv, FaturamentoProdutoId, ClienteId, DepositoId);
+            return ValidateInputGrv(0, UsuarioId, NumeroFormularioGrv, FaturamentoProdutoId, ClienteId, DepositoId);
         }
 
-        private MensagemViewModel ValidarInputGrv(int GrvId, int UsuarioId, string NumeroFormularioGrv, string FaturamentoProdutoId, int ClienteId, int DepositoId)
+        private MensagemViewModel ValidateInputGrv(int GrvId, int UsuarioId, string NumeroFormularioGrv, string FaturamentoProdutoId, int ClienteId, int DepositoId)
         {
             if (!new UsuarioService(_context).IsUserActive(UsuarioId))
             {
-                return MensagemViewHelper.GetUnauthorized();
+                return MensagemViewHelper.SetUnauthorized();
             }
 
             List<string> erros = new();
@@ -1548,7 +1566,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (erros.Count > 0)
             {
-                return MensagemViewHelper.GetBadRequest(erros);
+                return MensagemViewHelper.SetBadRequest(erros);
             }
 
             if (GrvId <= 0)
@@ -1560,7 +1578,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
                 if (FaturamentoProduto == null)
                 {
-                    return MensagemViewHelper.GetNotFound(MensagemPadraoEnum.NaoEncontradoFaturamentoProduto);
+                    return MensagemViewHelper.SetNotFound(MensagemPadraoEnum.NaoEncontradoFaturamentoProduto);
                 }
 
                 ClienteModel Cliente = _context.Cliente
@@ -1570,7 +1588,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
                 if (Cliente == null)
                 {
-                    return MensagemViewHelper.GetNotFound(MensagemPadraoEnum.NaoEncontradoCliente);
+                    return MensagemViewHelper.SetNotFound(MensagemPadraoEnum.NaoEncontradoCliente);
                 }
 
                 DepositoModel Deposito = _context.Deposito
@@ -1580,7 +1598,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
                 if (Deposito == null)
                 {
-                    return MensagemViewHelper.GetNotFound(MensagemPadraoEnum.NaoEncontradoDeposito);
+                    return MensagemViewHelper.SetNotFound(MensagemPadraoEnum.NaoEncontradoDeposito);
                 }
 
                 ClienteDepositoModel ClienteDeposito = _context.ClienteDeposito
@@ -1591,7 +1609,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
                 if (ClienteDeposito == null)
                 {
-                    return MensagemViewHelper.GetNotFound("Este Cliente e Depósito não são associados");
+                    return MensagemViewHelper.SetNotFound("Este Cliente e Depósito não são associados");
                 }
             }
 
@@ -1606,7 +1624,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
                 if (Grv == null)
                 {
-                    return MensagemViewHelper.GetUnauthorized("Usuário não possui acesso ao GRV ou o GRV não existe");
+                    return MensagemViewHelper.SetUnauthorized("Usuário não possui acesso ao GRV ou o GRV não existe");
                 }
             }
             else
@@ -1621,16 +1639,16 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
                 if (Grv == null)
                 {
-                    return MensagemViewHelper.GetUnauthorized("Usuário não possui acesso ao GRV ou o GRV não existe");
+                    return MensagemViewHelper.SetUnauthorized("Usuário não possui acesso ao GRV ou o GRV não existe");
                 }
             }
 
-            return MensagemViewHelper.GetOk();
+            return MensagemViewHelper.SetOk();
         }
 
-        public async Task<MensagemViewModel> VerificarAlteracaoStatusGRVAsync(int GrvId, string StatusOperacaoId, int UsuarioId)
+        public async Task<MensagemViewModel> CheckAlteracaoStatusGrvAsync(int GrvId, string StatusOperacaoId, int UsuarioId)
         {
-            MensagemViewModel ResultView = ValidarInputGrv(GrvId, UsuarioId);
+            MensagemViewModel ResultView = ValidateInputGrv(GrvId, UsuarioId);
 
             if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
             {
@@ -1645,7 +1663,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (Grv == null)
             {
-                return MensagemViewHelper.GetNotFound(MensagemPadraoEnum.NaoEncontradoGrv);
+                return MensagemViewHelper.SetNotFound(MensagemPadraoEnum.NaoEncontradoGrv);
             }
 
             StatusOperacaoModel StatusOperacao = await _context.StatusOperacao
@@ -1655,21 +1673,21 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (StatusOperacao == null)
             {
-                return MensagemViewHelper.GetNotFound(MensagemPadraoEnum.NaoEncontradoStatusOperacao);
+                return MensagemViewHelper.SetNotFound(MensagemPadraoEnum.NaoEncontradoStatusOperacao);
             }
             else if (Grv.StatusOperacao.StatusOperacaoId != StatusOperacaoId)
             {
-                return MensagemViewHelper.GetBadRequest($"O Status da Operação foi alterado de \"{Grv.StatusOperacao.Descricao.ToUpper()}\" para \"{StatusOperacao.Descricao.ToUpper()}\"");
+                return MensagemViewHelper.SetBadRequest($"O Status da Operação foi alterado de \"{Grv.StatusOperacao.Descricao.ToUpper()}\" para \"{StatusOperacao.Descricao.ToUpper()}\"");
             }
 
-            return MensagemViewHelper.GetOk("O Status da Operação não foi alterado");
+            return MensagemViewHelper.SetOk("O Status da Operação não foi alterado");
         }
 
-        public async Task<MensagemViewModel> ValidarInformacoesPersistenciaAsync(CadastroGrvViewModel GrvPersistencia)
+        public async Task<MensagemViewModel> CheckInformacoesPersistenciaAsync(CadastroGrvViewModel GrvPersistencia)
         {
             if (GrvPersistencia == null)
             {
-                return MensagemViewHelper.GetBadRequest("O Modelo está nulo");
+                return MensagemViewHelper.SetBadRequest("O Modelo está nulo");
             }
 
             #region Validações de IDs
@@ -1938,14 +1956,14 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (erros.Count > 0)
             {
-                return MensagemViewHelper.GetBadRequest(erros);
+                return MensagemViewHelper.SetBadRequest(erros);
             }
             #endregion Validações de IDs
 
             #region Consultas
-            if (!new UsuarioService(_context).IsUserActive(GrvPersistencia.IdentificadorUsuario))
+            if (!await new UsuarioService(_context).IsUserActiveAsync(GrvPersistencia.IdentificadorUsuario))
             {
-                return MensagemViewHelper.GetUnauthorized();
+                return MensagemViewHelper.SetUnauthorized();
             }
 
             MensagemViewModel ResultView = new();
@@ -2285,24 +2303,6 @@ namespace WebZi.Plataform.Domain.Services.GRV
             }
 
             return ResultView;
-        }
-
-        public GrvModel GetGrv(int GrvId)
-        {
-            return _context.Grv
-                .Include(x => x.StatusOperacao)
-                .Where(x => x.GrvId == GrvId)
-                .AsNoTracking()
-                .FirstOrDefault();
-        }
-
-        public async Task<GrvModel> GetGrvAsync(int GrvId)
-        {
-            return await _context.Grv
-                .Include(x => x.StatusOperacao)
-                .Where(x => x.GrvId == GrvId)
-                .AsNoTracking()
-                .FirstOrDefaultAsync();
         }
     }
 }

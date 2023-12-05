@@ -2,6 +2,9 @@
 using Microsoft.EntityFrameworkCore;
 using System.Text;
 using WebZi.Plataform.CrossCutting.Localizacao;
+using WebZi.Plataform.CrossCutting.Number;
+using WebZi.Plataform.CrossCutting.Strings;
+using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Domain.ViewModel.Localizacao;
@@ -26,7 +29,7 @@ namespace WebZi.Plataform.Data.Services.Localizacao
 
             if (CEPId <= 0)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest("Identificador do CEP inválido");
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Identificador do CEP inválido");
 
                 return ResultView;
             }
@@ -40,11 +43,11 @@ namespace WebZi.Plataform.Data.Services.Localizacao
             {
                 ResultView = _mapper.Map<EnderecoViewModel>(result);
 
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound();
+                ResultView.Mensagem = MensagemViewHelper.SetFound();
             }
             else
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound();
             }
 
             return ResultView;
@@ -52,22 +55,20 @@ namespace WebZi.Plataform.Data.Services.Localizacao
 
         public EnderecoViewModel GetByCEP(string CEP)
         {
-            List<string> erros = new();
+            EnderecoViewModel ResultView = new();
 
-            if (string.IsNullOrWhiteSpace(CEP))
+            if (CEP.IsNullOrWhiteSpace())
             {
-                erros.Add("Informe o CEP");
+                ResultView.Mensagem.AvisosImpeditivos.Add("Informe o CEP");
             }
             else if (!LocalizacaoHelper.IsCEP(CEP))
             {
-                erros.Add("CEP inválido");
+                ResultView.Mensagem.AvisosImpeditivos.Add("CEP inválido");
             }
 
-            EnderecoViewModel ResultView = new();
-
-            if (erros.Count > 0)
+            if (ResultView.Mensagem.AvisosImpeditivos.Count > 0)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest(erros);
+                ResultView.Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.BadRequest;
 
                 return ResultView;
             }
@@ -81,30 +82,30 @@ namespace WebZi.Plataform.Data.Services.Localizacao
             {
                 ResultView = _mapper.Map<EnderecoViewModel>(result);
 
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound();
+                ResultView.Mensagem = MensagemViewHelper.SetFound();
             }
             else
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound();
             }
 
             return ResultView;
         }
 
-        public string FormatarEndereco(ViewEnderecoCompletoModel input, string Numero, string Complemento)
+        public string FormatarEndereco(ViewEnderecoCompletoModel EnderecoCompleto, string Numero, string Complemento)
         {
             StringBuilder Endereco = new();
 
-            if (!string.IsNullOrWhiteSpace(input.TipoLogradouro) && !string.IsNullOrWhiteSpace(input.Logradouro))
+            if (!string.IsNullOrWhiteSpace(EnderecoCompleto.TipoLogradouro) && !string.IsNullOrWhiteSpace(EnderecoCompleto.Logradouro))
             {
-                Endereco.Append(input.TipoLogradouro);
+                Endereco.Append(EnderecoCompleto.TipoLogradouro);
 
                 Endereco.Append(' ');
             }
 
-            if (!string.IsNullOrWhiteSpace(input.Logradouro))
+            if (!string.IsNullOrWhiteSpace(EnderecoCompleto.Logradouro))
             {
-                Endereco.Append(input.Logradouro);
+                Endereco.Append(EnderecoCompleto.Logradouro);
 
                 if (string.IsNullOrWhiteSpace(Numero))
                 {
@@ -112,7 +113,14 @@ namespace WebZi.Plataform.Data.Services.Localizacao
                 }
                 else
                 {
-                    Endereco.Append(", " + Numero);
+                    if (NumberHelper.IsNumber(Numero))
+                    {
+                        Endereco.Append(", nº " + Numero.ToInt());
+                    }
+                    else
+                    {
+                        Endereco.Append(", " + Numero);
+                    }
                 }
 
                 if (!string.IsNullOrWhiteSpace(Complemento))
@@ -121,28 +129,28 @@ namespace WebZi.Plataform.Data.Services.Localizacao
                 }
             }
 
-            if (!string.IsNullOrWhiteSpace(input.Bairro))
+            if (!string.IsNullOrWhiteSpace(EnderecoCompleto.Bairro))
             {
-                if (string.IsNullOrWhiteSpace(Endereco.ToString()))
+                if (Endereco.ToString().IsNullOrWhiteSpace())
                 {
-                    Endereco.Append(input.Bairro);
+                    Endereco.Append(EnderecoCompleto.Bairro);
                 }
                 else
                 {
-                    Endereco.Append(", " + input.Bairro);
+                    Endereco.Append(", " + EnderecoCompleto.Bairro);
                 }
             }
 
-            if (string.IsNullOrWhiteSpace(Endereco.ToString()))
+            if (Endereco.ToString().IsNullOrWhiteSpace())
             {
-                Endereco.Append(input.Municipio);
+                Endereco.Append(EnderecoCompleto.Municipio);
             }
             else
             {
-                Endereco.Append(" - " + input.Municipio);
+                Endereco.Append(" - " + EnderecoCompleto.Municipio);
             }
 
-            Endereco.Append("/" + input.UF);
+            Endereco.Append("/" + EnderecoCompleto.UF);
 
             return Endereco.ToString();
         }
@@ -166,7 +174,14 @@ namespace WebZi.Plataform.Data.Services.Localizacao
             }
             else
             {
-                Endereco.Append(", " + Numero);
+                if (NumberHelper.IsNumber(Numero))
+                {
+                    Endereco.Append(", nº " + Numero.ToInt());
+                }
+                else
+                {
+                    Endereco.Append(", " + Numero);
+                }
             }
 
             if (!string.IsNullOrWhiteSpace(Complemento))
@@ -176,7 +191,7 @@ namespace WebZi.Plataform.Data.Services.Localizacao
 
             if (!string.IsNullOrWhiteSpace(Bairro))
             {
-                if (string.IsNullOrWhiteSpace(Endereco.ToString()))
+                if (Endereco.ToString().IsNullOrWhiteSpace())
                 {
                     Endereco.Append(Bairro);
                 }
@@ -186,7 +201,7 @@ namespace WebZi.Plataform.Data.Services.Localizacao
                 }
             }
 
-            if (string.IsNullOrWhiteSpace(Endereco.ToString()))
+            if (Endereco.ToString().IsNullOrWhiteSpace())
             {
                 Endereco.Append(Municipio);
             }

@@ -268,7 +268,7 @@ namespace WebZi.Plataform.Data.Services.Bucket
 
             if (erros.Count > 0)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest(erros);
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest(erros);
 
                 return ResultView;
             }
@@ -300,11 +300,11 @@ namespace WebZi.Plataform.Data.Services.Bucket
                     }); ;
                 }
 
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
+                ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
             }
             else
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound();
             }
 
             return ResultView;
@@ -328,7 +328,7 @@ namespace WebZi.Plataform.Data.Services.Bucket
 
             if (erros.Count > 0)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest(erros);
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest(erros);
 
                 return ResultView;
             }
@@ -358,11 +358,11 @@ namespace WebZi.Plataform.Data.Services.Bucket
                     });
                 }
 
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
+                ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
             }
             else
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound();
             }
 
             return ResultView;

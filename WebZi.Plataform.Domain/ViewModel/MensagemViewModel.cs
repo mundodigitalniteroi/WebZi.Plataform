@@ -10,6 +10,8 @@ namespace WebZi.Plataform.Domain.ViewModel
 
         public List<string> AvisosInformativos { get; set; } = new List<string>();
 
+        public List<string> Alertas { get; set; } = new List<string>();
+
         public List<string> AvisosImpeditivos { get; set; } = new List<string>();
 
         public List<string> Erros { get; set; } = new List<string>();

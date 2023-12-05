@@ -37,13 +37,13 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = _provider
                     .GetService<FaturamentoService>()
-                    .AlterarFormaPagamento(IdentificadorFaturamento, IdentificadorNovaFormaPagamento, IdentificadorUsuario);
+                    .UpdateFormaPagamento(IdentificadorFaturamento, IdentificadorNovaFormaPagamento, IdentificadorUsuario);
 
                 return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
             }
             catch (Exception ex)
             {
-                ResultView = MensagemViewHelper.GetInternalServerError(ex);
+                ResultView = MensagemViewHelper.SetInternalServerError(ex);
 
                 return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
             }
@@ -70,7 +70,7 @@ namespace WebZi.Plataform.API.Controllers
             }
             catch (Exception ex)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -97,7 +97,7 @@ namespace WebZi.Plataform.API.Controllers
             }
             catch (Exception ex)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -124,7 +124,7 @@ namespace WebZi.Plataform.API.Controllers
             }
             catch (Exception ex)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -151,7 +151,7 @@ namespace WebZi.Plataform.API.Controllers
             }
             catch (Exception ex)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -172,13 +172,13 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<FaturamentoService>()
-                    .ListarServicoAssociadoTipoVeiculoAsync(IdentificadorGrv, IdentificadorUsuario);
+                    .ListServicoAssociadoTipoVeiculoAsync(IdentificadorGrv, IdentificadorUsuario);
 
                 return StatusCode((int)HtmlStatusCodeEnum.Ok, ResultView);
             }
             catch (Exception ex)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -199,13 +199,13 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<FaturamentoService>()
-                    .ListarServicoAssociadoTipoVeiculoAsync(IdentificadorGrv, IdentificadorUsuario);
+                    .ListServicoAssociadoTipoVeiculoAsync(IdentificadorGrv, IdentificadorUsuario);
 
                 return StatusCode((int)HtmlStatusCodeEnum.Ok, ResultView);
             }
             catch (Exception ex)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -232,7 +232,7 @@ namespace WebZi.Plataform.API.Controllers
             }
             catch (Exception ex)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -259,7 +259,7 @@ namespace WebZi.Plataform.API.Controllers
             }
             catch (Exception ex)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }

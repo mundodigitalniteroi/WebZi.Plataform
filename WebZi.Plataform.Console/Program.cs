@@ -52,7 +52,7 @@ class Program
 
         // _context.SaveChanges();        
 
-        byte[] textoAsBytes = Encoding.ASCII.GetBytes("O_EXTERMINADOR#DO@FUTURO12345678");
+        byte[] textoAsBytes = Encoding.ASCII.GetBytes("AliCE_PAiS#no%MAraViLHas12345678");
 
         string key = Convert.ToBase64String(textoAsBytes);
 

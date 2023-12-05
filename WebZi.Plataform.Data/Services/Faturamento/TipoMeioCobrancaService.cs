@@ -31,11 +31,11 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             {
                 ResultView.Listagem.Add(_mapper.Map<TipoMeioCobrancaViewModel>(result));
 
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound();
+                ResultView.Mensagem = MensagemViewHelper.SetFound();
             }
             else
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound();
             }
 
             return ResultView;
@@ -56,11 +56,11 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     .OrderBy(o => o.Descricao)
                     .ToList());
 
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
+                ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
             }
             else
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound();
             }
 
             return ResultView;

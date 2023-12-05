@@ -233,7 +233,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             if (FaturamentoId <= 0)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest(MensagemPadraoEnum.IdentificadorFaturamentoInvalido);
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest(MensagemPadraoEnum.IdentificadorFaturamentoInvalido);
 
                 return ResultView;
             }
@@ -250,19 +250,19 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             if (Faturamento == null)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadraoEnum.NaoEncontradoFaturamento);
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound(MensagemPadraoEnum.NaoEncontradoFaturamento);
 
                 return ResultView;
             }
             else if (Faturamento.Status == "C")
             {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest("Esse Faturamento foi cancelado");
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Esse Faturamento foi cancelado");
 
                 return ResultView;
             }
             else if (Faturamento.Status == "P" && !SelecionarFaturamentoPago)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest("Esse Faturamento já foi pago");
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Esse Faturamento já foi pago");
 
                 return ResultView;
             }
@@ -299,12 +299,12 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             if (Grv == null)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadraoEnum.NaoEncontradoGrv);
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound(MensagemPadraoEnum.NaoEncontradoGrv);
 
                 return ResultView;
             }
 
-            ResultView.Mensagem = new GrvService(_context).ValidarInputGrv(Grv, UsuarioId);
+            ResultView.Mensagem = new GrvService(_context).ValidateInputGrv(Grv, UsuarioId);
 
             if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
             {
@@ -343,7 +343,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             GuiaPagamentoEstadiaReboque.Logo = Listagem.Listagem.FirstOrDefault().Imagem;
 
-            GuiaPagamentoEstadiaReboque.Mensagem = MensagemViewHelper.GetOk("Guia de Pagamento de Reboque e Estadia gerado com sucesso");
+            GuiaPagamentoEstadiaReboque.Mensagem = MensagemViewHelper.SetOk("Guia de Pagamento de Reboque e Estadia gerado com sucesso");
 
             return GuiaPagamentoEstadiaReboque;
         }

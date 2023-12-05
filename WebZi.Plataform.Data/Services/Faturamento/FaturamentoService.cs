@@ -162,7 +162,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             foreach (ViewFaturamentoServicoGrvModel FaturamentoServicoGrv in FaturamentoServicosGrvs)
             {
-                if (!VerificarServicoDeveSerCalculado(FaturamentoServicoGrv, UltimoFaturamento, ParametrosCalculoFaturamento))
+                if (!CheckServicoDeveSerCalculado(FaturamentoServicoGrv, UltimoFaturamento, ParametrosCalculoFaturamento))
                 {
                     continue;
                 }
@@ -209,7 +209,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                             foreach (ViewFaturamentoServicoAssociadoVeiculoModel FaturamentoServicoAssociadoVeiculoAmbos in FaturamentoServicosAssociadosVeiculosTodasVigenciasEncontradas)
                             {
                                 // Retorna a quantidade de Dias entre as datas
-                                CalculoDiarias.Diarias = RetornarQuantidadeDiasServicoDiarias(FaturamentoServicoAssociadoVeiculoAmbos, ParametrosCalculoFaturamento.Grv.DataHoraGuarda.Value, ParametrosCalculoFaturamento.DataHoraPorDeposito);
+                                CalculoDiarias.Diarias = GetQuantidadeDiasServicoDiarias(FaturamentoServicoAssociadoVeiculoAmbos, ParametrosCalculoFaturamento.Grv.DataHoraGuarda.Value, ParametrosCalculoFaturamento.DataHoraPorDeposito);
 
                                 if (CalculoDiarias.Diarias >= DiariasCalculadas)
                                 {
@@ -473,7 +473,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 Faturamento.Sequencia += UltimoFaturamento.Sequencia;
             }
 
-            Faturamento.NumeroIdentificacao = GerarNumeroIdentificacao(ParametrosCalculoFaturamento, Faturamento.Sequencia);
+            Faturamento.NumeroIdentificacao = CreateNumeroIdentificacao(ParametrosCalculoFaturamento, Faturamento.Sequencia);
 
             if (ParametrosCalculoFaturamento.FlagCadastrarFaturamento)
             {
@@ -486,7 +486,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             #endregion Cadastro do Faturamento
         }
 
-        private static bool VerificarServicoDeveSerCalculado(ViewFaturamentoServicoGrvModel FaturamentoServicoGrv, FaturamentoModel UltimoFaturamento, CalculoFaturamentoParametroModel ParametrosCalculoFaturamento)
+        private static bool CheckServicoDeveSerCalculado(ViewFaturamentoServicoGrvModel FaturamentoServicoGrv, FaturamentoModel UltimoFaturamento, CalculoFaturamentoParametroModel ParametrosCalculoFaturamento)
         {
             if (ParametrosCalculoFaturamento.Grv.FaturamentoProdutoId != "DEP" &&
                 ParametrosCalculoFaturamento.Grv.FaturamentoProdutoId != "DRF" &&
@@ -534,7 +534,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             return true;
         }
 
-        private static int RetornarQuantidadeDiasServicoDiarias(ViewFaturamentoServicoAssociadoVeiculoModel FaturamentoServicoAssociadoVeiculo, DateTime DataHoraGuarda, DateTime DataHoraAtualPorDeposito)
+        private static int GetQuantidadeDiasServicoDiarias(ViewFaturamentoServicoAssociadoVeiculoModel FaturamentoServicoAssociadoVeiculo, DateTime DataHoraGuarda, DateTime DataHoraAtualPorDeposito)
         {
             DateTime DataInicial = DataHoraGuarda;
 
@@ -701,7 +701,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             return Tributacoes;
         }
 
-        private static string GerarNumeroIdentificacao(CalculoFaturamentoParametroModel ParametrosCalculoFaturamento, int Sequencia)
+        private static string CreateNumeroIdentificacao(CalculoFaturamentoParametroModel ParametrosCalculoFaturamento, int Sequencia)
         {
             return StringHelper.AddStringLeft(ParametrosCalculoFaturamento.Grv.NumeroFormularioGrv, '0', 9) +
                    StringHelper.AddStringLeft(ParametrosCalculoFaturamento.Grv.DepositoId.ToString(), '0', 4) +
@@ -753,7 +753,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             return dataVencimento;
         }
 
-        public MensagemViewModel AlterarFormaPagamento(int FaturamentoId, byte TipoMeioCobrancaId, int UsuarioId)
+        public MensagemViewModel UpdateFormaPagamento(int FaturamentoId, byte TipoMeioCobrancaId, int UsuarioId)
         {
             MensagemViewModel ResultView = new();
 
@@ -776,12 +776,12 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             if (erros.Count > 0)
             {
-                return MensagemViewHelper.GetBadRequest(erros);
+                return MensagemViewHelper.SetBadRequest(erros);
             }
 
             if (!new UsuarioService(_context).IsUserActive(UsuarioId))
             {
-                return MensagemViewHelper.GetUnauthorized();
+                return MensagemViewHelper.SetUnauthorized();
             }
 
             FaturamentoModel Faturamento = _context.Faturamento
@@ -795,19 +795,19 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             if (Faturamento == null)
             {
-                return MensagemViewHelper.GetNotFound(MensagemPadraoEnum.NaoEncontradoFaturamento);
+                return MensagemViewHelper.SetNotFound(MensagemPadraoEnum.NaoEncontradoFaturamento);
             }
             else if (Faturamento.Status == "C")
             {
-                return MensagemViewHelper.GetBadRequest("Esse Faturamento foi cancelado");
+                return MensagemViewHelper.SetBadRequest("Esse Faturamento foi cancelado");
             }
             else if (Faturamento.Status == "P")
             {
-                return MensagemViewHelper.GetBadRequest("Esse Faturamento já foi pago");
+                return MensagemViewHelper.SetBadRequest("Esse Faturamento já foi pago");
             }
             else if (Faturamento.TipoMeioCobrancaId == TipoMeioCobrancaId)
             {
-                return MensagemViewHelper.GetBadRequest("Forma de Pagamento já selecionado");
+                return MensagemViewHelper.SetBadRequest("Forma de Pagamento já selecionado");
             }
 
             TipoMeioCobrancaModel TipoMeioCobranca = _context.TipoMeioCobranca
@@ -817,17 +817,17 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             if (TipoMeioCobranca == null)
             {
-                return MensagemViewHelper.GetBadRequest($"Forma de Pagamento inexistente: {TipoMeioCobrancaId}");
+                return MensagemViewHelper.SetBadRequest($"Forma de Pagamento inexistente: {TipoMeioCobrancaId}");
             }
             else if (TipoMeioCobranca.Alias == TipoMeioCobrancaAliasEnum.PixEstatico &&
                      Faturamento.Atendimento.Grv.Cliente.FlagPossuiPixEstatico == "N")
             {
-                return MensagemViewHelper.GetBadRequest("Este Cliente não está configurado para emitir a Forma de Pagamento PIX Estático");
+                return MensagemViewHelper.SetBadRequest("Este Cliente não está configurado para emitir a Forma de Pagamento PIX Estático");
             }
             else if (TipoMeioCobranca.Alias == TipoMeioCobrancaAliasEnum.PixDinamico &&
                      Faturamento.Atendimento.Grv.Cliente.FlagPossuiPixDinamico == "N")
             {
-                return MensagemViewHelper.GetBadRequest("Este Cliente não está configurado para emitir a Forma de Pagamento PIX Dinâmico");
+                return MensagemViewHelper.SetBadRequest("Este Cliente não está configurado para emitir a Forma de Pagamento PIX Dinâmico");
             }
 
             FaturamentoModel FaturamentoUpdate = _context.Faturamento
@@ -840,7 +840,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             
             try
             {
-                ExcluirTipoMeioCobrancaAtual(FaturamentoId, Faturamento.TipoMeioCobranca);
+                DeleteTipoMeioCobrancaAtual(FaturamentoId, Faturamento.TipoMeioCobranca);
 
                 _context.Faturamento.Update(FaturamentoUpdate);
 
@@ -852,13 +852,13 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             {
                 transaction.Rollback();
 
-                return MensagemViewHelper.GetInternalServerError("Ocorreu um erro ao alterar a Forma de Pagamento", ex);
+                return MensagemViewHelper.SetInternalServerError("Ocorreu um erro ao alterar a Forma de Pagamento", ex);
             }
 
-            return MensagemViewHelper.GetOk("Forma de Pagamento alterado com sucesso");
+            return MensagemViewHelper.SetOk("Forma de Pagamento alterado com sucesso");
         }
 
-        private void ExcluirTipoMeioCobrancaAtual(int FaturamentoId, TipoMeioCobrancaModel TipoMeioCobrancaAtual)
+        private void DeleteTipoMeioCobrancaAtual(int FaturamentoId, TipoMeioCobrancaModel TipoMeioCobrancaAtual)
         {
             if (TipoMeioCobrancaAtual.Alias == TipoMeioCobrancaAliasEnum.Boleto ||
                 TipoMeioCobrancaAtual.Alias == TipoMeioCobrancaAliasEnum.BoletoEspecial)
@@ -880,7 +880,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             }
         }
 
-        public async Task<FaturamentoProdutoViewModelList> ListarProdutosAsync()
+        public async Task<FaturamentoProdutoViewModelList> ListProdutosAsync()
         {
             FaturamentoProdutoViewModelList ResultView = new();
 
@@ -890,17 +890,17 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             ResultView.Listagem = _mapper.Map<List<FaturamentoProdutoViewModel>>(result.OrderBy(x => x.Descricao).ToList());
 
-            ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
+            ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
 
             return ResultView;
         }
 
-        public async Task<ServicoAssociadoTipoVeiculoViewModelList> ListarServicoAssociadoTipoVeiculoAsync(int GrvId, int UsuarioId)
+        public async Task<ServicoAssociadoTipoVeiculoViewModelList> ListServicoAssociadoTipoVeiculoAsync(int GrvId, int UsuarioId)
         {
             ServicoAssociadoTipoVeiculoViewModelList ResultView = new();
 
             MensagemViewModel Mensagem = new GrvService(_context)
-                .ValidarInputGrv(GrvId, UsuarioId);
+                .ValidateInputGrv(GrvId, UsuarioId);
 
             if (Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
             {
@@ -961,27 +961,27 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 if (ResultView.Listagem.Count > 0)
                 {
                     ResultView.Mensagem = MensagemViewHelper
-                        .GetOkFound(ResultView.Listagem.Count);
+                        .SetFound(ResultView.Listagem.Count);
                 }
                 else
                 {
-                    ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+                    ResultView.Mensagem = MensagemViewHelper.SetNotFound();
                 }
             }
             else
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound();
             }
 
             return ResultView;
         }
 
-        public async Task<ServicoAssociadoGrvViewModelList> ListarServicoAssociadoGrvAsync(int GrvId, int UsuarioId)
+        public async Task<ServicoAssociadoGrvViewModelList> ListServicoAssociadoGrvAsync(int GrvId, int UsuarioId)
         {
             ServicoAssociadoGrvViewModelList ResultView = new();
 
             MensagemViewModel Mensagem = new GrvService(_context)
-                .ValidarInputGrv(GrvId, UsuarioId);
+                .ValidateInputGrv(GrvId, UsuarioId);
 
             if (Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
             {
@@ -1035,22 +1035,22 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 if (ResultView.Listagem.Count > 0)
                 {
                     ResultView.Mensagem = MensagemViewHelper
-                        .GetOkFound(ResultView.Listagem.Count);
+                        .SetFound(ResultView.Listagem.Count);
                 }
                 else
                 {
-                    ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+                    ResultView.Mensagem = MensagemViewHelper.SetNotFound();
                 }
             }
             else
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound();
             }
 
             return ResultView;
         }
 
-        public async Task<int> GetUltimoFaturamentoId(int GrvId)
+        public async Task<int> GetUltimoFaturamentoIdAsync(int GrvId)
         {
             GrvModel Grv = await _context.Grv
                 .Include(x => x.Atendimento)

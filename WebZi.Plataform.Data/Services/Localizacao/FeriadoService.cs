@@ -1,4 +1,5 @@
-﻿using WebZi.Plataform.Data.Database;
+﻿using WebZi.Plataform.CrossCutting.Date;
+using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Domain.Models.Localizacao;
 
 namespace WebZi.Plataform.Data.Services.Localizacao
@@ -12,7 +13,56 @@ namespace WebZi.Plataform.Data.Services.Localizacao
             _context = context;
         }
 
-        public List<DateTime> SelecionarDatasFeriados(string UF, int MunicipioId, int AnoInicial, int AnoFinal = 0)
+        public static int GetDiasUteis(DateTime dataInicial, DateTime dataFinal, List<DateTime> Feriados)
+        {
+            int diasUteis = 0;
+
+            int dias = DateTimeHelper.GetDaysBetweenTwoDates(dataInicial.Date, dataFinal.Date) + 1;
+
+            if (dataInicial > dataFinal)
+            {
+                return 0;
+            }
+
+            for (int i = 1; i <= dias; i++)
+            {
+                if (IsDiaUtil(dataInicial, Feriados))
+                {
+                    diasUteis++;
+                }
+
+                dataInicial = dataInicial.AddDays(1);
+            }
+
+            return diasUteis;
+        }
+
+        public static bool IsDiaUtil(DateTime inputDate, List<DateTime> Feriados)
+        {
+            if (inputDate.DayOfWeek == DayOfWeek.Saturday || inputDate.DayOfWeek == DayOfWeek.Sunday)
+            {
+                return false;
+            }
+
+            if (HolidayHelper.IsHoliday(inputDate))
+            {
+                return false;
+            }
+
+            if (Feriados?.Count > 0)
+            {
+                DateTime result = Feriados.Find(w => w.Date == inputDate.Date);
+
+                if (result > DateTime.MinValue)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        public List<DateTime> ListDataFeriado(string UF, int MunicipioId, int AnoInicial, int AnoFinal = 0)
         {
             if (AnoFinal <= 0)
             {
@@ -47,7 +97,7 @@ namespace WebZi.Plataform.Data.Services.Localizacao
 
             return DatasFeriados
                 .Distinct()
-                .OrderBy(o => o)
+                .OrderBy(x => x)
                 .ToList();
         }
     }

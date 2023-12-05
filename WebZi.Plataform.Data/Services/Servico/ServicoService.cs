@@ -31,7 +31,7 @@ namespace WebZi.Plataform.Data.Services.Servico
 
             if (ReboqueId <= 0)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest("Identificador do Reboque inválido");
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Identificador do Reboque inválido");
 
                 return ResultView;
             }
@@ -45,11 +45,11 @@ namespace WebZi.Plataform.Data.Services.Servico
             {
                 ResultView.Listagem.Add(_mapper.Map<ReboqueViewModel>(result));
 
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound();
+                ResultView.Mensagem = MensagemViewHelper.SetFound();
             }
             else
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound();
             }
 
             return ResultView;
@@ -82,7 +82,7 @@ namespace WebZi.Plataform.Data.Services.Servico
 
             if (erros.Count > 0)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest(erros);
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest(erros);
 
                 return ResultView;
             }
@@ -94,7 +94,7 @@ namespace WebZi.Plataform.Data.Services.Servico
 
             if (Cliente == null)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadraoEnum.NaoEncontradoCliente);
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound(MensagemPadraoEnum.NaoEncontradoCliente);
 
                 return ResultView;
             }
@@ -106,7 +106,7 @@ namespace WebZi.Plataform.Data.Services.Servico
 
             if (Deposito == null)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadraoEnum.NaoEncontradoDeposito);
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound(MensagemPadraoEnum.NaoEncontradoDeposito);
 
                 return ResultView;
             }
@@ -120,11 +120,41 @@ namespace WebZi.Plataform.Data.Services.Servico
             {
                 ResultView.Listagem.Add(_mapper.Map<ReboqueViewModel>(result));
 
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound();
+                ResultView.Mensagem = MensagemViewHelper.SetFound();
             }
             else
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound();
+            }
+
+            return ResultView;
+        }
+
+        public async Task<ReboquistaViewModelList> GetReboquistaByIdAsync(int ReboquistaId)
+        {
+            ReboquistaViewModelList ResultView = new();
+
+            if (ReboquistaId <= 0)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Identificador do Reboquista inválido");
+
+                return ResultView;
+            }
+
+            ReboquistaModel result = await _context.Reboquista
+                .Where(w => w.ReboquistaId == ReboquistaId)
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
+
+            if (result != null)
+            {
+                ResultView.Listagem.Add(_mapper.Map<ReboquistaViewModel>(result));
+
+                ResultView.Mensagem = MensagemViewHelper.SetFound();
+            }
+            else
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound();
             }
 
             return ResultView;
@@ -148,7 +178,7 @@ namespace WebZi.Plataform.Data.Services.Servico
 
             if (erros.Count > 0)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest(erros);
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest(erros);
 
                 return ResultView;
             }
@@ -160,7 +190,7 @@ namespace WebZi.Plataform.Data.Services.Servico
 
             if (Cliente == null)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadraoEnum.NaoEncontradoCliente);
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound(MensagemPadraoEnum.NaoEncontradoCliente);
 
                 return ResultView;
             }
@@ -172,7 +202,7 @@ namespace WebZi.Plataform.Data.Services.Servico
 
             if (Deposito == null)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadraoEnum.NaoEncontradoDeposito);
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound(MensagemPadraoEnum.NaoEncontradoDeposito);
 
                 return ResultView;
             }
@@ -188,41 +218,54 @@ namespace WebZi.Plataform.Data.Services.Servico
                     .OrderBy(o => o.Placa)
                     .ToList());
 
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
+                ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
             }
             else
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound();
             }
 
             return ResultView;
         }
 
-        public async Task<ReboquistaViewModelList> GetByReboquistaIdAsync(int ReboquistaId)
+        public async Task<UsuarioClienteDepositoReboqueViewModelList> ListReboqueByUsuarioIdAsync(int UsuarioId)
         {
-            ReboquistaViewModelList ResultView = new();
+            UsuarioClienteDepositoReboqueViewModelList ResultView = new();
 
-            if (ReboquistaId <= 0)
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest("Identificador do Reboquista inválido");
-
-                return ResultView;
-            }
-
-            ReboquistaModel result = await _context.Reboquista
-                .Where(w => w.ReboquistaId == ReboquistaId)
+            List<ViewUsuarioClienteDepositoReboqueModel> result = await _context.ViewUsuarioClienteDepositoReboque
+                .Where(x => x.UsuarioId == UsuarioId)
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .ToListAsync();
 
-            if (result != null)
+            if (result?.Count > 0)
             {
-                ResultView.Listagem.Add(_mapper.Map<ReboquistaViewModel>(result));
+                ResultView.Listagem = _mapper.Map<List<UsuarioClienteDepositoReboqueViewModel>>(result.OrderBy(o => o.ReboquePlaca).ToList());
 
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound();
+                ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
             }
             else
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound();
+            }
+
+            return ResultView;
+        }
+
+        public async Task<ReboqueSimplificadoViewModelList> ListResumeReboqueByUsuarioIdAsync(int UsuarioId)
+        {
+            ReboqueSimplificadoViewModelList ResultView = new();
+
+            UsuarioClienteDepositoReboqueViewModelList result = await ListReboqueByUsuarioIdAsync(UsuarioId);
+
+            if (result.Listagem?.Count > 0)
+            {
+                ResultView.Listagem = _mapper.Map<List<ReboqueSimplificadoViewModel>>(result.Listagem);
+
+                ResultView.Mensagem = MensagemViewHelper.SetFound(result.Listagem.Count);
+            }
+            else
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound();
             }
 
             return ResultView;
@@ -246,7 +289,7 @@ namespace WebZi.Plataform.Data.Services.Servico
 
             if (erros.Count > 0)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest(erros);
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest(erros);
 
                 return ResultView;
             }
@@ -258,7 +301,7 @@ namespace WebZi.Plataform.Data.Services.Servico
 
             if (Cliente == null)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadraoEnum.NaoEncontradoCliente);
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound(MensagemPadraoEnum.NaoEncontradoCliente);
 
                 return ResultView;
             }
@@ -270,7 +313,7 @@ namespace WebZi.Plataform.Data.Services.Servico
 
             if (Deposito == null)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadraoEnum.NaoEncontradoDeposito);
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound(MensagemPadraoEnum.NaoEncontradoDeposito);
 
                 return ResultView;
             }
@@ -286,34 +329,11 @@ namespace WebZi.Plataform.Data.Services.Servico
                     .OrderBy(o => o.Nome)
                     .ToList());
 
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
+                ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
             }
             else
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
-            }
-
-            return ResultView;
-        }
-
-        public async Task<UsuarioClienteDepositoReboqueViewModelList> ListReboqueByUsuarioIdAsync(int UsuarioId)
-        {
-            UsuarioClienteDepositoReboqueViewModelList ResultView = new();
-
-            List<ViewUsuarioClienteDepositoReboqueModel> result = await _context.ViewUsuarioClienteDepositoReboque
-                .Where(x => x.UsuarioId == UsuarioId)
-                .AsNoTracking()
-                .ToListAsync();
-
-            if (result?.Count > 0)
-            {
-                ResultView.Listagem = _mapper.Map<List<UsuarioClienteDepositoReboqueViewModel>>(result.OrderBy(o => o.ReboquePlaca).ToList());
-
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
-            }
-            else
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound();
             }
 
             return ResultView;
@@ -332,37 +352,17 @@ namespace WebZi.Plataform.Data.Services.Servico
             {
                 ResultView.Listagem = _mapper.Map<List<UsuarioClienteDepositoReboquistaViewModel>>(result.OrderBy(o => o.ReboquistaNome).ToList());
 
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
+                ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
             }
             else
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound();
             }
 
             return ResultView;
         }
 
-        public async Task<ReboqueSimplificadoViewModelList> ListReboqueByUsuarioIdSimplificadaAsync(int UsuarioId)
-        {
-            ReboqueSimplificadoViewModelList ResultView = new();
-
-            UsuarioClienteDepositoReboqueViewModelList result = await ListReboqueByUsuarioIdAsync(UsuarioId);
-
-            if (result.Listagem?.Count > 0)
-            {
-                ResultView.Listagem = _mapper.Map<List<ReboqueSimplificadoViewModel>>(result.Listagem);
-
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Listagem.Count);
-            }
-            else
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
-            }
-
-            return ResultView;
-        }
-
-        public async Task<ReboquistaSimplificadoViewModelList> ListReboquistaByUsuarioIdSimplificadaAsync(int UsuarioId)
+        public async Task<ReboquistaSimplificadoViewModelList> ListResumeReboquistaByUsuarioIdAsync(int UsuarioId)
         {
             ReboquistaSimplificadoViewModelList ResultView = new();
 
@@ -372,11 +372,11 @@ namespace WebZi.Plataform.Data.Services.Servico
             {
                 ResultView.Listagem = _mapper.Map<List<ReboquistaSimplificadoViewModel>>(result.Listagem);
 
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Listagem.Count);
+                ResultView.Mensagem = MensagemViewHelper.SetFound(result.Listagem.Count);
             }
             else
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound();
             }
 
             return ResultView;

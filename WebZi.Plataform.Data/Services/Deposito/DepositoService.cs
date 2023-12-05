@@ -37,7 +37,7 @@ namespace WebZi.Plataform.Data.Services.Deposito
 
             if (DepositoId <= 0)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest(MensagemPadraoEnum.IdentificadorDepositoInvalido);
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest(MensagemPadraoEnum.IdentificadorDepositoInvalido);
 
                 return ResultView;
             }
@@ -51,11 +51,11 @@ namespace WebZi.Plataform.Data.Services.Deposito
             {
                 ResultView.Listagem.Add(_mapper.Map<DepositoViewModel>(result));
 
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound();
+                ResultView.Mensagem = MensagemViewHelper.SetFound();
             }
             else
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound();
             }
 
             return ResultView;
@@ -67,7 +67,7 @@ namespace WebZi.Plataform.Data.Services.Deposito
 
             if (string.IsNullOrWhiteSpace(Name))
             {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest("Informe o Nome do Depósito");
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Informe o Nome do Depósito");
 
                 return ResultView;
             }
@@ -81,11 +81,11 @@ namespace WebZi.Plataform.Data.Services.Deposito
             {
                 ResultView.Listagem = _mapper.Map<List<DepositoViewModel>>(result.OrderBy(o => o.Nome).ToList());
 
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
+                ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
             }
             else
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound();
             }
 
             return ResultView;
@@ -172,17 +172,17 @@ namespace WebZi.Plataform.Data.Services.Deposito
 
                 ResultView.Listagem = _mapper.Map<List<DepositoViewModel>>(Depositos.OrderBy(o => o.Nome).ToList());
 
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
+                ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
             }
             else
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound();
             }
 
             return ResultView;
         }
 
-        public async Task<ClienteDepositoSimplificadoViewModelList> ListagemSimplificada(int UsuarioId)
+        public async Task<ClienteDepositoSimplificadoViewModelList> ListResumeAsync(int UsuarioId)
         {
             ClienteDepositoSimplificadoViewModelList ResultView = new();
 
@@ -195,11 +195,11 @@ namespace WebZi.Plataform.Data.Services.Deposito
             {
                 ResultView.Listagem = _mapper.Map<List<ClienteDepositoSimplificadoViewModel>>(result.OrderBy(o => o.DepositoNome).ToList());
 
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
+                ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
             }
             else
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound();
             }
 
             return ResultView;

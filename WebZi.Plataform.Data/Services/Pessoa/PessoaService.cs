@@ -23,7 +23,7 @@ namespace WebZi.Plataform.Data.Services.Pessoa
             _mapper = mapper;
         }
 
-        public async Task<TipoDocumentoIdentificacaoViewModelList> ListarTipoDocumentoIdentificacaoAsync()
+        public async Task<TipoDocumentoIdentificacaoViewModelList> ListTipoDocumentoIdentificacaoAsync()
         {
             TipoDocumentoIdentificacaoViewModelList ResultView = new();
 
@@ -37,17 +37,17 @@ namespace WebZi.Plataform.Data.Services.Pessoa
                     .Map<List<TipoDocumentoIdentificacaoViewModel>>(result.OrderBy(o => o.Codigo)
                     .ToList());
 
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
+                ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
             }
             else
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound();
             }
 
             return ResultView;
         }
 
-        public async Task<TipoDocumentoIdentificacaoSimplificadoViewModelList> ListarTipoDocumentoIdentificacaoSimplificadoAsync()
+        public async Task<TipoDocumentoIdentificacaoSimplificadoViewModelList> ListTipoDocumentoIdentificacaoSimplificadoAsync()
         {
             TipoDocumentoIdentificacaoSimplificadoViewModelList ResultView = new();
 
@@ -63,11 +63,11 @@ namespace WebZi.Plataform.Data.Services.Pessoa
                     .Map<List<TipoDocumentoIdentificacaoSimplificadoViewModel>>(result.OrderBy(o => o.Codigo)
                     .ToList());
 
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
+                ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
             }
             else
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound();
             }
 
             return ResultView;

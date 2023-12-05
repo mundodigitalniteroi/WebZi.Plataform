@@ -14,12 +14,10 @@ namespace WebZi.Plataform.Data.Services.Banco.PIX
     public class PixDinamicoService
     {
         private readonly AppDbContext _context;
-        private readonly IMapper _mapper;
 
-        public PixDinamicoService(AppDbContext context, IMapper mapper)
+        public PixDinamicoService(AppDbContext context)
         {
             _context = context;
-            _mapper = mapper;
         }
 
         public PixEstaticoGeradoViewModel Create(int FaturamentoId, int UsuarioId)
@@ -28,7 +26,7 @@ namespace WebZi.Plataform.Data.Services.Banco.PIX
 
             if (FaturamentoId <= 0)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest(MensagemPadraoEnum.IdentificadorFaturamentoInvalido);
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest(MensagemPadraoEnum.IdentificadorFaturamentoInvalido);
 
                 return ResultView;
             }
@@ -46,7 +44,7 @@ namespace WebZi.Plataform.Data.Services.Banco.PIX
 
             if (Faturamento != null)
             {
-                ResultView.Mensagem = new GrvService(_context).ValidarInputGrv(Faturamento.Atendimento.Grv, UsuarioId);
+                ResultView.Mensagem = new GrvService(_context).ValidateInputGrv(Faturamento.Atendimento.Grv, UsuarioId);
 
                 if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
                 {
@@ -55,7 +53,7 @@ namespace WebZi.Plataform.Data.Services.Banco.PIX
             }
             else
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadraoEnum.NaoEncontradoFaturamento);
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound(MensagemPadraoEnum.NaoEncontradoFaturamento);
 
                 return ResultView;
             }
@@ -63,25 +61,25 @@ namespace WebZi.Plataform.Data.Services.Banco.PIX
             if (Faturamento.TipoMeioCobranca.Alias != TipoMeioCobrancaAliasEnum.PixEstatico)
             {
                 ResultView.Mensagem = MensagemViewHelper
-                    .GetBadRequest($"Esse Faturamento está cadastrado em outra Forma de Pagamento: {Faturamento.TipoMeioCobranca.Descricao}");
+                    .SetBadRequest($"Esse Faturamento está cadastrado em outra Forma de Pagamento: {Faturamento.TipoMeioCobranca.Descricao}");
 
                 return ResultView;
             }
             else if (Faturamento.Status == "C")
             {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest("Esse Faturamento foi cancelado");
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Esse Faturamento foi cancelado");
 
                 return ResultView;
             }
             else if (Faturamento.Status == "P")
             {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest("Esse Faturamento já foi pago");
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Esse Faturamento já foi pago");
 
                 return ResultView;
             }
             else if (Faturamento.ValorFaturado <= 0)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest("Esse Faturamento não possui valor");
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Esse Faturamento não possui valor");
 
                 return ResultView;
             }

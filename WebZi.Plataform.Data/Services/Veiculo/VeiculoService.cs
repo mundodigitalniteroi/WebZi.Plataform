@@ -18,13 +18,13 @@ namespace WebZi.Plataform.Data.Services.Veiculo
             _mapper = mapper;
         }
 
-        public async Task<EquipamentoOpcionalViewModelList> ListarEquipamentoOpcionalAsync(byte TipoVeiculoId)
+        public async Task<EquipamentoOpcionalViewModelList> ListEquipamentoOpcionalAsync(byte TipoVeiculoId)
         {
             EquipamentoOpcionalViewModelList ResultView = new();
 
             if (TipoVeiculoId <= 0)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest("Identificador do Tipo de Veículo inválido");
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Identificador do Tipo de Veículo inválido");
 
                 return ResultView;
             }
@@ -58,23 +58,23 @@ namespace WebZi.Plataform.Data.Services.Veiculo
                     ResultView.Listagem.Add(EquipamentoOpcionalView);
                 }
 
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.TiposVeiculosEquipamentosAssociacoes.Count);
+                ResultView.Mensagem = MensagemViewHelper.SetFound(result.TiposVeiculosEquipamentosAssociacoes.Count);
             }
             else
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound();
             }
 
             return ResultView;
         }
 
-        public async Task<MarcaModeloViewModelList> ListarMarcaModeloAsync(string MarcaModelo)
+        public async Task<MarcaModeloViewModelList> ListMarcaModeloAsync(string MarcaModelo)
         {
             MarcaModeloViewModelList ResultView = new();
 
             if (string.IsNullOrWhiteSpace(MarcaModelo))
             {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest("Informe a descrição da Marca/Modelo");
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Informe a descrição da Marca/Modelo");
 
                 return ResultView;
             }
@@ -88,19 +88,19 @@ namespace WebZi.Plataform.Data.Services.Veiculo
 
             if (result == null)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound("Marca/Modelo inexistente");
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound("Marca/Modelo inexistente");
 
                 return ResultView;
             }
 
             ResultView.Listagem = _mapper.Map<List<MarcaModeloViewModel>>(result);
 
-            ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
+            ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
 
             return ResultView;
         }
 
-        public async Task<TipoVeiculoViewModelList> ListarTipoVeiculoAsync()
+        public async Task<TipoVeiculoViewModelList> ListTipoVeiculoAsync()
         {
             TipoVeiculoViewModelList ResultView = new();
 
@@ -110,7 +110,7 @@ namespace WebZi.Plataform.Data.Services.Veiculo
 
             ResultView.Listagem = _mapper.Map<List<TipoVeiculoViewModel>>(result.OrderBy(x => x.Descricao).ToList());
 
-            ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
+            ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
 
             return ResultView;
         }

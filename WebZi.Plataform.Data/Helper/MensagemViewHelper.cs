@@ -6,7 +6,29 @@ namespace WebZi.Plataform.Data.Helper
 {
     public abstract class MensagemViewHelper
     {
-        public static MensagemViewModel GetOk()
+        public static MensagemViewModel SetBadRequest(string Message)
+        {
+            return SetBadRequest(new List<string>() { Message });
+        }
+
+        public static MensagemViewModel SetBadRequest(List<string> Messages)
+        {
+            MensagemViewModel Mensagem = new()
+            {
+                HtmlStatusCode = HtmlStatusCodeEnum.BadRequest,
+
+                QuantidadeRegistros = 0
+            };
+
+            foreach (string Message in Messages)
+            {
+                Mensagem.AvisosImpeditivos.Add(Message);
+            }
+
+            return Mensagem;
+        }
+
+        public static MensagemViewModel SetOk()
         {
             MensagemViewModel Mensagem = new()
             {
@@ -16,7 +38,7 @@ namespace WebZi.Plataform.Data.Helper
             return Mensagem;
         }
 
-        public static MensagemViewModel GetOk(string Message)
+        public static MensagemViewModel SetOk(string Message)
         {
             MensagemViewModel Mensagem = new()
             {
@@ -28,7 +50,7 @@ namespace WebZi.Plataform.Data.Helper
             return Mensagem;
         }
 
-        public static MensagemViewModel GetOk(List<string> Messages)
+        public static MensagemViewModel SetOk(List<string> Messages)
         {
             MensagemViewModel Mensagem = new()
             {
@@ -43,12 +65,40 @@ namespace WebZi.Plataform.Data.Helper
             return Mensagem;
         }
 
-        public static MensagemViewModel GetOkCreate(string Message = "Cadastro concluído com sucesso")
+        public static MensagemViewModel SetOk(MensagemViewModel Mensagem)
         {
-            return GetOkCreate(1, Message);
+            Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.Ok;
+
+            return Mensagem;
         }
 
-        public static MensagemViewModel GetOkCreate(int QuantidadeRegistros, string Message = "Cadastro concluído com sucesso")
+        public static MensagemViewModel SetOk(MensagemViewModel Mensagem, string Message)
+        {
+            Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.Ok;
+
+            Mensagem.AvisosInformativos.Add(Message);
+
+            return Mensagem;
+        }
+
+        public static MensagemViewModel SetOk(MensagemViewModel Mensagem, List<string> Messages)
+        {
+            Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.Ok;
+
+            foreach (string Message in Messages)
+            {
+                Mensagem.AvisosInformativos.Add(Message);
+            }
+
+            return Mensagem;
+        }
+
+        public static MensagemViewModel SetCreateSuccess(string Message = "Cadastro concluído com sucesso")
+        {
+            return SetCreateSuccess(1, Message);
+        }
+
+        public static MensagemViewModel SetCreateSuccess(int QuantidadeRegistros, string Message = "Cadastro concluído com sucesso")
         {
             MensagemViewModel Mensagem = new()
             {
@@ -62,31 +112,12 @@ namespace WebZi.Plataform.Data.Helper
             return Mensagem;
         }
 
-        public static MensagemViewModel GetOkUpdate(string Message = "Alteração concluída com sucesso")
+        public static MensagemViewModel SetDeleteSuccess(string Message = "Exclusão concluída com sucesso")
         {
-            return GetOkUpdate(1, Message);
+            return SetDeleteSuccess(1, Message);
         }
 
-        public static MensagemViewModel GetOkUpdate(int QuantidadeRegistros, string Message = "Alteração concluída com sucesso")
-        {
-            MensagemViewModel Mensagem = new()
-            {
-                HtmlStatusCode = HtmlStatusCodeEnum.Ok,
-
-                QuantidadeRegistros = QuantidadeRegistros
-            };
-
-            Mensagem.AvisosInformativos.Add(Message);
-
-            return Mensagem;
-        }
-
-        public static MensagemViewModel GetOkDelete(string Message = "Exclusão concluída com sucesso")
-        {
-            return GetOkDelete(1, Message);
-        }
-
-        public static MensagemViewModel GetOkDelete(int QuantidadeRegistros, string Message = "Exclusão concluída com sucesso")
+        public static MensagemViewModel SetDeleteSuccess(int QuantidadeRegistros, string Message = "Exclusão concluída com sucesso")
         {
             MensagemViewModel Mensagem = new()
             {
@@ -100,12 +131,12 @@ namespace WebZi.Plataform.Data.Helper
             return Mensagem;
         }
 
-        public static MensagemViewModel GetOkFound(string Message = "Registro encontrado com sucesso")
+        public static MensagemViewModel SetFound(string Message = "Registro encontrado com sucesso")
         {
-            return GetOkFound(1, Message);
+            return SetFound(1, Message);
         }
 
-        public static MensagemViewModel GetOkFound(int QuantidadeRegistros, string Message = "Registro(s) encontrado(s) com sucesso")
+        public static MensagemViewModel SetFound(int QuantidadeRegistros, string Message = "Registro(s) encontrado(s) com sucesso")
         {
             MensagemViewModel Mensagem = new()
             {
@@ -126,75 +157,17 @@ namespace WebZi.Plataform.Data.Helper
             return Mensagem;
         }
 
-        public static MensagemViewModel GetNotFound(string Message = "Registro não encontrado")
+        public static MensagemViewModel SetInternalServerError(string Message)
         {
-            MensagemViewModel Mensagem = new()
-            {
-                HtmlStatusCode = HtmlStatusCodeEnum.NotFound,
-
-                QuantidadeRegistros = 0
-            };
-
-            Mensagem.AvisosImpeditivos.Add(Message);
-
-            return Mensagem;
+            return SetInternalServerError(Message, null);
         }
 
-        public static MensagemViewModel GetUnauthorized(string Message = "Usuário desativado ou inexistente")
+        public static MensagemViewModel SetInternalServerError(Exception ex)
         {
-            return GetUnauthorized(new List<string>() { Message });
+            return SetInternalServerError(string.Empty, ex);
         }
 
-        public static MensagemViewModel GetUnauthorized(List<string> Messages)
-        {
-            MensagemViewModel Mensagem = new()
-            {
-                HtmlStatusCode = HtmlStatusCodeEnum.Unauthorized,
-
-                QuantidadeRegistros = 0
-            };
-
-            foreach (string Message in Messages)
-            {
-                Mensagem.AvisosImpeditivos.Add(Message);
-            }
-
-            return Mensagem;
-        }
-
-        public static MensagemViewModel GetBadRequest(string Message)
-        {
-            return GetBadRequest(new List<string>() { Message });
-        }
-
-        public static MensagemViewModel GetBadRequest(List<string> Messages)
-        {
-            MensagemViewModel Mensagem = new()
-            {
-                HtmlStatusCode = HtmlStatusCodeEnum.BadRequest,
-
-                QuantidadeRegistros = 0
-            };
-
-            foreach (string Message in Messages)
-            {
-                Mensagem.AvisosImpeditivos.Add(Message);
-            }
-
-            return Mensagem;
-        }
-
-        public static MensagemViewModel GetInternalServerError(string Message)
-        {
-            return GetInternalServerError(Message, null);
-        }
-
-        public static MensagemViewModel GetInternalServerError(Exception ex)
-        {
-            return GetInternalServerError(string.Empty, ex);
-        }
-
-        public static MensagemViewModel GetInternalServerError(string Message, Exception ex)
+        public static MensagemViewModel SetInternalServerError(string Message, Exception ex)
         {
             MensagemViewModel Mensagem = new()
             {
@@ -225,17 +198,68 @@ namespace WebZi.Plataform.Data.Helper
             return Mensagem;
         }
 
-        public static MensagemViewModel GetServiceUnavailable(string Message)
+        public static MensagemViewModel SetNewMessage(string Message, MensagemTipoAvisoEnum TipoAviso, HtmlStatusCodeEnum HtmlStatusCode)
         {
-            return GetServiceUnavailable(Message, null);
+            return SetNewMessage(new List<string>() { Message }, TipoAviso, HtmlStatusCode);
         }
 
-        public static MensagemViewModel GetServiceUnavailable(Exception ex)
+        public static MensagemViewModel SetNewMessage(List<string> Messages, MensagemTipoAvisoEnum TipoAviso, HtmlStatusCodeEnum HtmlStatusCode)
         {
-            return GetServiceUnavailable(string.Empty, ex);
+            MensagemViewModel Mensagem = new()
+            {
+                HtmlStatusCode = HtmlStatusCode
+            };
+
+            if (TipoAviso == MensagemTipoAvisoEnum.Informativo)
+            {
+                foreach (string Message in Messages)
+                {
+                    Mensagem.AvisosInformativos.Add(Message);
+                }
+            }
+            else if (TipoAviso == MensagemTipoAvisoEnum.Impeditivo)
+            {
+                foreach (string Message in Messages)
+                {
+                    Mensagem.AvisosImpeditivos.Add(Message);
+                }
+            }
+            else if (TipoAviso == MensagemTipoAvisoEnum.Erro)
+            {
+                foreach (string Message in Messages)
+                {
+                    Mensagem.Erros.Add(Message);
+                }
+            }
+
+            return Mensagem;
         }
 
-        public static MensagemViewModel GetServiceUnavailable(string Message, Exception ex)
+        public static MensagemViewModel SetNotFound(string Message = "Registro não encontrado")
+        {
+            MensagemViewModel Mensagem = new()
+            {
+                HtmlStatusCode = HtmlStatusCodeEnum.NotFound,
+
+                QuantidadeRegistros = 0
+            };
+
+            Mensagem.AvisosImpeditivos.Add(Message);
+
+            return Mensagem;
+        }
+
+        public static MensagemViewModel SetServiceUnavailable(string Message)
+        {
+            return SetServiceUnavailable(Message, null);
+        }
+
+        public static MensagemViewModel SetServiceUnavailable(Exception ex)
+        {
+            return SetServiceUnavailable(string.Empty, ex);
+        }
+
+        public static MensagemViewModel SetServiceUnavailable(string Message, Exception ex)
         {
             MensagemViewModel Mensagem = new()
             {
@@ -266,39 +290,43 @@ namespace WebZi.Plataform.Data.Helper
             return Mensagem;
         }
 
-        public static MensagemViewModel GetNewMessage(string Message, MensagemTipoAvisoEnum TipoAviso, HtmlStatusCodeEnum HtmlStatusCode)
+        public static MensagemViewModel SetUnauthorized(string Message = "Usuário desativado ou inexistente")
         {
-            return GetNewMessage(new List<string>() { Message }, TipoAviso, HtmlStatusCode);
+            return SetUnauthorized(new List<string>() { Message });
         }
 
-        public static MensagemViewModel GetNewMessage(List<string> Messages, MensagemTipoAvisoEnum TipoAviso, HtmlStatusCodeEnum HtmlStatusCode)
+        public static MensagemViewModel SetUnauthorized(List<string> Messages)
         {
             MensagemViewModel Mensagem = new()
             {
-                HtmlStatusCode = HtmlStatusCode
+                HtmlStatusCode = HtmlStatusCodeEnum.Unauthorized,
+
+                QuantidadeRegistros = 0
             };
 
-            if (TipoAviso == MensagemTipoAvisoEnum.Informativo)
+            foreach (string Message in Messages)
             {
-                foreach (string Message in Messages)
-                {
-                    Mensagem.AvisosInformativos.Add(Message);
-                }
+                Mensagem.AvisosImpeditivos.Add(Message);
             }
-            else if (TipoAviso == MensagemTipoAvisoEnum.Impeditivo)
+
+            return Mensagem;
+        }
+
+        public static MensagemViewModel SetUpdateSuccess(string Message = "Alteração concluída com sucesso")
+        {
+            return SetUpdateSuccess(1, Message);
+        }
+
+        public static MensagemViewModel SetUpdateSuccess(int QuantidadeRegistros, string Message = "Alteração concluída com sucesso")
+        {
+            MensagemViewModel Mensagem = new()
             {
-                foreach (string Message in Messages)
-                {
-                    Mensagem.AvisosImpeditivos.Add(Message);
-                }
-            }
-            else if (TipoAviso == MensagemTipoAvisoEnum.Erro)
-            {
-                foreach (string Message in Messages)
-                {
-                    Mensagem.Erros.Add(Message);
-                }
-            }
+                HtmlStatusCode = HtmlStatusCodeEnum.Ok,
+
+                QuantidadeRegistros = QuantidadeRegistros
+            };
+
+            Mensagem.AvisosInformativos.Add(Message);
 
             return Mensagem;
         }

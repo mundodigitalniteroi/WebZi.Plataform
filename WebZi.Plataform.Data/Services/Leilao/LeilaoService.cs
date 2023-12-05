@@ -11,15 +11,13 @@ namespace WebZi.Plataform.Data.Services.Leilao
     public class LeilaoService
     {
         private readonly AppDbContext _context;
-        private readonly IMapper _mapper;
 
-        public LeilaoService(AppDbContext context, IMapper mapper)
+        public LeilaoService(AppDbContext context)
         {
             _context = context;
-            _mapper = mapper;
         }
 
-        public async Task<MensagemViewModel> GetAvisosLeilao(int GrvId, string StatusOperacaoId)
+        public async Task<MensagemViewModel> GetAvisosLeilaoAsync(int GrvId, string StatusOperacaoId)
         {
             if (!new[] { "V", "L", "T", "1", "2", "4" }.Contains(StatusOperacaoId))
             {

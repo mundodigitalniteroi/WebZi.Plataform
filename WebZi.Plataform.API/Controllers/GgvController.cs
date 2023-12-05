@@ -45,7 +45,7 @@ namespace WebZi.Plataform.API.Controllers
             }
             catch (Exception ex)
             {
-                ResultView = MensagemViewHelper.GetInternalServerError(ex);
+                ResultView = MensagemViewHelper.SetInternalServerError(ex);
 
                 return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
             }
@@ -54,7 +54,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<GgvService>()
-                    .InsertGgv(Ggv);
+                    .CreateGgvAsync(Ggv);
 
                 if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
                 {
@@ -63,7 +63,7 @@ namespace WebZi.Plataform.API.Controllers
             }
             catch (Exception ex)
             {
-                ResultView = MensagemViewHelper.GetInternalServerError(ex);
+                ResultView = MensagemViewHelper.SetInternalServerError(ex);
 
                 return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
             }
@@ -74,7 +74,7 @@ namespace WebZi.Plataform.API.Controllers
         [HttpPost("CadastrarFotos")]
         // TODO: [Authorize]
         [IgnoreAntiforgeryToken]
-        public ActionResult<MensagemViewModel> CadastrarFotos([FromBody] CadastroFotoGgvViewModel Fotos)
+        public async Task<ActionResult<MensagemViewModel>> CadastrarFotos([FromBody] CadastroFotoGgvViewModel Fotos)
         {
             if (!ModelState.IsValid)
             {
@@ -85,15 +85,15 @@ namespace WebZi.Plataform.API.Controllers
 
             try
             {
-                ResultView = _provider
+                ResultView = await _provider
                     .GetService<GgvService>()
-                    .InsertFotos(Fotos);
+                    .CreateFotosAsync(Fotos);
 
                 return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
             }
             catch (Exception ex)
             {
-                ResultView = MensagemViewHelper.GetInternalServerError(ex);
+                ResultView = MensagemViewHelper.SetInternalServerError(ex);
 
                 return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
             }
@@ -121,7 +121,7 @@ namespace WebZi.Plataform.API.Controllers
             }
             catch (Exception ex)
             {
-                ResultView = MensagemViewHelper.GetInternalServerError(ex);
+                ResultView = MensagemViewHelper.SetInternalServerError(ex);
 
                 return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
             }
@@ -148,7 +148,7 @@ namespace WebZi.Plataform.API.Controllers
             }
             catch (Exception ex)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -175,7 +175,7 @@ namespace WebZi.Plataform.API.Controllers
             }
             catch (Exception ex)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }

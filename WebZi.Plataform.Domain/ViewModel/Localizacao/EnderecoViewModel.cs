@@ -39,5 +39,10 @@
         public string SiglaRegiao { get; set; }
 
         public string Regiao { get; set; }
+
+        public static void SetHtmlStatusCode()
+        {
+
+        }
     }
 }

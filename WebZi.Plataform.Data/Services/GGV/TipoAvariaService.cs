@@ -18,7 +18,7 @@ namespace WebZi.Plataform.Data.Services.GGV
             _mapper = mapper;
         }
 
-        public async Task<TipoAvariaViewModelList> ListarTipoAvariaAsync()
+        public async Task<TipoAvariaViewModelList> ListTipoAvariaAsync()
         {
             TipoAvariaViewModelList ResultView = new();
 
@@ -28,7 +28,7 @@ namespace WebZi.Plataform.Data.Services.GGV
 
             ResultView.Listagem = _mapper.Map<List<TipoAvariaViewModel>>(result.OrderBy(x => x.Descricao).ToList());
 
-            ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
+            ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
 
             return ResultView;
         }

@@ -4,6 +4,8 @@
     {
         public MensagemViewModel Mensagem { get; set; } = new();
 
+        public int IdentificadorGrv { get; set; }
+
         public string Cliente { get; set; }
 
         public string Deposito { get; set; }

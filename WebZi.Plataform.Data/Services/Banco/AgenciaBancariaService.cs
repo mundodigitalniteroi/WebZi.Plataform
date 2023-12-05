@@ -18,13 +18,13 @@ namespace WebZi.Plataform.Data.Services.Banco
             _mapper = mapper;
         }
 
-        public async Task<AgenciaBancariaViewModelList> GetById(int AgenciaBancariaId)
+        public async Task<AgenciaBancariaViewModelList> GetByIdAsync(int AgenciaBancariaId)
         {
             AgenciaBancariaViewModelList ResultView = new();
 
             if (AgenciaBancariaId <= 0)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest("Identificador da Agência Bancária inválido");
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Identificador da Agência Bancária inválido");
 
                 return ResultView;
             }
@@ -38,17 +38,17 @@ namespace WebZi.Plataform.Data.Services.Banco
             {
                 ResultView.Listagem.Add(_mapper.Map<AgenciaBancariaViewModel>(result));
 
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound();
+                ResultView.Mensagem = MensagemViewHelper.SetFound();
             }
             else
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound();
             }
 
             return ResultView;
         }
 
-        public async Task<AgenciaBancariaViewModelList> GetByAgencia(int BancoId, string Agencia)
+        public async Task<AgenciaBancariaViewModelList> GetByCodigoAgenciaAsync(int BancoId, string CodigoAgencia)
         {
             AgenciaBancariaViewModelList ResultView = new();
 
@@ -59,20 +59,20 @@ namespace WebZi.Plataform.Data.Services.Banco
                 erros.Add("Identificador do Banco inválido");
             }
 
-            if (string.IsNullOrWhiteSpace(Agencia))
+            if (string.IsNullOrWhiteSpace(CodigoAgencia))
             {
                 erros.Add("Informe o Código da Agência");
             }
 
             if (erros.Count > 0)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest(erros);
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest(erros);
 
                 return ResultView;
             }
 
             AgenciaBancariaModel result = await _context.AgenciaBancaria
-                .Where(w => w.BancoId == BancoId && w.CodigoAgencia == Agencia)
+                .Where(w => w.BancoId == BancoId && w.CodigoAgencia == CodigoAgencia)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
 
@@ -80,11 +80,11 @@ namespace WebZi.Plataform.Data.Services.Banco
             {
                 ResultView.Listagem.Add(_mapper.Map<AgenciaBancariaViewModel>(result));
 
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound();
+                ResultView.Mensagem = MensagemViewHelper.SetFound();
             }
             else
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound();
             }
 
             return ResultView;
@@ -96,7 +96,7 @@ namespace WebZi.Plataform.Data.Services.Banco
 
             if (BancoId <= 0)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest("Identificador do Banco inválido");
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Identificador do Banco inválido");
 
                 return ResultView;
             }
@@ -115,11 +115,11 @@ namespace WebZi.Plataform.Data.Services.Banco
 
                 ResultView.Listagem = _mapper.Map<List<AgenciaBancariaViewModel>>(result);
 
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
+                ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
             }
             else
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound();
             }
 
             return ResultView;

@@ -40,162 +40,15 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             _httpClientFactory = httpClientFactory;
         }
 
-        public async Task<AtendimentoViewModel> GetByIdAsync(int AtendimentoId, int UsuarioId)
-        {
-            AtendimentoViewModel ResultView = new();
-
-            if (AtendimentoId <= 0)
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest(MensagemPadraoEnum.IdentificadorAtendimentoInvalido);
-
-                return ResultView;
-            }
-
-            GrvModel Grv = await _context.Grv
-                .Include(x => x.Atendimento)
-                .Where(x => x.Atendimento.AtendimentoId == AtendimentoId)
-                .AsNoTracking()
-                .FirstOrDefaultAsync();
-
-            if (Grv == null)
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadraoEnum.NaoEncontradoGrv);
-
-                return ResultView;
-            }
-
-            ResultView.Mensagem = new GrvService(_context).ValidarInputGrv(Grv, UsuarioId);
-
-            if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
-            {
-                return ResultView;
-            }
-
-            if (Grv.Atendimento == null)
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadraoEnum.NaoEncontradoAtendimento);
-
-                return ResultView;
-            }
-
-            ResultView = _mapper.Map<AtendimentoViewModel>(Grv.Atendimento);
-
-            ResultView.Mensagem = MensagemViewHelper.GetOkFound();
-
-            return ResultView;
-        }
-
-        public async Task<AtendimentoViewModel> GetByProcessoAsync(string NumeroProcesso, string CodigoProduto, int ClienteId, int DepositoId, int UsuarioId)
-        {
-            AtendimentoViewModel ResultView = new()
-            {
-                Mensagem = new GrvService(_context).ValidarInputGrv(NumeroProcesso, CodigoProduto, ClienteId, DepositoId, UsuarioId)
-            };
-
-            if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
-            {
-                return ResultView;
-            }
-
-            GrvModel Grv = await _context.Grv
-                .Include(x => x.Atendimento)
-                .Where(x => x.NumeroFormularioGrv == NumeroProcesso
-                         && x.ClienteId == ClienteId
-                         && x.DepositoId == DepositoId)
-                .AsNoTracking()
-                .FirstOrDefaultAsync();
-
-            if (Grv.Atendimento == null)
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadraoEnum.NaoEncontradoAtendimento);
-
-                return ResultView;
-            }
-
-            ResultView = _mapper.Map<AtendimentoViewModel>(Grv.Atendimento);
-
-            ResultView.Mensagem = MensagemViewHelper.GetOkFound();
-
-            return ResultView;
-        }
-        
-        public async Task<ImageViewModelList> GetResponsavelFotoAsync(int AtendimentoId, int UsuarioId)
-        {
-            ImageViewModelList ResultView = new();
-
-            List<string> erros = new();
-
-            if (AtendimentoId <= 0)
-            {
-                erros.Add(MensagemPadraoEnum.IdentificadorAtendimentoInvalido);
-            }
-
-            if (UsuarioId <= 0)
-            {
-                erros.Add(MensagemPadraoEnum.IdentificadorUsuarioInvalido);
-            }
-
-            if (erros.Count > 0)
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest(erros);
-
-                return ResultView;
-            }
-
-            if (!new UsuarioService(_context).IsUserActive(UsuarioId))
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetUnauthorized();
-
-                return ResultView;
-            }
-
-            BucketArquivoModel BucketArquivo = _context.BucketArquivo
-                .Include(i => i.BucketNomeTabelaOrigem)
-                .Where(w => w.BucketNomeTabelaOrigem.Codigo == BucketNomeTabelaOrigemEnum.AtendimentoFotoResponsavel)
-                .AsNoTracking()
-                .FirstOrDefault();
-
-            if (BucketArquivo != null)
-            {
-                ResultView.Listagem.Add(new ImageViewModel { Imagem = HttpClientHelper.DownloadFile(BucketArquivo.Url) });
-
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound();
-
-                return ResultView;
-            }
-            else
-            {
-                AtendimentoFotoResponsavelModel AtendimentoFotoResponsavel = await _context.AtendimentoFotoResponsavel
-                    .Where(w => w.AtendimentoId == AtendimentoId)
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync();
-
-                if (AtendimentoFotoResponsavel != null)
-                {
-                    ResultView.Listagem.Add(new ImageViewModel { Imagem = AtendimentoFotoResponsavel.Foto });
-
-                    ResultView.Mensagem = MensagemViewHelper.GetOkFound();
-
-                    return ResultView;
-                }
-                else
-                {
-                    ResultView.Mensagem = MensagemViewHelper.GetNotFound();
-
-                    return ResultView;
-                }
-            }
-        }
-
-        public async Task<MensagemViewModel> ValidarInformacoesParaCadastroAsync(AtendimentoCadastroInputViewModel AtendimentoCadastro)
+        public async Task<MensagemViewModel> CheckInformacoesParaCadastroAsync(AtendimentoCadastroInputViewModel AtendimentoCadastro)
         {
             if (AtendimentoCadastro.IdentificadorTipoMeioCobranca <= 0)
             {
-                return MensagemViewHelper.GetBadRequest("Identificador da Forma de Pagamento inválido");
+                return MensagemViewHelper.SetBadRequest("Identificador da Forma de Pagamento inválido");
             }
 
             MensagemViewModel ResultView = new GrvService(_context)
-                .ValidarInputGrv(AtendimentoCadastro.IdentificadorGrv, AtendimentoCadastro.IdentificadorUsuario);
+                .ValidateInputGrv(AtendimentoCadastro.IdentificadorGrv, AtendimentoCadastro.IdentificadorUsuario);
 
             if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
             {
@@ -214,18 +67,18 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             if (!new[] { "B", "D", "V", "L", "E", "1", "2", "3", "4", "7" }.Contains(Grv.StatusOperacao.StatusOperacaoId))
             {
-                return MensagemViewHelper.GetBadRequest($"O Status atual deste GRV não permite o cadastro do Atendimento. " +
+                return MensagemViewHelper.SetBadRequest($"O Status atual deste GRV não permite o cadastro do Atendimento. " +
                     $"Descrição do Status atual: {Grv.StatusOperacao.Descricao.ToUpper()}");
             }
             else if (Grv.Atendimento != null)
             {
-                return MensagemViewHelper.GetBadRequest($"Este GRV já possui um Atendimento cadastrado. Identificador do Atendimento: {Grv.Atendimento.AtendimentoId}");
+                return MensagemViewHelper.SetBadRequest($"Este GRV já possui um Atendimento cadastrado. Identificador do Atendimento: {Grv.Atendimento.AtendimentoId}");
             }
             #endregion Consultas
 
             #region Leilão
-            ResultView = await new LeilaoService(_context, _mapper)
-                .GetAvisosLeilao(Grv.GrvId, Grv.StatusOperacaoId);
+            ResultView = await new LeilaoService(_context)
+                .GetAvisosLeilaoAsync(Grv.GrvId, Grv.StatusOperacaoId);
 
             if (ResultView != null)
             {
@@ -236,7 +89,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
                 if (ResultView.Erros.Count > 0)
                 {
-                    return MensagemViewHelper.GetBadRequest(ResultView.Erros);
+                    return MensagemViewHelper.SetBadRequest(ResultView.Erros);
                 }
             }
             else
@@ -518,7 +371,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
         }
 
         // TODO: Este método não está finalizado
-        public async Task<MensagemViewModel> ValidarInformacoesParaPagamentoAsync(PagamentoViewModel Atendimento)
+        public async Task<MensagemViewModel> CheckInformacoesParaPagamentoAsync(PagamentoViewModel Atendimento)
         {
             MensagemViewModel mensagem = new();
 
@@ -548,7 +401,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             if (grv == null)
             {
-                return MensagemViewHelper.GetNotFound(MensagemPadraoEnum.NaoEncontradoGrv);
+                return MensagemViewHelper.SetNotFound(MensagemPadraoEnum.NaoEncontradoGrv);
             }
 
             // TODO: Verificar o Status para confirmação do Pagamento
@@ -563,7 +416,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             return mensagem;
         }
 
-        public async Task<AtendimentoCadastroResultViewModel> InsertAtendimento(AtendimentoCadastroInputViewModel AtendimentoInput)
+        public async Task<AtendimentoCadastroResultViewModel> CreateAtendimentoAsync(AtendimentoCadastroInputViewModel AtendimentoInput)
         {
             #region Consultas
             GrvModel Grv = await _context.Grv
@@ -673,7 +526,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             }
             #endregion Dados do Atendimento
 
-            CalculoFaturamentoParametroModel ParametrosCalculoFaturamento = await ConfigurarParametrosCalculoFaturamento(Grv, Atendimento, AtendimentoInput.IdentificadorTipoMeioCobranca, DataHoraPorDeposito);
+            CalculoFaturamentoParametroModel ParametrosCalculoFaturamento = await ConfigParametrosCalculoFaturamentoAsync(Grv, Atendimento, AtendimentoInput.IdentificadorTipoMeioCobranca, DataHoraPorDeposito);
 
             AtendimentoCadastroResultViewModel AtendimentoCadastroResultView = new();
 
@@ -690,11 +543,11 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                     ParametrosCalculoFaturamento.Faturamento = new FaturamentoService(_context, _mapper, _httpClientFactory)
                         .Faturar(ParametrosCalculoFaturamento);
 
-                    InsertFotoResponsavel(Atendimento.AtendimentoId, AtendimentoInput);
+                    CreateFotoResponsavel(Atendimento.AtendimentoId, AtendimentoInput);
 
                     UpdateStatusERP(ParametrosCalculoFaturamento);
 
-                    InsertLiberacaoLeilao(ParametrosCalculoFaturamento);
+                    CreateLiberacaoLeilao(ParametrosCalculoFaturamento);
 
                     UpdateGrv(ParametrosCalculoFaturamento);
 
@@ -708,7 +561,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 {
                     transaction.Rollback();
 
-                    AtendimentoCadastroResultView.Mensagem = MensagemViewHelper.GetInternalServerError(ex);
+                    AtendimentoCadastroResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
                     
                     return AtendimentoCadastroResultView;
                 }
@@ -719,12 +572,36 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             AtendimentoCadastroResultView.IdentificadorAtendimento = ParametrosCalculoFaturamento.Atendimento.AtendimentoId;
 
-            AtendimentoCadastroResultView.Mensagem = MensagemViewHelper.GetOkCreate();
+            AtendimentoCadastroResultView.Mensagem = MensagemViewHelper.SetCreateSuccess();
 
             return AtendimentoCadastroResultView;
         }
 
-        private async Task<CalculoFaturamentoParametroModel> ConfigurarParametrosCalculoFaturamento(GrvModel Grv, AtendimentoModel Atendimento, int TipoMeioCobrancaId, DateTime DataHoraPorDeposito)
+        private void CreateFotoResponsavel(int AtendimentoId, AtendimentoCadastroInputViewModel AtendimentoInput)
+        {
+            if (AtendimentoInput.ResponsavelFoto != null)
+            {
+                new BucketArquivoService(_context, _httpClientFactory)
+                    .SendFile("ATENDIMFOTORESP", AtendimentoId, AtendimentoInput.IdentificadorUsuario, AtendimentoInput.ResponsavelFoto);
+            }
+        }
+
+        public void CreateLiberacaoLeilao(CalculoFaturamentoParametroModel ParametrosCalculoFaturamento)
+        {
+            if (new[] { "1", "2", "3" }.Contains(ParametrosCalculoFaturamento.StatusOperacaoLeilaoId))
+            {
+                _context.LiberacaoLeilao.Add(new()
+                {
+                    GrvId = ParametrosCalculoFaturamento.Grv.GrvId,
+
+                    StatusOperacaoLeilaoId = ParametrosCalculoFaturamento.StatusOperacaoLeilaoId,
+
+                    UsuarioCadastroId = ParametrosCalculoFaturamento.UsuarioCadastroId
+                });
+            }
+        }
+
+        private async Task<CalculoFaturamentoParametroModel> ConfigParametrosCalculoFaturamentoAsync(GrvModel Grv, AtendimentoModel Atendimento, int TipoMeioCobrancaId, DateTime DataHoraPorDeposito)
         {
             CalculoFaturamentoParametroModel ParametrosCalculoFaturamento = new()
             {
@@ -773,12 +650,176 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             return ParametrosCalculoFaturamento;
         }
 
-        private void InsertFotoResponsavel(int AtendimentoId, AtendimentoCadastroInputViewModel AtendimentoInput)
+        public async Task<AtendimentoViewModel> GetByIdAsync(int AtendimentoId, int UsuarioId)
         {
-            if (AtendimentoInput.ResponsavelFoto != null)
+            AtendimentoViewModel ResultView = new();
+
+            if (AtendimentoId <= 0)
             {
-                new BucketArquivoService(_context, _httpClientFactory)
-                    .SendFile("ATENDIMFOTORESP", AtendimentoId, AtendimentoInput.IdentificadorUsuario, AtendimentoInput.ResponsavelFoto);
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest(MensagemPadraoEnum.IdentificadorAtendimentoInvalido);
+
+                return ResultView;
+            }
+
+            GrvModel Grv = await _context.Grv
+                .Include(x => x.Atendimento)
+                .Where(x => x.Atendimento.AtendimentoId == AtendimentoId)
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
+
+            if (Grv == null)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound(MensagemPadraoEnum.NaoEncontradoGrv);
+
+                return ResultView;
+            }
+
+            ResultView.Mensagem = new GrvService(_context).ValidateInputGrv(Grv, UsuarioId);
+
+            if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+            {
+                return ResultView;
+            }
+
+            if (Grv.Atendimento == null)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound(MensagemPadraoEnum.NaoEncontradoAtendimento);
+
+                return ResultView;
+            }
+
+            ResultView = _mapper.Map<AtendimentoViewModel>(Grv.Atendimento);
+
+            ResultView.Mensagem = MensagemViewHelper.SetFound();
+
+            return ResultView;
+        }
+
+        public async Task<AtendimentoViewModel> GetByProcessoAsync(string NumeroProcesso, string CodigoProduto, int ClienteId, int DepositoId, int UsuarioId)
+        {
+            AtendimentoViewModel ResultView = new()
+            {
+                Mensagem = new GrvService(_context).ValidateInputGrv(NumeroProcesso, CodigoProduto, ClienteId, DepositoId, UsuarioId)
+            };
+
+            if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+            {
+                return ResultView;
+            }
+
+            GrvModel Grv = await _context.Grv
+                .Include(x => x.Atendimento)
+                .Where(x => x.NumeroFormularioGrv == NumeroProcesso
+                         && x.ClienteId == ClienteId
+                         && x.DepositoId == DepositoId)
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
+
+            if (Grv.Atendimento == null)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound(MensagemPadraoEnum.NaoEncontradoAtendimento);
+
+                return ResultView;
+            }
+
+            ResultView = _mapper.Map<AtendimentoViewModel>(Grv.Atendimento);
+
+            ResultView.Mensagem = MensagemViewHelper.SetFound();
+
+            return ResultView;
+        }
+
+        public async Task<ImageViewModelList> GetResponsavelFotoAsync(int AtendimentoId, int UsuarioId)
+        {
+            ImageViewModelList ResultView = new();
+
+            List<string> erros = new();
+
+            if (AtendimentoId <= 0)
+            {
+                erros.Add(MensagemPadraoEnum.IdentificadorAtendimentoInvalido);
+            }
+
+            if (UsuarioId <= 0)
+            {
+                erros.Add(MensagemPadraoEnum.IdentificadorUsuarioInvalido);
+            }
+
+            if (erros.Count > 0)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest(erros);
+
+                return ResultView;
+            }
+
+            if (!await new UsuarioService(_context).IsUserActiveAsync(UsuarioId))
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetUnauthorized();
+
+                return ResultView;
+            }
+
+            BucketArquivoModel BucketArquivo = _context.BucketArquivo
+                .Include(i => i.BucketNomeTabelaOrigem)
+                .Where(w => w.BucketNomeTabelaOrigem.Codigo == BucketNomeTabelaOrigemEnum.AtendimentoFotoResponsavel)
+                .AsNoTracking()
+                .FirstOrDefault();
+
+            if (BucketArquivo != null)
+            {
+                ResultView.Listagem.Add(new ImageViewModel { Imagem = HttpClientHelper.DownloadFile(BucketArquivo.Url) });
+
+                ResultView.Mensagem = MensagemViewHelper.SetFound();
+
+                return ResultView;
+            }
+            else
+            {
+                AtendimentoFotoResponsavelModel AtendimentoFotoResponsavel = await _context.AtendimentoFotoResponsavel
+                    .Where(w => w.AtendimentoId == AtendimentoId)
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync();
+
+                if (AtendimentoFotoResponsavel != null)
+                {
+                    ResultView.Listagem.Add(new ImageViewModel { Imagem = AtendimentoFotoResponsavel.Foto });
+
+                    ResultView.Mensagem = MensagemViewHelper.SetFound();
+
+                    return ResultView;
+                }
+                else
+                {
+                    ResultView.Mensagem = MensagemViewHelper.SetNotFound();
+
+                    return ResultView;
+                }
+            }
+        }
+
+        public async Task<QualificacaoResponsavelViewModelList> ListQualificacaoResponsavelAsync()
+        {
+            QualificacaoResponsavelViewModelList ResultView = new();
+
+            List<QualificacaoResponsavelModel> result = await _context.QualificacaoResponsavel
+                .AsNoTracking()
+                .ToListAsync();
+
+            if (result?.Count > 0)
+            {
+                ResultView.Listagem = _mapper.Map<List<QualificacaoResponsavelViewModel>>(result
+                    .OrderBy(o => o.Descricao)
+                    .ToList());
+
+                ResultView.Mensagem = MensagemViewHelper.SetFound(ResultView.Listagem.Count);
+
+                return ResultView;
+            }
+            else
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound();
+
+                return ResultView;
             }
         }
 
@@ -797,21 +838,6 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             }
         }
 
-        private void InsertLiberacaoLeilao(CalculoFaturamentoParametroModel ParametrosCalculoFaturamento)
-        {
-            if (new[] { "1", "2", "3" }.Contains(ParametrosCalculoFaturamento.StatusOperacaoLeilaoId))
-            {
-                _context.LiberacaoLeilao.Add(new()
-                {
-                    GrvId = ParametrosCalculoFaturamento.Grv.GrvId,
-
-                    StatusOperacaoLeilaoId = ParametrosCalculoFaturamento.StatusOperacaoLeilaoId,
-
-                    UsuarioCadastroId = ParametrosCalculoFaturamento.UsuarioCadastroId
-                });
-            }
-        }
-
         private void UpdateGrv(CalculoFaturamentoParametroModel ParametrosCalculoFaturamento)
         {
             GrvModel Grv = _context.Grv
@@ -822,7 +848,6 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             _context.Grv.Update(Grv);
         }
-
 
         //private async void GerarFormaPagamento(CalculoFaturamentoParametroModel ParametrosCalculoFaturamento)
         //{
@@ -839,31 +864,5 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
         //    return;
         //}
-
-        public async Task<QualificacaoResponsavelViewModelList> ListQualificacaoResponsavelViewModelAsync()
-        {
-            QualificacaoResponsavelViewModelList ResultView = new();
-
-            List<QualificacaoResponsavelModel> result = await _context.QualificacaoResponsavel
-                .AsNoTracking()
-                .ToListAsync();
-
-            if (result?.Count > 0)
-            {
-                ResultView.Listagem = _mapper.Map<List<QualificacaoResponsavelViewModel>>(result
-                    .OrderBy(o => o.Descricao)
-                    .ToList());
-
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound(ResultView.Listagem.Count);
-
-                return ResultView;
-            }
-            else
-            {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
-
-                return ResultView;
-            }
-        }
     }
 }

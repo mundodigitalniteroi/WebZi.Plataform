@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using WebZi.Plataform.CrossCutting.Documents;
+using WebZi.Plataform.CrossCutting.Strings;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Domain.Models.Empresa;
@@ -19,13 +20,13 @@ namespace WebZi.Plataform.Data.Services.Empresa
             _mapper = mapper;
         }
 
-        public async Task<EmpresaViewModelList> GetById(int EmpresaId)
+        public async Task<EmpresaViewModelList> GetByIdAsync(int EmpresaId)
         {
             EmpresaViewModelList ResultView = new();
 
             if (EmpresaId <= 0)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest("Identificador da Empresa inválido");
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Identificador da Empresa inválido");
 
                 return ResultView;
             }
@@ -39,11 +40,11 @@ namespace WebZi.Plataform.Data.Services.Empresa
             {
                 ResultView.Listagem = _mapper.Map<List<EmpresaViewModel>>(result.OrderBy(x => x.Nome).ToList());
 
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
+                ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
             }
             else
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound("Empresa não encontrada");
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound("Empresa não encontrada");
             }
 
             return ResultView;
@@ -62,14 +63,14 @@ namespace WebZi.Plataform.Data.Services.Empresa
 
             if (erros.Count > 0)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest(erros);
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest(erros);
 
                 return ResultView;
             }
 
             List<EmpresaModel> result = await _context.Empresa
-                .Where(w => (!string.IsNullOrWhiteSpace(CNPJ) ? w.CNPJ == CNPJ : true) &&
-                            (!string.IsNullOrWhiteSpace(Nome) ? w.Nome.Contains(Nome.ToUpper().Trim()) : true))
+                .Where(w => (!CNPJ.IsNullOrWhiteSpace() ? w.CNPJ == CNPJ : true) &&
+                            (!Nome.IsNullOrWhiteSpace() ? w.Nome.Contains(Nome.ToUpper().Trim()) : true))
                 .AsNoTracking()
                 .ToListAsync();
 
@@ -77,11 +78,11 @@ namespace WebZi.Plataform.Data.Services.Empresa
             {
                 ResultView.Listagem = _mapper.Map<List<EmpresaViewModel>>(result.OrderBy(x => x.Nome).ToList());
 
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
+                ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
             }
             else
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound("Empresa não encontrada");
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound("Empresa não encontrada");
             }
 
             return ResultView;

@@ -37,13 +37,13 @@ namespace WebZi.Plataform.Domain.Services.Usuario
 
             if (UsuarioId <= 0 && string.IsNullOrWhiteSpace(Login))
             {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest("Informe o Identificador do Usuário ou o Login");
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Informe o Identificador do Usuário ou o Login");
 
                 return ResultView;
             }
             else if (string.IsNullOrWhiteSpace(Login) && !string.IsNullOrWhiteSpace(Password))
             {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest("Ao informar a Senha do Usuário, é preciso informar o Login");
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Ao informar a Senha do Usuário, é preciso informar o Login");
 
                 return ResultView;
             }
@@ -84,7 +84,7 @@ namespace WebZi.Plataform.Domain.Services.Usuario
                 }
                 else
                 {
-                    ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadraoEnum.NaoEncontradoUsuario);
+                    ResultView.Mensagem = MensagemViewHelper.SetNotFound(MensagemPadraoEnum.NaoEncontradoUsuario);
 
                     return ResultView;
                 }
@@ -102,7 +102,7 @@ namespace WebZi.Plataform.Domain.Services.Usuario
 
                 ResultView = _mapper.Map<UsuarioViewModel>(result);
 
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound();
+                ResultView.Mensagem = MensagemViewHelper.SetFound();
 
                 var ListagemUsuarioClienteDeposito = await _context.ViewUsuarioClienteDeposito
                     .Where(x => x.UsuarioId == UsuarioId)
@@ -131,7 +131,7 @@ namespace WebZi.Plataform.Domain.Services.Usuario
             }
             else
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound(MensagemPadraoEnum.NaoEncontradoUsuario);
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound(MensagemPadraoEnum.NaoEncontradoUsuario);
 
                 return ResultView;
             }
@@ -153,6 +153,16 @@ namespace WebZi.Plataform.Domain.Services.Usuario
                 .Where(x => x.UsuarioId == UsuarioId)
                 .AsNoTracking()
                 .FirstOrDefault();
+
+            return Usuario != null && Usuario.FlagAtivo != "N";
+        }
+
+        public async Task<bool> IsUserActiveAsync(int UsuarioId)
+        {
+            UsuarioModel Usuario = await _context.Usuario
+                .Where(x => x.UsuarioId == UsuarioId)
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
 
             return Usuario != null && Usuario.FlagAtivo != "N";
         }

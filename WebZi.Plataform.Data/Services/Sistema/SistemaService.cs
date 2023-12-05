@@ -39,11 +39,11 @@ namespace WebZi.Plataform.Data.Services.Sistema
                     .Map<List<CorViewModel>>(result.OrderBy(x => x.Cor)
                     .ToList());
 
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
+                ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
             }
             else
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound("Cor não encontrada");
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound("Cor não encontrada");
             }
 
             return ResultView;

@@ -1,7 +1,5 @@
 ﻿using AutoMapper;
-using BitMiracle.LibTiff.Classic;
 using Microsoft.EntityFrameworkCore;
-using System.Net.Http;
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
@@ -41,7 +39,7 @@ namespace WebZi.Plataform.Data.Services.Cliente
 
             if (ClienteId <= 0)
             {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest(MensagemPadraoEnum.IdentificadorClienteInvalido);
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest(MensagemPadraoEnum.IdentificadorClienteInvalido);
 
                 return ResultView;
             }
@@ -55,11 +53,11 @@ namespace WebZi.Plataform.Data.Services.Cliente
             {
                 ResultView.Listagem.Add(_mapper.Map<ClienteViewModel>(result));
 
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound();
+                ResultView.Mensagem = MensagemViewHelper.SetFound();
             }
             else
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound();
             }
 
             return ResultView;
@@ -71,7 +69,7 @@ namespace WebZi.Plataform.Data.Services.Cliente
 
             if (string.IsNullOrWhiteSpace(Name))
             {
-                ResultView.Mensagem = MensagemViewHelper.GetBadRequest("Informe o Nome do Cliente");
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Informe o Nome do Cliente");
 
                 return ResultView;
             }
@@ -85,11 +83,11 @@ namespace WebZi.Plataform.Data.Services.Cliente
             {
                 ResultView.Listagem = _mapper.Map<List<ClienteViewModel>>(result.OrderBy(o => o.Nome).ToList());
 
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
+                ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
             }
             else
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound();
             }
             return ResultView;
         }
@@ -116,7 +114,7 @@ namespace WebZi.Plataform.Data.Services.Cliente
 
                 ResultView.Listagem.Add(new ImageViewModel { Imagem = ConfiguracaoLogo.LogoPadraoSistema });
 
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound();
+                ResultView.Mensagem = MensagemViewHelper.SetFound();
 
                 return ResultView;
             }
@@ -143,17 +141,17 @@ namespace WebZi.Plataform.Data.Services.Cliente
 
                 ResultView.Listagem = _mapper.Map<List<ClienteViewModel>>(Clientes.OrderBy(o => o.Nome).ToList());
 
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Count);
+                ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
             }
             else
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound();
             }
 
             return ResultView;
         }
 
-        public async Task<ClienteSimplificadoViewModelList> ListagemSimplificada(int UsuarioId)
+        public async Task<ClienteSimplificadoViewModelList> ListResumeAsync(int UsuarioId)
         {
             ClienteSimplificadoViewModelList ResultView = new();
 
@@ -163,11 +161,11 @@ namespace WebZi.Plataform.Data.Services.Cliente
             {
                 ResultView.Listagem = _mapper.Map<List<ClienteSimplificadoViewModel>>(result.Listagem);
 
-                ResultView.Mensagem = MensagemViewHelper.GetOkFound(result.Listagem.Count);
+                ResultView.Mensagem = MensagemViewHelper.SetFound(result.Listagem.Count);
             }
             else
             {
-                ResultView.Mensagem = MensagemViewHelper.GetNotFound();
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound();
             }
 
             return ResultView;
