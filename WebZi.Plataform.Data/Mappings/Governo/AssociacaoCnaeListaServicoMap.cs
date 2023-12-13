@@ -1,5 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using WebZi.Plataform.Domain.Models.Governo;
 
 namespace WebZi.Plataform.Data.Mappings.Governo
@@ -15,7 +15,7 @@ namespace WebZi.Plataform.Data.Mappings.Governo
             builder.Property(e => e.CnaeListaServicoId)
                 .HasColumnName("CnaeListaServicoID")
                 .ValueGeneratedOnAdd();
-            
+
             builder.Property(e => e.CnaeId)
                 .IsRequired()
                 .HasColumnName("CnaeID");

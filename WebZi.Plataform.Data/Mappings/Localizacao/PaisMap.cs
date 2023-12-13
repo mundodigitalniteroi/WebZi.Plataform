@@ -23,27 +23,27 @@ namespace WebZi.Plataform.Data.Mappings.Localizacao
                 .IsUnicode(false)
                 .IsFixedLength()
                 .HasColumnName("continente");
-            
+
             builder.Property(e => e.Iso)
                 .IsRequired()
                 .HasMaxLength(2)
                 .IsUnicode(false)
                 .IsFixedLength()
                 .HasColumnName("iso");
-            
+
             builder.Property(e => e.Iso3)
                 .IsRequired()
                 .HasMaxLength(3)
                 .IsUnicode(false)
                 .IsFixedLength()
                 .HasColumnName("iso3");
-            
+
             builder.Property(e => e.Nome)
                 .IsRequired()
                 .HasMaxLength(100)
                 .IsUnicode(false)
                 .HasColumnName("nome");
-            
+
             builder.Property(e => e.NomePtbr)
                 .IsRequired()
                 .HasMaxLength(100)

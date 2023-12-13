@@ -15,13 +15,13 @@ namespace WebZi.Plataform.Data.Mappings.Localizacao
             builder.Property(e => e.TipoLogradouroId)
                 .ValueGeneratedOnAdd()
                 .HasColumnName("id_tipo_logradouro");
-            
+
             builder.Property(e => e.Codigo)
                 .IsRequired()
                 .HasMaxLength(4)
                 .IsUnicode(false)
                 .HasColumnName("codigo");
-            
+
             builder.Property(e => e.Descricao)
                 .IsRequired()
                 .HasMaxLength(20)

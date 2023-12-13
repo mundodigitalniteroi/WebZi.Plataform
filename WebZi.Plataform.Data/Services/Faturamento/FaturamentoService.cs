@@ -8,16 +8,14 @@ using WebZi.Plataform.CrossCutting.Strings;
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
-using WebZi.Plataform.Data.Services.Sistema;
+using WebZi.Plataform.Data.Services.WebServices;
 using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.GRV;
-using WebZi.Plataform.Domain.Models.Sistema;
 using WebZi.Plataform.Domain.Services.GRV;
 using WebZi.Plataform.Domain.Services.Usuario;
 using WebZi.Plataform.Domain.ViewModel;
 using WebZi.Plataform.Domain.ViewModel.Faturamento;
-using WebZi.Plataform.Domain.ViewModel.Generic;
 using WebZi.Plataform.Domain.Views.Faturamento;
 using WebZi.Plataform.Domain.Views.Localizacao;
 using Z.EntityFramework.Plus;
@@ -703,9 +701,9 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
         private static string CreateNumeroIdentificacao(CalculoFaturamentoParametroModel ParametrosCalculoFaturamento, int Sequencia)
         {
-            return StringHelper.AddStringLeft(ParametrosCalculoFaturamento.Grv.NumeroFormularioGrv, '0', 9) +
-                   StringHelper.AddStringLeft(ParametrosCalculoFaturamento.Grv.DepositoId.ToString(), '0', 4) +
-                   StringHelper.AddStringLeft(Sequencia.ToString(), '0', 3);
+            return StringHelper.AddCharToLeft(ParametrosCalculoFaturamento.Grv.NumeroFormularioGrv, '0', 9) +
+                   StringHelper.AddCharToLeft(ParametrosCalculoFaturamento.Grv.DepositoId.ToString(), '0', 4) +
+                   StringHelper.AddCharToLeft(Sequencia.ToString(), '0', 3);
         }
 
         private static DateTime CalcularDataVencimento(CalculoFaturamentoParametroModel ParametrosCalculoFaturamento, CalculoDiariasModel CalculoDiarias, DateTime? dataFinal = null)
@@ -837,7 +835,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             FaturamentoUpdate.TipoMeioCobrancaId = TipoMeioCobrancaId;
 
             using IDbContextTransaction transaction = _context.Database.BeginTransaction();
-            
+
             try
             {
                 DeleteTipoMeioCobrancaAtual(FaturamentoId, Faturamento.TipoMeioCobranca);
@@ -863,7 +861,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             if (TipoMeioCobrancaAtual.Alias == TipoMeioCobrancaAliasEnum.Boleto ||
                 TipoMeioCobrancaAtual.Alias == TipoMeioCobrancaAliasEnum.BoletoEspecial)
             {
-                new FaturamentoBoletoService(_context, _mapper, _httpClientFactory)
+                new BoletoService(_context, _mapper, _httpClientFactory)
                     .Cancel(FaturamentoId);
             }
             else if (TipoMeioCobrancaAtual.Alias == TipoMeioCobrancaAliasEnum.PixEstatico)

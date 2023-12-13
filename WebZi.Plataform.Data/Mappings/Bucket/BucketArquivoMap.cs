@@ -22,22 +22,22 @@ namespace WebZi.Plataform.Data.Mappings.Bucket
                 .IsRequired()
                 .HasMaxLength(100)
                 .IsUnicode(false);
-            
+
             builder.Property(e => e.PermissaoAcesso)
                 .IsRequired()
                 .HasMaxLength(20)
                 .IsUnicode(false);
-            
+
             builder.Property(e => e.TipoArquivo)
                 .IsRequired()
                 .HasMaxLength(20)
                 .IsUnicode(false);
-            
+
             builder.Property(e => e.TipoCadastro)
                 .HasMaxLength(1)
                 .IsUnicode(false)
                 .IsFixedLength();
-            
+
             builder.Property(e => e.Url)
                 .IsRequired()
                 .HasMaxLength(255)

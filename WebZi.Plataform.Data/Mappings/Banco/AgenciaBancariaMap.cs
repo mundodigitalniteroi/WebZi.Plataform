@@ -30,18 +30,18 @@ namespace WebZi.Plataform.Data.Mappings.Banco
                 .HasMaxLength(8)
                 .IsUnicode(false)
                 .HasColumnName("codigo_agencia");
-            
+
             builder.Property(e => e.CodigoCedente)
                 .HasMaxLength(10)
                 .IsUnicode(false)
                 .HasColumnName("codigo_cedente");
-            
+
             builder.Property(e => e.ContaCorrente)
                 .IsRequired()
                 .HasMaxLength(10)
                 .IsUnicode(false)
                 .HasColumnName("conta_corrente");
-            
+
             builder.Property(e => e.DigitoVerificador)
                 .HasMaxLength(2)
                 .IsUnicode(false)

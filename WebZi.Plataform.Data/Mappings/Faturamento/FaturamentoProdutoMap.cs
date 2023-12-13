@@ -20,7 +20,7 @@ namespace WebZi.Plataform.Data.Mappings.Faturamento
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("descricao");
-            
+
             builder.Property(e => e.FlagSolicitacaoReboque)
                 .IsRequired()
                 .HasMaxLength(1)

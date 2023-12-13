@@ -18,10 +18,10 @@ namespace WebZi.Plataform.Data.Mappings.Usuario
 
             builder.Property(e => e.DepositoId)
                 .HasColumnName("id_deposito");
-            
+
             builder.Property(e => e.UsuarioId)
                 .HasColumnName("id_usuario");
-            
+
             builder.Property(e => e.UsuarioCadastroId)
                 .HasColumnName("id_usuario_cadastro");
 

@@ -53,10 +53,10 @@ namespace WebZi.Plataform.Data.Mappings.Localizacao
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("capital");
-            
+
             builder.Property(e => e.UtcId)
                 .HasColumnName("id_utc");
-            
+
             builder.Property(e => e.UtcVeraoId)
                 .HasColumnName("id_utc_verao");
 

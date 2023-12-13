@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
@@ -57,7 +56,7 @@ namespace WebZi.Plataform.Data.Services.Banco.PIX
 
                 return ResultView;
             }
-            
+
             if (Faturamento.TipoMeioCobranca.Alias != TipoMeioCobrancaAliasEnum.PixEstatico)
             {
                 ResultView.Mensagem = MensagemViewHelper

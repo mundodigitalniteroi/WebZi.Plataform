@@ -1,10 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using WebZi.Plataform.Domain.Models.Condutor;
 
 namespace WebZi.Plataform.Data.Mappings.Condutor
@@ -35,18 +30,18 @@ namespace WebZi.Plataform.Data.Mappings.Condutor
                 .IsUnicode(false)
                 .IsFixedLength()
                 .HasColumnName("avariado");
-           
+
             builder.Property(e => e.CodigoAvaria).HasColumnName("cod_avaria");
-            
+
             builder.Property(e => e.DataAtualizacao)
                 .HasColumnType("smalldatetime")
                 .HasColumnName("data_atualizacao");
-            
+
             builder.Property(e => e.DataCadastro)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("smalldatetime")
                 .HasColumnName("data_cadastro");
-            
+
             builder.Property(e => e.FlagPossuiEquipamento)
                 .IsRequired()
                 .HasMaxLength(1)
@@ -54,7 +49,7 @@ namespace WebZi.Plataform.Data.Mappings.Condutor
                 .HasDefaultValueSql("('S')")
                 .IsFixedLength()
                 .HasColumnName("flag_possui_equipamento");
-            
+
             builder.Property(e => e.EquipamentoOpcionalId)
                 .HasColumnType("numeric(3, 0)")
                 .HasColumnName("id_equipamento_opcional");

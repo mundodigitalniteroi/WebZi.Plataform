@@ -28,12 +28,12 @@ namespace WebZi.Plataform.Data.Mappings.Localizacao.View
                 .HasMaxLength(150)
                 .IsUnicode(false)
                 .HasColumnName("bairro");
-            
+
             builder.Property(e => e.BairroPtbr)
                 .HasMaxLength(150)
                 .IsUnicode(false)
                 .HasColumnName("bairro_ptbr");
-            
+
             builder.Property(e => e.CEP)
                 .IsRequired()
                 .HasMaxLength(8)
@@ -41,76 +41,76 @@ namespace WebZi.Plataform.Data.Mappings.Localizacao.View
                 .IsFixedLength()
                 .UseCollation("SQL_Latin1_General_CP1_CI_AS")
                 .HasColumnName("CEP");
-            
+
             builder.Property(e => e.CodigoLogradouro)
                 .HasMaxLength(4)
                 .IsUnicode(false)
                 .HasColumnName("codigo_logradouro");
-            
+
             builder.Property(e => e.CodigoMunicipio)
                 .HasMaxLength(5)
                 .IsUnicode(false)
                 .HasColumnName("codigo_municipio");
-            
+
             builder.Property(e => e.CodigoMunicipioIbge)
                 .HasMaxLength(10)
                 .IsUnicode(false)
                 .HasColumnName("codigo_municipio_ibge");
-            
+
             builder.Property(e => e.Estado)
                 .IsRequired()
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("estado");
-            
+
             builder.Property(e => e.EstadoPtbr)
                 .IsRequired()
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("estado_ptbr");
-            
+
             builder.Property(e => e.FlagNormalizado)
                 .IsRequired()
                 .HasMaxLength(1)
                 .IsUnicode(false)
                 .IsFixedLength()
                 .HasColumnName("flag_sanitizado");
-            
+
             builder.Property(e => e.Logradouro)
                 .HasMaxLength(150)
                 .IsUnicode(false)
                 .HasColumnName("logradouro");
-            
+
             builder.Property(e => e.Municipio)
                 .IsRequired()
                 .HasMaxLength(75)
                 .IsUnicode(false)
                 .HasColumnName("municipio");
-            
+
             builder.Property(e => e.MunicipioPtbr)
                 .IsRequired()
                 .HasMaxLength(75)
                 .IsUnicode(false)
                 .HasColumnName("municipio_ptbr");
-            
+
             builder.Property(e => e.SiglaRegiao)
                 .IsRequired()
                 .HasMaxLength(2)
                 .IsUnicode(false)
                 .IsFixedLength()
                 .HasColumnName("regiao");
-            
+
             builder.Property(e => e.Regiao)
                 .IsRequired()
                 .HasMaxLength(15)
                 .IsUnicode(false)
                 .HasColumnName("regiao_nome");
-            
+
             builder.Property(e => e.TipoLogradouro)
                 .HasMaxLength(20)
                 .IsUnicode(false)
                 .HasColumnName("tipo_logradouro");
-            
+
             builder.Property(e => e.UF)
                 .IsRequired()
                 .HasMaxLength(2)

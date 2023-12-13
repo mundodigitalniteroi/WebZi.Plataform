@@ -1,16 +1,7 @@
-﻿using Microsoft.Data.SqlClient;
-using Microsoft.EntityFrameworkCore;
-using System.Data;
-using System.Reflection.Metadata;
-using System.Text;
+﻿using System.Text;
 using WebZi.Plataform.CrossCutting.Configuration;
 using WebZi.Plataform.CrossCutting.Secutity;
-using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
-using WebZi.Plataform.Data.Helper;
-using WebZi.Plataform.Domain.Enums;
-using WebZi.Plataform.Domain.Models.Database;
-using WebZi.Plataform.Domain.Models.GRV;
 
 class Program
 {

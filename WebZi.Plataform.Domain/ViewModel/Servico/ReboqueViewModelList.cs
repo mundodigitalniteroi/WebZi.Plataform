@@ -1,6 +1,4 @@
-﻿using WebZi.Plataform.Domain.ViewModel.GRV;
-
-namespace WebZi.Plataform.Domain.ViewModel.Servico
+﻿namespace WebZi.Plataform.Domain.ViewModel.Servico
 {
     public class ReboqueViewModelList
     {

@@ -19,24 +19,24 @@ namespace WebZi.Plataform.Data.Mappings.Servico
             builder.Property(e => e.Ano)
                 .HasColumnType("numeric(4, 0)")
                 .HasColumnName("ano");
-            
+
             builder.Property(e => e.Chassi)
                 .HasMaxLength(24)
                 .IsUnicode(false)
                 .HasColumnName("chassi");
-            
+
             builder.Property(e => e.Codigo)
                 .IsRequired()
                 .HasMaxLength(4)
                 .IsUnicode(false)
                 .HasColumnName("codigo");
-            
+
             builder.Property(e => e.ClienteId)
                 .HasColumnName("id_cliente");
-            
+
             builder.Property(e => e.DepositoId)
                 .HasColumnName("id_deposito");
-            
+
             builder.Property(e => e.UsuarioCadastroId)
                 .HasColumnName("id_usuario_cadastro");
 
@@ -47,19 +47,19 @@ namespace WebZi.Plataform.Data.Mappings.Servico
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("marca");
-            
+
             builder.Property(e => e.Modelo)
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("modelo");
-            
+
             builder.Property(e => e.Placa)
                 .IsRequired()
                 .HasMaxLength(7)
                 .IsUnicode(false)
                 .IsFixedLength()
                 .HasColumnName("placa");
-            
+
             builder.Property(e => e.Renavam)
                 .HasMaxLength(9)
                 .IsUnicode(false)

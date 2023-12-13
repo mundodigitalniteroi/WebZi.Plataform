@@ -20,24 +20,24 @@ namespace WebZi.Plataform.Data.Mappings.Localizacao
                 .HasMaxLength(5)
                 .IsUnicode(false)
                 .HasColumnName("codigo_municipio");
-            
+
             builder.Property(e => e.CodigoMunicipioIbge)
                 .HasMaxLength(10)
                 .IsUnicode(false)
                 .HasColumnName("codigo_municipio_ibge");
-            
+
             builder.Property(e => e.Nome)
                 .IsRequired()
                 .HasMaxLength(75)
                 .IsUnicode(false)
                 .HasColumnName("nome");
-            
+
             builder.Property(e => e.NomePtbr)
                 .IsRequired()
                 .HasMaxLength(75)
                 .IsUnicode(false)
                 .HasColumnName("nome_ptbr");
-            
+
             builder.Property(e => e.UF)
                 .IsRequired()
                 .HasMaxLength(2)

@@ -1,6 +1,4 @@
-﻿using WebZi.Plataform.Domain.Models.GRV;
-
-namespace WebZi.Plataform.Domain.Models.Sistema
+﻿namespace WebZi.Plataform.Domain.Models.Sistema
 {
     public class CorModel
     {

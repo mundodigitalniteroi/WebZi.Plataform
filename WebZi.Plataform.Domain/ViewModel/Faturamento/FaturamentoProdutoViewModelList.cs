@@ -1,6 +1,4 @@
-﻿using WebZi.Plataform.Domain.Models.Faturamento;
-
-namespace WebZi.Plataform.Domain.ViewModel.Faturamento
+﻿namespace WebZi.Plataform.Domain.ViewModel.Faturamento
 {
     public class FaturamentoProdutoViewModelList
     {

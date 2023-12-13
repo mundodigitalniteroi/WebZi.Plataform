@@ -8,7 +8,7 @@ using WebZi.Plataform.CrossCutting.Strings;
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
-using WebZi.Plataform.Data.Services.Bucket;
+using WebZi.Plataform.Data.Services.WebServices;
 using WebZi.Plataform.Data.Services.Deposito;
 using WebZi.Plataform.Data.Services.Faturamento;
 using WebZi.Plataform.Data.Services.Leilao;
@@ -562,7 +562,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                     transaction.Rollback();
 
                     AtendimentoCadastroResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
-                    
+
                     return AtendimentoCadastroResultView;
                 }
             }
@@ -581,7 +581,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
         {
             if (AtendimentoInput.ResponsavelFoto != null)
             {
-                new BucketArquivoService(_context, _httpClientFactory)
+                new BucketService(_context, _httpClientFactory)
                     .SendFile("ATENDIMFOTORESP", AtendimentoId, AtendimentoInput.IdentificadorUsuario, AtendimentoInput.ResponsavelFoto);
             }
         }

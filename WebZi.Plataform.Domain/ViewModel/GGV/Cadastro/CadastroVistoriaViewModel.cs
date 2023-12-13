@@ -8,7 +8,7 @@ namespace WebZi.Plataform.Domain.ViewModel.GGV.Cadastro
         [RegularExpression("S|N", ErrorMessage = "Valor da Flag inválido, informe S ou N")]
         public string FlagVistoria { get; set; }
 
-        public string MotivoNaoRealizacaoVistoria { get; set;}
+        public string MotivoNaoRealizacaoVistoria { get; set; }
 
         [Required(ErrorMessage = "Propriedade obrigatória")]
         [RegularExpression("S|N", ErrorMessage = "Valor da Flag inválido, informe S ou N")]

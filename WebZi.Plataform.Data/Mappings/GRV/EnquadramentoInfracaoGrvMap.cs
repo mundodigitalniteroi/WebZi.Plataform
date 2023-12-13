@@ -1,5 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using WebZi.Plataform.Domain.Models.GRV;
 
 namespace WebZi.Plataform.Data.Mappings.GRV
@@ -24,7 +24,7 @@ namespace WebZi.Plataform.Data.Mappings.GRV
                 .IsRequired()
                 .HasColumnType("numeric(4, 0)")
                 .HasColumnName("id_enquadramento_infracao");
-            
+
             builder.Property(e => e.NumeroInfracao)
                 .IsRequired()
                 .HasMaxLength(20)

@@ -1,5 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using WebZi.Plataform.Domain.Models.ClienteDeposito;
 
 namespace WebZi.Plataform.Data.Mappings.ClienteDeposito
@@ -30,7 +30,7 @@ namespace WebZi.Plataform.Data.Mappings.ClienteDeposito
 
             builder.Property(e => e.UsuarioAlteracaoId)
                 .HasColumnName("id_usuario_alteracao");
-            
+
             builder.Property(e => e.DataCadastro)
                 .IsRequired()
                 .HasDefaultValueSql("(getdate())")

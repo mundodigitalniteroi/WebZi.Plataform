@@ -1,21 +1,24 @@
-﻿using System.Runtime.Intrinsics.X86;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
+using WebZi.Plataform.CrossCutting.Strings;
+using WebZi.Plataform.CrossCutting.Number;
 
 namespace WebZi.Plataform.CrossCutting.Documents
 {
-    public static class DocumentHelper
+    public static partial class DocumentHelper
     {
-        public static bool IsCPF(string cpf)
+        [GeneratedRegex("^\\d+$")]
+        private static partial Regex RegexCPF();
+        public static bool IsCPF(this string cpf)
         {
             //915.331.274-09 (CPF VÁLIDO)
 
-            cpf = cpf.Replace(".", "").Replace("-", "").Trim();
+            cpf = cpf.GetNumbers();
 
-            if (string.IsNullOrWhiteSpace(cpf))
+            if (cpf.IsNullOrWhiteSpace())
             {
                 return false;
             }
-            else if (!Regex.IsMatch(cpf, @"^\d+$"))
+            else if (!RegexCPF().IsMatch(cpf))
             {
                 return false;
             }
@@ -91,7 +94,7 @@ namespace WebZi.Plataform.CrossCutting.Documents
             }
         }
 
-        public static bool IsCNPJ(string cnpj)
+        public static bool IsCNPJ(this string cnpj)
         {
             //11.519.458/0001-78 (CNPJ VÁLIDO)
 
@@ -135,7 +138,7 @@ namespace WebZi.Plataform.CrossCutting.Documents
                     soma += int.Parse(tempCNPJ[i].ToString()) * multiplicador1[i];
                 }
 
-                resto = (soma % 11);
+                resto = soma % 11;
 
                 if (resto < 2)
                 {
@@ -157,7 +160,7 @@ namespace WebZi.Plataform.CrossCutting.Documents
                     soma += int.Parse(tempCNPJ[i].ToString()) * multiplicador2[i];
                 }
 
-                resto = (soma % 11);
+                resto = soma % 11;
 
                 if (resto < 2)
                 {
@@ -178,7 +181,7 @@ namespace WebZi.Plataform.CrossCutting.Documents
             }
         }
 
-        public static bool IsCNH(string cnh)
+        public static bool IsCNH(this string cnh)
         {
             cnh = cnh.Trim();
 
@@ -204,12 +207,12 @@ namespace WebZi.Plataform.CrossCutting.Documents
             }
         }
 
-        public static string FormatCNPJ(string cnpj)
+        public static string FormatCNPJ(this string cnpj)
         {
             return string.Format(@"{0:00\.000\.000/0000-00}", long.Parse(cnpj));
         }
 
-        public static string FormatCPF(string cpf)
+        public static string FormatCPF(this string cpf)
         {
             return string.Format(@"{0:000\.000\.000-00}", long.Parse(cpf));
         }

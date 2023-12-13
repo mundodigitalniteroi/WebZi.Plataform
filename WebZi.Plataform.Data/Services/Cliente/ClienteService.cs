@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
-using WebZi.Plataform.Data.Services.Bucket;
+using WebZi.Plataform.Data.Services.WebServices;
 using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Cliente;
 using WebZi.Plataform.Domain.Models.Sistema;
@@ -62,7 +62,7 @@ namespace WebZi.Plataform.Data.Services.Cliente
 
             return ResultView;
         }
-        
+
         public async Task<ClienteViewModelList> GetByNameAsync(string Name)
         {
             ClienteViewModelList ResultView = new();
@@ -94,7 +94,7 @@ namespace WebZi.Plataform.Data.Services.Cliente
 
         public async Task<ImageViewModelList> GetLogomarcaAsync(int ClienteId)
         {
-            ImageViewModelList ResultView = await new BucketArquivoService(_context, _httpClientFactory)
+            ImageViewModelList ResultView = await new BucketService(_context, _httpClientFactory)
                 .DownloadFileAsync("CADLOGOCLIENTE", ClienteId);
 
             if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok && ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.NotFound)

@@ -1,14 +1,13 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
-using System.Collections.Generic;
 using WebZi.Plataform.CrossCutting.Number;
 using WebZi.Plataform.CrossCutting.Strings;
 using WebZi.Plataform.CrossCutting.Veiculo;
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
-using WebZi.Plataform.Data.Services.Bucket;
+using WebZi.Plataform.Data.Services.WebServices;
 using WebZi.Plataform.Data.Services.Deposito;
 using WebZi.Plataform.Data.Services.Empresa;
 using WebZi.Plataform.Data.Services.Faturamento;
@@ -363,7 +362,7 @@ namespace WebZi.Plataform.Data.Services.GGV
                     });
                 }
 
-                new BucketArquivoService(_context, _httpClientFactory)
+                new BucketService(_context, _httpClientFactory)
                     .SendFiles("GGVFOTOSVEICCAD",
                         GgvPersistencia.IdentificadorGrv,
                         GgvPersistencia.IdentificadorUsuario,
@@ -410,7 +409,7 @@ namespace WebZi.Plataform.Data.Services.GGV
                 Files.Add(new BucketFileModel { TipoCadastro = TipoCadastro, File = item.Foto });
             }
 
-            new BucketArquivoService(_context, _httpClientFactory)
+            new BucketService(_context, _httpClientFactory)
                 .SendFiles("GGVFOTOSVEICCAD", Fotos.IdentificadorGrv, Fotos.IdentificadorUsuario, Files);
 
             return MensagemViewHelper.SetCreateSuccess(Fotos.ListagemFotos.Count);
@@ -460,7 +459,7 @@ namespace WebZi.Plataform.Data.Services.GGV
                 return MensagemViewHelper.SetBadRequest(erros);
             }
 
-            new BucketArquivoService(_context, _httpClientFactory)
+            new BucketService(_context, _httpClientFactory)
                 .DeleteFiles("GGVFOTOSVEICCAD", ListagemTabelaOrigemId);
 
             return MensagemViewHelper.SetDeleteSuccess(BucketArquivos.Count, "Foto(s) excluída(s) com sucesso");
@@ -516,7 +515,7 @@ namespace WebZi.Plataform.Data.Services.GGV
                 return ResultView;
             }
 
-            return await new BucketArquivoService(_context, _httpClientFactory)
+            return await new BucketService(_context, _httpClientFactory)
                 .DownloadFileAsync("GGVFOTOSVEICCAD", GrvId);
         }
 

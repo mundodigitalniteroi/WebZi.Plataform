@@ -21,13 +21,13 @@ namespace WebZi.Plataform.Data.Mappings.GRV
                 .HasMaxLength(20)
                 .IsUnicode(false)
                 .HasColumnName("codigo");
-            
+
             builder.Property(e => e.Descricao)
                 .IsRequired()
                 .HasMaxLength(25)
                 .IsUnicode(false)
                 .HasColumnName("descricao");
-            
+
             builder.Property(e => e.FlagDefault)
                 .IsRequired()
                 .HasMaxLength(1)

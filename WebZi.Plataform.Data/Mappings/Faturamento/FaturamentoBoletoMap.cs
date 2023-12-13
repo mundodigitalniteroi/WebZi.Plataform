@@ -1,12 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using WebZi.Plataform.Domain.Models.Faturamento.Boleto;
+using WebZi.Plataform.Domain.Models.WebServices.Boleto;
 
 namespace WebZi.Plataform.Data.Mappings.Faturamento
 {
-    public class FaturamentoBoletoMap : IEntityTypeConfiguration<FaturamentoBoletoModel>
+    public class FaturamentoBoletoMap : IEntityTypeConfiguration<BoletoModel>
     {
-        public void Configure(EntityTypeBuilder<FaturamentoBoletoModel> builder)
+        public void Configure(EntityTypeBuilder<BoletoModel> builder)
         {
             builder
                 .ToTable("tb_dep_faturamento_boletos", "dbo", tb => tb.HasTrigger("tr_del_faturamento_boletos"))

@@ -17,7 +17,7 @@ namespace WebZi.Plataform.Data.Mappings.Usuario.View
 
             builder.Property(e => e.ClienteId)
                 .HasColumnName("id_cliente");
-            
+
             builder.Property(e => e.DepositoId)
                 .HasColumnName("id_deposito");
 

@@ -24,7 +24,7 @@ namespace WebZi.Plataform.Data.Services.Sistema
             HttpClient client = _httpClientFactory.CreateClient();
 
             using HttpResponseMessage response = await client.GetAsync(url);
-            
+
             return response.IsSuccessStatusCode;
         }
 

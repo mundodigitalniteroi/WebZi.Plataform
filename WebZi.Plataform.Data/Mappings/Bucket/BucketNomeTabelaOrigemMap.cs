@@ -20,17 +20,17 @@ namespace WebZi.Plataform.Data.Mappings.Bucket
                 .HasMaxLength(15)
                 .IsUnicode(false)
                 .IsFixedLength();
-            
+
             builder.Property(e => e.Descricao)
                 .IsRequired()
                 .HasMaxLength(100)
                 .IsUnicode(false);
-            
+
             builder.Property(e => e.DiretorioRemoto)
                 .IsRequired()
                 .HasMaxLength(25)
                 .IsUnicode(false);
-            
+
             builder.Property(e => e.Nome)
                 .IsRequired()
                 .HasMaxLength(100)

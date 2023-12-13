@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using WebZi.Plataform.Domain.Models.Faturamento;
 
 namespace WebZi.Plataform.Domain.ViewModel.GGV.Cadastro
 {

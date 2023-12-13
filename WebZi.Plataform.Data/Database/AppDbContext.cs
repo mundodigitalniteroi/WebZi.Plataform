@@ -15,7 +15,6 @@ using WebZi.Plataform.Domain.Models.Deposito;
 using WebZi.Plataform.Domain.Models.Documento;
 using WebZi.Plataform.Domain.Models.Empresa;
 using WebZi.Plataform.Domain.Models.Faturamento;
-using WebZi.Plataform.Domain.Models.Faturamento.Boleto;
 using WebZi.Plataform.Domain.Models.Governo;
 using WebZi.Plataform.Domain.Models.GRV;
 using WebZi.Plataform.Domain.Models.Leilao;
@@ -28,6 +27,7 @@ using WebZi.Plataform.Domain.Models.Sistema;
 using WebZi.Plataform.Domain.Models.Usuario;
 using WebZi.Plataform.Domain.Models.Veiculo;
 using WebZi.Plataform.Domain.Models.Vistoria;
+using WebZi.Plataform.Domain.Models.WebServices.Boleto;
 using WebZi.Plataform.Domain.Views.Faturamento;
 using WebZi.Plataform.Domain.Views.Localizacao;
 using WebZi.Plataform.Domain.Views.Report;
@@ -223,9 +223,9 @@ namespace WebZi.Plataform.Data.Database
         #region Faturamento
         public DbSet<FaturamentoModel> Faturamento { get; set; }
 
-        public DbSet<FaturamentoBoletoModel> FaturamentoBoleto { get; set; }
+        public DbSet<BoletoModel> FaturamentoBoleto { get; set; }
 
-        public DbSet<FaturamentoBoletoImagemModel> FaturamentoBoletoImagem { get; set; }
+        public DbSet<BoletoImagemModel> FaturamentoBoletoImagem { get; set; }
 
         public DbSet<FaturamentoCartaoModel> FaturamentoCartao { get; set; }
 

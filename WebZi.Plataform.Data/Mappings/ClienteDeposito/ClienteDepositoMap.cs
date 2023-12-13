@@ -41,23 +41,23 @@ namespace WebZi.Plataform.Data.Mappings.ClienteDeposito
 
             builder.Property(e => e.AliquotaIss)
                 .HasColumnType("smallmoney");
-            
+
             builder.Property(e => e.CodigoDetran)
                 .HasMaxLength(5)
                 .IsUnicode(false)
                 .HasColumnName("codigo_detran");
-            
+
             builder.Property(e => e.CodigoSap)
                 .HasMaxLength(6)
                 .IsUnicode(false)
                 .HasColumnName("codigo_sap");
-            
+
             builder.Property(e => e.CodigoERPOrdemVenda)
                 .HasMaxLength(6)
                 .IsUnicode(false)
                 .IsFixedLength()
                 .HasColumnName("codigo_sap_ordem_vendas");
-            
+
             builder.Property(e => e.FlagAtivo)
                 .IsRequired()
                 .HasMaxLength(1)
@@ -65,7 +65,7 @@ namespace WebZi.Plataform.Data.Mappings.ClienteDeposito
                 .HasDefaultValueSql("('S')")
                 .IsFixedLength()
                 .HasColumnName("flag_ativo");
-            
+
             builder.Property(e => e.FlagCadastrarGrvComStatusOperacaoBloqueado)
                 .IsRequired()
                 .HasMaxLength(1)
@@ -73,7 +73,7 @@ namespace WebZi.Plataform.Data.Mappings.ClienteDeposito
                 .HasDefaultValueSql("('S')")
                 .IsFixedLength()
                 .HasColumnName("flag_cadastrar_grv_bloqueado");
-            
+
             builder.Property(e => e.FlagUtilizaSistemaMobileGgv)
                 .IsRequired()
                 .HasMaxLength(1)
@@ -81,7 +81,7 @@ namespace WebZi.Plataform.Data.Mappings.ClienteDeposito
                 .HasDefaultValueSql("('N')")
                 .IsFixedLength()
                 .HasColumnName("flag_utiliza_sistema_mobile_ggv");
-            
+
             builder.Property(e => e.FlagValorIssIgualProdutoBaseCalculoAliquota)
                 .IsRequired()
                 .HasMaxLength(1)

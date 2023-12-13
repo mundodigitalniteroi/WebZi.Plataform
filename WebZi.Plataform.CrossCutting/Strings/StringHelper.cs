@@ -4,18 +4,25 @@ using System.Text.RegularExpressions;
 
 namespace WebZi.Plataform.CrossCutting.Strings
 {
-    public static class StringHelper
+    public static partial class StringHelper
     {
-        public static string GetNumbersFromString(this string input) => string.IsNullOrWhiteSpace(input) ? input : Regex.Replace(input, @"[^\d]", string.Empty);
-
-        public static string Left(this string input, int lengh)
+        public static string AddCharToLeft(string input, char Caracter, int lenght)
         {
-            return input[..lengh];
+            return !input.IsNullOrWhiteSpace() && input.Length < lenght ? input.PadLeft(lenght, Caracter) : input;
         }
 
-        public static string Right(this string input, int lengh)
+        public static string AddCharToRight(string input, char Caracter, int lenght)
         {
-            return input.Substring(input.Length - lengh, lengh);
+            return !input.IsNullOrWhiteSpace() && input.Length < lenght ? input.PadRight(lenght, Caracter) : input;
+        }
+
+        [GeneratedRegex("[^\\d]")]
+        private static partial Regex RegexGetNumbers();
+        public static string GetNumbers(this string input) => !input.IsNullOrWhiteSpace() ? RegexGetNumbers().Replace(input, string.Empty) : input;
+
+        public static bool IsNull(this string input)
+        {
+            return input == null;
         }
 
         public static bool IsNullOrWhiteSpace(this string input)
@@ -23,74 +30,27 @@ namespace WebZi.Plataform.CrossCutting.Strings
             return string.IsNullOrWhiteSpace(input);
         }
 
-        public static string Mid(string input, int index, int lengh)
+        public static string Left(this string input, int lengh)
         {
-            return input.Substring(index, lengh);
+            return !input.IsNull() ? input[..lengh] : input;
         }
 
-        public static string Mid(string input, int index)
+        public static string Mid(this string input, int position)
         {
-            return input.Substring(index);
+            return !input.IsNull() ? input.Substring(position - 1) : input;
         }
 
-        public static string AddStringLeft(string input, char Caracter, int lenght)
+        public static string Mid(this string input, int position, int lengh)
         {
-            if (input.Length >= lenght)
-            {
-                return input;
-            }
-
-            return input.PadLeft(lenght, Caracter);
+            return !input.IsNull() ? input.Substring(position - 1, lengh) : input;
         }
 
-        #region Extension Methods
-        /// <summary>
-        /// Remove acentuações
-        /// </summary>
+        [GeneratedRegex("\\p{Mn}")]
+        private static partial Regex RegexNormalize();
+        
         public static string Normalize(this string input)
         {
-            if (input == null)
-            {
-                return input;
-            }
-
-            return Regex.Replace(input.Normalize(NormalizationForm.FormD), @"\p{Mn}", string.Empty);
-        }
-
-        public static string TitleCase(this string input)
-        {
-            if (input == null)
-            {
-                return input;
-            }
-
-            string[] words = input.Split(' ');
-
-            for (int i = 0; i < words.Length; i++)
-            {
-                if (words[i].Length == 0)
-                {
-                    continue;
-                }
-
-                char firstChar = char.ToUpper(words[i][0]);
-
-                string rest = string.Empty;
-
-                if (words[i].Length > 1)
-                {
-                    rest = words[i][1..].ToLower(CultureInfo.CurrentCulture);
-                }
-
-                words[i] = firstChar + rest;
-            }
-
-            return string.Join(" ", words);
-        }
-
-        public static int ToInt(this string input)
-        {
-            return int.Parse(input);
+            return !input.IsNull() ? RegexNormalize().Replace(input.Normalize(NormalizationForm.FormD), string.Empty) : input;
         }
 
         public static string RemoveString(this string input, string oldValue)
@@ -100,7 +60,7 @@ namespace WebZi.Plataform.CrossCutting.Strings
 
         public static string RemoveStrings(this string input, string[] oldValues)
         {
-            if (string.IsNullOrWhiteSpace(input))
+            if (input.IsNullOrWhiteSpace())
             {
                 return input;
             }
@@ -118,20 +78,43 @@ namespace WebZi.Plataform.CrossCutting.Strings
             return input?.Replace(oldValue, newValue);
         }
 
+        public static string Right(this string input, int lengh)
+        {
+            return input.Substring(input.Length - lengh, lengh);
+        }
+
+        public static string ToCamelCase(this string input) // toCamelCase
+        {
+            if (input.IsNullOrWhiteSpace())
+            {
+                return input;
+            }
+            else if (input.Length == 1)
+            {
+                return input.ToLower();
+            }
+
+            return input.Left(1).ToLower() + CultureInfo.CurrentCulture.TextInfo.ToTitleCase(input)[1..];
+        }
+
         public static string ToLowerTrim(this string input)
         {
             return input?.ToLower().Trim();
-        }
-
-        public static string ToUpperTrim(this string input)
-        {
-            return input?.ToUpper().Trim();
         }
 
         public static string ToNullIfEmpty(this string input)
         {
             return !string.IsNullOrWhiteSpace(input) ? input.Trim() : null;
         }
-        #endregion Extension Methods
+
+        public static string ToTitleCase(this string input)
+        {
+            return !input.IsNull() ? CultureInfo.CurrentCulture.TextInfo.ToTitleCase(input) : input;
+        }
+
+        public static string ToUpperTrim(this string input)
+        {
+            return input?.ToUpper().Trim();
+        }
     }
 }

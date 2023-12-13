@@ -34,7 +34,7 @@ namespace WebZi.Plataform.Domain.Models.Faturamento
 
         public virtual FaturamentoRegraTipoModel FaturamentoRegraTipo { get; set; }
 
-         public virtual UsuarioModel UsuarioCadastro { get; set; }
+        public virtual UsuarioModel UsuarioCadastro { get; set; }
 
         public virtual UsuarioModel UsuarioAlteracao { get; set; }
 

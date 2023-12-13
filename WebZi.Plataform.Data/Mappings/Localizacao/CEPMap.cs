@@ -23,7 +23,7 @@ namespace WebZi.Plataform.Data.Mappings.Localizacao
                 .IsFixedLength()
                 .UseCollation("SQL_Latin1_General_CP1_CI_AS")
                 .HasColumnName("cep");
-            
+
             builder.Property(e => e.FlagSanitizado)
                 .IsRequired()
                 .HasMaxLength(1)
@@ -31,16 +31,16 @@ namespace WebZi.Plataform.Data.Mappings.Localizacao
                 .HasDefaultValueSql("('N')")
                 .IsFixedLength()
                 .HasColumnName("flag_sanitizado");
-            
+
             builder.Property(e => e.BairroId)
                 .HasColumnName("id_bairro");
-            
+
             builder.Property(e => e.MunicipioId)
                 .HasColumnName("id_municipio");
-            
+
             builder.Property(e => e.TipoLogradouroId)
                 .HasColumnName("id_tipo_logradouro");
-            
+
             builder.Property(e => e.Logradouro)
                 .HasMaxLength(150)
                 .IsUnicode(false)

@@ -1,12 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using WebZi.Plataform.Domain.Models.Faturamento.Boleto;
+using WebZi.Plataform.Domain.Models.WebServices.Boleto;
 
 namespace WebZi.Plataform.Data.Mappings.Faturamento
 {
-    public class FaturamentoBoletoImagemMap : IEntityTypeConfiguration<FaturamentoBoletoImagemModel>
+    public class FaturamentoBoletoImagemMap : IEntityTypeConfiguration<BoletoImagemModel>
     {
-        public void Configure(EntityTypeBuilder<FaturamentoBoletoImagemModel> builder)
+        public void Configure(EntityTypeBuilder<BoletoImagemModel> builder)
         {
             builder
                 .ToTable("tb_dep_faturamento_boletos_imagens", "dbo")

@@ -1,6 +1,6 @@
-﻿namespace WebZi.Plataform.Domain.Models.Faturamento.Boleto
+﻿namespace WebZi.Plataform.Domain.Models.WebServices.Boleto
 {
-    public class FaturamentoBoletoGeradoModel
+    public class BoletoGeradoModel
     {
         public byte[] Boleto { get; set; }
 

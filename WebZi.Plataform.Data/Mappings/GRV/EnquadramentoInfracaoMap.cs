@@ -28,18 +28,18 @@ namespace WebZi.Plataform.Data.Mappings.GRV
                 .HasMaxLength(10)
                 .IsUnicode(false)
                 .HasColumnName("codigo_infracao");
-            
+
             builder.Property(e => e.Descricao)
                 .IsRequired()
                 .HasMaxLength(100)
                 .IsUnicode(false)
                 .HasColumnName("descricao");
-            
+
             builder.Property(e => e.Inciso)
                 .HasMaxLength(10)
                 .IsUnicode(false)
                 .HasColumnName("inciso");
-            
+
             builder.Property(e => e.Status)
                 .IsRequired()
                 .HasMaxLength(1)

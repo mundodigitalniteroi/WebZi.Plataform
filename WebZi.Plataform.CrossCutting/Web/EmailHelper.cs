@@ -4,18 +4,18 @@ namespace WebZi.Plataform.CrossCutting.Web
 {
     public static class EmailHelper
     {
-        public static bool IsEmail(string email)
+        public static bool IsEmail(this string email)
         {
-            string trimmedEmail = email.Trim();
+            email = email.Trim();
 
-            if (trimmedEmail.EndsWith("."))
+            if (email.EndsWith("."))
             {
                 return false;
             }
 
             try
             {
-                return new MailAddress(email).Address == trimmedEmail;
+                return new MailAddress(email).Address == email;
             }
             catch
             {

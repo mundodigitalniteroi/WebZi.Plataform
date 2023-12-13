@@ -1,5 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using WebZi.Plataform.Domain.Models.Cliente;
 
 namespace WebZi.Plataform.Data.Mappings.Cliente
@@ -18,11 +18,11 @@ namespace WebZi.Plataform.Data.Mappings.Cliente
 
             builder.Property(e => e.ClienteRegraTipoId)
                 .HasColumnName("ClienteRegraTipoID");
-            
+
             builder.Property(e => e.ClienteId)
                 .IsRequired()
                 .HasColumnName("ClienteID");
-            
+
             builder.Property(e => e.ClienteRegraTipoId)
                 .IsRequired()
                 .HasColumnName("ClienteRegraTipoID");
@@ -38,7 +38,7 @@ namespace WebZi.Plataform.Data.Mappings.Cliente
 
             builder.Property(e => e.DataVigenciaFinal)
                 .HasColumnType("smalldatetime");
-            
+
             builder.Property(e => e.UsuarioCadastroId)
                 .IsRequired()
                 .HasColumnName("UsuarioCadastroID");

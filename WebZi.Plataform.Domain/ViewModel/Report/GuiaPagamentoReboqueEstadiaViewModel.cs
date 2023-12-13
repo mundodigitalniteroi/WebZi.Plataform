@@ -1,6 +1,6 @@
-﻿namespace WebZi.Plataform.Domain.ViewModel.Faturamento
+﻿namespace WebZi.Plataform.Domain.ViewModel.Report
 {
-    public class GerarPagamentoReboqueEstadiaViewModel
+    public class GuiaPagamentoReboqueEstadiaViewModel
     {
         public MensagemViewModel Mensagem { get; set; } = new();
 
@@ -121,6 +121,7 @@
 
         public byte[] QrCode { get; set; }
 
+        // TODO: Verificar a necessidade dessa propriedade
         public string PixChave { get; set; }
     }
 }

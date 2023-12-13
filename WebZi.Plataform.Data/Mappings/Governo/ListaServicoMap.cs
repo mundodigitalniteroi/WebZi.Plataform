@@ -1,5 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using WebZi.Plataform.Domain.Models.Governo;
 
 namespace WebZi.Plataform.Data.Mappings.Governo
@@ -24,7 +24,7 @@ namespace WebZi.Plataform.Data.Mappings.Governo
             builder.Property(e => e.AliquotaIss)
                 .IsRequired()
                 .HasColumnType("smallmoney");
-            
+
             builder.Property(e => e.ItemLista)
                 .IsRequired()
                 .HasMaxLength(5)

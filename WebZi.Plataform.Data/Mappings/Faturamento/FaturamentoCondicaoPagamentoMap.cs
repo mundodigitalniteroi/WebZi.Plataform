@@ -15,7 +15,7 @@ namespace WebZi.Plataform.Data.Mappings.Faturamento
             builder.Property(e => e.FaturamentoCondicaoPagamentoId)
                 .HasColumnName("id_faturamento_condicao_pagamento")
                 .ValueGeneratedOnAdd();
-            
+
             builder.Property(e => e.Descricao)
                 .HasMaxLength(25)
                 .IsUnicode(false)

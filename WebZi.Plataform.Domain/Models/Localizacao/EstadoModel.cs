@@ -1,6 +1,4 @@
-﻿using WebZi.Plataform.Domain.Models.Documento;
-
-namespace WebZi.Plataform.Domain.Models.Localizacao
+﻿namespace WebZi.Plataform.Domain.Models.Localizacao
 {
     public class EstadoModel
     {

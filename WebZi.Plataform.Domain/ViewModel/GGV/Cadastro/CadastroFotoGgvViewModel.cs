@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace WebZi.Plataform.Domain.ViewModel.GGV.Cadastro
+﻿namespace WebZi.Plataform.Domain.ViewModel.GGV.Cadastro
 {
     public class CadastroFotoGgvViewModel
     {

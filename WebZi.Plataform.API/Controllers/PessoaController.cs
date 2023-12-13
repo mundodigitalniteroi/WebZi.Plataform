@@ -1,8 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using WebZi.Plataform.Data.Helper;
-using WebZi.Plataform.Data.Services.Banco;
 using WebZi.Plataform.Data.Services.Pessoa;
-using WebZi.Plataform.Domain.ViewModel.Banco;
 using WebZi.Plataform.Domain.ViewModel.Pessoa;
 
 namespace WebZi.Plataform.API.Controllers

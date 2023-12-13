@@ -1,5 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using WebZi.Plataform.Domain.Models.Cliente;
 
 namespace WebZi.Plataform.Data.Mappings.Cliente
@@ -30,7 +30,7 @@ namespace WebZi.Plataform.Data.Mappings.Cliente
                 .HasMaxLength(20)
                 .IsUnicode(false)
                 .HasColumnName("codigo_identificacao");
-            
+
             builder.Property(e => e.DataCadastro)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("smalldatetime")

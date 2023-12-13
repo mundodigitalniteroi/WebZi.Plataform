@@ -27,7 +27,7 @@ namespace WebZi.Plataform.Data.Mappings.GRV
 
             builder.Property(e => e.UsuarioAlteracaoId)
                 .HasColumnName("id_usuario_atualizacao");
-            
+
             builder.Property(e => e.Lacre)
                 .HasMaxLength(20)
                 .IsUnicode(false)

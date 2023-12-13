@@ -1,5 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using WebZi.Plataform.Domain.Models.Liberacao;
 
 namespace WebZi.Plataform.Data.Mappings.Liberacao
@@ -31,7 +31,7 @@ namespace WebZi.Plataform.Data.Mappings.Liberacao
             builder.Property(e => e.Exercicio)
                 .HasColumnType("numeric(4, 0)")
                 .HasColumnName("exercicio");
-            
+
             builder.Property(e => e.NumeroAutoInfracao)
                 .HasMaxLength(10)
                 .IsUnicode(false)

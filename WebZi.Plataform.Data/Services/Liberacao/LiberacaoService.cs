@@ -14,11 +14,11 @@ using WebZi.Plataform.Data.Services.Atendimento;
 using WebZi.Plataform.Data.Services.Cliente;
 using WebZi.Plataform.Data.Services.Faturamento;
 using WebZi.Plataform.Data.Services.Localizacao;
+using WebZi.Plataform.Data.Services.Report;
 using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.GRV;
 using WebZi.Plataform.Domain.Models.Localizacao;
 using WebZi.Plataform.Domain.Services.GRV;
-using WebZi.Plataform.Domain.ViewModel.Faturamento;
 using WebZi.Plataform.Domain.ViewModel.Generic;
 using WebZi.Plataform.Domain.ViewModel.Report;
 using WebZi.Plataform.Domain.Views.Usuario;
@@ -66,7 +66,8 @@ namespace WebZi.Plataform.Data.Services.Liberacao
 
             if (Grv.StatusOperacaoId is not "R" and not "T" and not "E")
             {
-                ResultView.Mensagem = MensagemViewHelper.SetBadRequest($"O Status atual deste GRV não permite a geração do Documento. Status atual: {Grv.StatusOperacao.Descricao}");
+                ResultView.Mensagem = MensagemViewHelper
+                    .SetBadRequest($"O Status atual deste GRV não permite a geração do Documento. Status atual: {Grv.StatusOperacao.Descricao}");
 
                 return ResultView;
             }
@@ -74,7 +75,8 @@ namespace WebZi.Plataform.Data.Services.Liberacao
             {
                 if (DateTime.Now.Date > Grv.Liberacao.DataCadastro.Date)
                 {
-                    ResultView.Mensagem.Alertas.Add($"Este GRV foi entregue em {Grv.Liberacao.DataCadastro:dd/MM/yyyy}, as informações impressas no Documento estão desatualizadas");
+                    ResultView.Mensagem.Alertas
+                        .Add($"Este GRV foi entregue em {Grv.Liberacao.DataCadastro:dd/MM/yyyy}, as informações impressas no Documento estão desatualizadas");
                 }
             }
 
@@ -87,12 +89,13 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                 return ResultView;
             }
 
-            GerarPagamentoReboqueEstadiaViewModel GuiaPagamentoReboqueEstadia = await new FaturamentoGuiaPagamentoReboqueEstadiaService(_context, _mapper, _httpClientFactory)
+            GuiaPagamentoReboqueEstadiaViewModel GuiaPagamentoReboqueEstadia = await new GuiaPagamentoReboqueEstadiaService(_context, _mapper, _httpClientFactory)
                 .GetGuiaPagamentoReboqueEstadiaAsync(FaturamentoId, UsuarioId, true);
 
             if (GuiaPagamentoReboqueEstadia == null)
             {
-                ResultView.Mensagem = MensagemViewHelper.SetNotFound("Informações para a geração da Guia de Autorização para a Retirada do Veículo não encontradas");
+                ResultView.Mensagem = MensagemViewHelper
+                    .SetNotFound("Informações para a geração da Guia de Autorização para a Retirada do Veículo não encontradas");
 
                 return ResultView;
             }
@@ -107,16 +110,16 @@ namespace WebZi.Plataform.Data.Services.Liberacao
 
             ResultView.DadosTipoProcesso = "REGISTRO DE APREENSÃO";
 
-            ResultView.DadosReboque = !string.IsNullOrWhiteSpace(GuiaPagamentoReboqueEstadia.ReboquePlaca) ? 
-                VeiculoHelper.FormatPlaca(GuiaPagamentoReboqueEstadia.ReboquePlaca) : 
+            ResultView.DadosReboque = !string.IsNullOrWhiteSpace(GuiaPagamentoReboqueEstadia.ReboquePlaca) ?
+                VeiculoHelper.FormatPlaca(GuiaPagamentoReboqueEstadia.ReboquePlaca) :
                 string.Empty;
 
             ResultView.DadosDataEntrada = GuiaPagamentoReboqueEstadia.DataHoraGuarda.Left(10);
 
             ResultView.DadosHoraEntrada = GuiaPagamentoReboqueEstadia.DataHoraGuarda.Right(5);
 
-            ResultView.DadosPermanencia = GuiaPagamentoReboqueEstadia.QuantidadeEstadias == 1 ? 
-                GuiaPagamentoReboqueEstadia.QuantidadeEstadias.ToString() + " dia" : 
+            ResultView.DadosPermanencia = GuiaPagamentoReboqueEstadia.QuantidadeEstadias == 1 ?
+                GuiaPagamentoReboqueEstadia.QuantidadeEstadias.ToString() + " dia" :
                 GuiaPagamentoReboqueEstadia.QuantidadeEstadias.ToString() + " dias";
 
             ResultView.DadosAutorizadaRetiradaVeiculoEm = GuiaPagamentoReboqueEstadia.FaturamentoDataVencimento.Left(10);

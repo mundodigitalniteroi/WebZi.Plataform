@@ -1,5 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using WebZi.Plataform.Domain.Models.Veiculo;
 
 namespace WebZi.Plataform.Data.Mappings.Veiculo
@@ -15,14 +15,14 @@ namespace WebZi.Plataform.Data.Mappings.Veiculo
             builder.Property(e => e.TipoVeiculoEquipamentoAssociacaoId)
                 .HasColumnName("id_tipo_veiculo_equipamento_associacao")
                 .ValueGeneratedOnAdd();
-            
+
             builder.Property(e => e.EquipamentoOpcionalId)
                 .HasColumnType("numeric(3, 0)")
                 .HasColumnName("id_equipamento_opcional");
-            
+
             builder.Property(e => e.TipoVeiculoId)
                 .HasColumnName("id_tipo_veiculo");
-            
+
             builder.Property(e => e.UsuarioCadastroId)
                 .HasColumnName("id_usuario_cadastro");
 

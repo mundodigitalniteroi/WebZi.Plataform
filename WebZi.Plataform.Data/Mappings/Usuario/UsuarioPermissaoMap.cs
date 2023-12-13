@@ -15,10 +15,10 @@ namespace WebZi.Plataform.Data.Mappings.Usuario
             builder.Property(e => e.UsuarioPermissaoId)
                 .HasColumnName("id_usuario_permissao")
                 .ValueGeneratedOnAdd();
-            
+
             builder.Property(e => e.TipoPermissaoId)
                 .HasColumnName("id_tipo_permissao");
-            
+
             builder.Property(e => e.UsuarioId)
                 .HasColumnName("id_usuario");
 

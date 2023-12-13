@@ -3,8 +3,8 @@
     public static class WebHelper
     {
         public static void Todo()
-        { 
-        
+        {
+
         }
     }
 }

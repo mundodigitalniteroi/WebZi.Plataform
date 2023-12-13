@@ -1,6 +1,4 @@
-﻿using WebZi.Plataform.Domain.Models.Condutor;
-
-namespace WebZi.Plataform.Domain.Models.Veiculo
+﻿namespace WebZi.Plataform.Domain.Models.Veiculo
 {
     public class TipoVeiculoEquipamentoAssociacaoModel
     {

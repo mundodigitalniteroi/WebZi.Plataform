@@ -1,8 +1,8 @@
 ﻿using WebZi.Plataform.Domain.Models.Atendimento;
 using WebZi.Plataform.Domain.Models.Banco.PIX;
 using WebZi.Plataform.Domain.Models.Banco.PIX.Dinamico;
-using WebZi.Plataform.Domain.Models.Faturamento.Boleto;
 using WebZi.Plataform.Domain.Models.Usuario;
+using WebZi.Plataform.Domain.Models.WebServices.Boleto;
 
 namespace WebZi.Plataform.Domain.Models.Faturamento
 {
@@ -72,7 +72,7 @@ namespace WebZi.Plataform.Domain.Models.Faturamento
 
         public virtual UsuarioModel UsuarioAlteracao { get; set; }
 
-        public virtual ICollection<FaturamentoBoletoModel> FaturamentoBoletos { get; set; } = new List<FaturamentoBoletoModel>();
+        public virtual ICollection<BoletoModel> FaturamentoBoletos { get; set; } = new List<BoletoModel>();
 
         public virtual ICollection<FaturamentoCodigoAutorizacaoCartaoModel> FaturamentoCodigosAutorizacoesCartoes { get; set; } = new List<FaturamentoCodigoAutorizacaoCartaoModel>();
 

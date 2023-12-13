@@ -33,7 +33,7 @@ namespace WebZi.Plataform.Data.Mappings.Banco
                 .HasMaxLength(5)
                 .IsUnicode(false)
                 .HasColumnName("codigo_febraban");
-            
+
             builder.Property(e => e.DataCadastro)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("smalldatetime")

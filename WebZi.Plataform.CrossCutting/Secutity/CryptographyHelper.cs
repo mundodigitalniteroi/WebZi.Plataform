@@ -70,7 +70,7 @@ namespace WebZi.Plataform.CrossCutting.Secutity
             using MemoryStream memoryStream = new(buffer);
             using CryptoStream cryptoStream = new(memoryStream, decryptor, CryptoStreamMode.Read);
             using StreamReader streamReader = new(cryptoStream);
-            
+
             return streamReader.ReadToEnd();
         }
     }

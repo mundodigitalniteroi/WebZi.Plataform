@@ -15,7 +15,7 @@ namespace WebZi.Plataform.Data.Mappings.Leilao
             builder.Property(e => e.LeilaoLoteStatusId)
                 .HasColumnName("id")
                 .ValueGeneratedOnAdd();
-            
+
             builder.Property(e => e.FlagAtivo)
                 .IsRequired()
                 .HasMaxLength(1)
@@ -23,33 +23,33 @@ namespace WebZi.Plataform.Data.Mappings.Leilao
                 .HasDefaultValueSql("('S')")
                 .IsFixedLength()
                 .HasColumnName("ativo");
-            
+
             builder.Property(e => e.Codigo)
                 .HasColumnName("codigo");
-            
+
             builder.Property(e => e.CodigoGrupo)
                 .HasColumnName("codigo_grupo");
-            
+
             builder.Property(e => e.CorrelacaoDsin)
                 .HasMaxLength(60)
                 .IsUnicode(false)
                 .HasColumnName("correlacao_dsin");
-            
+
             builder.Property(e => e.Descricao)
                 .IsRequired()
                 .HasMaxLength(60)
                 .IsUnicode(false)
                 .HasColumnName("descricao");
-            
+
             builder.Property(e => e.LeiloadoId)
                 .HasColumnName("id_leiloado");
-            
+
             builder.Property(e => e.NaoLeiloadoId)
                 .HasColumnName("id_nao_leiloado");
-            
+
             builder.Property(e => e.ReaproveitavelId)
                 .HasColumnName("id_reaproveitavel");
-            
+
             builder.Property(e => e.FlagPermiteAlteracao)
                 .IsRequired()
                 .HasMaxLength(1)
@@ -57,11 +57,11 @@ namespace WebZi.Plataform.Data.Mappings.Leilao
                 .HasDefaultValueSql("('S')")
                 .IsFixedLength()
                 .HasColumnName("permite_alteracao");
-            
+
             builder.Property(e => e.PrefixoLote)
                 .HasDefaultValueSql("((0))")
                 .HasColumnName("prefixo_lote");
-            
+
             builder.Property(e => e.FlagReaproveitavel)
                 .IsRequired()
                 .HasMaxLength(1)
@@ -69,7 +69,7 @@ namespace WebZi.Plataform.Data.Mappings.Leilao
                 .HasDefaultValueSql("('N')")
                 .IsFixedLength()
                 .HasColumnName("reaproveitavel");
-            
+
             builder.Property(e => e.ValidaLote)
                 .IsRequired()
                 .HasMaxLength(1)

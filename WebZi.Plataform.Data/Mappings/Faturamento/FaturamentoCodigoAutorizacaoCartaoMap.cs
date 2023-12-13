@@ -21,15 +21,15 @@ namespace WebZi.Plataform.Data.Mappings.Faturamento
                 .HasMaxLength(6)
                 .IsUnicode(false)
                 .HasColumnName("codigo_autorizacao_cartao");
-            
+
             builder.Property(e => e.CartaoId).HasColumnName("id_cartao");
-            
+
             builder.Property(e => e.FaturamentoId).HasColumnName("id_faturamento");
-            
+
             builder.Property(e => e.NumeroCartao)
                 .HasMaxLength(16)
                 .IsUnicode(false);
-            
+
             builder.Property(e => e.Valor)
                 .HasColumnType("money")
                 .HasColumnName("valor");

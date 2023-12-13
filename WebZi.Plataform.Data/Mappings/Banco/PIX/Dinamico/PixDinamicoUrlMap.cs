@@ -1,5 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using WebZi.Plataform.Domain.Models.Banco.PIX.Dinamico;
 
 namespace WebZi.Plataform.Data.Mappings.Banco.PIX.Dinamico
@@ -14,12 +14,12 @@ namespace WebZi.Plataform.Data.Mappings.Banco.PIX.Dinamico
 
             builder.Property(e => e.PixDinamicoUrlsId)
                 .ValueGeneratedOnAdd();
-            
+
             builder.Property(e => e.NomeMetodo)
                 .IsRequired()
                 .HasMaxLength(30)
                 .IsUnicode(false);
-            
+
             builder.Property(e => e.UrlApi)
                 .IsRequired()
                 .HasMaxLength(100)

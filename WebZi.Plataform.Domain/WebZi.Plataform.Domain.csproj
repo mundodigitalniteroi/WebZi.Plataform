@@ -10,6 +10,7 @@
     <Folder Include="Models\GGV\" />
     <Folder Include="Models\Banco\Nfe\" />
     <Folder Include="Models\Pagamento\" />
+    <Folder Include="ViewModel\WebServices\" />
   </ItemGroup>
 
   <ItemGroup>

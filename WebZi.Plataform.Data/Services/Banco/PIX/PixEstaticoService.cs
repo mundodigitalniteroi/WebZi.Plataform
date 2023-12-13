@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using WebZi.Plataform.CrossCutting.Strings;
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
@@ -60,7 +59,7 @@ namespace WebZi.Plataform.Data.Services.Banco.PIX
 
                 return ResultView;
             }
-            
+
             if (Faturamento.TipoMeioCobranca.Alias != TipoMeioCobrancaAliasEnum.PixEstatico)
             {
                 ResultView.Mensagem = MensagemViewHelper
@@ -122,9 +121,9 @@ namespace WebZi.Plataform.Data.Services.Banco.PIX
                 try
                 {
                     PixEstaticoRetorno = HttpClientHelper.PostBasicAuth<PixEstaticoRetornoModel>(
-                        Configuracao.PixUrl, 
-                        Configuracao.PixUsername, 
-                        Configuracao.PixPassword, 
+                        Configuracao.PixUrl,
+                        Configuracao.PixUsername,
+                        Configuracao.PixPassword,
                         PixEstaticoEnvio);
 
                     break;

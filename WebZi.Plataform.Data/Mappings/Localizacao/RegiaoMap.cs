@@ -17,7 +17,7 @@ namespace WebZi.Plataform.Data.Mappings.Localizacao
                 .IsUnicode(false)
                 .IsFixedLength()
                 .HasColumnName("regiao");
-            
+
             builder.Property(e => e.Nome)
                 .IsRequired()
                 .HasMaxLength(15)

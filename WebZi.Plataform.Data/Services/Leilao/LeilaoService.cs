@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using System.Globalization;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Services.Deposito;

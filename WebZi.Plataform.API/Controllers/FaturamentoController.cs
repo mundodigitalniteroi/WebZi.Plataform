@@ -1,13 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Helper;
-using WebZi.Plataform.Data.Services.Banco.PIX;
 using WebZi.Plataform.Data.Services.Faturamento;
+using WebZi.Plataform.Data.Services.Report;
 using WebZi.Plataform.Data.Services.Sistema;
 using WebZi.Plataform.Domain.ViewModel;
-using WebZi.Plataform.Domain.ViewModel.Banco.PIX;
 using WebZi.Plataform.Domain.ViewModel.Faturamento;
 using WebZi.Plataform.Domain.ViewModel.Generic;
+using WebZi.Plataform.Domain.ViewModel.Report;
 
 namespace WebZi.Plataform.API.Controllers
 {
@@ -49,103 +49,22 @@ namespace WebZi.Plataform.API.Controllers
             }
         }
 
-        [HttpGet("GerarBoleto")]
-        // TODO: [Authorize]
-        public ActionResult<ImageViewModelList> GerarBoleto(int IdentificadorFaturamento, int IdentificadorUsuario)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            ImageViewModelList ResultView = new();
-
-            try
-            {
-                ResultView = _provider
-                    .GetService<FaturamentoBoletoService>()
-                    .Create(IdentificadorFaturamento, IdentificadorUsuario);
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-            catch (Exception ex)
-            {
-                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-        }
-
         [HttpGet("GerarGuiaPagamentoReboqueEstadia")]
         // TODO: [Authorize]
-        public async Task<ActionResult<GerarPagamentoReboqueEstadiaViewModel>> GerarGuiaPagamentoReboqueEstadia(int IdentificadorFaturamento, int IdentificadorUsuario)
+        public async Task<ActionResult<GuiaPagamentoReboqueEstadiaViewModel>> GerarGuiaPagamentoReboqueEstadia(int IdentificadorFaturamento, int IdentificadorUsuario)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            GerarPagamentoReboqueEstadiaViewModel ResultView = new();
+            GuiaPagamentoReboqueEstadiaViewModel ResultView = new();
 
             try
             {
                 ResultView = await _provider
-                    .GetService<FaturamentoGuiaPagamentoReboqueEstadiaService>()
+                    .GetService<GuiaPagamentoReboqueEstadiaService>()
                     .GetGuiaPagamentoReboqueEstadiaAsync(IdentificadorFaturamento, IdentificadorUsuario);
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-            catch (Exception ex)
-            {
-                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-        }
-
-        [HttpGet("GerarPixDinamico")]
-        // TODO: [Authorize]
-        public ActionResult<PixEstaticoGeradoViewModel> GerarPixDinamico(int IdentificadorFaturamento, int IdentificadorUsuario)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            PixEstaticoGeradoViewModel ResultView = new();
-
-            try
-            {
-                ResultView = _provider
-                    .GetService<PixDinamicoService>()
-                    .Create(IdentificadorFaturamento, IdentificadorUsuario);
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-            catch (Exception ex)
-            {
-                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-        }
-
-        [HttpGet("GerarPixEstatico")]
-        // TODO: [Authorize]
-        public ActionResult<PixEstaticoGeradoViewModel> GerarPixEstatico(int IdentificadorFaturamento, int IdentificadorUsuario)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            PixEstaticoGeradoViewModel ResultView = new();
-
-            try
-            {
-                ResultView = _provider
-                    .GetService<PixEstaticoService>()
-                    .Create(IdentificadorFaturamento, IdentificadorUsuario);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -227,33 +146,6 @@ namespace WebZi.Plataform.API.Controllers
                 ResultView = await _provider
                     .GetService<TabelaGenericaService>()
                     .ListToViewModelAsync("FAT_TIPO_COBRANCA");
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-            catch (Exception ex)
-            {
-                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-        }
-
-        [HttpGet("SelecionarBoleto")]
-        // TODO: [Authorize]
-        public ActionResult<ImageViewModelList> SelecionarBoleto(int IdentificadorFaturamento, int IdentificadorUsuario)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            ImageViewModelList ResultView = new();
-
-            try
-            {
-                ResultView = _provider
-                    .GetService<FaturamentoBoletoService>()
-                    .GetBoletoNaoCancelado(IdentificadorFaturamento, IdentificadorUsuario);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }

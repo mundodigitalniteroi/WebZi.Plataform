@@ -1,5 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using WebZi.Plataform.Domain.Models.Banco.PIX.Dinamico;
 
 namespace WebZi.Plataform.Data.Mappings.Banco.PIX.Dinamico
@@ -19,7 +19,7 @@ namespace WebZi.Plataform.Data.Mappings.Banco.PIX.Dinamico
                 .IsRequired()
                 .HasMaxLength(50)
                 .IsUnicode(false);
-            
+
             builder.Property(e => e.Status)
                 .IsRequired()
                 .HasMaxLength(1)

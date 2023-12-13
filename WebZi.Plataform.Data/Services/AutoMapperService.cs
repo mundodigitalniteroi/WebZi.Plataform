@@ -204,8 +204,8 @@ namespace WebZi.Plataform.Data.Services
                 .AddTransform<string>(s => s
                     .ToNullIfEmpty()
                     .ToUpperTrim())
-                .ForMember(x => x.Documento, o => o.MapFrom(s => s.Documento.GetNumbersFromString()))
-                .ForMember(x => x.Identidade, o => o.MapFrom(s => s.Identidade.GetNumbersFromString()));
+                .ForMember(x => x.Documento, o => o.MapFrom(s => s.Documento.GetNumbers()))
+                .ForMember(x => x.Identidade, o => o.MapFrom(s => s.Identidade.GetNumbers()));
 
             CreateMap<UsuarioClienteDepositoReboqueViewModel, UsuarioClienteDepositoReboqueViewModel>();
 

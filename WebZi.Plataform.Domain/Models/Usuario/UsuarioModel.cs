@@ -17,7 +17,7 @@ namespace WebZi.Plataform.Domain.Models.Usuario
         public int? UsuarioAlteracaoId { get; set; }
 
         public string Login { get; set; }
-        
+
         [DataType(DataType.Password)]
         public string Senha1 { get; set; }
 
@@ -60,35 +60,35 @@ namespace WebZi.Plataform.Domain.Models.Usuario
         public virtual PessoaModel Pessoa { get; set; }
 
         public virtual ICollection<AtendimentoModel> ListagemUsuarioAlteracaoAtendimento { get; set; }
-        
+
         public virtual ICollection<AtendimentoModel> ListagemUsuarioCadastroAtendimento { get; set; }
-        
+
         public virtual ICollection<GrvModel> ListagemUsuarioAlteracaoGrv { get; set; }
-        
+
         public virtual ICollection<GrvModel> ListagemUsuarioCadastroGgv { get; set; }
-        
+
         public virtual ICollection<GrvModel> ListagemUsuarioCadastroGrv { get; set; }
-        
+
         public virtual ICollection<GrvModel> ListagemUsuarioEdicaoGrv { get; set; }
-        
+
         public virtual ICollection<TipoVeiculoModel> ListagemUsuarioAlteracaoTipoVeiculo { get; set; }
-        
+
         public virtual ICollection<TipoVeiculoModel> ListagemUsuarioCadastroTipoVeiculo { get; set; }
-        
+
         public virtual ICollection<UsuarioClienteModel> ListagemUsuarioCliente { get; set; }
-        
+
         public virtual ICollection<UsuarioClienteModel> ListagemUsuarioClienteCadastro { get; set; }
-        
+
         public virtual ICollection<UsuarioDepositoModel> ListagemUsuarioDeposito { get; set; }
-        
+
         public virtual ICollection<UsuarioDepositoModel> ListagemUsuarioDepositoCadastro { get; set; }
 
         public virtual ICollection<LiberacaoModel> ListagemUsuarioLiberacao { get; set; }
 
         public virtual ICollection<UsuarioPermissaoModel> ListagemUsuarioPermissao { get; set; }
-        
+
         public virtual ICollection<UsuarioPermissaoModel> ListagemUsuarioPermissaoAlteracao { get; set; }
-        
+
         public virtual ICollection<UsuarioPermissaoModel> ListagemUsuarioPermissaoCadastro { get; set; }
 
         public virtual ICollection<ViewUsuarioClienteDepositoModel> ListagemUsuarioClienteDeposito { get; set; }

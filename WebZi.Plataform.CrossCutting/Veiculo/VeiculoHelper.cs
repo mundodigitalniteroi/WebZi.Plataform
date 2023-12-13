@@ -1,35 +1,109 @@
-﻿using WebZi.Plataform.CrossCutting.Strings;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
+using WebZi.Plataform.CrossCutting.Strings;
 
 namespace WebZi.Plataform.CrossCutting.Veiculo
 {
     public static partial class VeiculoHelper
     {
-        public static string FormatPlaca(string placa)
+        public static string FormatChassi(this string input)
         {
-            return IsPlaca(placa) ? placa.Left(3) + "-" + placa.Right(4) : placa;
+            input = input.Trim();
+
+            if (input.Length != 17)
+            {
+                return input;
+            }
+
+            return input.Left(3) + " " + input.Mid(4, 5) + " " + input.Mid(9, 1) + " " + input.Mid(10, 2) + " " + input.Mid(12, 5);
+        }
+
+        public static string FormatPlaca(this string input)
+        {
+            return IsPlaca(input) ? input.Left(3) + "-" + input.Right(4) : input;
+        }
+
+        [GeneratedRegex("^[A-Za-z0-9]{3,3}[A-Za-z0-9]{6,6}[A-Za-z0-9]{2,2}[A-Za-z0-9]{6,6}$")]
+        private static partial Regex RegexIsChassi();
+
+        public static bool IsChassi(this string input)
+        {
+            return RegexIsChassi().IsMatch(input.Trim());
         }
 
         [GeneratedRegex("^[a-zA-Z]{3}\\d{4}$")]
-        private static partial Regex RegexIsPlaca1();
+        private static partial Regex RegexPlacaAntiga();
 
         [GeneratedRegex("^[a-zA-Z]{3}\\d{1}[a-zA-Z]{1}\\d{2}$")]
-        private static partial Regex RegexIsPlaca2();
+        private static partial Regex RegexPlacaNova();
 
-        public static bool IsPlaca(string input)
+        public static bool IsPlaca(this string input)
         {
             string aux = input.Replace("-", "").Trim();
 
-            return !aux.EndsWith("0000") && (RegexIsPlaca1().IsMatch(aux) || RegexIsPlaca2().IsMatch(aux));
+            return !aux.EndsWith("0000") && (RegexPlacaAntiga().IsMatch(aux) || RegexPlacaNova().IsMatch(aux));
         }
 
-        [GeneratedRegex("^[a-hj-npr-zA-HJ-NPR-Z0-9]{12}[0-9]{5}$")]
-        private static partial Regex RegexIsChassi();
-
-        public static bool IsChassi(string input)
+        #region Renavan
+        public static bool IsRenavan(string input)
         {
-            // Não permite receber as letras I, O e Q e os 6 últimos caracteres devem ser números
-            return RegexIsChassi().IsMatch(input.Trim());
+            if (input.Length != 11)
+            {
+                input = input.PadRight(11, '0');
+            }
+            if (!Regex.IsMatch(input, "^[0-9]{11}$")) return false;
+
+
+            int[] digitos = GetDigitosInvertidos(input);
+            var verificador = GetDigitoVerificador(input);
+            var soma = GetSoma(digitos);
+            var verificadorCalculado = GetVerificador(soma);
+            return verificadorCalculado == verificador;
         }
+
+        private static int[] GetDigitosInvertidos(string digitos)
+        {
+            char[] digitosChar = digitos.ToCharArray();
+            Array.Reverse(digitosChar);
+            return Array.ConvertAll(digitosChar, c => (int)Char.GetNumericValue(c));
+        }
+
+        private static int GetDigitoVerificador(string digitos)
+        {
+            string digito = digitos[-1].ToString();
+            return int.Parse(digito);
+        }
+
+        private static int GetSoma(int[] digitos)
+        {
+            var soma = 0;
+            for (var i = 0; i < digitos.Length; i++)
+            {
+                soma += digitos[i] * GetFactor(i);
+            }
+            return soma;
+        }
+
+        private static int GetFactor(int num)
+        {
+            int[] digits = { 2, 3, 4, 5, 6, 7, 8, 9 };
+            int index;
+            if (num >= digits.Length)
+            {
+                index = num % digits.Length;
+            }
+            else
+            {
+                index = num;
+            }
+            return digits[index];
+        }
+
+        private static int GetVerificador(int soma)
+        {
+            var valor = 11 - (soma % 11);
+            if (valor >= 10) return 0;
+            return valor;
+        }
+        #endregion
     }
 }

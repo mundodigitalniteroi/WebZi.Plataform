@@ -42,7 +42,7 @@ namespace WebZi.Plataform.CrossCutting.Web
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.ASCII.GetBytes($"{username}:{password}")));
 
             using HttpResponseMessage httpResponseMessage = await httpClient.GetAsync("");
-            
+
             string result = await httpResponseMessage.Content.ReadAsStringAsync();
 
             return JsonHelper.DeserializeObject<T>(result);
@@ -84,9 +84,9 @@ namespace WebZi.Plataform.CrossCutting.Web
             // httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
             using StringContent stringContent = new(JsonHelper.Serialize(obj), Encoding.UTF8, "application/json");
-            
+
             using HttpResponseMessage httpResponseMessage = await httpClient.PostAsync("", stringContent);
-            
+
             string result = await httpResponseMessage.Content.ReadAsStringAsync();
 
             return JsonHelper.DeserializeObject<T>(result);
@@ -129,7 +129,7 @@ namespace WebZi.Plataform.CrossCutting.Web
             };
 
             using HttpResponseMessage httpResponseMessage = await httpClient.SendAsync(request);
-            
+
             return JsonHelper.DeserializeObject<T>(await httpResponseMessage.Content.ReadAsStringAsync());
         }
     }

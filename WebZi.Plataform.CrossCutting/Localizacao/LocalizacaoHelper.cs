@@ -1,17 +1,20 @@
 ﻿using System.Text.RegularExpressions;
+using WebZi.Plataform.CrossCutting.Strings;
 
 namespace WebZi.Plataform.CrossCutting.Localizacao
 {
-    public static class LocalizacaoHelper
+    public static partial class LocalizacaoHelper
     {
-        public static bool IsCEP(string cep)
+        [GeneratedRegex("^\\d{5}-\\d{3}|(\\d{8})$")]
+        private static partial Regex RegexCEP();
+        public static bool IsCEP(this string cep)
         {
-            return Regex.IsMatch(cep.Trim(), @"^\d{5}-\d{3}|(\d{8})$");
+            return !cep.IsNullOrWhiteSpace() && RegexCEP().IsMatch(cep.Trim());
         }
 
-        public static bool IsUF(string uf)
+        public static bool IsUF(this string uf)
         {
-            uf = uf.Trim().ToUpper();
+            uf = uf.ToUpperTrim();
 
             return uf == "AC" ||
                    uf == "AL" ||

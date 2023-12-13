@@ -7,28 +7,27 @@ using WebZi.Plataform.CrossCutting.Strings;
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
-using WebZi.Plataform.Data.Services.Bucket;
 using WebZi.Plataform.Data.WsBoleto;
 using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Bucket;
 using WebZi.Plataform.Domain.Models.Faturamento;
-using WebZi.Plataform.Domain.Models.Faturamento.Boleto;
 using WebZi.Plataform.Domain.Models.Sistema;
+using WebZi.Plataform.Domain.Models.WebServices.Boleto;
 using WebZi.Plataform.Domain.Services.GRV;
 using WebZi.Plataform.Domain.ViewModel.Generic;
 using WebZi.Plataform.Domain.Views.Faturamento;
 using Z.EntityFramework.Plus;
 using static WebZi.Plataform.Data.WsBoleto.WsBoletoSoapClient;
 
-namespace WebZi.Plataform.Data.Services.Faturamento
+namespace WebZi.Plataform.Data.Services.WebServices
 {
-    public class FaturamentoBoletoService
+    public class BoletoService
     {
         private readonly AppDbContext _context;
         private readonly IMapper _mapper;
         private readonly IHttpClientFactory _httpClientFactory;
 
-        public FaturamentoBoletoService(AppDbContext context, IMapper mapper, IHttpClientFactory httpClientFactory)
+        public BoletoService(AppDbContext context, IMapper mapper, IHttpClientFactory httpClientFactory)
         {
             _context = context;
             _mapper = mapper;
@@ -141,7 +140,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             }
             else
             {
-                FaturamentoBoletoImagemModel FaturamentoBoletoImagem = _context.FaturamentoBoletoImagem
+                BoletoImagemModel FaturamentoBoletoImagem = _context.FaturamentoBoletoImagem
                     .Include(i => i.FaturamentoBoleto)
                     .Where(w => w.FaturamentoBoleto.FaturamentoId == Faturamento.FaturamentoBoletos.FirstOrDefault().FaturamentoBoletoId && w.FaturamentoBoleto.Status != "C")
                     .OrderByDescending(o => o.FaturamentoBoletoId)
@@ -283,7 +282,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 instrucoes = ViewBoleto.SacadoInstrucoes
             };
 
-            FaturamentoBoletoGeradoModel BoletoGerado = new()
+            BoletoGeradoModel BoletoGerado = new()
             {
                 DataVencimento = DateTimeHelper.GetDateTime(ViewBoleto.Vencimento[..10], "dd/MM/yyyy")
             };
@@ -346,7 +345,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             {
                 try
                 {
-                    FaturamentoBoletoModel FaturamentoBoleto = new()
+                    BoletoModel FaturamentoBoleto = new()
                     {
                         FaturamentoId = Faturamento.FaturamentoId,
 
@@ -367,7 +366,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
                     _context.SaveChanges();
 
-                    new BucketArquivoService(_context, _httpClientFactory).SendFile("FATURAMENBOLETO", FaturamentoBoleto.FaturamentoBoletoId, UsuarioId, BoletoGerado.Boleto);
+                    new BucketService(_context, _httpClientFactory).SendFile("FATURAMENBOLETO", FaturamentoBoleto.FaturamentoBoletoId, UsuarioId, BoletoGerado.Boleto);
 
                     transaction.Commit();
                 }
@@ -390,13 +389,13 @@ namespace WebZi.Plataform.Data.Services.Faturamento
         public void Cancel(int FaturamentoId)
         {
             // Apesar de ser uma lista, por regra, só pode haver 1 Boleto cadastrado não pago
-            List<FaturamentoBoletoModel> result = _context.FaturamentoBoleto
+            List<BoletoModel> result = _context.FaturamentoBoleto
                     .Where(w => w.FaturamentoId == FaturamentoId && w.Status == "N")
                     .ToList();
 
             if (result?.Count > 0)
             {
-                foreach (FaturamentoBoletoModel FaturamentoBoleto in result)
+                foreach (BoletoModel FaturamentoBoleto in result)
                 {
                     FaturamentoBoleto.Status = "C";
 
@@ -406,7 +405,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                         .Where(w => w.FaturamentoBoletoId == FaturamentoBoleto.FaturamentoBoletoId)
                     .Delete();
 
-                    new BucketArquivoService(_context, _httpClientFactory)
+                    new BucketService(_context, _httpClientFactory)
                         .DeleteFiles("FATURAMENBOLETO", FaturamentoBoleto.FaturamentoBoletoId);
                 }
             }

@@ -15,19 +15,19 @@ namespace WebZi.Plataform.Data.Mappings.Servico
             builder.Property(e => e.ReboquistaId)
                 .HasColumnName("id_reboquista")
                 .ValueGeneratedOnAdd();
-            
+
             builder.Property(e => e.ClienteId)
                 .HasColumnName("id_cliente");
-            
+
             builder.Property(e => e.DepositoId)
                 .HasColumnName("id_deposito");
-            
+
             builder.Property(e => e.UsuarioAlteracaoId)
                 .HasColumnName("id_usuario_alteracao");
-            
+
             builder.Property(e => e.UsuarioCadastroId)
                 .HasColumnName("id_usuario_cadastro");
-            
+
             builder.Property(e => e.Nome)
                 .IsRequired()
                 .HasMaxLength(100)

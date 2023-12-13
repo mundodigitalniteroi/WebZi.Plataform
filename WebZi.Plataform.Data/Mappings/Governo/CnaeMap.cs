@@ -1,5 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using WebZi.Plataform.Domain.Models.Governo;
 
 namespace WebZi.Plataform.Data.Mappings.Governo
@@ -21,7 +21,7 @@ namespace WebZi.Plataform.Data.Mappings.Governo
                 .HasMaxLength(7)
                 .IsUnicode(false)
                 .IsFixedLength();
-            
+
             builder.Property(e => e.CodigoFormatado)
                 .IsRequired()
                 .HasMaxLength(9)
@@ -32,7 +32,7 @@ namespace WebZi.Plataform.Data.Mappings.Governo
                 .IsRequired()
                 .HasMaxLength(200)
                 .IsUnicode(false);
-            
+
             builder.Property(e => e.FlagPrincipal)
                 .IsRequired()
                 .HasMaxLength(1)

@@ -1,6 +1,4 @@
-﻿using System.Security.Cryptography;
-
-namespace WebZi.Plataform.Domain.Enums
+﻿namespace WebZi.Plataform.Domain.Enums
 {
     public static class FaturamentoRegraTipoEnum
     {

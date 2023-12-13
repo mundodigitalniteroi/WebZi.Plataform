@@ -1,8 +1,9 @@
-﻿using WebZi.Plataform.Domain.Models.Usuario;
+﻿using WebZi.Plataform.Domain.Models.Faturamento;
+using WebZi.Plataform.Domain.Models.Usuario;
 
-namespace WebZi.Plataform.Domain.Models.Faturamento.Boleto
+namespace WebZi.Plataform.Domain.Models.WebServices.Boleto
 {
-    public class FaturamentoBoletoModel
+    public class BoletoModel
     {
         public int FaturamentoBoletoId { get; set; }
 
@@ -36,6 +37,6 @@ namespace WebZi.Plataform.Domain.Models.Faturamento.Boleto
 
         public virtual UsuarioModel UsuarioCadastro { get; set; }
 
-        public virtual FaturamentoBoletoImagemModel FaturamentoBoletoImagem { get; set; }
+        public virtual BoletoImagemModel FaturamentoBoletoImagem { get; set; }
     }
 }

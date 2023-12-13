@@ -24,12 +24,12 @@ namespace WebZi.Plataform.Data.Mappings.Faturamento
                 .IsUnicode(false)
                 .IsFixedLength()
                 .HasColumnName("codigo_sap");
-            
+
             builder.Property(e => e.Descricao)
                 .HasMaxLength(25)
                 .IsUnicode(false)
                 .HasColumnName("descricao");
-            
+
             builder.Property(e => e.DescricaoSap)
                 .HasMaxLength(50)
                 .IsUnicode(false)

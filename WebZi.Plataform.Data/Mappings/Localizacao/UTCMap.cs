@@ -15,7 +15,7 @@ namespace WebZi.Plataform.Data.Mappings.Localizacao
             builder.Property(e => e.UtcId)
                 .ValueGeneratedOnAdd()
                 .HasColumnName("id_utc");
-            
+
             builder.Property(e => e.Utc)
                 .IsRequired()
                 .HasMaxLength(6)

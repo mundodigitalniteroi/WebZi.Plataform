@@ -7,14 +7,14 @@ using WebZi.Plataform.Domain.Models.Bucket.Work;
 using WebZi.Plataform.Domain.Models.Sistema;
 using WebZi.Plataform.Domain.ViewModel.Generic;
 
-namespace WebZi.Plataform.Data.Services.Bucket
+namespace WebZi.Plataform.Data.Services.WebServices
 {
-    public class BucketArquivoService
+    public class BucketService
     {
         private readonly AppDbContext _context;
         private readonly IHttpClientFactory _httpClientFactory;
 
-        public BucketArquivoService(AppDbContext context, IHttpClientFactory httpClientFactory)
+        public BucketService(AppDbContext context, IHttpClientFactory httpClientFactory)
         {
             _context = context;
             _httpClientFactory = httpClientFactory;

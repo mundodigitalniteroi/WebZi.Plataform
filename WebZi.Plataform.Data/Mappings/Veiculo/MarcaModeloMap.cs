@@ -1,5 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using WebZi.Plataform.Domain.Models.Veiculo;
 
 namespace WebZi.Plataform.Data.Mappings.Veiculo
@@ -28,7 +28,7 @@ namespace WebZi.Plataform.Data.Mappings.Veiculo
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("descricao");
-            
+
             builder.Property(e => e.FlagOrigemDetran)
                 .IsRequired()
                 .HasMaxLength(1)

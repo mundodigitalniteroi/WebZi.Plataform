@@ -36,13 +36,13 @@ namespace WebZi.Plataform.Data.Mappings.Localizacao
             builder.Property(e => e.Ano)
                 .HasColumnType("numeric(4, 0)")
                 .HasColumnName("ano");
-            
+
             builder.Property(e => e.Descricao)
                 .IsRequired()
                 .HasMaxLength(100)
                 .IsUnicode(false)
                 .HasColumnName("descricao");
-            
+
             builder.Property(e => e.FlagFeriadoEstadual)
                 .IsRequired()
                 .HasMaxLength(1)
@@ -50,7 +50,7 @@ namespace WebZi.Plataform.Data.Mappings.Localizacao
                 .HasDefaultValueSql("('N')")
                 .IsFixedLength()
                 .HasColumnName("flag_feriado_estadual");
-            
+
             builder.Property(e => e.FlagFeriadoNacional)
                 .IsRequired()
                 .HasMaxLength(1)

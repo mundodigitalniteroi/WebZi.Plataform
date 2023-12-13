@@ -1,5 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using WebZi.Plataform.Domain.Models.Sistema;
 
 namespace WebZi.Plataform.Data.Mappings.Sistema
@@ -21,7 +21,7 @@ namespace WebZi.Plataform.Data.Mappings.Sistema
                 .HasMaxLength(30)
                 .IsUnicode(false)
                 .HasColumnName("descricao");
-            
+
             builder.Property(e => e.CorSecundaria)
                 .IsRequired()
                 .HasMaxLength(30)

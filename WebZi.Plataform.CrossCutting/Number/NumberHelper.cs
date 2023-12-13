@@ -1,11 +1,34 @@
 ﻿using System.Globalization;
 using System.Text.RegularExpressions;
+using WebZi.Plataform.CrossCutting.Strings;
 
 namespace WebZi.Plataform.CrossCutting.Number
 {
-    public static class NumberHelper
+    public static partial class NumberHelper
     {
-        public static decimal GetPercentage(decimal value, decimal percentage)
+        public static string FormatMoney(this decimal input) => input.ToString("C2", CultureInfo.GetCultureInfo("pt-br"));
+
+        public static string FormatNumber(this decimal input) => input.ToString("0.00", CultureInfo.GetCultureInfo("pt-br"));
+
+        [GeneratedRegex("^\\d+$")]
+        private static partial Regex RegexNumber();
+        public static bool IsNumber(this string input)
+        {
+            input = input.Trim();
+
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                return false;
+            }
+            else if (!RegexNumber().IsMatch(input))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public static decimal GetPercentage(this decimal input, decimal percentage)
         {
             if (percentage > 100)
             {
@@ -13,32 +36,57 @@ namespace WebZi.Plataform.CrossCutting.Number
             }
             else if (percentage <= 0)
             {
-                return value;
+                return input;
             }
 
             percentage = (100 - percentage) / 100;
 
-            return value * percentage;
+            return input * percentage;
         }
 
-        public static string FormatMoney(decimal value) => value.ToString("C2", CultureInfo.GetCultureInfo("pt-br"));
-
-        public static string FormatNumber(decimal value) => value.ToString("0.00", CultureInfo.GetCultureInfo("pt-br"));
-
-        public static bool IsNumber(string value)
+        public static byte ToByte(this string input)
         {
-            value = value.Trim();
+            return byte.Parse(input);
+        }
 
-            if (string.IsNullOrWhiteSpace(value))
-            {
-                return false;
-            }
-            else if (!Regex.IsMatch(value, @"^\d+$"))
-            {
-                return false;
-            }
+        public static decimal ToDecimal(this string input)
+        {
+            return decimal.Parse(input);
+        }
 
-            return true;
+        public static int ToInt(this string input)
+        {
+            return int.Parse(input);
+        }
+
+        public static long ToLong(this string input)
+        {
+            return long.Parse(input);
+        }
+
+        public static sbyte ToSByte(this string input)
+        {
+            return sbyte.Parse(input);
+        }
+
+        public static short ToShort(this string input)
+        {
+            return short.Parse(input);
+        }
+
+        public static uint ToUInt(this string input)
+        {
+            return uint.Parse(input);
+        }
+
+        public static ulong ToULong(this string input)
+        {
+            return ulong.Parse(input);
+        }
+
+        public static ushort ToUShort(this string input)
+        {
+            return ushort.Parse(input);
         }
     }
 }

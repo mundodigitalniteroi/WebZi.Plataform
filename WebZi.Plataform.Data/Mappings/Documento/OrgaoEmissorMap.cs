@@ -1,5 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using WebZi.Plataform.Domain.Models.Documento;
 
 namespace WebZi.Plataform.Data.Mappings.Documento
@@ -20,18 +20,18 @@ namespace WebZi.Plataform.Data.Mappings.Documento
                 .HasMaxLength(10)
                 .IsUnicode(false)
                 .HasColumnName("codigo_orgao");
-            
+
             builder.Property(e => e.Descricao)
                 .HasMaxLength(100)
                 .IsUnicode(false)
                 .HasColumnName("descricao");
-            
+
             builder.Property(e => e.Sigla)
                 .IsRequired()
                 .HasMaxLength(20)
                 .IsUnicode(false)
                 .HasColumnName("sigla");
-            
+
             builder.Property(e => e.UF)
                 .HasMaxLength(2)
                 .IsUnicode(false)

@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Domain.Models.Sistema;
-using WebZi.Plataform.Domain.ViewModel.Generic;
 using WebZi.Plataform.Domain.ViewModel.Sistema;
 
 namespace WebZi.Plataform.Data.Services.Sistema
