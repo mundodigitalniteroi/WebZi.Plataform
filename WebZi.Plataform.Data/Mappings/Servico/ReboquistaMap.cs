@@ -10,7 +10,7 @@ namespace WebZi.Plataform.Data.Mappings.Servico
         {
             builder
                 .ToTable("tb_dep_reboquistas", "dbo", tb => tb.HasTrigger("tr_log_upd_reboquistas"))
-                .HasKey(e => e.ReboquistaId);
+                .HasKey(x => x.ReboquistaId);
 
             builder.Property(e => e.ReboquistaId)
                 .HasColumnName("id_reboquista")

@@ -34,7 +34,8 @@ namespace WebZi.Plataform.Data.Services.Pessoa
             if (result?.Count > 0)
             {
                 ResultView.Listagem = _mapper
-                    .Map<List<TipoDocumentoIdentificacaoViewModel>>(result.OrderBy(o => o.Codigo)
+                    .Map<List<TipoDocumentoIdentificacaoViewModel>>(result
+                    .OrderBy(x => x.Codigo)
                     .ToList());
 
                 ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
@@ -60,7 +61,8 @@ namespace WebZi.Plataform.Data.Services.Pessoa
             if (result?.Count > 0)
             {
                 ResultView.Listagem = _mapper
-                    .Map<List<TipoDocumentoIdentificacaoSimplificadoViewModel>>(result.OrderBy(o => o.Codigo)
+                    .Map<List<TipoDocumentoIdentificacaoSimplificadoViewModel>>(result
+                    .OrderBy(x => x.Codigo)
                     .ToList());
 
                 ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);

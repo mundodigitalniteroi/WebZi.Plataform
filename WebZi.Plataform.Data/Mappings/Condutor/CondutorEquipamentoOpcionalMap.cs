@@ -10,7 +10,7 @@ namespace WebZi.Plataform.Data.Mappings.Condutor
         {
             builder
                 .ToTable("tb_dep_condutor_equipamentos_opcionais", "dbo", tb => tb.HasTrigger("tr_log_upd_condutor_equipamentos_opcionais"))
-                .HasKey(e => e.CondutorEquipamentoOpcionalId);
+                .HasKey(x => x.CondutorEquipamentoOpcionalId);
 
             builder.Property(e => e.CondutorEquipamentoOpcionalId)
                 .HasColumnName("id_condutor_equipamento_opcional")

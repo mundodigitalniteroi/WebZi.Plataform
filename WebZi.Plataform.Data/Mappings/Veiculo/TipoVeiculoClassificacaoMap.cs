@@ -10,7 +10,7 @@ namespace WebZi.Plataform.Data.Mappings.Veiculo
         {
             builder
                 .ToTable("tb_dep_tipo_veiculos_classificacao", "dbo")
-                .HasKey(e => e.TipoVeiculoClassificacaoId);
+                .HasKey(x => x.TipoVeiculoClassificacaoId);
 
             builder.Property(e => e.TipoVeiculoClassificacaoId)
                 .HasColumnName("id_tipo_veiculo_classificacao")

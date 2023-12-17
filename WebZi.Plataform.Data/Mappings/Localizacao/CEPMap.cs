@@ -10,7 +10,7 @@ namespace WebZi.Plataform.Data.Mappings.Localizacao
         {
             builder
                 .ToTable("tb_glo_loc_cep", "dbo")
-                .HasKey(e => e.CEPId);
+                .HasKey(x => x.CEPId);
 
             builder.Property(e => e.CEPId)
                 .HasColumnName("id_cep")

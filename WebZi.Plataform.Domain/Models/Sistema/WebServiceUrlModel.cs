@@ -4,12 +4,12 @@
     {
         public byte WsUrlId { get; set; }
 
-        public string WsName { get; set; }
+        public string Name { get; set; }
 
-        public string WsUrl { get; set; }
+        public string Url { get; set; }
 
-        public string WsUsername { get; set; }
+        public string Username { get; set; }
 
-        public string WsPassword { get; set; }
+        public string Password { get; set; }
     }
 }

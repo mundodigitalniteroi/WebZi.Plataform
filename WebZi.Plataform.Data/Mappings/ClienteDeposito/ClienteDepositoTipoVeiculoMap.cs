@@ -10,7 +10,7 @@ namespace WebZi.Plataform.Data.Mappings.ClienteDeposito
         {
             builder
                 .ToTable("tb_dep_cliente_deposito_tipos_veiculos", "dbo", tb => tb.HasTrigger("tr_log_cliente_deposito_tipos_veiculos"))
-                .HasKey(e => e.ClienteDepositoTipoVeiculoId);
+                .HasKey(x => x.ClienteDepositoTipoVeiculoId);
 
             builder.Property(e => e.ClienteDepositoTipoVeiculoId)
                 .HasColumnName("id_cliente_deposito_tipo_veiculo")

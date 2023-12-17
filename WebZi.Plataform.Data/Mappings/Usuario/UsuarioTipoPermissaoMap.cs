@@ -10,7 +10,7 @@ namespace WebZi.Plataform.Data.Mappings.Usuario
         {
             builder
                 .ToTable("tb_dep_usuarios_tipos_permissoes", "dbo")
-                .HasKey(e => e.TipoPermissaoId);
+                .HasKey(x => x.TipoPermissaoId);
 
             builder.Property(e => e.TipoPermissaoId)
                 .HasColumnName("id_tipo_permissao")

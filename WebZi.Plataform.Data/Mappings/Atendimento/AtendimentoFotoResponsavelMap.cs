@@ -10,7 +10,7 @@ namespace WebZi.Plataform.Data.Mappings.Atendimento
         {
             builder
                 .ToTable("tb_dep_atendimento_fotos_responsaveis", "dbo", tb => tb.HasTrigger("tr_del_atendimento_fotos_responsaveis"))
-                .HasKey(e => e.AtendimentoFotoResponsavelId);
+                .HasKey(x => x.AtendimentoFotoResponsavelId);
 
             builder.Property(e => e.AtendimentoFotoResponsavelId)
                 .HasColumnName("id_atendimento_foto_responsavel")

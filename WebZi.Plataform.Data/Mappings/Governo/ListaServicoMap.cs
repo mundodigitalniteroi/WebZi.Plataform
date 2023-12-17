@@ -10,7 +10,7 @@ namespace WebZi.Plataform.Data.Mappings.Governo
         {
             builder
                 .ToTable("tb_gov_lista_servico", "dbo")
-                .HasKey(e => e.ListaServicoId);
+                .HasKey(x => x.ListaServicoId);
 
             builder.Property(e => e.ListaServicoId)
                 .HasColumnName("ListaServicoID")

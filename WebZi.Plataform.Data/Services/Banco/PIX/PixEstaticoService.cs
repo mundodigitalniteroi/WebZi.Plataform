@@ -35,12 +35,12 @@ namespace WebZi.Plataform.Data.Services.Banco.PIX
             }
 
             FaturamentoModel Faturamento = _context.Faturamento
-                .Include(i => i.TipoMeioCobranca)
-                .Include(i => i.Atendimento)
-                .ThenInclude(t => t.Grv)
-                .ThenInclude(t => t.Cliente)
-                .ThenInclude(t => t.Endereco)
-                .Where(w => w.FaturamentoId == FaturamentoId)
+                .Include(x => x.TipoMeioCobranca)
+                .Include(x => x.Atendimento)
+                .ThenInclude(x => x.Grv)
+                .ThenInclude(x => x.Cliente)
+                .ThenInclude(x => x.Endereco)
+                .Where(x => x.FaturamentoId == FaturamentoId)
                 .AsNoTracking()
                 .FirstOrDefault();
 
@@ -88,7 +88,7 @@ namespace WebZi.Plataform.Data.Services.Banco.PIX
 
             // Exclui o PIX Estático da Fatura caso exista
             _context.PixEstatico
-                .Where(w => w.FaturamentoId == FaturamentoId)
+                .Where(x => x.FaturamentoId == FaturamentoId)
                 .Delete();
 
             ConfiguracaoModel Configuracao = _context.Configuracao

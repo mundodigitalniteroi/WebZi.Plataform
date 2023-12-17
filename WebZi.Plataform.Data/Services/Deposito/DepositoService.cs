@@ -43,9 +43,8 @@ namespace WebZi.Plataform.Data.Services.Deposito
             }
 
             DepositoModel result = await _context.Deposito
-                .Where(w => w.DepositoId == DepositoId)
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(x => x.DepositoId == DepositoId);
 
             if (result != null)
             {
@@ -73,13 +72,15 @@ namespace WebZi.Plataform.Data.Services.Deposito
             }
 
             List<DepositoModel> result = await _context.Deposito
-                .Where(w => w.Nome.ToUpper().Contains(Name.ToUpper().Trim()))
+                .Where(x => x.Nome.ToUpper().Contains(Name.ToUpper().Trim()))
                 .AsNoTracking()
                 .ToListAsync();
 
             if (result?.Count > 0)
             {
-                ResultView.Listagem = _mapper.Map<List<DepositoViewModel>>(result.OrderBy(o => o.Nome).ToList());
+                ResultView.Listagem = _mapper.Map<List<DepositoViewModel>>(result
+                    .OrderBy(x => x.Nome)
+                    .ToList());
 
                 ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
             }
@@ -94,8 +95,8 @@ namespace WebZi.Plataform.Data.Services.Deposito
         public DateTime GetDataHoraPorDeposito(int DepositoId)
         {
             DepositoModel Deposito = _context.Deposito
-                .Include(i => i.Endereco)
-                .Where(w => w.DepositoId == DepositoId)
+                .Include(x => x.Endereco)
+                .Where(x => x.DepositoId == DepositoId)
                 .AsNoTracking()
                 .FirstOrDefault();
 
@@ -111,17 +112,16 @@ namespace WebZi.Plataform.Data.Services.Deposito
             }
 
             ViewEnderecoCompletoModel CEP = _context.EnderecoCompleto
-                .Where(w => w.CEPId == Deposito.CEPId)
                 .AsNoTracking()
-                .FirstOrDefault();
+                .FirstOrDefault(x => x.CEPId == Deposito.CEPId);
 
             List<EstadoModel> Estados = _context.Estado
                 .AsNoTracking()
                 .ToList();
 
-            EstadoModel EstadoPrincipal = Estados.Find(s => s.UF == "RJ");
+            EstadoModel EstadoPrincipal = Estados.Find(x => x.UF == "RJ");
 
-            EstadoModel Estado = Estados.Find(s => s.UF == CEP.UF);
+            EstadoModel Estado = Estados.Find(x => x.UF == CEP.UF);
 
             DateTime DataInicioHorarioVerao = DateTimeHelper.GetBrazilFirstDaylightSavingDay(DataHoraAtual.Year);
 
@@ -170,7 +170,9 @@ namespace WebZi.Plataform.Data.Services.Deposito
                     Depositos.Add(UsuarioDeposito.Deposito);
                 }
 
-                ResultView.Listagem = _mapper.Map<List<DepositoViewModel>>(Depositos.OrderBy(o => o.Nome).ToList());
+                ResultView.Listagem = _mapper.Map<List<DepositoViewModel>>(Depositos
+                    .OrderBy(x => x.Nome)
+                    .ToList());
 
                 ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
             }
@@ -193,7 +195,9 @@ namespace WebZi.Plataform.Data.Services.Deposito
 
             if (result?.Count > 0)
             {
-                ResultView.Listagem = _mapper.Map<List<ClienteDepositoSimplificadoViewModel>>(result.OrderBy(o => o.DepositoNome).ToList());
+                ResultView.Listagem = _mapper.Map<List<ClienteDepositoSimplificadoViewModel>>(result
+                    .OrderBy(x => x.DepositoNome)
+                    .ToList());
 
                 ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
             }

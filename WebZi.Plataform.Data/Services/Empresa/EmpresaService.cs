@@ -69,8 +69,8 @@ namespace WebZi.Plataform.Data.Services.Empresa
             }
 
             List<EmpresaModel> result = await _context.Empresa
-                .Where(w => (!CNPJ.IsNullOrWhiteSpace() ? w.CNPJ == CNPJ : true) &&
-                            (!Nome.IsNullOrWhiteSpace() ? w.Nome.Contains(Nome.ToUpper().Trim()) : true))
+                .Where(x => (!CNPJ.IsNullOrWhiteSpace() ? x.CNPJ == CNPJ : true) &&
+                            (!Nome.IsNullOrWhiteSpace() ? x.Nome.Contains(Nome.ToUpper().Trim()) : true))
                 .AsNoTracking()
                 .ToListAsync();
 

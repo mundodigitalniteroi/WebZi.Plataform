@@ -14,7 +14,7 @@ namespace WebZi.Plataform.Data.Mappings.Atendimento
                     tb.HasTrigger("tr_log_del_atendimento");
                     tb.HasTrigger("tr_log_upd_atendimento");
                 })
-                .HasKey(e => e.AtendimentoId);
+                .HasKey(x => x.AtendimentoId);
 
             builder.Property(e => e.AtendimentoId)
                 .HasColumnName("id_atendimento")

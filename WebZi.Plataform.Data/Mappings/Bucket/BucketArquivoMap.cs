@@ -10,7 +10,7 @@ namespace WebZi.Plataform.Data.Mappings.Bucket
         {
             builder
                 .ToTable("tb_dep_repositorio_arquivos", "dbo")
-                .HasKey(e => e.RepositorioArquivoId);
+                .HasKey(x => x.RepositorioArquivoId);
 
             builder.Property(e => e.RepositorioArquivoId)
                 .ValueGeneratedOnAdd();

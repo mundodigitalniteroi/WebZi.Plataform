@@ -10,7 +10,7 @@ namespace WebZi.Plataform.Data.Mappings.Governo
         {
             builder
                 .ToTable("tb_gov_parametro_municipio", "dbo")
-                .HasKey(e => e.ParametroMunicipioId);
+                .HasKey(x => x.ParametroMunicipioId);
 
             builder.Property(e => e.ParametroMunicipioId)
                 .ValueGeneratedOnAdd();

@@ -10,7 +10,7 @@ namespace WebZi.Plataform.Data.Mappings.Banco
         {
             builder
                 .ToTable("tb_dep_agencias_bancarias", "dbo", tb => tb.HasTrigger("tr_log_upd_agencias_bancarias"))
-                .HasKey(e => e.AgenciaBancariaId);
+                .HasKey(x => x.AgenciaBancariaId);
 
             builder.Property(e => e.AgenciaBancariaId)
                 .HasColumnName("id_agencia_bancaria")

@@ -49,9 +49,9 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             #region Selecionar os Serviços cadastrados no GRV
             List<ViewFaturamentoServicoGrvModel> FaturamentoServicosGrvs = _context.ViewFaturamentoServicoGrv
-                .Where(w => w.GrvId == ParametrosCalculoFaturamento.Grv.GrvId &&
-                            w.FaturamentoProdutoId == ParametrosCalculoFaturamento.Grv.FaturamentoProdutoId &&
-                            w.FlagTributacao == "N")
+                .Where(x => x.GrvId == ParametrosCalculoFaturamento.Grv.GrvId &&
+                            x.FaturamentoProdutoId == ParametrosCalculoFaturamento.Grv.FaturamentoProdutoId &&
+                            x.FlagTributacao == "N")
                 .AsNoTracking()
                 .ToList();
 
@@ -63,10 +63,10 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             #region Selecionar todos os Serviços associados ao CLIDEP, incluindo os com a Vigência finalizada
             List<ViewFaturamentoServicoAssociadoVeiculoModel> FaturamentoServicosAssociadosVeiculos = _context.ViewFaturamentoServicoAssociadoVeiculo
-                .Where(w => w.ClienteId == ParametrosCalculoFaturamento.Grv.ClienteId &&
-                            w.DepositoId == ParametrosCalculoFaturamento.Grv.DepositoId &&
-                            w.TipoVeiculoId == ParametrosCalculoFaturamento.Grv.TipoVeiculoId &&
-                            w.FaturamentoProdutoId == ParametrosCalculoFaturamento.Grv.FaturamentoProdutoId)
+                .Where(x => x.ClienteId == ParametrosCalculoFaturamento.Grv.ClienteId &&
+                            x.DepositoId == ParametrosCalculoFaturamento.Grv.DepositoId &&
+                            x.TipoVeiculoId == ParametrosCalculoFaturamento.Grv.TipoVeiculoId &&
+                            x.FaturamentoProdutoId == ParametrosCalculoFaturamento.Grv.FaturamentoProdutoId)
                 .AsNoTracking()
                 .ToList();
 
@@ -85,7 +85,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             // Se existir ao menos 1 Fatura paga, não deve dar Desconto
             if (_context.Faturamento
-                .Where(w => w.AtendimentoId == ParametrosCalculoFaturamento.Atendimento.AtendimentoId && w.Status == "P")
+                .Where(x => x.AtendimentoId == ParametrosCalculoFaturamento.Atendimento.AtendimentoId && x.Status == "P")
                 .AsNoTracking()
                 .Any())
             {
@@ -95,9 +95,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             // Consulta da última Fatura para cancelar
             FaturamentoModel UltimoFaturamento = _context.Faturamento
-                .Where(w => w.AtendimentoId == ParametrosCalculoFaturamento.Atendimento.AtendimentoId)
-                .OrderByDescending(o => o.FaturamentoId)
-                .FirstOrDefault();
+                .OrderByDescending(x => x.FaturamentoId)
+                .FirstOrDefault(x => x.AtendimentoId == ParametrosCalculoFaturamento.Atendimento.AtendimentoId);
 
             if (UltimoFaturamento != null)
             {
@@ -175,7 +174,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 };
 
                 // DIÁRIAS
-                if (FaturamentoServicoGrv.TipoCobranca == "D")
+                if (FaturamentoServicoGrv.TipoCobranca == TipoCobrancaFaturamentoEnum.Diárias)
                 {
                     // Forma de Cobrança:
                     // AM: Ambos;
@@ -199,9 +198,9 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                         {
                             // Primeiro filtro, cobrar por todas as vigências encontradas
                             FaturamentoServicosAssociadosVeiculosTodasVigenciasEncontradas = FaturamentoServicosAssociadosVeiculos
-                                .Where(w => w.FaturamentoServicoTipoId == FaturamentoServicoGrv.FaturamentoServicoTipoId &&
-                                           (ParametrosCalculoFaturamento.Grv.DataHoraGuarda.Value.Date >= w.DataVigenciaInicial && ParametrosCalculoFaturamento.Grv.DataHoraGuarda.Value.Date <= w.DataVigenciaFinal) ||
-                                            ParametrosCalculoFaturamento.Grv.DataHoraGuarda <= w.DataVigenciaFinal || w.DataVigenciaFinal == null)
+                                .Where(x => (x.FaturamentoServicoTipoId == FaturamentoServicoGrv.FaturamentoServicoTipoId &&
+                                           (ParametrosCalculoFaturamento.Grv.DataHoraGuarda.Value.Date >= x.DataVigenciaInicial && ParametrosCalculoFaturamento.Grv.DataHoraGuarda.Value.Date <= x.DataVigenciaFinal)) ||
+                                            ParametrosCalculoFaturamento.Grv.DataHoraGuarda <= x.DataVigenciaFinal || x.DataVigenciaFinal == null)
                                 .ToList();
 
                             foreach (ViewFaturamentoServicoAssociadoVeiculoModel FaturamentoServicoAssociadoVeiculoAmbos in FaturamentoServicosAssociadosVeiculosTodasVigenciasEncontradas)
@@ -246,7 +245,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                                     FaturamentoComposicao = AplicarDesconto(FaturamentoComposicao, ParametrosCalculoFaturamento.FaturamentoDescontos);
                                 }
 
-                                FaturamentoComposicao.TipoLancamento = "C"; // Crédito
+                                FaturamentoComposicao.TipoLancamento = TipoLancamentoFaturamentoEnum.Crédito;
 
                                 ValorFaturado += FaturamentoComposicao.ValorFaturado;
 
@@ -264,10 +263,9 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                         {
                             // Segundo filtro, cobrar pela Vigência Inicial
                             FaturamentoServicoAssociadoVeiculo = FaturamentoServicosAssociadosVeiculos
-                                .Where(w => w.FaturamentoServicoTipoId == FaturamentoServicoGrv.FaturamentoServicoTipoId)
-                                .Where(w => w.DataVigenciaFinal >= ParametrosCalculoFaturamento.Grv.DataHoraGuarda.Value.Date || w.DataVigenciaFinal == null)
-                                .OrderBy(o => o.DataVigenciaInicial)
-                                .FirstOrDefault();
+                                .OrderBy(x => x.DataVigenciaInicial)
+                                .FirstOrDefault(x => x.FaturamentoServicoTipoId == FaturamentoServicoGrv.FaturamentoServicoTipoId
+                                    && (x.DataVigenciaFinal >= ParametrosCalculoFaturamento.Grv.DataHoraGuarda.Value.Date || x.DataVigenciaFinal == null));
 
                             // Aplicar Quantidade Alterada
                             if (FaturamentoQuantidadeAlterada != null)
@@ -307,7 +305,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                         FaturamentoComposicao.ValorFaturado = FaturamentoComposicao.ValorComposicao;
                     }
                 }
-                else if (FaturamentoServicoGrv.TipoCobranca == "H")
+                else if (FaturamentoServicoGrv.TipoCobranca == TipoCobrancaFaturamentoEnum.Horas)
                 {
                     if (string.IsNullOrWhiteSpace(FaturamentoServicoGrv.TempoTrabalhado))
                     {
@@ -320,7 +318,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
                     FaturamentoComposicao.ValorFaturado = FaturamentoComposicao.ValorComposicao;
                 }
-                else if (FaturamentoServicoGrv.TipoCobranca == "Q") // Quantidade
+                else if (FaturamentoServicoGrv.TipoCobranca == TipoCobrancaFaturamentoEnum.Quantidade)
                 {
                     if (FaturamentoServicoGrv.FlagRebocada == "S")
                     {
@@ -329,10 +327,9 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                         if (FaturamentoServicoGrv.FormaCobranca == "VI") // VI: Vigência Inicial
                         {
                             FaturamentoServicoAssociadoVeiculo = FaturamentoServicosAssociadosVeiculos
-                                .Where(w => w.FaturamentoServicoTipoId == FaturamentoServicoGrv.FaturamentoServicoTipoId)
-                                .Where(w => w.DataVigenciaFinal >= ParametrosCalculoFaturamento.Grv.DataHoraGuarda.Value.Date || w.DataVigenciaFinal == null)
-                                .OrderBy(o => o.DataVigenciaInicial)
-                                .First();
+                                .OrderBy(x => x.DataVigenciaInicial)
+                                .FirstOrDefault(x => x.FaturamentoServicoTipoId == FaturamentoServicoGrv.FaturamentoServicoTipoId
+                                                 && (x.DataVigenciaFinal >= ParametrosCalculoFaturamento.Grv.DataHoraGuarda.Value.Date || x.DataVigenciaFinal == null));
 
                             FaturamentoServicoGrv.PrecoPadrao = FaturamentoServicoAssociadoVeiculo.PrecoPadrao;
 
@@ -355,7 +352,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
                     FaturamentoComposicao.ValorFaturado = FaturamentoComposicao.ValorComposicao;
                 }
-                else if (FaturamentoServicoGrv.TipoCobranca == "V")
+                else if (FaturamentoServicoGrv.TipoCobranca == TipoCobrancaFaturamentoEnum.Valor)
                 {
                     if (FaturamentoServicoGrv.FlagPermiteAlteracaoValor == "N" && (FaturamentoServicoGrv.PrecoPadrao > 0) && (FaturamentoServicoGrv.Valor == 0))
                     {
@@ -379,7 +376,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                         FaturamentoComposicao.ValorFaturado = FaturamentoComposicao.ValorComposicao;
                     }
                 }
-                else if (FaturamentoServicoGrv.TipoCobranca == "T") // Tempo
+                else if (FaturamentoServicoGrv.TipoCobranca == TipoCobrancaFaturamentoEnum.Tempo)
                 {
                     if ((Horas = (int)(ParametrosCalculoFaturamento.DataHoraPorDeposito - ParametrosCalculoFaturamento.Grv.DataHoraGuarda.Value).TotalHours) == 0)
                     {
@@ -397,7 +394,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     FaturamentoComposicao = AplicarDesconto(FaturamentoComposicao, ParametrosCalculoFaturamento.FaturamentoDescontos);
                 }
 
-                FaturamentoComposicao.TipoLancamento = "C"; // Crédito
+                FaturamentoComposicao.TipoLancamento = TipoLancamentoFaturamentoEnum.Crédito;
 
                 ValorFaturado += FaturamentoComposicao.ValorFaturado;
 
@@ -564,11 +561,11 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             return FaturamentoComposicao;
         }
 
-        private static FaturamentoComposicaoModel AplicarDesconto(FaturamentoComposicaoModel FaturamentoComposicao, List<CalculoFaturamentoDescontoModel> FaturamentoDescontos)
+        private static FaturamentoComposicaoModel AplicarDesconto(FaturamentoComposicaoModel FaturamentoComposicao, List<CalculoFaturamentoDescontoModel> ListFaturamentoDesconto)
         {
-            if (FaturamentoDescontos != null)
+            if (ListFaturamentoDesconto != null)
             {
-                CalculoFaturamentoDescontoModel FaturamentoDesconto = FaturamentoDescontos
+                CalculoFaturamentoDescontoModel FaturamentoDesconto = ListFaturamentoDesconto
                     .Find(w => w.FaturamentoServicoTipoVeiculoId == FaturamentoComposicao.FaturamentoServicoTipoVeiculoId);
 
                 if (FaturamentoDesconto != null)
@@ -583,13 +580,13 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
                     FaturamentoComposicao.ObservacaoDesconto = FaturamentoDesconto.ObservacaoDesconto;
 
-                    if (FaturamentoComposicao.TipoDesconto == "V") // Se o Tipo do Desconto for VALOR FIXO
+                    if (FaturamentoComposicao.TipoDesconto == TipoDescontoFaturamentoEnum.Valor)
                     {
-                        FaturamentoComposicao.ValorFaturado = Math.Round(FaturamentoComposicao.ValorComposicao - FaturamentoDesconto.ValorDesconto, 2); /*Cleiton Silva - 23/11/18*/
+                        FaturamentoComposicao.ValorFaturado = Math.Round(FaturamentoComposicao.ValorComposicao - FaturamentoDesconto.ValorDesconto, 2);
                     }
                     else
                     {
-                        FaturamentoComposicao.ValorFaturado = Math.Round(NumberHelper.GetPercentage(FaturamentoComposicao.ValorComposicao, FaturamentoDesconto.QuantidadeDesconto), 2); /*Cleiton Silva - 23/11/18*/
+                        FaturamentoComposicao.ValorFaturado = Math.Round(NumberHelper.GetPercentage(FaturamentoComposicao.ValorComposicao, FaturamentoDesconto.QuantidadeDesconto), 2);
                     }
                 }
             }
@@ -605,13 +602,12 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             }
 
             List<ViewFaturamentoServicoAssociadoVeiculoModel> ServicosTributados = _context.ViewFaturamentoServicoAssociadoVeiculo
-                .Where(w => w.ClienteId == ParametrosCalculoFaturamento.Grv.ClienteId &&
-                            w.DepositoId == ParametrosCalculoFaturamento.Grv.DepositoId &&
-                            w.TipoVeiculoId == ParametrosCalculoFaturamento.Grv.TipoVeiculoId &&
-                            w.FaturamentoProdutoId == ParametrosCalculoFaturamento.Grv.FaturamentoProdutoId &&
-                            w.FlagTributacao == "S" &&
-                            w.DataVigenciaFinal == null
-                )
+                .Where(x => x.ClienteId == ParametrosCalculoFaturamento.Grv.ClienteId 
+                    && x.DepositoId == ParametrosCalculoFaturamento.Grv.DepositoId 
+                    && x.TipoVeiculoId == ParametrosCalculoFaturamento.Grv.TipoVeiculoId 
+                    && x.FaturamentoProdutoId == ParametrosCalculoFaturamento.Grv.FaturamentoProdutoId 
+                    && x.FlagTributacao == "S" 
+                    && x.DataVigenciaFinal == null)
                 .AsNoTracking()
                 .ToList();
 
@@ -621,9 +617,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             }
 
             ViewEnderecoCompletoModel Endereco = _context.EnderecoCompleto
-                .Where(w => w.CEPId == ParametrosCalculoFaturamento.Grv.Deposito.CEPId)
                 .AsNoTracking()
-                .FirstOrDefault();
+                .FirstOrDefault(x => x.CEPId == ParametrosCalculoFaturamento.Grv.Deposito.CEPId);
 
             if (Endereco == null)
             {
@@ -637,10 +632,10 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             #region Selecionar Regras do Faturamento
             FaturamentoRegraModel FaturamentoRegra = _context.FaturamentoRegra
-                .Include(i => i.FaturamentoRegraTipo)
-                .Where(w => w.ClienteId == ParametrosCalculoFaturamento.Grv.ClienteId &&
-                            w.DepositoId == ParametrosCalculoFaturamento.Grv.DepositoId &&
-                            w.FaturamentoRegraTipo.Codigo == FaturamentoRegraTipoEnum.DescontoISS)
+                .Include(x => x.FaturamentoRegraTipo)
+                .Where(x => x.ClienteId == ParametrosCalculoFaturamento.Grv.ClienteId
+                         && x.DepositoId == ParametrosCalculoFaturamento.Grv.DepositoId
+                         && x.FaturamentoRegraTipo.Codigo == FaturamentoRegraTipoEnum.DescontoISS)
                 .AsNoTracking()
                 .FirstOrDefault();
 
@@ -669,7 +664,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
                     TipoComposicao = item.TipoCobranca,
 
-                    TipoLancamento = "D", // Débito
+                    TipoLancamento = TipoLancamentoFaturamentoEnum.Débito,
 
                     QuantidadeComposicao = 1,
 
@@ -783,13 +778,12 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             }
 
             FaturamentoModel Faturamento = _context.Faturamento
-                .Include(i => i.TipoMeioCobranca)
-                .Include(i => i.Atendimento)
-                .ThenInclude(t => t.Grv)
-                .ThenInclude(t => t.Cliente)
-                .Where(w => w.FaturamentoId == FaturamentoId)
+                .Include(x => x.TipoMeioCobranca)
+                .Include(x => x.Atendimento)
+                .ThenInclude(x => x.Grv)
+                .ThenInclude(x => x.Cliente)
                 .AsNoTracking()
-                .FirstOrDefault();
+                .FirstOrDefault(x => x.FaturamentoId == FaturamentoId);
 
             if (Faturamento == null)
             {
@@ -809,9 +803,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             }
 
             TipoMeioCobrancaModel TipoMeioCobranca = _context.TipoMeioCobranca
-                .Where(w => w.TipoMeioCobrancaId == TipoMeioCobrancaId)
                 .AsNoTracking()
-                .FirstOrDefault();
+                .FirstOrDefault(x => x.TipoMeioCobrancaId == TipoMeioCobrancaId);
 
             if (TipoMeioCobranca == null)
             {
@@ -829,8 +822,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             }
 
             FaturamentoModel FaturamentoUpdate = _context.Faturamento
-                .Where(w => w.FaturamentoId == FaturamentoId)
-                .FirstOrDefault();
+                .FirstOrDefault(x => x.FaturamentoId == FaturamentoId);
 
             FaturamentoUpdate.TipoMeioCobrancaId = TipoMeioCobrancaId;
 
@@ -867,13 +859,13 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             else if (TipoMeioCobrancaAtual.Alias == TipoMeioCobrancaAliasEnum.PixEstatico)
             {
                 _context.PixEstatico
-                    .Where(w => w.FaturamentoId == FaturamentoId)
+                    .Where(x => x.FaturamentoId == FaturamentoId)
                     .Delete();
             }
             else if (TipoMeioCobrancaAtual.Alias == TipoMeioCobrancaAliasEnum.PixDinamico)
             {
                 _context.PixDinamico
-                    .Where(w => w.FaturamentoId == FaturamentoId)
+                    .Where(x => x.FaturamentoId == FaturamentoId)
                     .Delete();
             }
         }
@@ -908,18 +900,16 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             }
 
             GrvModel Grv = await _context.Grv
-                .Where(x => x.GrvId == GrvId)
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(x => x.GrvId == GrvId);
 
             List<ViewFaturamentoServicoAssociadoVeiculoModel> result = _context
                 .ViewFaturamentoServicoAssociadoVeiculo
-                .Where(x => x.ClienteId == Grv.ClienteId &&
-                            x.DepositoId == Grv.DepositoId &&
-                            x.TipoVeiculoId == Grv.TipoVeiculoId &&
-                            x.FaturamentoProdutoId == Grv.FaturamentoProdutoId &&
-                            (new[] { "DEP", "DRF" }.Contains(Grv.FaturamentoProdutoId) ? x.FlagCobrarGgv == "S" : true) &&
-                            x.DataVigenciaFinal == null)
+                .Where(x => x.ClienteId == Grv.ClienteId
+                         && x.DepositoId == Grv.DepositoId
+                         && x.TipoVeiculoId == Grv.TipoVeiculoId
+                         && x.FaturamentoProdutoId == Grv.FaturamentoProdutoId
+                         && (new[] { "DEP", "DRF" }.Contains(Grv.FaturamentoProdutoId) ? x.FlagCobrarGgv == "S" : true) && x.DataVigenciaFinal == null)
                 .AsNoTracking()
                 .ToList();
 
@@ -989,13 +979,11 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             }
 
             GrvModel Grv = await _context.Grv
-                .Where(x => x.GrvId == GrvId)
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(x => x.GrvId == GrvId);
 
-            var result = _context
-                .ViewFaturamentoServicoGrv
-                .Where(w => w.GrvId == GrvId)
+            var result = _context.ViewFaturamentoServicoGrv
+                .Where(x => x.GrvId == GrvId)
                 .AsNoTracking()
                 .ToList();
 
@@ -1052,9 +1040,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
         {
             GrvModel Grv = await _context.Grv
                 .Include(x => x.Atendimento)
-                .Where(x => x.GrvId == GrvId)
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(x => x.GrvId == GrvId);
 
             if (Grv == null)
             {

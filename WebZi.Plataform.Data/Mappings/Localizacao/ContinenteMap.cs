@@ -10,7 +10,7 @@ namespace WebZi.Plataform.Data.Mappings.Localizacao
         {
             builder
                 .ToTable("tb_glo_loc_continentes", "dbo")
-                .HasKey(e => e.ContinenteId);
+                .HasKey(x => x.ContinenteId);
 
             builder.Property(e => e.ContinenteId)
                 .HasColumnName("continente");

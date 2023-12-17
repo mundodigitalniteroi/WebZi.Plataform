@@ -10,7 +10,7 @@ namespace WebZi.Plataform.Data.Mappings.Localizacao.View
         {
             builder
                 .ToView("vw_glo_consultar_endereco_completo", "dbo")
-                .HasKey(t => t.CEPId);
+                .HasKey(x => x.CEPId);
 
             builder.Property(e => e.CEPId)
                 .HasColumnName("id_cep");

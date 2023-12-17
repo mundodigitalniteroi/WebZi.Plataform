@@ -72,6 +72,12 @@ namespace WebZi.Plataform.Data.Database
             return AppSettingsHelper.GetConnectionString("DefaultConnection");
         }
 
+        [DbFunction(Name = "sp_fkeys", Schema = "dbo", IsBuiltIn = true)]
+        public string GetForeingKeys(string tableName)
+        {
+            throw new NotImplementedException();
+        }
+
         public bool IsProd()
         {
             return AppSettingsHelper.GetConnectionString("DefaultConnection").Contains("Producao", StringComparison.CurrentCultureIgnoreCase);
@@ -81,13 +87,6 @@ namespace WebZi.Plataform.Data.Database
         {
             Database.ExecuteSqlRaw($"EXECUTE dbo.sp_set_contextinfo {UsuarioId}");
         }
-
-        [DbFunction(Name = "sp_fkeys", Schema = "dbo", IsBuiltIn = true)]
-        public string GetForeingKeys(string tableName)
-        {
-            throw new NotImplementedException();
-        }
-
         #region DbSets public DbSet<Model> Name { get; set; }
 
         public DbSet<GenericIntModel> GenericInt { get; set; }

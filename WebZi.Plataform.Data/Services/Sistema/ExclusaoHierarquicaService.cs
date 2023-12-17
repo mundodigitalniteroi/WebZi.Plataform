@@ -18,7 +18,7 @@ namespace WebZi.Plataform.Data.Services.Sistema
 
         public void Iniciar(string NomeTabelaMae, string NomeColunaTabelaMae, int TabelaMaeId)
         {
-            List<StoreProcedureForeingKeyModel> TabelasFilhas = ListarForeingKeys(NomeTabelaMae);
+            List<StoreProcedureForeingKeyModel> TabelasFilhas = ListForeingKeys(NomeTabelaMae);
 
             if (TabelasFilhas?.Count > 0)
             {
@@ -29,10 +29,11 @@ namespace WebZi.Plataform.Data.Services.Sistema
                 foreach (StoreProcedureForeingKeyModel filha in TabelasFilhas)
                 {
                     // Nome da Coluna na Tabela Filha
-                    colunaFilha = ListarPrimaryKeys(filha.FKTABLE_NAME).FirstOrDefault().COLUMN_NAME;
+                    colunaFilha = ListPrimaryKeys(filha.FKTABLE_NAME)
+                        .FirstOrDefault().COLUMN_NAME;
 
                     // Seleciona o ID da Tabela Filha de acordo com o ID da Tabela Mãe, nulo caso não existir registro filha
-                    FilhasIds = SelecionarId(filha.FKTABLE_NAME, filha.FKCOLUMN_NAME, TabelaMaeId);
+                    FilhasIds = ListIds(filha.FKTABLE_NAME, filha.FKCOLUMN_NAME, TabelaMaeId);
 
                     if (FilhasIds == null)
                     {
@@ -43,15 +44,15 @@ namespace WebZi.Plataform.Data.Services.Sistema
                     {
                         Iniciar(filha.FKTABLE_NAME, colunaFilha, FilhaId);
 
-                        Excluir(filha.FKTABLE_NAME, colunaFilha, FilhaId);
+                        DeleteFilha(filha.FKTABLE_NAME, colunaFilha, FilhaId);
                     }
                 }
             }
 
-            Excluir(NomeTabelaMae, NomeColunaTabelaMae, TabelaMaeId);
+            DeleteFilha(NomeTabelaMae, NomeColunaTabelaMae, TabelaMaeId);
         }
 
-        private List<StoreProcedurePrimaryKeyModel> ListarPrimaryKeys(string tabelaMae)
+        private List<StoreProcedurePrimaryKeyModel> ListPrimaryKeys(string tabelaMae)
         {
             SqlParameter Parameter = new()
             {
@@ -65,7 +66,7 @@ namespace WebZi.Plataform.Data.Services.Sistema
                 .ToList();
         }
 
-        private List<StoreProcedureForeingKeyModel> ListarForeingKeys(string tabelaMae)
+        private List<StoreProcedureForeingKeyModel> ListForeingKeys(string tabelaMae)
         {
             SqlParameter Parameter = new()
             {
@@ -79,44 +80,46 @@ namespace WebZi.Plataform.Data.Services.Sistema
                 .ToList();
         }
 
-        private List<int> SelecionarId(string tabela, string coluna, int id)
+        private List<int> ListIds(string tableName, string columnName, int id)
         {
+            string pk = ListPrimaryKeys(tableName)
+                .FirstOrDefault()
+                .COLUMN_NAME;
+
             StringBuilder SQL = new();
-
-            List<int> list = new();
-
-            string pk = ListarPrimaryKeys(tabela).FirstOrDefault().COLUMN_NAME;
 
             SQL.Append("SELECT ").Append(pk).AppendLine(" AS Value");
 
-            SQL.Append("  FROM ").AppendLine(tabela);
+            SQL.Append("  FROM ").AppendLine(tableName);
 
-            SQL.Append(" WHERE ").Append(coluna).Append(" = ").Append(id);
+            SQL.Append(" WHERE ").Append(columnName).Append(" = ").Append(id);
 
-            List<GenericIntModel> Ids = _context.GenericInt
+            List<GenericIntModel> list = _context.GenericInt
                 .FromSqlRaw(SQL.ToString())
                 .ToList();
 
-            if (Ids?.Count > 0)
+            List<int> Ids = new();
+
+            if (list?.Count > 0)
             {
-                foreach (GenericIntModel item in Ids)
+                foreach (GenericIntModel item in list)
                 {
-                    list.Add(item.Value);
+                    Ids.Add(item.Value);
                 }
 
-                return list;
+                return Ids;
             }
 
             return null;
         }
 
-        private void Excluir(string tabela, string coluna, int id)
+        private void DeleteFilha(string tableName, string columnName, int id)
         {
             StringBuilder SQL = new();
 
-            SQL.Append("DELETE FROM ").AppendLine(tabela);
+            SQL.Append("DELETE FROM ").AppendLine(tableName);
 
-            SQL.Append(" WHERE ").Append(coluna).Append(" = ").Append(id);
+            SQL.Append(" WHERE ").Append(columnName).Append(" = ").Append(id);
 
             _context.Database.ExecuteSqlRaw(SQL.ToString());
         }

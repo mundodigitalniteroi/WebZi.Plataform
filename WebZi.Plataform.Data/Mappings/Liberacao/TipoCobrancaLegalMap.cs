@@ -10,7 +10,7 @@ namespace WebZi.Plataform.Data.Mappings.Liberacao
         {
             builder
                 .ToTable("tb_dep_tipos_cobrancas_legais", "dbo")
-                .HasKey(e => e.TipoCobrancaLegalId);
+                .HasKey(x => x.TipoCobrancaLegalId);
 
             builder.Property(e => e.TipoCobrancaLegalId)
                 .HasColumnName("id_tipo_cobranca_legal")

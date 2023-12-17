@@ -30,9 +30,8 @@ namespace WebZi.Plataform.Data.Services.Banco
             }
 
             BancoModel result = await _context.Banco
-                .Where(w => w.BancoId == BancoId)
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(x => x.BancoId == BancoId);
 
             if (result != null)
             {
@@ -60,13 +59,15 @@ namespace WebZi.Plataform.Data.Services.Banco
             }
 
             List<BancoModel> result = await _context.Banco
-                .Where(w => w.Nome.ToUpper().Contains(Name.ToUpper().Trim()))
+                .Where(x => x.Nome.ToUpper().Contains(Name.ToUpper().Trim()))
                 .AsNoTracking()
                 .ToListAsync();
 
             if (result?.Count > 0)
             {
-                result = result.OrderBy(o => o.Nome).ToList();
+                result = result
+                    .OrderBy(x => x.Nome)
+                    .ToList();
 
                 ResultView.Listagem = _mapper.Map<List<BancoViewModel>>(result);
 
@@ -91,7 +92,7 @@ namespace WebZi.Plataform.Data.Services.Banco
             if (result?.Count > 0)
             {
                 result = result
-                    .OrderBy(o => o.Nome)
+                    .OrderBy(x => x.Nome)
                     .ToList();
 
                 ResultView.Listagem = _mapper.Map<List<BancoViewModel>>(result);

@@ -32,9 +32,8 @@ namespace WebZi.Plataform.Data.Services.WebServices
                 .FirstOrDefault();
 
             BucketNomeTabelaOrigemModel BucketNomeTabelaOrigem = _context.BucketNomeTabelaOrigem
-                .Where(x => x.Codigo == CodigoTabelaOrigem)
                 .AsNoTracking()
-                .FirstOrDefault();
+                .FirstOrDefault(x => x.Codigo == CodigoTabelaOrigem);
 
             string NomeArquivo = string.Empty;
 
@@ -60,9 +59,9 @@ namespace WebZi.Plataform.Data.Services.WebServices
                 });
             }
 
-            HttpClientFactoryService Service = new(_httpClientFactory);
+            HttpClientFactoryService HttpClientFactoryService = new(_httpClientFactory);
 
-            List<BucketArquivoRetornoModel> BucketArquivosRetorno = Service.PostBasicAuth<List<BucketArquivoRetornoModel>>
+            List<BucketArquivoRetornoModel> BucketArquivosRetorno = HttpClientFactoryService.PostBasicAuth<List<BucketArquivoRetornoModel>>
             (
                 url: Configuracao.RepositorioArquivoUrl,
                 username: Configuracao.RepositorioArquivoUsername,
@@ -104,9 +103,8 @@ namespace WebZi.Plataform.Data.Services.WebServices
                 .FirstOrDefault();
 
             BucketNomeTabelaOrigemModel BucketNomeTabelaOrigem = _context.BucketNomeTabelaOrigem
-                .Where(x => x.Codigo == CodigoTabelaOrigem)
                 .AsNoTracking()
-                .FirstOrDefault();
+                .FirstOrDefault(x => x.Codigo == CodigoTabelaOrigem);
 
             string NomeArquivo = string.Empty;
 
@@ -173,9 +171,8 @@ namespace WebZi.Plataform.Data.Services.WebServices
                 .FirstOrDefault();
 
             BucketNomeTabelaOrigemModel BucketNomeTabelaOrigem = _context.BucketNomeTabelaOrigem
-                .Where(x => x.Codigo == CodigoTabelaOrigem)
                 .AsNoTracking()
-                .FirstOrDefault();
+                .FirstOrDefault(x => x.Codigo == CodigoTabelaOrigem);
 
             string NomeArquivo = string.Empty;
 
@@ -235,9 +232,8 @@ namespace WebZi.Plataform.Data.Services.WebServices
                 };
 
                 TipoCadastro = ArquivosEnvio
-                    .Where(x => x.NomeArquivo == BucketArquivoRetorno.NomeArquivo)
                     .Select(x => x.TipoArquivo)
-                    .FirstOrDefault();
+                    .FirstOrDefault(x => x == BucketArquivoRetorno.NomeArquivo);
 
                 if (!string.IsNullOrWhiteSpace(TipoCadastro))
                 {
@@ -421,8 +417,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
         public void DeleteFile(int RepositorioArquivoId)
         {
             BucketArquivoModel BucketArquivo = _context.BucketArquivo
-                .Where(w => w.RepositorioArquivoId == RepositorioArquivoId)
-                .FirstOrDefault();
+                .FirstOrDefault(x => x.RepositorioArquivoId == RepositorioArquivoId);
 
             if (BucketArquivo != null)
             {

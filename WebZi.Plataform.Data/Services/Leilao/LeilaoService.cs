@@ -25,13 +25,12 @@ namespace WebZi.Plataform.Data.Services.Leilao
 
             LeilaoLoteModel LeilaoLote = await _context.LeilaoLote
                 .Include(x => x.LeilaoLoteStatus)
-                .Include(w => w.Leilao)
-                .Include(w => w.Leilao.LeilaoStatus)
-                .Include(w => w.Grv)
-                .Where(w => w.GrvId == GrvId)
-                .OrderByDescending(w => (int)(object)(w.Leilao.DataLeilao.Substring(6, 4) + w.Leilao.DataLeilao.Substring(3, 2) + w.Leilao.DataLeilao.Substring(0, 2)))
+                .Include(x => x.Leilao)
+                .Include(x => x.Leilao.LeilaoStatus)
+                .Include(x => x.Grv)
+                .OrderByDescending(x => (int)(object)(x.Leilao.DataLeilao.Substring(6, 4) + x.Leilao.DataLeilao.Substring(3, 2) + x.Leilao.DataLeilao.Substring(0, 2)))
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(w => w.GrvId == GrvId);
 
             MensagemViewModel mensagem = new();
 

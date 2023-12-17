@@ -10,7 +10,7 @@ namespace WebZi.Plataform.Data.Mappings.GRV
         {
             builder
                 .ToTable("tb_dep_grv_motivo_apreensao", "dbo")
-                .HasKey(e => e.MotivoApreensaoId);
+                .HasKey(x => x.MotivoApreensaoId);
 
             builder.Property(e => e.MotivoApreensaoId)
                 .HasColumnName("id_motivo_apreensao")

@@ -10,7 +10,7 @@ namespace WebZi.Plataform.Data.Mappings.Cliente
         {
             builder
                 .ToTable("tb_dep_clientes", "dbo")
-                .HasKey(e => e.ClienteId);
+                .HasKey(x => x.ClienteId);
 
             builder.Property(e => e.ClienteId)
                 .HasColumnName("id_cliente")

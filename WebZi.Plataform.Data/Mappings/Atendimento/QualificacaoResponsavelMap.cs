@@ -10,7 +10,7 @@ namespace WebZi.Plataform.Data.Mappings.Atendimento
         {
             builder
                 .ToTable("tb_dep_qualificacao_responsavel", "dbo")
-                .HasKey(e => e.QualificacaoResponsavelId);
+                .HasKey(x => x.QualificacaoResponsavelId);
 
             builder.Property(e => e.QualificacaoResponsavelId)
                 .HasColumnName("id_qualificacao_responsavel")

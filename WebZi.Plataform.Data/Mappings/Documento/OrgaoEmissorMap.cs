@@ -10,7 +10,7 @@ namespace WebZi.Plataform.Data.Mappings.Documento
         {
             builder
                 .ToTable("tb_glo_doc_orgaos_emissores", "dbo")
-                .HasKey(e => e.OrgaoEmissorId);
+                .HasKey(x => x.OrgaoEmissorId);
 
             builder.Property(e => e.OrgaoEmissorId)
                 .HasColumnName("id_orgao_emissor")

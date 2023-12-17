@@ -10,7 +10,7 @@ namespace WebZi.Plataform.Data.Mappings.Veiculo
         {
             builder
                 .ToTable("tb_dep_equipamentos_opcionais_localizacao", "dbo", tb => tb.HasTrigger("tr_log_upd_equipamentos_opcionais_localizacao"))
-                .HasKey(e => e.EquipamentoOpcionalLocalizacaoId);
+                .HasKey(x => x.EquipamentoOpcionalLocalizacaoId);
 
             builder.Property(e => e.EquipamentoOpcionalLocalizacaoId)
                 .ValueGeneratedOnAdd()

@@ -10,7 +10,7 @@ namespace WebZi.Plataform.Data.Mappings.GRV
         {
             builder
                 .ToTable("tb_dep_grv_lacres", "dbo", tb => tb.HasTrigger("tr_log_upd_grv_lacres"))
-                .HasKey(e => e.LacreId);
+                .HasKey(x => x.LacreId);
 
             builder.Property(e => e.LacreId)
                 .HasColumnName("id_lacre")

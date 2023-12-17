@@ -10,7 +10,7 @@ namespace WebZi.Plataform.Data.Mappings.Faturamento
         {
             builder
                 .ToTable("tb_dep_faturamento_composicao_nf", "dbo", tb => tb.HasTrigger("tr_del_faturamento_composicao_nf"))
-                .HasKey(e => e.FaturamentoComposicaoNotaFiscalId);
+                .HasKey(x => x.FaturamentoComposicaoNotaFiscalId);
 
             builder.Property(e => e.FaturamentoComposicaoNotaFiscalId)
                 .HasColumnName("id_faturamento_composicao_nf")

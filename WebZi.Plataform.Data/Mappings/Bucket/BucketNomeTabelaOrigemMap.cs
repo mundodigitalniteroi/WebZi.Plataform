@@ -10,7 +10,7 @@ namespace WebZi.Plataform.Data.Mappings.Bucket
         {
             builder
                 .ToTable("tb_dep_configuracoes_nome_tabela_origem", "dbo")
-                .HasKey(e => e.NomeTabelaOrigemId);
+                .HasKey(x => x.NomeTabelaOrigemId);
 
             builder.Property(e => e.NomeTabelaOrigemId)
                 .ValueGeneratedOnAdd();

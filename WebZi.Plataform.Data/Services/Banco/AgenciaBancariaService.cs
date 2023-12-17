@@ -30,9 +30,8 @@ namespace WebZi.Plataform.Data.Services.Banco
             }
 
             AgenciaBancariaModel result = await _context.AgenciaBancaria
-                .Where(w => w.BancoId == AgenciaBancariaId)
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(x => x.BancoId == AgenciaBancariaId);
 
             if (result != null)
             {
@@ -72,9 +71,8 @@ namespace WebZi.Plataform.Data.Services.Banco
             }
 
             AgenciaBancariaModel result = await _context.AgenciaBancaria
-                .Where(w => w.BancoId == BancoId && w.CodigoAgencia == CodigoAgencia)
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(x => x.BancoId == BancoId && x.CodigoAgencia == CodigoAgencia);
 
             if (result != null)
             {
@@ -102,15 +100,15 @@ namespace WebZi.Plataform.Data.Services.Banco
             }
 
             List<AgenciaBancariaModel> result = await _context.AgenciaBancaria
-                .Where(w => w.BancoId == BancoId)
+                .Where(x => x.BancoId == BancoId)
                 .AsNoTracking()
                 .ToListAsync();
 
             if (result?.Count > 0)
             {
                 result = result
-                    .OrderBy(o => o.CodigoAgencia)
-                    .ThenBy(t => t.ContaCorrente)
+                    .OrderBy(x => x.CodigoAgencia)
+                    .ThenBy(x => x.ContaCorrente)
                     .ToList();
 
                 ResultView.Listagem = _mapper.Map<List<AgenciaBancariaViewModel>>(result);

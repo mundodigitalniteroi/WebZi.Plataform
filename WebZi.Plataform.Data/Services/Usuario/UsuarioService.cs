@@ -150,9 +150,8 @@ namespace WebZi.Plataform.Domain.Services.Usuario
         public bool IsUserActive(int UsuarioId)
         {
             UsuarioModel Usuario = _context.Usuario
-                .Where(x => x.UsuarioId == UsuarioId)
                 .AsNoTracking()
-                .FirstOrDefault();
+                .FirstOrDefault(x => x.UsuarioId == UsuarioId);
 
             return Usuario != null && Usuario.FlagAtivo != "N";
         }
@@ -160,9 +159,8 @@ namespace WebZi.Plataform.Domain.Services.Usuario
         public async Task<bool> IsUserActiveAsync(int UsuarioId)
         {
             UsuarioModel Usuario = await _context.Usuario
-                .Where(x => x.UsuarioId == UsuarioId)
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(x => x.UsuarioId == UsuarioId);
 
             return Usuario != null && Usuario.FlagAtivo != "N";
         }

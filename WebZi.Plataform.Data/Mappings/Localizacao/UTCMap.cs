@@ -10,7 +10,7 @@ namespace WebZi.Plataform.Data.Mappings.Localizacao
         {
             builder
                 .ToTable("tb_glo_loc_utc", "dbo")
-                .HasKey(e => e.UtcId);
+                .HasKey(x => x.UtcId);
 
             builder.Property(e => e.UtcId)
                 .ValueGeneratedOnAdd()

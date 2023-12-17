@@ -26,7 +26,7 @@ namespace WebZi.Plataform.Data.Services.Sistema
         public async Task<CorViewModelList> ListarCorAsync(string Cor = "")
         {
             List<CorModel> result = await _context.Cor
-                .Where(w => !string.IsNullOrWhiteSpace(Cor) ? w.Cor.Contains(Cor.ToUpper().Trim()) : true)
+                .Where(x => !string.IsNullOrWhiteSpace(Cor) ? x.Cor.Contains(Cor.ToUpper().Trim()) : true)
                 .AsNoTracking()
                 .ToListAsync();
 
@@ -51,6 +51,7 @@ namespace WebZi.Plataform.Data.Services.Sistema
         public async Task<ConfiguracaoModel> GetConfiguracaoSistemaAsync()
         {
             return await _context.Configuracao
+                .AsNoTracking()
                 .FirstOrDefaultAsync();
         }
     }

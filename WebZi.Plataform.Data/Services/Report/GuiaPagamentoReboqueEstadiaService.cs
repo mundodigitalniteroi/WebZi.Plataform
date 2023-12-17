@@ -230,10 +230,9 @@ namespace WebZi.Plataform.Data.Services.Report
         private GuiaPagamentoReboqueEstadiaViewModel FillRodape(GuiaPagamentoReboqueEstadiaViewModel GuiaPagamentoEstadiaReboque, int UsuarioId)
         {
             UsuarioModel Usuario = _context.Usuario
-                .Include(i => i.Pessoa)
-                .Where(w => w.UsuarioId == UsuarioId)
+                .Include(x => x.Pessoa)
                 .AsNoTracking()
-                .FirstOrDefault();
+                .FirstOrDefault(x => x.UsuarioId == UsuarioId);
 
             StringBuilder NomeCompleto = new();
 
@@ -268,14 +267,13 @@ namespace WebZi.Plataform.Data.Services.Report
             }
 
             FaturamentoModel Faturamento = await _context.Faturamento
-                .Include(i => i.TipoMeioCobranca)
-                .Include(i => i.FaturamentoComposicoes)
-                .ThenInclude(t => t.FaturamentoServicoTipoVeiculo)
-                .ThenInclude(t => t.FaturamentoServicoAssociado)
-                .ThenInclude(t => t.FaturamentoServicoTipo)
-                .Where(w => w.FaturamentoId == FaturamentoId)
+                .Include(x => x.TipoMeioCobranca)
+                .Include(x => x.FaturamentoComposicoes)
+                .ThenInclude(x => x.FaturamentoServicoTipoVeiculo)
+                .ThenInclude(x => x.FaturamentoServicoAssociado)
+                .ThenInclude(x => x.FaturamentoServicoTipo)
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(x => x.FaturamentoId == FaturamentoId);
 
             if (Faturamento == null)
             {
@@ -305,26 +303,25 @@ namespace WebZi.Plataform.Data.Services.Report
             //}
 
             GrvModel Grv = await _context.Grv
-                .Include(i => i.Cliente)
-                .ThenInclude(t => t.Endereco)
-                .Include(i => i.Cliente)
-                .ThenInclude(t => t.AgenciaBancaria)
-                .Include(i => i.Cliente)
-                .ThenInclude(t => t.AgenciaBancaria.Banco)
-                .Include(i => i.Cliente)
-                .ThenInclude(t => t.Empresa)
-                .Include(i => i.Deposito)
-                .ThenInclude(t => t.Endereco)
-                .Include(i => i.Reboque)
-                .Include(i => i.Reboquista)
-                .Include(i => i.MarcaModelo)
-                .Include(i => i.Cor)
-                .Include(i => i.TipoVeiculo)
-                .Include(i => i.Atendimento)
-                .ThenInclude(t => t.QualificacaoResponsavel)
-                .Where(w => w.Atendimento.AtendimentoId == Faturamento.AtendimentoId)
+                .Include(x => x.Cliente)
+                .ThenInclude(x => x.Endereco)
+                .Include(x => x.Cliente)
+                .ThenInclude(x => x.AgenciaBancaria)
+                .Include(x => x.Cliente)
+                .ThenInclude(x => x.AgenciaBancaria.Banco)
+                .Include(x => x.Cliente)
+                .ThenInclude(x => x.Empresa)
+                .Include(x => x.Deposito)
+                .ThenInclude(x => x.Endereco)
+                .Include(x => x.Reboque)
+                .Include(x => x.Reboquista)
+                .Include(x => x.MarcaModelo)
+                .Include(x => x.Cor)
+                .Include(x => x.TipoVeiculo)
+                .Include(x => x.Atendimento)
+                .ThenInclude(x => x.QualificacaoResponsavel)
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(x => x.Atendimento.AtendimentoId == Faturamento.AtendimentoId);
 
             if (Grv == null)
             {
@@ -370,7 +367,9 @@ namespace WebZi.Plataform.Data.Services.Report
             ImageViewModelList Listagem = await new ClienteService(_context, _mapper, _httpClientFactory)
                 .GetLogomarcaAsync(Grv.ClienteId);
 
-            GuiaPagamentoEstadiaReboque.Logo = Listagem.Listagem.FirstOrDefault().Imagem;
+            GuiaPagamentoEstadiaReboque.Logo = Listagem.Listagem
+                .FirstOrDefault()
+                .Imagem;
 
             GuiaPagamentoEstadiaReboque.Mensagem = MensagemViewHelper.SetOk("Guia de Pagamento de Reboque e Estadia gerado com sucesso");
 

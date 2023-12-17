@@ -23,9 +23,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             TipoMeioCobrancaViewModelList ResultView = new();
 
             TipoMeioCobrancaModel result = _context.TipoMeioCobranca
-                .Where(w => w.TipoMeioCobrancaId == TipoMeioCobrancaId)
                 .AsNoTracking()
-                .FirstOrDefault();
+                .FirstOrDefault(x => x.TipoMeioCobrancaId == TipoMeioCobrancaId);
 
             if (result != null)
             {
@@ -46,14 +45,14 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             TipoMeioCobrancaViewModelList ResultView = new();
 
             List<TipoMeioCobrancaModel> result = _context.TipoMeioCobranca
-                .Where(w => w.FlagAtivo == "S")
+                .Where(x => x.FlagAtivo == "S")
                 .AsNoTracking()
                 .ToList();
 
             if (result?.Count > 0)
             {
                 ResultView.Listagem = _mapper.Map<List<TipoMeioCobrancaViewModel>>(result
-                    .OrderBy(o => o.Descricao)
+                    .OrderBy(x => x.Descricao)
                     .ToList());
 
                 ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);

@@ -1,4 +1,5 @@
-﻿using WebZi.Plataform.CrossCutting.Web;
+﻿using WebZi.Plataform.CrossCutting.Strings;
+using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.ViewModel;
 
@@ -6,6 +7,11 @@ namespace WebZi.Plataform.Data.Helper
 {
     public abstract class MensagemViewHelper
     {
+        public static MensagemViewModel SetBadRequest()
+        {
+            return SetBadRequest(new List<string>() { "BadRequest" });
+        }
+
         public static MensagemViewModel SetBadRequest(string Message)
         {
             return SetBadRequest(new List<string>() { Message });
@@ -249,6 +255,11 @@ namespace WebZi.Plataform.Data.Helper
             return Mensagem;
         }
 
+        public static MensagemViewModel SetServiceUnavailable()
+        {
+            return SetServiceUnavailable(string.Empty, null);
+        }
+
         public static MensagemViewModel SetServiceUnavailable(string Message)
         {
             return SetServiceUnavailable(Message, null);
@@ -268,13 +279,13 @@ namespace WebZi.Plataform.Data.Helper
                 QuantidadeRegistros = 0
             };
 
-            if (!string.IsNullOrWhiteSpace(Message))
+            if (!Message.IsNullOrWhiteSpace())
             {
                 Mensagem.Erros.Add(Message);
             }
             else
             {
-                Mensagem.Erros.Add("O Serviço requisitado está inoperante ou indisponível");
+                Mensagem.Erros.Add("O Serviço de dependência requisitado está inoperante ou indisponível");
             }
 
             if (ex != null)

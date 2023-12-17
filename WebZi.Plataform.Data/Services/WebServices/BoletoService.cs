@@ -60,26 +60,24 @@ namespace WebZi.Plataform.Data.Services.WebServices
             if (!string.IsNullOrWhiteSpace(StatusBoleto))
             {
                 Faturamento = _context.Faturamento
-                    .Include(i => i.FaturamentoBoletos.Where(w => w.Status == StatusBoleto))
-                    .Include(i => i.TipoMeioCobranca)
-                    .Include(i => i.Atendimento)
-                    .ThenInclude(t => t.Grv)
-                    .Where(w => w.FaturamentoId == FaturamentoId)
-                    .OrderByDescending(o => o.DataCadastro)
+                    .Include(x => x.FaturamentoBoletos.Where(x => x.Status == StatusBoleto))
+                    .Include(x => x.TipoMeioCobranca)
+                    .Include(x => x.Atendimento)
+                    .ThenInclude(x => x.Grv)
+                    .OrderByDescending(x => x.DataCadastro)
                     .AsNoTracking()
-                    .FirstOrDefault();
+                    .FirstOrDefault(x => x.FaturamentoId == FaturamentoId);
             }
             else
             {
                 Faturamento = _context.Faturamento
-                    .Include(i => i.FaturamentoBoletos.Where(w => w.Status != "C"))
-                    .Include(i => i.TipoMeioCobranca)
-                    .Include(i => i.Atendimento)
-                    .ThenInclude(t => t.Grv)
-                    .Where(w => w.FaturamentoId == FaturamentoId)
-                    .OrderByDescending(o => o.DataCadastro)
+                    .Include(x => x.FaturamentoBoletos.Where(x => x.Status != "C"))
+                    .Include(x => x.TipoMeioCobranca)
+                    .Include(x => x.Atendimento)
+                    .ThenInclude(x => x.Grv)
+                    .OrderByDescending(x => x.DataCadastro)
                     .AsNoTracking()
-                    .FirstOrDefault();
+                    .FirstOrDefault(x => x.FaturamentoId == FaturamentoId);
             }
 
             if (Faturamento != null)
@@ -125,10 +123,9 @@ namespace WebZi.Plataform.Data.Services.WebServices
             }
 
             BucketArquivoModel BucketArquivo = _context.BucketArquivo
-                .Include(i => i.BucketNomeTabelaOrigem)
-                .Where(w => w.BucketNomeTabelaOrigem.Codigo == BucketNomeTabelaOrigemEnum.Boleto)
+                .Include(x => x.BucketNomeTabelaOrigem)
                 .AsNoTracking()
-                .FirstOrDefault();
+                .FirstOrDefault(x => x.BucketNomeTabelaOrigem.Codigo == BucketNomeTabelaOrigemEnum.Boleto);
 
             if (BucketArquivo != null)
             {
@@ -141,11 +138,11 @@ namespace WebZi.Plataform.Data.Services.WebServices
             else
             {
                 BoletoImagemModel FaturamentoBoletoImagem = _context.FaturamentoBoletoImagem
-                    .Include(i => i.FaturamentoBoleto)
-                    .Where(w => w.FaturamentoBoleto.FaturamentoId == Faturamento.FaturamentoBoletos.FirstOrDefault().FaturamentoBoletoId && w.FaturamentoBoleto.Status != "C")
-                    .OrderByDescending(o => o.FaturamentoBoletoId)
+                    .Include(x => x.FaturamentoBoleto)
+                    .OrderByDescending(x => x.FaturamentoBoletoId)
                     .AsNoTracking()
-                    .FirstOrDefault();
+                    .FirstOrDefault(x => x.FaturamentoBoleto.FaturamentoId == Faturamento.FaturamentoBoletos.FirstOrDefault().FaturamentoBoletoId
+                                 && x.FaturamentoBoleto.Status != "C");
 
                 if (FaturamentoBoletoImagem != null)
                 {
@@ -176,12 +173,11 @@ namespace WebZi.Plataform.Data.Services.WebServices
             }
 
             FaturamentoModel Faturamento = _context.Faturamento
-                .Include(i => i.TipoMeioCobranca)
-                .Include(i => i.Atendimento)
-                .ThenInclude(t => t.Grv)
-                .Where(w => w.FaturamentoId == FaturamentoId)
+                .Include(x => x.TipoMeioCobranca)
+                .Include(x => x.Atendimento)
+                .ThenInclude(x => x.Grv)
                 .AsNoTracking()
-                .FirstOrDefault();
+                .FirstOrDefault(x => x.FaturamentoId == FaturamentoId);
 
             if (Faturamento != null)
             {
@@ -227,7 +223,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
             }
 
             ViewFaturamentoBoletoModel ViewBoleto = _context.ViewFaturamentoBoleto
-                .FirstOrDefault(w => w.FaturamentoId == Faturamento.FaturamentoId);
+                .FirstOrDefault(x => x.FaturamentoId == Faturamento.FaturamentoId);
 
             if (ViewBoleto == null)
             {
@@ -290,16 +286,15 @@ namespace WebZi.Plataform.Data.Services.WebServices
             if (Faturamento.TipoMeioCobranca.Alias == TipoMeioCobrancaAliasEnum.BoletoEspecial)
             {
                 List<FaturamentoRegraModel> FaturamentoRegras = _context.FaturamentoRegra
-                    .Include(i => i.FaturamentoRegraTipo)
-                    .Where(w => w.ClienteId == Faturamento.Atendimento.Grv.ClienteId && w.DepositoId == Faturamento.Atendimento.Grv.DepositoId)
+                    .Include(x => x.FaturamentoRegraTipo)
+                    .Where(x => x.ClienteId == Faturamento.Atendimento.Grv.ClienteId && x.DepositoId == Faturamento.Atendimento.Grv.DepositoId)
                     .AsNoTracking()
                     .ToList();
 
                 if (FaturamentoRegras?.Count > 0)
                 {
                     FaturamentoRegraModel FaturamentoRegra = FaturamentoRegras
-                        .Where(w => w.FaturamentoRegraTipo.Codigo == FaturamentoRegraTipoEnum.QuantidadeDiasSomarDataVencimentoBoleto)
-                        .FirstOrDefault();
+                        .FirstOrDefault(x => x.FaturamentoRegraTipo.Codigo == FaturamentoRegraTipoEnum.QuantidadeDiasSomarDataVencimentoBoleto);
 
                     if (FaturamentoRegra != null)
                     {
@@ -315,9 +310,8 @@ namespace WebZi.Plataform.Data.Services.WebServices
 
             #region Execução do WebService de geração do Boleto
             WebServiceUrlModel WebServiceUrl = _context.WebServiceUrl
-                .Where(w => w.WsName == "WsBoletoSoap")
                 .AsNoTracking()
-                .FirstOrDefault();
+                .FirstOrDefault(x => x.Name == "WsBoletoSoap");
 
             int linhaId;
 
@@ -325,10 +319,10 @@ namespace WebZi.Plataform.Data.Services.WebServices
 
             string url;
 
-            BoletoGerado.Boleto = new WsBoletoSoapClient(EndpointConfiguration.WsBoletoSoap, WebServiceUrl.WsUrl).BoletoBancosRetornoLinha(
+            BoletoGerado.Boleto = new WsBoletoSoapClient(EndpointConfiguration.WsBoletoSoap, WebServiceUrl.Url).BoletoBancosRetornoLinha(
                 boleto: DadosBoleto,
-                login: WebServiceUrl.WsUsername,
-                senha: WebServiceUrl.WsPassword,
+                login: WebServiceUrl.Username,
+                senha: WebServiceUrl.Password,
                 Tipo: "img",
                 isdev: true,
                 linha: out linha,
@@ -366,7 +360,8 @@ namespace WebZi.Plataform.Data.Services.WebServices
 
                     _context.SaveChanges();
 
-                    new BucketService(_context, _httpClientFactory).SendFile("FATURAMENBOLETO", FaturamentoBoleto.FaturamentoBoletoId, UsuarioId, BoletoGerado.Boleto);
+                    new BucketService(_context, _httpClientFactory)
+                        .SendFile("FATURAMENBOLETO", FaturamentoBoleto.FaturamentoBoletoId, UsuarioId, BoletoGerado.Boleto);
 
                     transaction.Commit();
                 }
@@ -390,7 +385,8 @@ namespace WebZi.Plataform.Data.Services.WebServices
         {
             // Apesar de ser uma lista, por regra, só pode haver 1 Boleto cadastrado não pago
             List<BoletoModel> result = _context.FaturamentoBoleto
-                    .Where(w => w.FaturamentoId == FaturamentoId && w.Status == "N")
+                    .Where(x => x.FaturamentoId == FaturamentoId 
+                             && x.Status == "N")
                     .ToList();
 
             if (result?.Count > 0)
@@ -402,7 +398,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
                     _context.FaturamentoBoleto.Update(FaturamentoBoleto);
 
                     _context.FaturamentoBoletoImagem
-                        .Where(w => w.FaturamentoBoletoId == FaturamentoBoleto.FaturamentoBoletoId)
+                        .Where(x => x.FaturamentoBoletoId == FaturamentoBoleto.FaturamentoBoletoId)
                     .Delete();
 
                     new BucketService(_context, _httpClientFactory)

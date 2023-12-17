@@ -38,7 +38,7 @@ namespace WebZi.Plataform.Data.Services.Documento
             }
 
             List<OrgaoEmissorModel> result = await _context.OrgaoEmissor
-                .Where(w => w.UF == UF.ToUpperTrim())
+                .Where(x => x.UF == UF.ToUpperTrim())
                 .AsNoTracking()
                 .ToListAsync();
 
@@ -52,7 +52,7 @@ namespace WebZi.Plataform.Data.Services.Documento
             if (result?.Count > 0)
             {
                 ResultView.Listagem = _mapper.Map<List<OrgaoEmissorViewModel>>(result
-                    .OrderBy(o => o.Descricao)
+                    .OrderBy(x => x.Descricao)
                     .ToList());
 
                 ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);

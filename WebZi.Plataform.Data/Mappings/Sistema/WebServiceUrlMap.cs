@@ -10,26 +10,26 @@ namespace WebZi.Plataform.Data.Mappings.Sistema
         {
             builder
                 .ToTable("tb_dep_ws_urls", "dbo")
-                .HasKey(e => e.WsUrlId);
+                .HasKey(x => x.WsUrlId);
 
             builder.Property(e => e.WsUrlId)
                 .ValueGeneratedOnAdd();
 
-            builder.Property(e => e.WsName)
+            builder.Property(e => e.Name)
                 .IsRequired()
                 .HasMaxLength(30)
                 .IsUnicode(false);
 
-            builder.Property(e => e.WsUrl)
+            builder.Property(e => e.Url)
                 .IsRequired()
                 .HasMaxLength(150)
                 .IsUnicode(false);
 
-            builder.Property(e => e.WsUsername)
+            builder.Property(e => e.Username)
                 .HasMaxLength(30)
                 .IsUnicode(false);
 
-            builder.Property(e => e.WsPassword)
+            builder.Property(e => e.Password)
                 .HasMaxLength(32)
                 .IsUnicode(false);
         }

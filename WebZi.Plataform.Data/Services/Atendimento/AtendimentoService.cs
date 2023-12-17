@@ -57,13 +57,12 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             #region Consultas
             GrvModel Grv = await _context.Grv
-                .Include(i => i.Cliente)
-                .Include(i => i.Deposito)
-                .Include(i => i.StatusOperacao)
-                .Include(i => i.Atendimento)
-                .Where(w => w.GrvId == AtendimentoCadastro.IdentificadorGrv)
+                .Include(x => x.Cliente)
+                .Include(x => x.Deposito)
+                .Include(x => x.StatusOperacao)
+                .Include(x => x.Atendimento)
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(x => x.GrvId == AtendimentoCadastro.IdentificadorGrv);
 
             if (!new[] { "B", "D", "V", "L", "E", "1", "2", "3", "4", "7" }.Contains(Grv.StatusOperacao.StatusOperacaoId))
             {
@@ -205,9 +204,8 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             if (AtendimentoCadastro.IdentificadorProprietarioTipoDocumento > 0)
             {
                 TipoDocumentoIdentificacaoModel TipoDocumentoIdentificacao = await _context.TipoDocumentoIdentificacao
-                    .Where(w => w.TipoDocumentoIdentificacaoId == AtendimentoCadastro.IdentificadorProprietarioTipoDocumento)
                     .AsNoTracking()
-                    .FirstOrDefaultAsync();
+                    .FirstOrDefaultAsync(w => w.TipoDocumentoIdentificacaoId == AtendimentoCadastro.IdentificadorProprietarioTipoDocumento);
 
                 if (TipoDocumentoIdentificacao == null)
                 {
@@ -323,9 +321,9 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                     // caso o Cliente esteja cadastrado na regra do Faturamento "ATENDINSCRICMUNIC".
 
                     FaturamentoRegraModel FaturamentoRegra = await _context.FaturamentoRegra
-                        .Include(i => i.FaturamentoRegraTipo)
-                        .Where(w => w.ClienteId == Grv.ClienteId &&
-                                    w.FaturamentoRegraTipo.Codigo == FaturamentoRegraTipoEnum.ObrigatorioInformarInscricaoMunicipal)
+                        .Include(x => x.FaturamentoRegraTipo)
+                        .Where(x => x.ClienteId == Grv.ClienteId &&
+                                    x.FaturamentoRegraTipo.Codigo == FaturamentoRegraTipoEnum.ObrigatorioInformarInscricaoMunicipal)
                         .AsNoTracking()
                         .FirstOrDefaultAsync();
 
@@ -340,9 +338,8 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             #region Forma de Pagamento
             TipoMeioCobrancaModel TipoMeioCobranca = await _context.TipoMeioCobranca
-                .Where(w => w.TipoMeioCobrancaId == AtendimentoCadastro.IdentificadorTipoMeioCobranca)
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(x => x.TipoMeioCobrancaId == AtendimentoCadastro.IdentificadorTipoMeioCobranca);
 
             if (TipoMeioCobranca == null)
             {
@@ -391,11 +388,11 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             }
 
             GrvModel grv = await _context.Grv
-                .Include(i => i.Cliente)
-                .Include(i => i.Deposito)
-                .Include(i => i.StatusOperacao)
-                .Include(i => i.Atendimento)
-                .Where(w => w.Atendimento.AtendimentoId == Atendimento.IdentificadorFaturamento)
+                .Include(x => x.Cliente)
+                .Include(x => x.Deposito)
+                .Include(x => x.StatusOperacao)
+                .Include(x => x.Atendimento)
+                .Where(x => x.Atendimento.AtendimentoId == Atendimento.IdentificadorFaturamento)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
 
@@ -420,9 +417,9 @@ namespace WebZi.Plataform.Data.Services.Atendimento
         {
             #region Consultas
             GrvModel Grv = await _context.Grv
-                .Include(i => i.Cliente)
-                .Include(i => i.Deposito)
-                .Where(w => w.GrvId == AtendimentoInput.IdentificadorGrv)
+                .Include(x => x.Cliente)
+                .Include(x => x.Deposito)
+                .Where(x => x.GrvId == AtendimentoInput.IdentificadorGrv)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
 
@@ -614,9 +611,8 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 Deposito = Grv.Deposito,
 
                 ClienteDeposito = await _context.ClienteDeposito
-                    .Where(w => w.ClienteId == Grv.ClienteId && w.DepositoId == Grv.DepositoId)
                     .AsNoTracking()
-                    .FirstOrDefaultAsync(),
+                    .FirstOrDefaultAsync(x => x.ClienteId == Grv.ClienteId && x.DepositoId == Grv.DepositoId),
 
                 Atendimento = Atendimento,
 
@@ -631,20 +627,20 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                     .ToListAsync(),
 
                 FaturamentoRegras = await _context.FaturamentoRegra
-                        .Include(i => i.FaturamentoRegraTipo)
-                        .Where(w => w.ClienteId == Grv.Cliente.ClienteId && w.DepositoId == Grv.Deposito.DepositoId)
+                        .Include(x => x.FaturamentoRegraTipo)
+                        .Where(x => x.ClienteId == Grv.Cliente.ClienteId && x.DepositoId == Grv.Deposito.DepositoId)
                         .AsNoTracking()
                         .ToListAsync()
             };
 
             ParametrosCalculoFaturamento.TipoMeioCobranca = ParametrosCalculoFaturamento.TiposMeiosCobrancas
-                .FirstOrDefault(w => w.TipoMeioCobrancaId == (ParametrosCalculoFaturamento.Cliente.TipoMeioCobrancaId.HasValue &&
+                .FirstOrDefault(x => x.TipoMeioCobrancaId == (ParametrosCalculoFaturamento.Cliente.TipoMeioCobrancaId.HasValue &&
                                                               ParametrosCalculoFaturamento.Cliente.TipoMeioCobrancaId.Value > 0 ? ParametrosCalculoFaturamento.Cliente.TipoMeioCobrancaId.Value : TipoMeioCobrancaId));
 
             // L: Aguardando Pagamento
             // U: Aguardando Liberação Especial
             ParametrosCalculoFaturamento.StatusOperacaoId = ParametrosCalculoFaturamento.TiposMeiosCobrancas
-                .Where(w => w.TipoMeioCobrancaId == ParametrosCalculoFaturamento.TipoMeioCobranca.TipoMeioCobrancaId)
+                .Where(x => x.TipoMeioCobrancaId == ParametrosCalculoFaturamento.TipoMeioCobranca.TipoMeioCobrancaId)
                 .FirstOrDefault().Alias != "LIBESP" ? "L" : "U";
 
             return ParametrosCalculoFaturamento;
@@ -760,8 +756,8 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             }
 
             BucketArquivoModel BucketArquivo = _context.BucketArquivo
-                .Include(i => i.BucketNomeTabelaOrigem)
-                .Where(w => w.BucketNomeTabelaOrigem.Codigo == BucketNomeTabelaOrigemEnum.AtendimentoFotoResponsavel)
+                .Include(x => x.BucketNomeTabelaOrigem)
+                .Where(x => x.BucketNomeTabelaOrigem.Codigo == BucketNomeTabelaOrigemEnum.AtendimentoFotoResponsavel)
                 .AsNoTracking()
                 .FirstOrDefault();
 
@@ -776,7 +772,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             else
             {
                 AtendimentoFotoResponsavelModel AtendimentoFotoResponsavel = await _context.AtendimentoFotoResponsavel
-                    .Where(w => w.AtendimentoId == AtendimentoId)
+                    .Where(x => x.AtendimentoId == AtendimentoId)
                     .AsNoTracking()
                     .FirstOrDefaultAsync();
 
@@ -808,7 +804,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             if (result?.Count > 0)
             {
                 ResultView.Listagem = _mapper.Map<List<QualificacaoResponsavelViewModel>>(result
-                    .OrderBy(o => o.Descricao)
+                    .OrderBy(x => x.Descricao)
                     .ToList());
 
                 ResultView.Mensagem = MensagemViewHelper.SetFound(ResultView.Listagem.Count);
@@ -841,7 +837,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
         private void UpdateGrv(CalculoFaturamentoParametroModel ParametrosCalculoFaturamento)
         {
             GrvModel Grv = _context.Grv
-                .Where(w => w.GrvId == ParametrosCalculoFaturamento.Grv.GrvId)
+                .Where(x => x.GrvId == ParametrosCalculoFaturamento.Grv.GrvId)
                 .FirstOrDefault();
 
             Grv.StatusOperacaoId = ParametrosCalculoFaturamento.StatusOperacaoId;

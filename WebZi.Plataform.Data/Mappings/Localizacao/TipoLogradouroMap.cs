@@ -10,7 +10,7 @@ namespace WebZi.Plataform.Data.Mappings.Localizacao
         {
             builder
                 .ToTable("tb_glo_loc_tipos_logradouros", "dbo")
-                .HasKey(e => e.TipoLogradouroId);
+                .HasKey(x => x.TipoLogradouroId);
 
             builder.Property(e => e.TipoLogradouroId)
                 .ValueGeneratedOnAdd()

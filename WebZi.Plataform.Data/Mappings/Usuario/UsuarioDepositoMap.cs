@@ -10,7 +10,7 @@ namespace WebZi.Plataform.Data.Mappings.Usuario
         {
             builder
                 .ToTable("tb_dep_usuarios_depositos", "dbo", tb => tb.HasTrigger("tr_log_upd_usuarios_depositos"))
-                .HasKey(e => e.UsuarioDepositoId);
+                .HasKey(x => x.UsuarioDepositoId);
 
             builder.Property(e => e.UsuarioDepositoId)
                 .HasColumnName("id_usuario_deposito")

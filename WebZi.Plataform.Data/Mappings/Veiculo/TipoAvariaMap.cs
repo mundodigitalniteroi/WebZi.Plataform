@@ -10,7 +10,7 @@ namespace WebZi.Plataform.Data.Mappings.Veiculo
         {
             builder
                 .ToTable("tb_dep_pre_grv_tipo_avarias", "dbo")
-                .HasKey(e => e.TipoAvariaId);
+                .HasKey(x => x.TipoAvariaId);
 
             builder.Property(e => e.TipoAvariaId)
                 .HasColumnName("id_pre_grv_avarias")

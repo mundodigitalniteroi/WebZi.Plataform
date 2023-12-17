@@ -45,9 +45,8 @@ namespace WebZi.Plataform.Data.Services.Cliente
             }
 
             ClienteModel result = await _context.Cliente
-                .Where(w => w.ClienteId == ClienteId)
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(x => x.ClienteId == ClienteId);
 
             if (result != null)
             {
@@ -75,13 +74,15 @@ namespace WebZi.Plataform.Data.Services.Cliente
             }
 
             List<ClienteModel> result = await _context.Cliente
-                .Where(w => w.Nome.ToUpper().Contains(Name.ToUpper().Trim()))
+                .Where(x => x.Nome.ToUpper().Contains(Name.ToUpper().Trim()))
                 .AsNoTracking()
                 .ToListAsync();
 
             if (result?.Count > 0)
             {
-                ResultView.Listagem = _mapper.Map<List<ClienteViewModel>>(result.OrderBy(o => o.Nome).ToList());
+                ResultView.Listagem = _mapper.Map<List<ClienteViewModel>>(result
+                    .OrderBy(x => x.Nome)
+                    .ToList());
 
                 ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
             }
@@ -139,7 +140,9 @@ namespace WebZi.Plataform.Data.Services.Cliente
                     Clientes.Add(UsuarioCliente.Cliente);
                 }
 
-                ResultView.Listagem = _mapper.Map<List<ClienteViewModel>>(Clientes.OrderBy(o => o.Nome).ToList());
+                ResultView.Listagem = _mapper.Map<List<ClienteViewModel>>(Clientes
+                    .OrderBy(x => x.Nome)
+                    .ToList());
 
                 ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
             }

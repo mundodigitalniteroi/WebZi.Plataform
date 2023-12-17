@@ -1,6 +1,6 @@
 ﻿namespace WebZi.Plataform.Domain.Models.WebServices.DetranAlagoas.ConsultaVeiculoApreensao.Response
 {
-    public class ResponseModel
+    public class ResultModel
     {
         public string Profile { get; set; }
 

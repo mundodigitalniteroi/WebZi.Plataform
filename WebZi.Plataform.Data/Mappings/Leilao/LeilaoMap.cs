@@ -16,7 +16,7 @@ namespace WebZi.Plataform.Data.Mappings.Leilao
                     tb.HasTrigger("tb_leilao_insert_identificacao_orgao");
                     tb.HasTrigger("tb_leilao_update");
                 })
-                .HasKey(e => e.LeilaoId);
+                .HasKey(x => x.LeilaoId);
 
             builder.Property(e => e.LeilaoId)
                 .HasColumnName("id")

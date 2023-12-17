@@ -18,7 +18,7 @@ namespace WebZi.Plataform.Data.Mappings.LeilaoLote
                     tb.HasTrigger("tr_log_upd_leilao_lotes");
                     tb.HasTrigger("tr_log_upd_leilao_processo_placa_chassi");
                 })
-                .HasKey(e => e.LeilaoLoteId);
+                .HasKey(x => x.LeilaoLoteId);
 
             builder.Property(e => e.LeilaoLoteId)
                 .HasColumnName("id")

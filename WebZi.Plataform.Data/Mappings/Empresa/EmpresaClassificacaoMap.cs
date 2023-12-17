@@ -10,7 +10,7 @@ namespace WebZi.Plataform.Data.Mappings.Empresa
         {
             builder
                 .ToTable("tb_glo_emp_empresas_classificacao", "dbo")
-                .HasKey(e => e.IdEmpresaClassificacao);
+                .HasKey(x => x.IdEmpresaClassificacao);
 
             builder.Property(e => e.IdEmpresaClassificacao)
                 .HasColumnName("id_empresa_classificacao")

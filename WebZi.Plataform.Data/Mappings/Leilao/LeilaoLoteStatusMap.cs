@@ -10,7 +10,7 @@ namespace WebZi.Plataform.Data.Mappings.Leilao
         {
             builder
                 .ToTable("tb_lotes_status", "dbo")
-                .HasKey(e => e.LeilaoLoteStatusId);
+                .HasKey(x => x.LeilaoLoteStatusId);
 
             builder.Property(e => e.LeilaoLoteStatusId)
                 .HasColumnName("id")

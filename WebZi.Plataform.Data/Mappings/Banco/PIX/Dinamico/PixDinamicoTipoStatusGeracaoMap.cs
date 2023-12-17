@@ -10,7 +10,7 @@ namespace WebZi.Plataform.Data.Mappings.Banco.PIX.Dinamico
         {
             builder
                 .ToTable("tb_dep_pix_dinamico_tipo_status_geracao", "dbo")
-                .HasKey(e => e.PixDinamicoTipoStatusGeracaoId);
+                .HasKey(x => x.PixDinamicoTipoStatusGeracaoId);
 
             builder.Property(e => e.PixDinamicoTipoStatusGeracaoId)
                 .ValueGeneratedOnAdd();

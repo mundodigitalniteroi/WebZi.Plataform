@@ -94,9 +94,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             BucketArquivoModel BucketArquivo = await _context.BucketArquivo
                 .Include(x => x.BucketNomeTabelaOrigem)
-                .Where(x => x.TabelaOrigemId == GrvId && x.BucketNomeTabelaOrigem.Codigo == "GRVASSINAAGENTE")
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(x => x.TabelaOrigemId == GrvId && x.BucketNomeTabelaOrigem.Codigo == "GRVASSINAAGENTE");
 
             if (BucketArquivo != null)
             {
@@ -132,9 +131,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             BucketArquivoModel BucketArquivo = await _context.BucketArquivo
                 .Include(x => x.BucketNomeTabelaOrigem)
-                .Where(x => x.TabelaOrigemId == GrvId && x.BucketNomeTabelaOrigem.Codigo == "GRVASSINACONDUT")
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(x => x.TabelaOrigemId == GrvId && x.BucketNomeTabelaOrigem.Codigo == "GRVASSINACONDUT");
 
             if (BucketArquivo != null)
             {
@@ -321,10 +319,9 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             ClienteDepositoModel ClienteDeposito = _context.ClienteDeposito
                 .Include(x => x.Cliente)
-                .Where(x => x.ClienteId == GrvPersistencia.IdentificadorCliente
-                    && x.DepositoId == GrvPersistencia.IdentificadorDeposito)
                 .AsNoTracking()
-                .FirstOrDefault();
+                .FirstOrDefault(x => x.ClienteId == GrvPersistencia.IdentificadorCliente
+                                  && x.DepositoId == GrvPersistencia.IdentificadorDeposito);
 
             if (ClienteDeposito.FlagCadastrarGrvComStatusOperacaoBloqueado == "S")
             {
@@ -582,9 +579,9 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             BucketArquivoModel BucketArquivo = await _context.BucketArquivo
                 .Include(x => x.BucketNomeTabelaOrigem)
-                .Where(x => x.TabelaOrigemId == GrvId && x.BucketNomeTabelaOrigem.Codigo == "GRVASSINAAGENTE")
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(x => x.TabelaOrigemId == GrvId
+                                       && x.BucketNomeTabelaOrigem.Codigo == "GRVASSINAAGENTE");
 
             if (BucketArquivo == null)
             {
@@ -615,9 +612,9 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             BucketArquivoModel BucketArquivo = await _context.BucketArquivo
                 .Include(x => x.BucketNomeTabelaOrigem)
-                .Where(x => x.TabelaOrigemId == GrvId && x.BucketNomeTabelaOrigem.Codigo == "GRVASSINACondutor")
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(x => x.TabelaOrigemId == GrvId
+                                       && x.BucketNomeTabelaOrigem.Codigo == "GRVASSINACONDUTOR");
 
             if (BucketArquivo == null)
             {
@@ -698,12 +695,11 @@ namespace WebZi.Plataform.Domain.Services.GRV
             }
 
             GrvModel Grv = await _context.Grv
-                .Where(x => x.FaturamentoProdutoId == FaturamentoProdutoId
-                         && x.ClienteId == ClienteId
-                         && x.DepositoId == DepositoId
-                         && x.NumeroFormularioGrv == NumeroFormularioGrv)
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(x => x.FaturamentoProdutoId == FaturamentoProdutoId
+                                       && x.ClienteId == ClienteId
+                                       && x.DepositoId == DepositoId
+                                       && x.NumeroFormularioGrv == NumeroFormularioGrv);
 
             return await DeleteGrvAsync(Grv.GrvId, Usuario.IdentificadorUsuario);
         }
@@ -738,10 +734,9 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             UsuarioPermissaoModel UsuarioPermissao = await _context.UsuarioPermissao
                 .Include(x => x.TipoPermissao)
-                .Where(x => x.UsuarioId == UsuarioId
-                         && x.TipoPermissao.Codigo == "EXCLUSAOGRV")
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(x => x.UsuarioId == UsuarioId
+                                       && x.TipoPermissao.Codigo == "EXCLUSAOGRV");
 
             if (UsuarioPermissao == null)
             {
@@ -753,9 +748,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 .Include(x => x.ListagemCondutorDocumento)
                 .Include(x => x.Atendimento)
                 .Include(x => x.Liberacao)
-                .Where(g => g.GrvId == GrvId)
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(x => x.GrvId == GrvId);
 
             if (Grv == null)
             {
@@ -786,7 +780,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 if (Grv.Liberacao != null)
                 {
                     _context.Liberacao
-                        .Where(w => w.LiberacaoId == Grv.LiberacaoId)
+                        .Where(x => x.LiberacaoId == Grv.LiberacaoId)
                         .Delete();
                 }
 
@@ -920,9 +914,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
         {
             return await _context.Grv
                 .Include(x => x.StatusOperacao)
-                .Where(x => x.GrvId == GrvId)
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(x => x.GrvId == GrvId);
         }
 
         public async Task<GrvViewModelList> GetByIdAsync(int GrvId, int UsuarioId)
@@ -973,12 +966,11 @@ namespace WebZi.Plataform.Domain.Services.GRV
             }
 
             GrvModel Grv = await _context.Grv
-                .Where(x => x.NumeroFormularioGrv == NumeroFormularioGrv
-                         && x.ClienteId == ClienteId
-                         && x.DepositoId == DepositoId
-                         && x.FaturamentoProdutoId == FaturamentoProdutoId)
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(x => x.NumeroFormularioGrv == NumeroFormularioGrv
+                                       && x.ClienteId == ClienteId
+                                       && x.DepositoId == DepositoId
+                                       && x.FaturamentoProdutoId == FaturamentoProdutoId);
 
             if (Grv == null)
             {
@@ -1015,9 +1007,9 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             BucketArquivoModel BucketArquivo = await _context.BucketArquivo
                 .Include(x => x.BucketNomeTabelaOrigem)
-                .Where(x => x.TabelaOrigemId == GrvId && x.BucketNomeTabelaOrigem.Codigo == "GRVASSINAAGENTE")
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(x => x.TabelaOrigemId == GrvId
+                                       && x.BucketNomeTabelaOrigem.Codigo == "GRVASSINAAGENTE");
 
             if (BucketArquivo == null)
             {
@@ -1044,9 +1036,9 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             BucketArquivoModel BucketArquivo = await _context.BucketArquivo
                 .Include(x => x.BucketNomeTabelaOrigem)
-                .Where(x => x.TabelaOrigemId == GrvId && x.BucketNomeTabelaOrigem.Codigo == "GRVASSINACONDUT")
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(x => x.TabelaOrigemId == GrvId 
+                                       && x.BucketNomeTabelaOrigem.Codigo == "GRVASSINACONDUT");
 
             if (BucketArquivo == null)
             {
@@ -1071,9 +1063,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
             }
 
             StatusOperacaoModel result = await _context.StatusOperacao
-                .Where(w => w.StatusOperacaoId == StatusOperacaoId.ToUpperTrim().ToNullIfEmpty())
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(x => x.StatusOperacaoId == StatusOperacaoId.ToUpperTrim().ToNullIfEmpty());
 
             if (result != null)
             {
@@ -1107,10 +1098,9 @@ namespace WebZi.Plataform.Domain.Services.GRV
             }
 
             OrgaoEmissorModel result = await _context.OrgaoEmissor
-                .Include(i => i.AutoridadesResponsaveis)
-                .Where(w => w.UF == UF.ToUpperTrim().ToNullIfEmpty())
+                .Include(x => x.AutoridadesResponsaveis)
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(x => x.UF == UF.ToUpperTrim().ToNullIfEmpty());
 
             if (result == null)
             {
@@ -1122,7 +1112,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             if (result.AutoridadesResponsaveis?.Count > 0)
             {
                 ResultView.Listagem = _mapper.Map<List<AutoridadeResponsavelViewModel>>(result.AutoridadesResponsaveis
-                    .OrderBy(o => o.Divisao)
+                    .OrderBy(x => x.Divisao)
                     .ToList());
 
                 ResultView.Mensagem = MensagemViewHelper.SetFound(result.AutoridadesResponsaveis.Count);
@@ -1168,7 +1158,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             if (result?.Count > 0)
             {
                 ResultView.Listagem = _mapper.Map<List<EnquadramentoInfracaoViewModel>>(result
-                    .OrderBy(o => o.Descricao.Trim())
+                    .OrderBy(x => x.Descricao.Trim())
                     .ToList());
 
                 ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
@@ -1271,7 +1261,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             if (result?.Count > 0)
             {
                 ResultView.Listagem = _mapper.Map<List<MotivoApreensaoViewModel>>(result
-                    .OrderBy(o => o.Descricao)
+                    .OrderBy(x => x.Descricao)
                     .ToList());
 
                 ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
@@ -1295,7 +1285,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             if (result?.Count > 0)
             {
                 result = result
-                    .OrderBy(o => o.Descricao)
+                    .OrderBy(x => x.Descricao)
                     .ToList();
 
                 ResultView.Listagem = result;
@@ -1333,7 +1323,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
                     foreach (string Codigo in GrvPesquisa.ListagemCodigoProduto)
                     {
-                        if (Produtos.FirstOrDefault(f => f == Codigo.ToUpperTrim().ToNullIfEmpty()) == null)
+                        if (Produtos.FirstOrDefault(x => x == Codigo.ToUpperTrim().ToNullIfEmpty()) == null)
                         {
                             erros.Add($"{MensagemPadraoEnum.NaoEncontradoFaturamentoProduto}: {Codigo}");
                         }
@@ -1355,7 +1345,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                         continue;
                     }
 
-                    if (StatusOperacoes.FirstOrDefault(f => f == StatusOperacao.ToUpperTrim().ToNullIfEmpty()) == null)
+                    if (StatusOperacoes.FirstOrDefault(x => x == StatusOperacao.ToUpperTrim().ToNullIfEmpty()) == null)
                     {
                         erros.Add($"Status Operação inexistente: {StatusOperacao}");
                     }
@@ -1567,9 +1557,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
             if (GrvId <= 0)
             {
                 FaturamentoProdutoModel FaturamentoProduto = _context.FaturamentoProduto
-                    .Where(x => x.FaturamentoProdutoId == FaturamentoProdutoId)
                     .AsNoTracking()
-                    .FirstOrDefault();
+                    .FirstOrDefault(x => x.FaturamentoProdutoId == FaturamentoProdutoId);
 
                 if (FaturamentoProduto == null)
                 {
@@ -1577,9 +1566,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 }
 
                 ClienteModel Cliente = _context.Cliente
-                    .Where(x => x.ClienteId == ClienteId)
                     .AsNoTracking()
-                    .FirstOrDefault();
+                    .FirstOrDefault(x => x.ClienteId == ClienteId);
 
                 if (Cliente == null)
                 {
@@ -1587,9 +1575,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 }
 
                 DepositoModel Deposito = _context.Deposito
-                    .Where(x => x.DepositoId == DepositoId)
                     .AsNoTracking()
-                    .FirstOrDefault();
+                    .FirstOrDefault(x => x.DepositoId == DepositoId);
 
                 if (Deposito == null)
                 {
@@ -1597,10 +1584,9 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 }
 
                 ClienteDepositoModel ClienteDeposito = _context.ClienteDeposito
-                    .Where(x => x.ClienteId == ClienteId
-                        && x.DepositoId == DepositoId)
                     .AsNoTracking()
-                    .FirstOrDefault();
+                    .FirstOrDefault(x => x.ClienteId == ClienteId
+                                      && x.DepositoId == DepositoId);
 
                 if (ClienteDeposito == null)
                 {
@@ -1613,9 +1599,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
             if (GrvId > 0)
             {
                 Grv = _context.ViewUsuarioClienteDepositoGrv
-                    .Where(x => x.GrvId == GrvId)
                     .AsNoTracking()
-                    .FirstOrDefault();
+                    .FirstOrDefault(x => x.GrvId == GrvId);
 
                 if (Grv == null)
                 {
@@ -1625,12 +1610,11 @@ namespace WebZi.Plataform.Domain.Services.GRV
             else
             {
                 Grv = _context.ViewUsuarioClienteDepositoGrv
-                    .Where(x => x.FaturamentoProdutoCodigo == FaturamentoProdutoId
-                             && x.ClienteId == ClienteId
-                             && x.DepositoId == DepositoId
-                             && x.NumeroFormularioGrv == NumeroFormularioGrv)
                     .AsNoTracking()
-                    .FirstOrDefault();
+                    .FirstOrDefault(x => x.FaturamentoProdutoCodigo == FaturamentoProdutoId
+                                      && x.ClienteId == ClienteId
+                                      && x.DepositoId == DepositoId
+                                      && x.NumeroFormularioGrv == NumeroFormularioGrv);
 
                 if (Grv == null)
                 {
@@ -1652,9 +1636,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             GrvModel Grv = await _context.Grv
                 .Include(x => x.StatusOperacao)
-                .Where(x => x.GrvId == GrvId)
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(x => x.GrvId == GrvId);
 
             if (Grv == null)
             {
@@ -1662,9 +1645,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
             }
 
             StatusOperacaoModel StatusOperacao = await _context.StatusOperacao
-                .Where(x => x.StatusOperacaoId == StatusOperacaoId)
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(x => x.StatusOperacaoId == StatusOperacaoId);
 
             if (StatusOperacao == null)
             {
@@ -1965,9 +1947,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             ClienteModel Cliente = await _context.Cliente
                 .Include(x => x.Endereco)
-                .Where(x => x.ClienteId == GrvPersistencia.IdentificadorCliente)
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(x => x.ClienteId == GrvPersistencia.IdentificadorCliente);
 
             if (Cliente == null)
             {
@@ -1980,9 +1961,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
             }
 
             DepositoModel Deposito = await _context.Deposito
-                .Where(x => x.DepositoId == GrvPersistencia.IdentificadorDeposito)
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(x => x.DepositoId == GrvPersistencia.IdentificadorDeposito);
 
             if (Deposito == null)
             {
@@ -1990,9 +1970,9 @@ namespace WebZi.Plataform.Domain.Services.GRV
             }
 
             ClienteDepositoModel ClienteDeposito = await _context.ClienteDeposito
-                .Where(x => x.ClienteId == GrvPersistencia.IdentificadorCliente && x.DepositoId == GrvPersistencia.IdentificadorDeposito)
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(x => x.ClienteId == GrvPersistencia.IdentificadorCliente
+                                       && x.DepositoId == GrvPersistencia.IdentificadorDeposito);
 
             if (ClienteDeposito == null)
             {
@@ -2001,9 +1981,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
             else if (ClienteDeposito.FlagCadastrarGrvComStatusOperacaoBloqueado == "S")
             {
                 StatusOperacaoModel StatusOperacao = await _context.StatusOperacao
-                    .Where(x => x.StatusOperacaoId == "B")
                     .AsNoTracking()
-                    .FirstOrDefaultAsync();
+                    .FirstOrDefaultAsync(x => x.StatusOperacaoId == "B");
 
                 ResultView.AvisosInformativos.Add($"Esse GRV receberá o Status de Operação {StatusOperacao.Descricao} devido à configuração do Cliente");
             }
@@ -2021,9 +2000,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
             }
 
             TipoVeiculoModel TipoVeiculo = await _context.TipoVeiculo
-                .Where(x => x.TipoVeiculoId == GrvPersistencia.IdentificadorTipoVeiculo)
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(x => x.TipoVeiculoId == GrvPersistencia.IdentificadorTipoVeiculo);
 
             if (TipoVeiculo == null)
             {
@@ -2031,9 +2009,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
             }
 
             ReboquistaModel Reboquista = await _context.Reboquista
-                .Where(x => x.ReboquistaId == GrvPersistencia.IdentificadorReboquista)
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(x => x.ReboquistaId == GrvPersistencia.IdentificadorReboquista);
 
             if (Reboquista == null)
             {
@@ -2041,9 +2018,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
             }
 
             ReboqueModel Reboque = await _context.Reboque
-                .Where(x => x.ReboqueId == GrvPersistencia.IdentificadorReboque)
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(x => x.ReboqueId == GrvPersistencia.IdentificadorReboque);
 
             if (Reboque == null)
             {
@@ -2052,9 +2028,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             AutoridadeResponsavelModel AutoridadeResponsavel = await _context.AutoridadeResponsavel
                 .Include(x => x.OrgaoEmissor)
-                .Where(x => x.AutoridadeResponsavelId == GrvPersistencia.IdentificadorAutoridadeResponsavel)
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(x => x.AutoridadeResponsavelId == GrvPersistencia.IdentificadorAutoridadeResponsavel);
 
             if (AutoridadeResponsavel == null)
             {
@@ -2066,9 +2041,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
             }
 
             CorModel Cor = await _context.Cor
-                .Where(x => x.CorId == GrvPersistencia.IdentificadorCor)
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(x => x.CorId == GrvPersistencia.IdentificadorCor);
 
             if (Cor == null)
             {
@@ -2076,9 +2050,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
             }
 
             MarcaModeloModel MarcaModelo = await _context.MarcaModelo
-                .Where(x => x.MarcaModeloId == GrvPersistencia.IdentificadorMarcaModelo)
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(x => x.MarcaModeloId == GrvPersistencia.IdentificadorMarcaModelo);
 
             if (MarcaModelo == null)
             {
@@ -2086,9 +2059,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
             }
 
             MotivoApreensaoModel MotivoApreensao = await _context.MotivoApreensao
-                .Where(x => x.MotivoApreensaoId == GrvPersistencia.IdentificadorMotivoApreensao)
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(x => x.MotivoApreensaoId == GrvPersistencia.IdentificadorMotivoApreensao);
 
             if (MotivoApreensao == null)
             {
@@ -2171,20 +2143,18 @@ namespace WebZi.Plataform.Domain.Services.GRV
             }
 
             FaturamentoProdutoModel Produtos = await _context.FaturamentoProduto
-                .Where(x => x.FaturamentoProdutoId == GrvPersistencia.CodigoProduto)
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(x => x.FaturamentoProdutoId == GrvPersistencia.CodigoProduto);
 
             if (Produtos == null)
             {
                 ResultView.AvisosImpeditivos.Add(MensagemPadraoEnum.NaoEncontradoFaturamentoProduto);
             }
 
-            if (!string.IsNullOrWhiteSpace(GrvPersistencia.EnderecoLocalizacaoVeiculoCEP))
+            if (GrvPersistencia.EnderecoLocalizacaoVeiculoCEP.IsCEP())
             {
                 if (await _context.CEP
-                    .Where(x => x.CEP == GrvPersistencia.EnderecoLocalizacaoVeiculoCEP.Replace("-", ""))
-                    .FirstOrDefaultAsync() == null)
+                    .FirstOrDefaultAsync(x => x.CEP == GrvPersistencia.EnderecoLocalizacaoVeiculoCEP.GetNumbers()) == null)
                 {
                     ResultView.AvisosImpeditivos.Add("CEP inexistente");
                 }
@@ -2274,12 +2244,11 @@ namespace WebZi.Plataform.Domain.Services.GRV
             }
 
             GrvModel Grv = await _context.Grv
-                    .Where(x => x.FaturamentoProdutoId == GrvPersistencia.CodigoProduto
-                             && x.NumeroFormularioGrv == GrvPersistencia.NumeroProcesso
-                             && x.ClienteId == GrvPersistencia.IdentificadorCliente
-                             && x.DepositoId == GrvPersistencia.IdentificadorDeposito)
                     .AsNoTracking()
-                    .FirstOrDefaultAsync();
+                    .FirstOrDefaultAsync(x => x.FaturamentoProdutoId == GrvPersistencia.CodigoProduto
+                                           && x.NumeroFormularioGrv == GrvPersistencia.NumeroProcesso
+                                           && x.ClienteId == GrvPersistencia.IdentificadorCliente
+                                           && x.DepositoId == GrvPersistencia.IdentificadorDeposito);
 
             if (Grv != null)
             {

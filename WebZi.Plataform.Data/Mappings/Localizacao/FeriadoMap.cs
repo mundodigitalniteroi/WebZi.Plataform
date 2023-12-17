@@ -10,7 +10,7 @@ namespace WebZi.Plataform.Data.Mappings.Localizacao
         {
             builder
                 .ToTable("tb_glo_loc_feriados", "dbo")
-                .HasKey(e => e.FeriadoId);
+                .HasKey(x => x.FeriadoId);
 
             builder.Property(e => e.FeriadoId)
                 .HasColumnName("id_feriado")

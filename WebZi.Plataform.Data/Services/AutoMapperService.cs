@@ -200,12 +200,12 @@ namespace WebZi.Plataform.Data.Services
 
             // ViewModel to Model
             CreateMap<CadastroCondutorViewModel, CondutorModel>()
-                .ForMember(x => x.Email, o => o.MapFrom(s => s.Email.ToLowerTrim()))
+                .ForMember(dest => dest.Email, opt => opt.MapFrom(s => s.Email.ToLowerTrim()))
                 .AddTransform<string>(s => s
                     .ToNullIfEmpty()
                     .ToUpperTrim())
-                .ForMember(x => x.Documento, o => o.MapFrom(s => s.Documento.GetNumbers()))
-                .ForMember(x => x.Identidade, o => o.MapFrom(s => s.Identidade.GetNumbers()));
+                .ForMember(dest => dest.Documento, opt => opt.MapFrom(s => s.Documento.GetNumbers()))
+                .ForMember(dest => dest.Identidade, opt => opt.MapFrom(s => s.Identidade.GetNumbers()));
 
             CreateMap<UsuarioClienteDepositoReboqueViewModel, UsuarioClienteDepositoReboqueViewModel>();
 

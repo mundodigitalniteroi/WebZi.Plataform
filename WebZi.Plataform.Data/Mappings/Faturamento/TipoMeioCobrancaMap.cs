@@ -10,7 +10,7 @@ namespace WebZi.Plataform.Data.Mappings.Faturamento
         {
             builder
                 .ToTable("tb_dep_tipos_meios_cobrancas", "dbo")
-                .HasKey(e => e.TipoMeioCobrancaId);
+                .HasKey(x => x.TipoMeioCobrancaId);
 
             builder.Property(e => e.TipoMeioCobrancaId)
                 .HasColumnName("id_tipo_meio_cobranca")

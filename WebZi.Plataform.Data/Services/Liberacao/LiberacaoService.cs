@@ -60,9 +60,8 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                 .Include(x => x.StatusOperacao)
                 .Include(x => x.Cliente)
                 .Include(x => x.Liberacao)
-                .Where(x => x.GrvId == GrvId)
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(x => x.GrvId == GrvId);
 
             if (Grv.StatusOperacaoId is not "R" and not "T" and not "E")
             {
@@ -149,8 +148,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
             ResultView.GrvNumeroChave = GuiaPagamentoReboqueEstadia.NumeroChave.IsNullOrWhiteSpace() ? GuiaPagamentoReboqueEstadia.NumeroChave : "Não informado";
 
             ViewUsuarioModel Usuario = await _context.ViewUsuario
-                .Where(x => x.UsuarioId == UsuarioId)
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(x => x.UsuarioId == UsuarioId);
 
             ResultView.UsuarioNome = Usuario.NomeCompleto;
 
@@ -266,9 +264,8 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                 .Include(x => x.Cor)
                 .Include(x => x.ListagemLacre)
                 .Include(x => x.Atendimento)
-                .Where(x => x.GrvId == splitted[0].ToInt())
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(x => x.GrvId == splitted[0].ToInt());
 
             if (Grv == null)
             {
@@ -299,9 +296,8 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                 {
                     Bairro = await _context.Bairro
                         .Include(x => x.Municipio)
-                        .Where(x => x.BairroId == Grv.Deposito.BairroId)
                         .AsNoTracking()
-                        .FirstOrDefaultAsync();
+                        .FirstOrDefaultAsync(x => x.BairroId == Grv.Deposito.BairroId);
 
                     EnderecoDeposito = new EnderecoService(_context, _mapper)
                         .FormatarEndereco(string.Empty,
@@ -403,7 +399,9 @@ namespace WebZi.Plataform.Data.Services.Liberacao
 
             if (FotoResponsavel.Listagem?.Count > 0)
             {
-                ResultView.FotoResponsavel = FotoResponsavel.Listagem.FirstOrDefault().Imagem;
+                ResultView.FotoResponsavel = FotoResponsavel.Listagem
+                    .FirstOrDefault()
+                    .Imagem;
             }
 
             return ResultView;

@@ -35,9 +35,8 @@ namespace WebZi.Plataform.Data.Services.Localizacao
             }
 
             ViewEnderecoCompletoModel result = _context.EnderecoCompleto
-               .Where(w => w.CEPId == CEPId)
                .AsNoTracking()
-               .FirstOrDefault();
+               .FirstOrDefault(x => x.CEPId == CEPId);
 
             if (result != null)
             {
@@ -74,9 +73,8 @@ namespace WebZi.Plataform.Data.Services.Localizacao
             }
 
             ViewEnderecoCompletoModel result = _context.EnderecoCompleto
-               .Where(w => w.CEP == CEP)
                .AsNoTracking()
-               .FirstOrDefault();
+               .FirstOrDefault(x => x.CEP == CEP);
 
             if (result != null)
             {

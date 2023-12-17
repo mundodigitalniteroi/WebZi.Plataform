@@ -10,7 +10,7 @@ namespace WebZi.Plataform.Data.Mappings.Banco.PIX.Dinamico
         {
             builder
                 .ToTable("tb_dep_pix_dinamico_senha_confirmacao_tranferencia", "dbo")
-                .HasKey(e => e.PixDinamicoSenhaConfirmacaoTranferenciaId);
+                .HasKey(x => x.PixDinamicoSenhaConfirmacaoTranferenciaId);
 
             builder.Property(e => e.PixDinamicoSenhaConfirmacaoTranferenciaId)
                 .ValueGeneratedOnAdd();

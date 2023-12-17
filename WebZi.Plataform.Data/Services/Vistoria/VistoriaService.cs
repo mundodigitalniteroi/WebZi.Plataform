@@ -53,7 +53,7 @@ namespace WebZi.Plataform.Data.Services.Vistoria
                 .ToListAsync();
 
             ResultView.Listagem = _mapper.Map<List<VistoriaSituacaoChassiViewModel>>(result
-                .OrderBy(o => o.Descricao)
+                .OrderBy(x => x.Descricao)
                 .ToList());
 
             ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);

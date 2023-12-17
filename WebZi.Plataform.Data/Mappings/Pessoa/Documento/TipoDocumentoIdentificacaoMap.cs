@@ -10,7 +10,7 @@ namespace WebZi.Plataform.Data.Mappings.Pessoa.Documento
         {
             builder
                 .ToTable("tb_glo_doc_tipos_documentos_identificacao", "dbo")
-                .HasKey(e => e.TipoDocumentoIdentificacaoId);
+                .HasKey(x => x.TipoDocumentoIdentificacaoId);
 
             builder.Property(e => e.TipoDocumentoIdentificacaoId)
                 .HasColumnName("id_tipo_documento_identificacao")

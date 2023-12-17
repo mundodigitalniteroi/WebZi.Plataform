@@ -37,9 +37,8 @@ namespace WebZi.Plataform.Data.Services.Servico
             }
 
             ReboqueModel result = await _context.Reboque
-                .Where(w => w.ReboqueId == ReboqueId)
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(x => x.ReboqueId == ReboqueId);
 
             if (result != null)
             {
@@ -88,7 +87,7 @@ namespace WebZi.Plataform.Data.Services.Servico
             }
 
             ClienteModel Cliente = await _context.Cliente
-                .Where(w => w.ClienteId == ClienteId)
+                .Where(x => x.ClienteId == ClienteId)
                 .AsNoTracking().
                 FirstOrDefaultAsync();
 
@@ -100,9 +99,8 @@ namespace WebZi.Plataform.Data.Services.Servico
             }
 
             DepositoModel Deposito = await _context.Deposito
-                .Where(w => w.DepositoId == DepositoId)
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(x => x.DepositoId == DepositoId);
 
             if (Deposito == null)
             {
@@ -112,9 +110,8 @@ namespace WebZi.Plataform.Data.Services.Servico
             }
 
             ReboqueModel result = await _context.Reboque
-                .Where(w => w.Placa == Placa.ToUpper().Trim() && w.ClienteId == ClienteId && w.DepositoId == DepositoId)
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(x => x.Placa == Placa.ToUpper().Trim() && x.ClienteId == ClienteId && x.DepositoId == DepositoId);
 
             if (result != null)
             {
@@ -142,9 +139,8 @@ namespace WebZi.Plataform.Data.Services.Servico
             }
 
             ReboquistaModel result = await _context.Reboquista
-                .Where(w => w.ReboquistaId == ReboquistaId)
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(x => x.ReboquistaId == ReboquistaId);
 
             if (result != null)
             {
@@ -184,9 +180,8 @@ namespace WebZi.Plataform.Data.Services.Servico
             }
 
             ClienteModel Cliente = await _context.Cliente
-                .Where(w => w.ClienteId == ClienteId)
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(x => x.ClienteId == ClienteId);
 
             if (Cliente == null)
             {
@@ -196,9 +191,8 @@ namespace WebZi.Plataform.Data.Services.Servico
             }
 
             DepositoModel Deposito = await _context.Deposito
-                .Where(w => w.DepositoId == DepositoId)
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(x => x.DepositoId == DepositoId);
 
             if (Deposito == null)
             {
@@ -208,14 +202,15 @@ namespace WebZi.Plataform.Data.Services.Servico
             }
 
             List<ReboqueModel> result = await _context.Reboque
-                .Where(w => w.ClienteId == ClienteId && w.DepositoId == DepositoId)
+                .Where(x => x.ClienteId == ClienteId 
+                    && x.DepositoId == DepositoId)
                 .AsNoTracking()
                 .ToListAsync();
 
             if (result?.Count > 0)
             {
                 ResultView.Listagem = _mapper.Map<List<ReboqueViewModel>>(result
-                    .OrderBy(o => o.Placa)
+                    .OrderBy(x => x.Placa)
                     .ToList());
 
                 ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
@@ -239,7 +234,9 @@ namespace WebZi.Plataform.Data.Services.Servico
 
             if (result?.Count > 0)
             {
-                ResultView.Listagem = _mapper.Map<List<UsuarioClienteDepositoReboqueViewModel>>(result.OrderBy(o => o.ReboquePlaca).ToList());
+                ResultView.Listagem = _mapper.Map<List<UsuarioClienteDepositoReboqueViewModel>>(result
+                    .OrderBy(x => x.ReboquePlaca)
+                    .ToList());
 
                 ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
             }
@@ -295,7 +292,7 @@ namespace WebZi.Plataform.Data.Services.Servico
             }
 
             ClienteModel Cliente = await _context.Cliente
-                .Where(w => w.ClienteId == ClienteId)
+                .Where(x => x.ClienteId == ClienteId)
                 .AsNoTracking().
                 FirstOrDefaultAsync();
 
@@ -307,9 +304,8 @@ namespace WebZi.Plataform.Data.Services.Servico
             }
 
             DepositoModel Deposito = await _context.Deposito
-                .Where(w => w.DepositoId == DepositoId)
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(x => x.DepositoId == DepositoId);
 
             if (Deposito == null)
             {
@@ -319,14 +315,14 @@ namespace WebZi.Plataform.Data.Services.Servico
             }
 
             List<ReboquistaModel> result = await _context.Reboquista
-                .Where(w => w.ClienteId == ClienteId && w.DepositoId == DepositoId)
+                .Where(x => x.ClienteId == ClienteId && x.DepositoId == DepositoId)
                 .AsNoTracking()
                 .ToListAsync();
 
             if (result?.Count > 0)
             {
                 ResultView.Listagem = _mapper.Map<List<ReboquistaViewModel>>(result
-                    .OrderBy(o => o.Nome)
+                    .OrderBy(x => x.Nome)
                     .ToList());
 
                 ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
@@ -350,7 +346,9 @@ namespace WebZi.Plataform.Data.Services.Servico
 
             if (result?.Count > 0)
             {
-                ResultView.Listagem = _mapper.Map<List<UsuarioClienteDepositoReboquistaViewModel>>(result.OrderBy(o => o.ReboquistaNome).ToList());
+                ResultView.Listagem = _mapper.Map<List<UsuarioClienteDepositoReboquistaViewModel>>(result
+                    .OrderBy(x => x.ReboquistaNome)
+                    .ToList());
 
                 ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
             }

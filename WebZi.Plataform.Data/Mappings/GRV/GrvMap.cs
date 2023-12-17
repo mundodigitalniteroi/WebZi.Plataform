@@ -17,7 +17,7 @@ namespace WebZi.Plataform.Data.Mappings.GRV
                     tb.HasTrigger("tr_log_upd_grv_leilao");
                     tb.HasTrigger("tr_log_upd_grv_new");
                 })
-                .HasKey(e => e.GrvId);
+                .HasKey(x => x.GrvId);
 
             builder.Property(e => e.GrvId)
                 .HasColumnName("id_grv")

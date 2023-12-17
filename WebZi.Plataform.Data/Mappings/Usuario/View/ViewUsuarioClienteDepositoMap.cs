@@ -10,7 +10,7 @@ namespace WebZi.Plataform.Data.Mappings.Usuario.View
         {
             builder
                 .ToView("vw_dep_usuarios_clientes_depositos")
-                .HasKey(e => e.UsuarioId);
+                .HasKey(x => x.UsuarioId);
 
             builder.Property(e => e.UsuarioId)
                 .HasColumnName("id_usuario");

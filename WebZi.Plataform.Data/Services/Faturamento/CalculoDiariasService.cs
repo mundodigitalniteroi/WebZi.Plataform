@@ -83,7 +83,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             #endregion REGRA DA HORA DA VIRADA DA DIÁRIA
 
             List<FaturamentoRegraModel> RegrasFaturamento = _context.FaturamentoRegra
-                .Where(w => w.ClienteId == CalculoDiarias.ClienteId && w.DepositoId == CalculoDiarias.DepositoId)
+                .Where(x => x.ClienteId == CalculoDiarias.ClienteId && x.DepositoId == CalculoDiarias.DepositoId)
                 .AsNoTracking()
                 .ToList();
 
@@ -232,8 +232,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
         private CalculoDiariasModel GetLocalizacaoDeposito(CalculoDiariasModel CalculoDiarias)
         {
             DepositoModel Deposito = _context.Deposito
-                .Include(i => i.Endereco)
-                .Where(w => w.DepositoId == CalculoDiarias.DepositoId)
+                .Include(x => x.Endereco)
+                .Where(x => x.DepositoId == CalculoDiarias.DepositoId)
                 .AsNoTracking()
                 .FirstOrDefault();
 
@@ -252,11 +252,11 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             if (CalculoDiarias.FlagPrimeiroFaturamento == "N")
             {
                 List<FaturamentoComposicaoModel> FaturamentoComposicoes = _context.FaturamentoComposicao
-                    .Include(i => i.Faturamento)
-                    .Where(w => w.TipoComposicao == "D" &&
-                                w.QuantidadeComposicao > 0 &&
-                                w.Faturamento.AtendimentoId == CalculoDiarias.AtendimentoId &&
-                                w.Faturamento.Status == "P")
+                    .Include(x => x.Faturamento)
+                    .Where(x => x.TipoComposicao == TipoCobrancaFaturamentoEnum.Diárias &&
+                                x.QuantidadeComposicao > 0 &&
+                                x.Faturamento.AtendimentoId == CalculoDiarias.AtendimentoId &&
+                                x.Faturamento.Status == "P")
                     .ToList();
 
                 if (FaturamentoComposicoes?.Count > 0)

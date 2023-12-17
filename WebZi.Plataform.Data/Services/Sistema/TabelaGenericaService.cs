@@ -26,25 +26,22 @@ namespace WebZi.Plataform.Data.Services.Sistema
         public TabelaGenericaModel GetById(int TabelaGenericaId)
         {
             return _context.TabelaGenerica
-                .Where(x => x.TabelaGenericaId == TabelaGenericaId)
                 .AsNoTracking()
-                .FirstOrDefault();
+                .FirstOrDefault(x => x.TabelaGenericaId == TabelaGenericaId);
         }
 
         public async Task<TabelaGenericaModel> GetByIdAsync(int TabelaGenericaId)
         {
             return await _context.TabelaGenerica
-                .Where(x => x.TabelaGenericaId == TabelaGenericaId)
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(x => x.TabelaGenericaId == TabelaGenericaId);
         }
 
         public async Task<string> GetValorCadastroAsync(int TabelaGenericaId)
         {
             TabelaGenericaModel result = await _context.TabelaGenerica
-                .Where(x => x.TabelaGenericaId == TabelaGenericaId)
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(x => x.TabelaGenericaId == TabelaGenericaId);
 
             return result != null ? result.ValorCadastro : string.Empty;
         }

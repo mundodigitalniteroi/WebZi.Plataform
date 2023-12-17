@@ -51,8 +51,7 @@ namespace WebZi.Plataform.Data.Services.GGV
             }
 
             GrvModel Grv = await _context.Grv
-                .Where(x => x.GrvId == GgvPersistencia.IdentificadorGrv)
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(x => x.GrvId == GgvPersistencia.IdentificadorGrv);
 
             DateTime DataHoraPorDeposito = new DepositoService(_context)
                 .GetDataHoraPorDeposito(Grv.DepositoId);
@@ -115,8 +114,7 @@ namespace WebZi.Plataform.Data.Services.GGV
                     };
 
                     CondutorEquipamentoOpcional = ListagemCondutorEquipamentoOpcional
-                        .Where(x => x.EquipamentoOpcionalId == item.IdentificadorEquipamentoOpcional)
-                        .FirstOrDefault();
+                        .FirstOrDefault(x => x.EquipamentoOpcionalId == item.IdentificadorEquipamentoOpcional);
 
                     // Já possui cadastro
                     if (CondutorEquipamentoOpcional != null)
@@ -217,14 +215,13 @@ namespace WebZi.Plataform.Data.Services.GGV
                         ResumoVistoria = GgvPersistencia.Vistoria.ResumoVistoria.ToUpperTrim().ToNullIfEmpty(),
 
                         VistoriaStatusId = _context.VistoriaStatus
-                            .Where(x => x.VistoriaStatusId == (byte)GgvPersistencia.Vistoria.IdentificadorStatusVistoria)
                             .AsNoTracking()
-                            .FirstOrDefault()
+                            .FirstOrDefault(x => x.VistoriaStatusId == (byte)GgvPersistencia.Vistoria.IdentificadorStatusVistoria)
                             .VistoriaStatusId,
 
-                        VistoriaSituacaoChassiId = _context.VistoriaSituacaoChassi.Where(x => x.VistoriaSituacaoChassiId == GgvPersistencia.Vistoria.IdentificadorSituacaoChassi)
+                        VistoriaSituacaoChassiId = _context.VistoriaSituacaoChassi
                             .AsNoTracking()
-                            .FirstOrDefault()
+                            .FirstOrDefault(x => x.VistoriaSituacaoChassiId == GgvPersistencia.Vistoria.IdentificadorSituacaoChassi)
                             .VistoriaSituacaoChassiId,
 
                         // VISTORIA_TIPO_DIRECAO
@@ -280,8 +277,7 @@ namespace WebZi.Plataform.Data.Services.GGV
                     };
 
                     FaturamentoServicoTipoVeiculo = FaturamentoServicoTipoVeiculoList
-                        .Where(x => x.FaturamentoServicoTipoVeiculoId == item.IdentificadorServicoAssociadoTipoVeiculo)
-                        .FirstOrDefault();
+                        .FirstOrDefault(x => x.FaturamentoServicoTipoVeiculoId == item.IdentificadorServicoAssociadoTipoVeiculo);
 
                     switch (FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.FaturamentoServicoTipo.TipoCobranca)
                     {
@@ -539,9 +535,8 @@ namespace WebZi.Plataform.Data.Services.GGV
             GrvModel Grv = await _context.Grv
                 .Include(x => x.StatusOperacao)
                 .Include(x => x.Deposito)
-                .Where(x => x.GrvId == GgvPersistencia.IdentificadorGrv)
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(x => x.GrvId == GgvPersistencia.IdentificadorGrv);
 
             if (Grv.StatusOperacao.StatusOperacaoId != "G" && Grv.StatusOperacao.StatusOperacaoId != "V")
             {
@@ -650,7 +645,7 @@ namespace WebZi.Plataform.Data.Services.GGV
                         .ToList();
 
                     int result = ListagemTipoCadastroId
-                        .Where(p => ListagemTipoCadastroId2.All(p2 => p2 != p))
+                        .Where(x => ListagemTipoCadastroId2.All(x2 => x2 != x))
                         .Count();
 
                     if (result >= 1)
@@ -680,9 +675,8 @@ namespace WebZi.Plataform.Data.Services.GGV
                     if (GgvPersistencia.Vistoria.IdentificadorEmpresaVistoria > 0)
                     {
                         if (await _context.Empresa
-                            .Where(w => w.EmpresaId == GgvPersistencia.Vistoria.IdentificadorEmpresaVistoria)
                             .AsNoTracking()
-                            .FirstOrDefaultAsync() == null)
+                            .FirstOrDefaultAsync(w => w.EmpresaId == GgvPersistencia.Vistoria.IdentificadorEmpresaVistoria) == null)
                         {
                             erros.Add("Identificador da Empresa inexistente");
                         }
@@ -691,18 +685,16 @@ namespace WebZi.Plataform.Data.Services.GGV
                     if (GgvPersistencia.Vistoria.IdentificadorStatusVistoria > 0)
                     {
                         if (await _context.VistoriaStatus
-                            .Where(x => x.VistoriaStatusId == GgvPersistencia.Vistoria.IdentificadorStatusVistoria)
                             .AsNoTracking()
-                            .FirstOrDefaultAsync() == null)
+                            .FirstOrDefaultAsync(x => x.VistoriaStatusId == GgvPersistencia.Vistoria.IdentificadorStatusVistoria) == null)
                         {
                             erros.Add("Identificador do Status da Vistoria inexistente");
                         }
                     }
 
                     if (await _context.VistoriaSituacaoChassi
-                        .Where(x => x.VistoriaSituacaoChassiId == GgvPersistencia.Vistoria.IdentificadorSituacaoChassi)
                         .AsNoTracking()
-                        .FirstOrDefaultAsync() == null)
+                        .FirstOrDefaultAsync(x => x.VistoriaSituacaoChassiId == GgvPersistencia.Vistoria.IdentificadorSituacaoChassi) == null)
                     {
                         erros.Add("Identificador da Situação do Chassi inexistente");
                     }
@@ -710,20 +702,18 @@ namespace WebZi.Plataform.Data.Services.GGV
                     if (GgvPersistencia.Vistoria.IdentificadorTipoDirecao > 0)
                     {
                         if (await _context.TabelaGenerica
-                            .Where(x => x.Codigo == "VISTORIA_TIPO_DIRECAO"
-                                && x.TabelaGenericaId == GgvPersistencia.Vistoria.IdentificadorTipoDirecao)
                             .AsNoTracking()
-                            .FirstOrDefaultAsync() == null)
+                            .FirstOrDefaultAsync(x => x.Codigo == "VISTORIA_TIPO_DIRECAO"
+                                                   && x.TabelaGenericaId == GgvPersistencia.Vistoria.IdentificadorTipoDirecao) == null)
                         {
                             erros.Add("Identificador do Tipo de Direção inexistente");
                         }
                     }
 
                     if (await _context.TabelaGenerica
-                            .Where(x => x.Codigo == "VISTORIA_ESTADO_GERAL_VEICULO"
-                                && x.TabelaGenericaId == GgvPersistencia.Vistoria.IdentificadorEstadoGeralVeiculo)
                             .AsNoTracking()
-                            .FirstOrDefaultAsync() == null)
+                            .FirstOrDefaultAsync(x => x.Codigo == "VISTORIA_ESTADO_GERAL_VEICULO"
+                                                   && x.TabelaGenericaId == GgvPersistencia.Vistoria.IdentificadorEstadoGeralVeiculo) == null)
                     {
                         erros.Add("Identificador do Estado Geral do Veículo inexistente");
                     }
@@ -806,7 +796,8 @@ namespace WebZi.Plataform.Data.Services.GGV
                         {
                             if (FaturamentoServicoGrvList?.Count > 0)
                             {
-                                FaturamentoServicoGrv = FaturamentoServicoGrvList.Where(x => x.FaturamentoServicoTipoVeiculoId == item.IdentificadorServicoAssociadoTipoVeiculo).FirstOrDefault();
+                                FaturamentoServicoGrv = FaturamentoServicoGrvList
+                                    .FirstOrDefault(x => x.FaturamentoServicoTipoVeiculoId == item.IdentificadorServicoAssociadoTipoVeiculo);
 
                                 if (FaturamentoServicoGrv != null)
                                 {
@@ -816,8 +807,7 @@ namespace WebZi.Plataform.Data.Services.GGV
                             else
                             {
                                 FaturamentoServicoTipoVeiculo = FaturamentoServicoTipoVeiculoList
-                                    .Where(x => x.FaturamentoServicoTipoVeiculoId == item.IdentificadorServicoAssociadoTipoVeiculo)
-                                    .FirstOrDefault();
+                                    .FirstOrDefault(x => x.FaturamentoServicoTipoVeiculoId == item.IdentificadorServicoAssociadoTipoVeiculo);
 
                                 if (FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.FaturamentoServicoTipo.FlagCobrarTelaGrv == "N")
                                 {

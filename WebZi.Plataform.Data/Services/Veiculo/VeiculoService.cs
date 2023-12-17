@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using WebZi.Plataform.CrossCutting.Strings;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Domain.Models.Veiculo;
@@ -32,9 +33,8 @@ namespace WebZi.Plataform.Data.Services.Veiculo
             TipoVeiculoModel result = await _context.TipoVeiculo
                 .Include(x => x.TiposVeiculosEquipamentosAssociacoes)
                 .ThenInclude(x => x.EquipamentoOpcional)
-                .Where(x => x.TipoVeiculoId == TipoVeiculoId)
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(x => x.TipoVeiculoId == TipoVeiculoId);
 
             if (result != null)
             {
@@ -80,7 +80,7 @@ namespace WebZi.Plataform.Data.Services.Veiculo
             }
 
             List<MarcaModeloModel> result = await _context.MarcaModelo
-                .Where(w => w.MarcaModelo.Contains(MarcaModelo.ToUpper().Trim()))
+                .Where(x => x.MarcaModelo.Contains(MarcaModelo.ToUpperTrim()))
                 .OrderBy(x => x.MarcaModelo)
                 .Take(100)
                 .AsNoTracking()

@@ -10,7 +10,7 @@ namespace WebZi.Plataform.Data.Mappings.Sistema
         {
             builder
                 .ToTable("tb_glo_sys_cores", "dbo")
-                .HasKey(e => e.CorId);
+                .HasKey(x => x.CorId);
 
             builder.Property(e => e.CorId)
                 .HasColumnName("id_cor")

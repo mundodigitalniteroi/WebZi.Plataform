@@ -10,7 +10,7 @@ namespace WebZi.Plataform.Data.Mappings.Vistoria
         {
             builder
                 .ToTable("tb_dep_grv_vistoria", "dbo")
-                .HasKey(e => e.VistoriaId);
+                .HasKey(x => x.VistoriaId);
 
             builder.Property(e => e.VistoriaId)
                 .HasColumnName("id_grv_vistoria")

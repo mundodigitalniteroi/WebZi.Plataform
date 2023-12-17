@@ -10,7 +10,7 @@ namespace WebZi.Plataform.Data.Mappings.Usuario.View
         {
             builder
                 .ToView("vw_dep_usuarios_clientes_depositos_grvs", "dbo")
-                .HasKey(e => e.GrvId);
+                .HasKey(x => x.GrvId);
 
             builder.Property(e => e.Cliente)
                 .IsRequired()

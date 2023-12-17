@@ -10,7 +10,7 @@ namespace WebZi.Plataform.Data.Mappings.Sistema
         {
             builder
                 .ToTable("tb_dep_tabela_generica", "dbo")
-                .HasKey(e => e.TabelaGenericaId);
+                .HasKey(x => x.TabelaGenericaId);
 
             builder.Property(e => e.TabelaGenericaId)
                 .ValueGeneratedOnAdd();
