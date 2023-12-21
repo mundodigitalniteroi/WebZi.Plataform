@@ -45,17 +45,20 @@
         Created = 201,
 
         /// <summary>
-        /// The request has been received but not yet acted upon. It is noncommittal, since there is no way in HTTP to later send an asynchronous response indicating the outcome of the request. It is intended for cases where another process or server handles the request, or for batch processing.
+        /// The request has been received but not yet acted upon. It is noncommittal, since there is no way in HTTP to later send an asynchronous response indicating the outcome of the request.
+        /// It is intended for cases where another process or server handles the request, or for batch processing.
         /// </summary>
         Accepted = 202,
 
         /// <summary>
-        /// This response code means the returned metadata is not exactly the same as is available from the origin server, but is collected from a local or a third-party copy. This is mostly used for mirrors or backups of another resource. Except for that specific case, the 200 OK response is preferred to this status.
+        /// This response code means the returned metadata is not exactly the same as is available from the origin server, but is collected from a local or a third-party copy.
+        /// This is mostly used for mirrors or backups of another resource. Except for that specific case, the 200 OK response is preferred to this status.
         /// </summary>
         NonAuthoritativeInformation = 203,
 
         /// <summary>
-        /// There is no content to send for this request, but the headers may be useful. The user agent may update its cached headers for this resource with the new ones.
+        /// There is no content to send for this request, but the headers may be useful.
+        /// The user agent may update its cached headers for this resource with the new ones.
         /// </summary>
         NoContent = 204,
 
@@ -97,7 +100,8 @@
         MovedPermanently = 301,
 
         /// <summary>
-        /// This response code means that the URI of requested resource has been changed temporarily. Further changes in the URI might be made in the future. Therefore, this same URI should be used by the client in future requests.
+        /// This response code means that the URI of requested resource has been changed temporarily.
+        /// Further changes in the URI might be made in the future. Therefore, this same URI should be used by the client in future requests.
         /// </summary>
         Found = 302,
 
@@ -112,7 +116,8 @@
         NotModified = 304,
 
         /// <summary>
-        /// Defined in a previous version of the HTTP specification to indicate that a requested response must be accessed by a proxy. It has been deprecated due to security concerns regarding in-band configuration of a proxy.
+        /// Defined in a previous version of the HTTP specification to indicate that a requested response must be accessed by a proxy.
+        /// It has been deprecated due to security concerns regarding in-band configuration of a proxy.
         /// </summary>
         UseProxy = 305,
 
@@ -122,12 +127,14 @@
         Unused = 306,
 
         /// <summary>
-        /// The server sends this response to direct the client to get the requested resource at another URI with the same method that was used in the prior request. This has the same semantics as the 302 Found HTTP response code, with the exception that the user agent must not change the HTTP method used: if a POST was used in the first request, a POST must be used in the second request.
+        /// The server sends this response to direct the client to get the requested resource at another URI with the same method that was used in the prior request.
+        /// This has the same semantics as the 302 Found HTTP response code, with the exception that the user agent must not change the HTTP method used: if a POST was used in the first request, a POST must be used in the second request.
         /// </summary>
         TemporaryRedirect = 307,
 
         /// <summary>
-        /// This means that the resource is now permanently located at another URI, specified by the Location: HTTP Response header. This has the same semantics as the 301 Moved Permanently HTTP response code, with the exception that the user agent must not change the HTTP method used: if a POST was used in the first request, a POST must be used in the second request.
+        /// This means that the resource is now permanently located at another URI, specified by the Location: HTTP Response header.
+        /// This has the same semantics as the 301 Moved Permanently HTTP response code, with the exception that the user agent must not change the HTTP method used: if a POST was used in the first request, a POST must be used in the second request.
         /// </summary>
         PermanentRedirect = 308,
         #endregion
@@ -149,12 +156,14 @@
         PaymentRequired = 402,
 
         /// <summary>
-        /// The client does not have access rights to the content; that is, it is unauthorized, so the server is refusing to give the requested resource. Unlike 401 Unauthorized, the client's identity is known to the server.
+        /// The client does not have access rights to the content; that is, it is unauthorized, so the server is refusing to give the requested resource.
+        /// Unlike 401 Unauthorized, the client's identity is known to the server.
         /// </summary>
         Forbidden = 403,
 
         /// <summary>
-        /// The server cannot find the requested resource. In the browser, this means the URL is not recognized. In an API, this can also mean that the endpoint is valid but the resource itself does not exist. Servers may also send this response instead of 403 Forbidden to hide the existence of a resource from an unauthorized client. This response code is probably the most well known due to its frequent occurrence on the web.
+        /// The server cannot find the requested resource. In the browser, this means the URL is not recognized. In an API, this can also mean that the endpoint is valid but the resource itself does not exist.
+        /// Servers may also send this response instead of 403 Forbidden to hide the existence of a resource from an unauthorized client. This response code is probably the most well known due to its frequent occurrence on the web.
         /// </summary>
         NotFound = 404,
 
@@ -174,7 +183,9 @@
         ProxyAuthenticationRequired = 407,
 
         /// <summary>
-        /// This response is sent on an idle connection by some servers, even without any previous request by the client. It means that the server would like to shut down this unused connection. This response is used much more since some browsers, like Chrome, Firefox 27+, or IE9, use HTTP pre-connection mechanisms to speed up surfing. Also note that some servers merely shut down the connection without sending this message.
+        /// This response is sent on an idle connection by some servers, even without any previous request by the client. It means that the server would like to shut down this unused connection.
+        /// This response is used much more since some browsers, like Chrome, Firefox 27+, or IE9, use HTTP pre-connection mechanisms to speed up surfing.
+        /// Also note that some servers merely shut down the connection without sending this message.
         /// </summary>
         RequestTimeout = 408,
 
@@ -184,7 +195,10 @@
         Conflict = 409,
 
         /// <summary>
-        /// This response is sent when the requested content has been permanently deleted from server, with no forwarding address. Clients are expected to remove their caches and links to the resource. The HTTP specification intends this status code to be used for "limited-time, promotional services". APIs should not feel compelled to indicate resources that have been deleted with this status code.
+        /// This response is sent when the requested content has been permanently deleted from server, with no forwarding address.
+        /// Clients are expected to remove their caches and links to the resource.
+        /// The HTTP specification intends this status code to be used for "limited-time, promotional services".
+        /// APIs should not feel compelled to indicate resources that have been deleted with this status code.
         /// </summary>
         Gone = 410,
 
@@ -214,7 +228,8 @@
         UnsupportedMediaType = 415,
 
         /// <summary>
-        /// The range specified by the Range header field in the request cannot be fulfilled. It's possible that the range is outside the size of the target URI's data.
+        /// The range specified by the Range header field in the request cannot be fulfilled.
+        /// It's possible that the range is outside the size of the target URI's data.
         /// </summary>
         RangeNotSatisfiable = 416,
 
@@ -292,7 +307,8 @@
 
         /// <summary>
         /// The HyperText Transfer Protocol (HTTP) 503 Service Unavailable server error response code indicates that the server is not ready to handle the request.
-        /// Common causes are a server that is down for maintenance or that is overloaded. This response should be used for temporary conditions and the Retry-After HTTP header should, if possible, contain the estimated time for the recovery of the service.
+        /// Common causes are a server that is down for maintenance or that is overloaded.
+        /// This response should be used for temporary conditions and the Retry-After HTTP header should, if possible, contain the estimated time for the recovery of the service.
         /// </summary>
         ServiceUnavailable = 503,
 

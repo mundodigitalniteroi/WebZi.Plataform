@@ -6,6 +6,8 @@
 
         public int IdentificadorUsuario { get; set; }
 
+        public string Token { get; set; }
+
         public string FlagPermissaoDesconto { get; set; }
 
         public string FlagPermissaoDataRetroativaFaturamento { get; set; }

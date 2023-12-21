@@ -21,7 +21,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
             _httpClientFactory = httpClientFactory;
         }
 
-        public async Task<ResultViewModel> ConsultarVeiculoApreensao(AutorizarRetiradaModel AutorizarRetirada)
+        public async Task<ResultViewModel> ConsultarVeiculoApreensaoAsync(AutorizarRetiradaModel AutorizarRetirada)
         {
             WebServiceUrlModel WebServiceUrl = await _context.WebServiceUrl
                 .AsNoTracking()

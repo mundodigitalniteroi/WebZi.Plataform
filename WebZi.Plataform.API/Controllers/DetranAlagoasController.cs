@@ -35,7 +35,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<DetranAlagoasService>()
-                    .ConsultarVeiculoApreensao(AutorizarRetirada);
+                    .ConsultarVeiculoApreensaoAsync(AutorizarRetirada);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }

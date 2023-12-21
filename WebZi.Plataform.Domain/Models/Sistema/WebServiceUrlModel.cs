@@ -2,7 +2,7 @@
 {
     public class WebServiceUrlModel
     {
-        public byte WsUrlId { get; set; }
+        public byte UrlId { get; set; }
 
         public string Name { get; set; }
 

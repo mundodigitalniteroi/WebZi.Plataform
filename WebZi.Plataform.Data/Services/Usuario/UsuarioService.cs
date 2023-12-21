@@ -27,21 +27,21 @@ namespace WebZi.Plataform.Domain.Services.Usuario
             _mapper = mapper;
         }
 
-        private async Task<UsuarioViewModel> GetAsync(int UsuarioId, string Login, string Password = "")
+        private async Task<UsuarioViewModel> GetAsync(int UsuarioId, string Username, string Password)
         {
             UsuarioViewModel ResultView = new();
 
-            Login = Login.ToUpper().Trim();
+            Username = Username.ToUpper().Trim();
 
             Password = Password.ToUpper().Trim();
 
-            if (UsuarioId <= 0 && string.IsNullOrWhiteSpace(Login))
+            if (UsuarioId <= 0 && string.IsNullOrWhiteSpace(Username))
             {
                 ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Informe o Identificador do Usuário ou o Login");
 
                 return ResultView;
             }
-            else if (string.IsNullOrWhiteSpace(Login) && !string.IsNullOrWhiteSpace(Password))
+            else if (string.IsNullOrWhiteSpace(Username) && !string.IsNullOrWhiteSpace(Password))
             {
                 ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Ao informar a Senha do Usuário, é preciso informar o Login");
 
@@ -66,7 +66,7 @@ namespace WebZi.Plataform.Domain.Services.Usuario
                 {
                     new SqlParameter("@login", SqlDbType.VarChar)
                     {
-                        Value = Login
+                        Value = Username
                     },
 
                     new SqlParameter("@senha", SqlDbType.VarChar)
@@ -92,7 +92,7 @@ namespace WebZi.Plataform.Domain.Services.Usuario
 
             UsuarioModel result = await _context.Usuario
                 .Where(x => (UsuarioId > 0 ? x.UsuarioId == UsuarioId : true) &&
-                             !string.IsNullOrWhiteSpace(Login) ? x.Login == Login : true)
+                             !string.IsNullOrWhiteSpace(Username) ? x.Login == Username : true)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
 
@@ -139,12 +139,17 @@ namespace WebZi.Plataform.Domain.Services.Usuario
 
         public async Task<UsuarioViewModel> GetByIdAsync(int UsuarioId)
         {
-            return await GetAsync(UsuarioId, string.Empty);
+            return await GetAsync(UsuarioId, string.Empty, string.Empty);
         }
 
-        public async Task<UsuarioViewModel> GetByLoginAsync(string Login, string Password = "")
+        public async Task<UsuarioViewModel> GetByUsernameAsync(string Username)
         {
-            return await GetAsync(0, Login, Password);
+            return await GetAsync(0, Username, string.Empty);
+        }
+
+        public async Task<UsuarioViewModel> GetByLoginAsync(string Username, string Password)
+        {
+            return await GetAsync(0, Username, Password);
         }
 
         public bool IsUserActive(int UsuarioId)

@@ -156,5 +156,32 @@ namespace WebZi.Plataform.API.Controllers
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
         }
+
+        [HttpGet("Simulacao")]
+        // TODO: [Authorize]
+        public async Task<ActionResult<TabelaGenericaViewModelList>> Simulacao()
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            TabelaGenericaViewModelList ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<TabelaGenericaService>()
+                    .ListToViewModelAsync("FAT_TIPO_COBRANCA");
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
     }
 }

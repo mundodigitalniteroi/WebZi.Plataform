@@ -1,4 +1,7 @@
-﻿using IronBarCode;
+﻿using System.Drawing;
+using System.Drawing.Imaging;
+
+using QRCoder;
 
 namespace WebZi.Plataform.CrossCutting.Secutity
 {
@@ -6,20 +9,23 @@ namespace WebZi.Plataform.CrossCutting.Secutity
     {
         public static byte[] CreateImageAsByteArray(string QRCodeValue, string imageFormat = "JPG")
         {
-            GeneratedBarcode GeneratedBarcode = QRCodeWriter.CreateQrCode(QRCodeValue);
+            using QRCodeGenerator QrGenerator = new();
+            using (QRCodeData QrCodeInfo = QrGenerator.CreateQrCode(QRCodeValue, QRCodeGenerator.ECCLevel.Q))
+            {
+                using QRCode QrCode = new(QrCodeInfo);
+                using (Bitmap QrBitmap = QrCode.GetGraphic(60))
+                {
+                    return QrBitmap.BitmapToByteArray();
+                };
+            };
+        }
 
-            if (imageFormat.Equals("PNG"))
-            {
-                return GeneratedBarcode.ToPngBinaryData();
-            }
-            else if (imageFormat.Equals("JPG") || imageFormat.Equals("JPEG"))
-            {
-                return GeneratedBarcode.ToJpegBinaryData();
-            }
-            else
-            {
-                return null;
-            }
+        public static byte[] BitmapToByteArray(this Bitmap bitmap)
+        {
+            using MemoryStream ms = new();
+            bitmap.Save(ms, ImageFormat.Png);
+
+            return ms.ToArray();
         }
     }
 }

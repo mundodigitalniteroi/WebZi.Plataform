@@ -3,6 +3,7 @@ using WebZi.Plataform.CrossCutting.Strings;
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
+using WebZi.Plataform.Data.Services.Sistema;
 using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Banco.PIX;
 using WebZi.Plataform.Domain.Models.Banco.PIX.Work;
@@ -17,10 +18,12 @@ namespace WebZi.Plataform.Data.Services.Banco.PIX
     public class PixEstaticoService
     {
         private readonly AppDbContext _context;
+        private readonly IHttpClientFactory _httpClientFactory;
 
-        public PixEstaticoService(AppDbContext context)
+        public PixEstaticoService(AppDbContext context, IHttpClientFactory httpClientFactory)
         {
             _context = context;
+            _httpClientFactory = httpClientFactory;
         }
 
         public PixEstaticoGeradoViewModel Create(int FaturamentoId, int UsuarioId)
@@ -120,11 +123,12 @@ namespace WebZi.Plataform.Data.Services.Banco.PIX
             {
                 try
                 {
-                    PixEstaticoRetorno = HttpClientHelper.PostBasicAuth<PixEstaticoRetornoModel>(
-                        Configuracao.PixUrl,
-                        Configuracao.PixUsername,
-                        Configuracao.PixPassword,
-                        PixEstaticoEnvio);
+                    PixEstaticoRetorno = new HttpClientFactoryService(_httpClientFactory)
+                        .PostBasicAuth<PixEstaticoRetornoModel>(
+                            Configuracao.PixUrl,
+                            Configuracao.PixUsername,
+                            Configuracao.PixPassword,
+                            PixEstaticoEnvio);
 
                     break;
                 }

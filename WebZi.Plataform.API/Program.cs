@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.ResponseCompression;
 using Newtonsoft.Json;
+using System.IO.Compression;
 using System.Text.Json.Serialization;
 using WebZi.Plataform.Data.Services;
 
@@ -26,8 +28,28 @@ static void ConfigureServices(WebApplicationBuilder builder)
 
     builder.Services
         .AddMvc(options =>
+        {
+            options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
+        });
+
+    // https://www.c-sharpcorner.com/article/response-compression-in-asp-net-core/
+    // https://balta.io/blog/aspnet-compressao
+    builder.Services.AddResponseCompression(options =>
     {
-        options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
+        options.EnableForHttps = true;
+        options.Providers.Add<BrotliCompressionProvider>();
+        options.Providers.Add<GzipCompressionProvider>();
+        options.MimeTypes = ResponseCompressionDefaults.MimeTypes;
+    });
+
+    builder.Services.Configure<BrotliCompressionProviderOptions>(options =>
+    {
+        options.Level = CompressionLevel.Optimal;
+    });
+
+    builder.Services.Configure<GzipCompressionProviderOptions>(options =>
+    {
+        options.Level = CompressionLevel.Optimal;
     });
 }
 
@@ -62,6 +84,9 @@ static void ConfigureWebApplication(WebApplication app)
     });
 
     app.UseHttpsRedirection();
+
+    // TODO:
+    app.UseAuthentication();
 
     app.UseAuthorization();
 

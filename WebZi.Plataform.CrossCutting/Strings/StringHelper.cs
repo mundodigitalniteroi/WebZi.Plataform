@@ -55,7 +55,7 @@ namespace WebZi.Plataform.CrossCutting.Strings
 
         public static string RemoveString(this string input, string oldValue)
         {
-            return input?.Replace(oldValue, string.Empty);
+            return !input.IsNull() ? input.Replace(oldValue, string.Empty) : input;
         }
 
         public static string RemoveStrings(this string input, string[] oldValues)
@@ -80,7 +80,7 @@ namespace WebZi.Plataform.CrossCutting.Strings
 
         public static string Right(this string input, int lengh)
         {
-            return input.Substring(input.Length - lengh, lengh);
+            return !input.IsNull() ? input.Substring(input.Length - lengh, lengh) : input;
         }
 
         public static string ToCamelCase(this string input) // toCamelCase
@@ -99,7 +99,7 @@ namespace WebZi.Plataform.CrossCutting.Strings
 
         public static string ToLowerTrim(this string input)
         {
-            return input?.ToLower().Trim();
+            return !input.IsNull() ? input.ToLower().Trim() : input;
         }
 
         public static string ToNullIfEmpty(this string input)
@@ -114,7 +114,7 @@ namespace WebZi.Plataform.CrossCutting.Strings
 
         public static string ToUpperTrim(this string input)
         {
-            return input?.ToUpper().Trim();
+            return !input.IsNull() ? input.ToUpper().Trim() : input;
         }
     }
 }

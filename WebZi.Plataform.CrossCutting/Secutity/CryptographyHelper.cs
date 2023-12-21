@@ -13,7 +13,7 @@ namespace WebZi.Plataform.CrossCutting.Secutity
             {
                 aes.KeySize = 256;
                 aes.Key = Convert.FromBase64String(key);
-                aes.IV = iv;
+                aes.GenerateIV();
 
                 ICryptoTransform encryptor = aes.CreateEncryptor(aes.Key, aes.IV);
 

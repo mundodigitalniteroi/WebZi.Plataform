@@ -7,6 +7,7 @@ using WebZi.Plataform.CrossCutting.Strings;
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
+using WebZi.Plataform.Data.Services.Sistema;
 using WebZi.Plataform.Data.WsBoleto;
 using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Bucket;
@@ -24,13 +25,11 @@ namespace WebZi.Plataform.Data.Services.WebServices
     public class BoletoService
     {
         private readonly AppDbContext _context;
-        private readonly IMapper _mapper;
         private readonly IHttpClientFactory _httpClientFactory;
 
-        public BoletoService(AppDbContext context, IMapper mapper, IHttpClientFactory httpClientFactory)
+        public BoletoService(AppDbContext context, IHttpClientFactory httpClientFactory)
         {
             _context = context;
-            _mapper = mapper;
             _httpClientFactory = httpClientFactory;
         }
 
@@ -131,7 +130,8 @@ namespace WebZi.Plataform.Data.Services.WebServices
             {
                 ResultView.Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.Ok;
 
-                ResultView.Listagem.Add(new ImageViewModel { Imagem = HttpClientHelper.DownloadFile(BucketArquivo.Url) });
+                ResultView.Listagem.Add(new ImageViewModel { Imagem = new HttpClientFactoryService(_httpClientFactory)
+                    .DownloadFile(BucketArquivo.Url) });
 
                 return ResultView;
             }

@@ -1,5 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Domain.Services.Usuario;
 using WebZi.Plataform.Domain.ViewModel.Usuario;
@@ -59,7 +59,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<UsuarioService>()
-                    .GetByLoginAsync(Login);
+                    .GetByUsernameAsync(Login);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -71,9 +71,9 @@ namespace WebZi.Plataform.API.Controllers
             }
         }
 
-        [HttpGet("SelecionarPorLoginSenha")]
-        // TODO: [Authorize]
-        public async Task<ActionResult<UsuarioViewModel>> SelecionarPorLoginSenha(string Login, [DataType(DataType.Password)] string Senha)
+        [HttpPost("Login")]
+        [AllowAnonymous]
+        public async Task<ActionResult<UsuarioViewModel>> Login([FromBody] UsuarioLogin Login)
         {
             if (!ModelState.IsValid)
             {
@@ -86,7 +86,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<UsuarioService>()
-                    .GetByLoginAsync(Login, Senha);
+                    .GetByLoginAsync(Login.Usuario, Login.Senha);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }

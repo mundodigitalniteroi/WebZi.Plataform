@@ -24,6 +24,7 @@ using WebZi.Plataform.Domain.ViewModel;
 using WebZi.Plataform.Domain.ViewModel.Atendimento;
 using WebZi.Plataform.Domain.ViewModel.Generic;
 using WebZi.Plataform.Domain.ViewModel.Pagamento;
+using WebZi.Plataform.Data.Services.Sistema;
 
 namespace WebZi.Plataform.Data.Services.Atendimento
 {
@@ -763,7 +764,8 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             if (BucketArquivo != null)
             {
-                ResultView.Listagem.Add(new ImageViewModel { Imagem = HttpClientHelper.DownloadFile(BucketArquivo.Url) });
+                ResultView.Listagem.Add(new ImageViewModel { Imagem = new HttpClientFactoryService(_httpClientFactory)
+                    .DownloadFile(BucketArquivo.Url) });
 
                 ResultView.Mensagem = MensagemViewHelper.SetFound();
 

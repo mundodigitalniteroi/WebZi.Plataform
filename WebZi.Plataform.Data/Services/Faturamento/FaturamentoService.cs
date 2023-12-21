@@ -853,7 +853,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             if (TipoMeioCobrancaAtual.Alias == TipoMeioCobrancaAliasEnum.Boleto ||
                 TipoMeioCobrancaAtual.Alias == TipoMeioCobrancaAliasEnum.BoletoEspecial)
             {
-                new BoletoService(_context, _mapper, _httpClientFactory)
+                new BoletoService(_context, _httpClientFactory)
                     .Cancel(FaturamentoId);
             }
             else if (TipoMeioCobrancaAtual.Alias == TipoMeioCobrancaAliasEnum.PixEstatico)

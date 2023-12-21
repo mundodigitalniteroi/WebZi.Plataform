@@ -93,6 +93,8 @@ namespace WebZi.Plataform.Data.Services
 
             #region WebServices
             services.AddScoped<DetranAlagoasService>();
+
+            services.AddScoped<DetranRioService>();
             #endregion
         }
     }
