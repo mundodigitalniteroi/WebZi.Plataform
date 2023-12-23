@@ -16,9 +16,9 @@ namespace WebZi.Plataform.Data.Mappings.WebServices.DetranRio
             
             builder.Property(e => e.CodigoRestricao).HasColumnName("codigo_restricao");
             
-            builder.Property(e => e.IdDetranVeiculo).HasColumnName("id_detran_veiculo");
+            builder.Property(e => e.DetranVeiculoId).HasColumnName("id_detran_veiculo");
             
-            builder.Property(e => e.IdDetranVeiculosWsRestricaoOrigem).HasColumnName("id_detran_veiculos_ws_restricao_origem");
+            builder.Property(e => e.DetranVeiculoOrigemRestricaoId).HasColumnName("id_detran_veiculos_ws_restricao_origem");
             
             builder.Property(e => e.Restricao)
                 .IsRequired()

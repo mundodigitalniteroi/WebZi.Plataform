@@ -29,6 +29,7 @@ using WebZi.Plataform.Domain.Models.Veiculo;
 using WebZi.Plataform.Domain.Models.Vistoria;
 using WebZi.Plataform.Domain.Models.WebServices.Boleto;
 using WebZi.Plataform.Domain.Models.WebServices.DetranRio;
+using WebZi.Plataform.Domain.Models.WebServices.Rio;
 using WebZi.Plataform.Domain.Views.Faturamento;
 using WebZi.Plataform.Domain.Views.Localizacao;
 using WebZi.Plataform.Domain.Views.Report;
@@ -336,9 +337,9 @@ namespace WebZi.Plataform.Data.Database
         #region WS DETRAN RJ
         public DbSet<DetranRioVeiculoModel> DetranRioVeiculoModel { get; set; }
 
-        public DbSet<DetranRioVeiculoOrigemRestricaoModel> DetranRioVeiculoOrigemRestricaoModel { get; set; }
-
         public DbSet<DetranRioVeiculoOrigemRestricaoModel> DetranRioVeiculoOrigemRestricao { get; set; }
+
+        public DbSet<DetranRioVeiculoRestricaoModel> DetranRioVeiculoRestricao { get; set; }
         #endregion WS DETRAN RJ
 
         #endregion DbSets

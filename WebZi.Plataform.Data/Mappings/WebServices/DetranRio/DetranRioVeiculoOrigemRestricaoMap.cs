@@ -9,7 +9,7 @@ namespace WebZi.Plataform.Data.Mappings.WebServices.DetranRio
         public void Configure(EntityTypeBuilder<DetranRioVeiculoOrigemRestricaoModel> builder)
         {
             builder
-                .ToTable("IdDetranVeiculosWsRestricaoOrigem", "dbo")
+                .ToTable("tb_detran_veiculos_ws_restricoes_origem", "dbo")
                 .HasKey(e => e.DetranVeiculoOrigemRestricaoId);
 
             builder.Property(e => e.DetranVeiculoOrigemRestricaoId)

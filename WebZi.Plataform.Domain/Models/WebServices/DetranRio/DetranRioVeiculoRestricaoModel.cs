@@ -6,9 +6,9 @@ namespace WebZi.Plataform.Domain.Models.WebServices.Rio
     {
         public int DetranVeiculoRestricaoId { get; set; }
 
-        public int IdDetranVeiculo { get; set; }
+        public int DetranVeiculoId { get; set; }
 
-        public byte IdDetranVeiculosWsRestricaoOrigem { get; set; }
+        public byte DetranVeiculoOrigemRestricaoId { get; set; }
 
         /// <summary>
         /// A = Administrativa;
