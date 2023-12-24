@@ -3,6 +3,7 @@ using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.WebServices;
 using WebZi.Plataform.Domain.Models.WebServices.DetranRio;
 using WebZi.Plataform.Domain.ViewModel;
+using WebZi.Plataform.Domain.ViewModel.WebServices.DetranRio;
 
 namespace WebZi.Plataform.API.Controllers
 {
@@ -17,32 +18,84 @@ namespace WebZi.Plataform.API.Controllers
             _provider = provider;
         }
 
-        [HttpGet("ConsultarVeiculoPorPlaca")]
+        [HttpGet("ConsultarVeiculoPorChassi")]
         // TODO: [Authorize]
-        public async Task<ActionResult<DetranRioVeiculoModel>> ConsultarVeiculoPorPlaca(string Placa)
+        public async Task<ActionResult<DetranRioVeiculoViewModel>> ConsultarVeiculoPorChassi(string Chassi)
         {
-            MensagemViewModel ResultView = new();
-
             if (!ModelState.IsValid)
             {
-                ResultView = MensagemViewHelper.SetBadRequest();
-
-                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+                return BadRequest(ModelState);
             }
+
+            DetranRioVeiculoViewModel ResultView = new();
 
             try
             {
-                DetranRioVeiculoModel dsa = await _provider
+                ResultView = await _provider
                     .GetService<DetranRioService>()
-                    .GetByPlacaAsync(Placa);
+                    .GetByChassiAsync(Chassi);
 
-                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
             catch (Exception ex)
             {
-                ResultView = MensagemViewHelper.SetInternalServerError(ex);
+                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
 
-                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
+
+        [HttpGet("ConsultarVeiculoPorIdentificador")]
+        // TODO: [Authorize]
+        public async Task<ActionResult<DetranRioVeiculoViewModel>> ConsultarVeiculoPorIdentificador(int IdentificadorVeiculo)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            DetranRioVeiculoViewModel ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<DetranRioService>()
+                    .GetByIdAsync(IdentificadorVeiculo);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
+
+        [HttpGet("ConsultarVeiculoPorPlaca")]
+        // TODO: [Authorize]
+        public async Task<ActionResult<DetranRioVeiculoViewModel>> ConsultarVeiculoPorPlaca(string Placa)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            DetranRioVeiculoViewModel ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<DetranRioService>()
+                    .GetByPlacaAsync(Placa);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
         }
     }

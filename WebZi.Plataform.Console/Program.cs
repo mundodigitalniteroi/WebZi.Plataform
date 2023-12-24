@@ -1,6 +1,8 @@
-﻿using System.Text;
+﻿using System.Diagnostics;
+using System.Text;
 using WebZi.Plataform.CrossCutting.Configuration;
 using WebZi.Plataform.CrossCutting.Secutity;
+using WebZi.Plataform.CrossCutting.Veiculo;
 using WebZi.Plataform.Data.Database;
 
 class Program
@@ -42,6 +44,10 @@ class Program
         // var result = _context.GetForeingKeys("tb_dep_grv");
 
         // _context.SaveChanges();        
+
+        string placa = VeiculoHelper.FormatPlaca( "ABC1234 ");
+
+        Debugger.Break();
 
         byte[] textoAsBytes = Encoding.ASCII.GetBytes("AliCE_PAiS#no%MAraViLHas12345678");
 

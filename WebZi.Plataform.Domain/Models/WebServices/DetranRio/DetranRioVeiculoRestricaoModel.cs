@@ -22,7 +22,7 @@ namespace WebZi.Plataform.Domain.Models.WebServices.Rio
 
         public string Restricao { get; set; }
 
-        public virtual DetranRioVeiculoRestricaoModel DetranRioVeiculo { get; set; }
+        public virtual DetranRioVeiculoModel DetranRioVeiculo { get; set; }
 
         public virtual DetranRioVeiculoOrigemRestricaoModel DetranRioVeiculoOrigemRestricao { get; set; }
     }

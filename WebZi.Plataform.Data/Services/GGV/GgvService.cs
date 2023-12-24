@@ -729,7 +729,7 @@ namespace WebZi.Plataform.Data.Services.GGV
                         {
                             erros.Add("Informe a Placa Ostentada");
                         }
-                        else if (!VeiculoHelper.IsPlaca(GgvPersistencia.Vistoria.PlacaOstentada))
+                        else if (!GgvPersistencia.Vistoria.PlacaOstentada.IsPlaca())
                         {
                             erros.Add("Placa Ostentada inválida");
                         }

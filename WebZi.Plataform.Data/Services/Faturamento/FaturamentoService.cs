@@ -85,7 +85,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             // Se existir ao menos 1 Fatura paga, não deve dar Desconto
             if (_context.Faturamento
-                .Where(x => x.AtendimentoId == ParametrosCalculoFaturamento.Atendimento.AtendimentoId && x.Status == "P")
+                .Where(x => x.AtendimentoId == ParametrosCalculoFaturamento.Atendimento.AtendimentoId
+                         && x.Status == "P")
                 .AsNoTracking()
                 .Any())
             {
@@ -878,7 +879,10 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 .AsNoTracking()
                 .ToListAsync();
 
-            ResultView.Listagem = _mapper.Map<List<FaturamentoProdutoViewModel>>(result.OrderBy(x => x.Descricao).ToList());
+            ResultView.Listagem = _mapper
+                .Map<List<FaturamentoProdutoViewModel>>(result
+                .OrderBy(x => x.Descricao)
+                .ToList());
 
             ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
 
@@ -909,7 +913,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                          && x.DepositoId == Grv.DepositoId
                          && x.TipoVeiculoId == Grv.TipoVeiculoId
                          && x.FaturamentoProdutoId == Grv.FaturamentoProdutoId
-                         && (new[] { "DEP", "DRF" }.Contains(Grv.FaturamentoProdutoId) ? x.FlagCobrarGgv == "S" : true) && x.DataVigenciaFinal == null)
+                         && (new[] { "DEP", "DRF" }.Contains(Grv.FaturamentoProdutoId) ? x.FlagCobrarGgv == "S" : true)
+                         && x.DataVigenciaFinal == null)
                 .AsNoTracking()
                 .ToList();
 

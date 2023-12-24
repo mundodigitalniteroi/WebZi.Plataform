@@ -1,4 +1,6 @@
-﻿namespace WebZi.Plataform.Domain.Models.WebServices.DetranRio
+﻿using WebZi.Plataform.Domain.Models.WebServices.Rio;
+
+namespace WebZi.Plataform.Domain.Models.WebServices.DetranRio
 {
     public class DetranRioVeiculoOrigemRestricaoModel
     {
@@ -7,5 +9,7 @@
         public string Descricao { get; set; }
 
         public string FlagPermiteEdicao { get; set; } = "N";
+
+        public virtual ICollection<DetranRioVeiculoRestricaoModel> ListagemDetranRioVeiculoRestricao { get; set; }
     }
 }

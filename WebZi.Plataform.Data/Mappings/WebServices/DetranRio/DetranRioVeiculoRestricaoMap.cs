@@ -12,21 +12,21 @@ namespace WebZi.Plataform.Data.Mappings.WebServices.DetranRio
                 .ToTable("tb_detran_veiculos_ws_restricoes", "dbo")
                 .HasKey(e => e.DetranVeiculoRestricaoId);
 
-            builder.Property(e => e.DetranVeiculoRestricaoId).HasColumnName("id_detran_veiculos_ws_restricoes");
+            builder.Property(x => x.DetranVeiculoRestricaoId).HasColumnName("id_detran_veiculos_ws_restricoes");
             
-            builder.Property(e => e.CodigoRestricao).HasColumnName("codigo_restricao");
+            builder.Property(x => x.CodigoRestricao).HasColumnName("codigo_restricao");
             
-            builder.Property(e => e.DetranVeiculoId).HasColumnName("id_detran_veiculo");
+            builder.Property(x => x.DetranVeiculoId).HasColumnName("id_detran_veiculo");
             
-            builder.Property(e => e.DetranVeiculoOrigemRestricaoId).HasColumnName("id_detran_veiculos_ws_restricao_origem");
+            builder.Property(x => x.DetranVeiculoOrigemRestricaoId).HasColumnName("id_detran_veiculos_ws_restricao_origem");
             
-            builder.Property(e => e.Restricao)
+            builder.Property(x => x.Restricao)
                 .IsRequired()
                 .HasMaxLength(200)
                 .IsUnicode(false)
                 .HasColumnName("restricao");
 
-            builder.Property(e => e.TipoRestricao)
+            builder.Property(x => x.TipoRestricao)
                 .IsRequired()
                 .HasMaxLength(1)
                 .IsUnicode(false)
@@ -34,15 +34,17 @@ namespace WebZi.Plataform.Data.Mappings.WebServices.DetranRio
                 .HasComment("A = Administrativa;\r\nE = Estelionato;\r\nJ = Jurídica;\r\nR = Roubo/Furto")
                 .HasColumnName("tipo_restricao");
 
-            //builder.HasOne(d => d.IdDetranVeiculoNavigation).WithMany(p => p.TbDetranVeiculosWsRestricos)
-            //    .HasForeignKey(d => d.IdDetranVeiculo)
-            //    .OnDelete(DeleteBehavior.ClientSetNull)
-            //    .HasConstraintName("fk_tb_detran_veiculos_ws_restricoes1");
+            builder
+                .HasOne(x => x.DetranRioVeiculo)
+                .WithMany(x => x.ListagemDetranRioVeiculoRestricao)
+                .HasForeignKey(x => x.DetranVeiculoId)
+                .OnDelete(DeleteBehavior.NoAction);
 
-            //builder.HasOne(d => d.IdDetranVeiculosWsRestricaoOrigemNavigation).WithMany(p => p.TbDetranVeiculosWsRestricos)
-            //    .HasForeignKey(d => d.IdDetranVeiculosWsRestricaoOrigem)
-            //    .OnDelete(DeleteBehavior.ClientSetNull)
-            //    .HasConstraintName("fk_tb_detran_veiculos_ws_restricoes2");
+            builder
+                .HasOne(x => x.DetranRioVeiculoOrigemRestricao)
+                .WithMany(x => x.ListagemDetranRioVeiculoRestricao)
+                .HasForeignKey(x => x.DetranVeiculoOrigemRestricaoId)
+                .OnDelete(DeleteBehavior.NoAction);
         }
     }
 }

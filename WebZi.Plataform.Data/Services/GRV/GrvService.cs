@@ -11,12 +11,12 @@ using WebZi.Plataform.CrossCutting.Veiculo;
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
-using WebZi.Plataform.Data.Services.WebServices;
 using WebZi.Plataform.Data.Services.Cliente;
 using WebZi.Plataform.Data.Services.Deposito;
 using WebZi.Plataform.Data.Services.Faturamento;
 using WebZi.Plataform.Data.Services.Localizacao;
 using WebZi.Plataform.Data.Services.Sistema;
+using WebZi.Plataform.Data.Services.WebServices;
 using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Bucket;
 using WebZi.Plataform.Domain.Models.Bucket.Work;
@@ -31,6 +31,7 @@ using WebZi.Plataform.Domain.Models.Servico;
 using WebZi.Plataform.Domain.Models.Sistema;
 using WebZi.Plataform.Domain.Models.Usuario;
 using WebZi.Plataform.Domain.Models.Veiculo;
+using WebZi.Plataform.Domain.Models.WebServices.Boleto;
 using WebZi.Plataform.Domain.Services.Usuario;
 using WebZi.Plataform.Domain.ViewModel;
 using WebZi.Plataform.Domain.ViewModel.Generic;
@@ -41,7 +42,6 @@ using WebZi.Plataform.Domain.ViewModel.Localizacao;
 using WebZi.Plataform.Domain.ViewModel.Usuario;
 using WebZi.Plataform.Domain.Views.Usuario;
 using Z.EntityFramework.Plus;
-using WebZi.Plataform.Domain.Models.WebServices.Boleto;
 
 namespace WebZi.Plataform.Domain.Services.GRV
 {
@@ -1037,7 +1037,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             BucketArquivoModel BucketArquivo = await _context.BucketArquivo
                 .Include(x => x.BucketNomeTabelaOrigem)
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.TabelaOrigemId == GrvId 
+                .FirstOrDefaultAsync(x => x.TabelaOrigemId == GrvId
                                        && x.BucketNomeTabelaOrigem.Codigo == "GRVASSINACONDUT");
 
             if (BucketArquivo == null)
@@ -1372,12 +1372,12 @@ namespace WebZi.Plataform.Domain.Services.GRV
             }
             else
             {
-                if (!string.IsNullOrWhiteSpace(GrvPesquisa.PlacaVeiculo) && !VeiculoHelper.IsPlaca(GrvPesquisa.PlacaVeiculo))
+                if (!string.IsNullOrWhiteSpace(GrvPesquisa.PlacaVeiculo) && !GrvPesquisa.PlacaVeiculo.IsPlaca())
                 {
                     erros.Add("Placa inválida");
                 }
 
-                if (!string.IsNullOrWhiteSpace(GrvPesquisa.Chassi) && !VeiculoHelper.IsChassi(GrvPesquisa.Chassi))
+                if (!string.IsNullOrWhiteSpace(GrvPesquisa.Chassi) && !GrvPesquisa.Chassi.IsChassi())
                 {
                     erros.Add("Chassi inválido");
                 }
@@ -1776,7 +1776,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 {
                     erros.Add("Informe o Chassi");
                 }
-                else if (!VeiculoHelper.IsChassi(GrvPersistencia.Chassi))
+                else if (!GrvPersistencia.Chassi.IsChassi())
                 {
                     erros.Add("Chassi inválido");
                 }
@@ -1787,7 +1787,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 {
                     erros.Add("Informe a Placa");
                 }
-                else if (!VeiculoHelper.IsPlaca(GrvPersistencia.Placa))
+                else if (!GrvPersistencia.Placa.IsPlaca())
                 {
                     erros.Add("Placa inválida");
                 }
@@ -1796,7 +1796,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 {
                     erros.Add("Informe o Chassi");
                 }
-                else if (!VeiculoHelper.IsChassi(GrvPersistencia.Chassi))
+                else if (!GrvPersistencia.Chassi.IsChassi())
                 {
                     erros.Add("Chassi inválido");
                 }
@@ -1810,7 +1810,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 }
                 else
                 {
-                    if (!string.IsNullOrWhiteSpace(GrvPersistencia.Chassi) && !VeiculoHelper.IsChassi(GrvPersistencia.Chassi))
+                    if (!string.IsNullOrWhiteSpace(GrvPersistencia.Chassi) && !GrvPersistencia.Chassi.IsChassi())
                     {
                         erros.Add("Chassi inválido");
                     }

@@ -5,9 +5,15 @@ namespace WebZi.Plataform.CrossCutting.Veiculo
 {
     public static partial class VeiculoHelper
     {
+        #region Chassi
         public static string FormatChassi(this string input)
         {
-            input = input.Trim();
+            if (input.IsNullOrWhiteSpace())
+            {
+                return input;
+            }
+
+            input = input.NormalizeChassi();
 
             if (input.Length != 17)
             {
@@ -17,17 +23,36 @@ namespace WebZi.Plataform.CrossCutting.Veiculo
             return input.Left(3) + " " + input.Mid(4, 5) + " " + input.Mid(9, 1) + " " + input.Mid(10, 2) + " " + input.Mid(12, 5);
         }
 
-        public static string FormatPlaca(this string input)
-        {
-            return IsPlaca(input) ? input.Left(3) + "-" + input.Right(4) : input;
-        }
-
         [GeneratedRegex("^[A-Za-z0-9]{3,3}[A-Za-z0-9]{6,6}[A-Za-z0-9]{2,2}[A-Za-z0-9]{6,6}$")]
         private static partial Regex RegexIsChassi();
 
         public static bool IsChassi(this string input)
         {
-            return RegexIsChassi().IsMatch(input.Trim());
+            if (input.IsNullOrWhiteSpace())
+            {
+                return false;
+            }
+
+            return RegexIsChassi().IsMatch(input.NormalizeChassi());
+        }
+
+        public static string NormalizeChassi(this string input)
+        {
+            return !input.IsNullOrWhiteSpace() ? input.Replace(" ", "").ToUpperTrim() : input;
+        }
+        #endregion Chassi
+
+        #region Placa
+        public static string FormatPlaca(this string input)
+        {
+            if (input.IsNullOrWhiteSpace())
+            {
+                return input;
+            }
+
+            input = input.NormalizePlaca();
+
+            return input.IsPlaca() ? input.Left(3) + "-" + input.Right(4) : input;
         }
 
         [GeneratedRegex("^[a-zA-Z]{3}\\d{4}$")]
@@ -38,10 +63,21 @@ namespace WebZi.Plataform.CrossCutting.Veiculo
 
         public static bool IsPlaca(this string input)
         {
-            string aux = input.Replace("-", "").Trim();
+            if (input.IsNullOrWhiteSpace())
+            {
+                return false;
+            }
 
-            return !aux.EndsWith("0000") && (RegexPlacaAntiga().IsMatch(aux) || RegexPlacaNova().IsMatch(aux));
+            input = input.NormalizePlaca();
+
+            return !input.EndsWith("0000") && (RegexPlacaAntiga().IsMatch(input) || RegexPlacaNova().IsMatch(input));
         }
+
+        public static string NormalizePlaca(this string input)
+        {
+            return !input.IsNullOrWhiteSpace() ? input.Replace("-", "").ToUpperTrim() : input;
+        }
+        #endregion Placa
 
         #region Renavan
         public static bool IsRenavan(string input)
@@ -104,6 +140,6 @@ namespace WebZi.Plataform.CrossCutting.Veiculo
             if (valor >= 10) return 0;
             return valor;
         }
-        #endregion
+        #endregion Renavan
     }
 }

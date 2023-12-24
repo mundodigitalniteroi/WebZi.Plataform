@@ -62,7 +62,7 @@ namespace WebZi.Plataform.Data.Services.Servico
             {
                 erros.Add("Informe a Placa");
             }
-            else if (!VeiculoHelper.IsPlaca(Placa))
+            else if (!Placa.IsPlaca())
             {
                 erros.Add("Placa inválida");
             }

@@ -12,26 +12,26 @@ namespace WebZi.Plataform.Data.Mappings.GRV
                 .ToTable("tb_dep_tipo_veiculos", "dbo")
                 .HasKey(x => x.TipoVeiculoId);
 
-            builder.Property(e => e.TipoVeiculoId)
+            builder.Property(x => x.TipoVeiculoId)
                 .HasColumnName("id_tipo_veiculo")
                 .ValueGeneratedOnAdd();
 
-            builder.Property(e => e.DataAlteracao)
+            builder.Property(x => x.DataAlteracao)
                 .HasColumnType("smalldatetime")
                 .HasColumnName("data_alteracao");
 
-            builder.Property(e => e.DataCadastro)
+            builder.Property(x => x.DataCadastro)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("smalldatetime")
                 .HasColumnName("data_cadastro");
 
-            builder.Property(e => e.Descricao)
+            builder.Property(x => x.Descricao)
                 .IsRequired()
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("descricao");
 
-            builder.Property(e => e.FlagAtivo)
+            builder.Property(x => x.FlagAtivo)
                 .IsRequired()
                 .HasMaxLength(1)
                 .IsUnicode(false)
@@ -39,7 +39,7 @@ namespace WebZi.Plataform.Data.Mappings.GRV
                 .IsFixedLength()
                 .HasColumnName("flag_ativo");
 
-            builder.Property(e => e.FlagNaoRequerCnhNaLiberacao)
+            builder.Property(x => x.FlagNaoRequerCnhNaLiberacao)
                 .IsRequired()
                 .HasMaxLength(1)
                 .IsUnicode(false)
@@ -47,18 +47,22 @@ namespace WebZi.Plataform.Data.Mappings.GRV
                 .IsFixedLength()
                 .HasColumnName("flag_nao_requer_cnh_na_liberacao");
 
-            builder.Property(e => e.UsuarioCadastroId)
+            builder.Property(x => x.UsuarioCadastroId)
                 .HasColumnName("id_usuario_cadastro");
 
-            builder.Property(e => e.UsuarioAlteracaoId)
+            builder.Property(x => x.UsuarioAlteracaoId)
                 .HasColumnName("id_usuario_alteracao");
 
-            builder.HasOne(d => d.UsuarioCadastro).WithMany(p => p.ListagemUsuarioCadastroTipoVeiculo)
-                .HasForeignKey(d => d.UsuarioCadastroId)
+            builder
+                .HasOne(x => x.UsuarioCadastro)
+                .WithMany(x => x.ListagemUsuarioCadastroTipoVeiculo)
+                .HasForeignKey(x => x.UsuarioCadastroId)
                 .OnDelete(DeleteBehavior.NoAction);
 
-            builder.HasOne(d => d.UsuarioAlteracao).WithMany(p => p.ListagemUsuarioAlteracaoTipoVeiculo)
-                .HasForeignKey(d => d.UsuarioAlteracaoId)
+            builder
+                .HasOne(x => x.UsuarioAlteracao)
+                .WithMany(x => x.ListagemUsuarioAlteracaoTipoVeiculo)
+                .HasForeignKey(x => x.UsuarioAlteracaoId)
                 .OnDelete(DeleteBehavior.NoAction);
         }
     }

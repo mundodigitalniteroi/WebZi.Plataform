@@ -15,6 +15,8 @@ using WebZi.Plataform.Domain.Models.Sistema;
 using WebZi.Plataform.Domain.Models.Usuario;
 using WebZi.Plataform.Domain.Models.Veiculo;
 using WebZi.Plataform.Domain.Models.Vistoria;
+using WebZi.Plataform.Domain.Models.WebServices.DetranRio;
+using WebZi.Plataform.Domain.Models.WebServices.Rio;
 using WebZi.Plataform.Domain.ViewModel.Atendimento;
 using WebZi.Plataform.Domain.ViewModel.Banco;
 using WebZi.Plataform.Domain.ViewModel.Cliente;
@@ -33,6 +35,7 @@ using WebZi.Plataform.Domain.ViewModel.Sistema;
 using WebZi.Plataform.Domain.ViewModel.Usuario;
 using WebZi.Plataform.Domain.ViewModel.Veiculo;
 using WebZi.Plataform.Domain.ViewModel.Vistoria;
+using WebZi.Plataform.Domain.ViewModel.WebServices.DetranRio;
 using WebZi.Plataform.Domain.Views.Localizacao;
 using WebZi.Plataform.Domain.Views.Usuario;
 
@@ -47,170 +50,184 @@ namespace WebZi.Plataform.Data.Services
 
             // Model to ViewModel
             CreateMap<AtendimentoModel, AtendimentoViewModel>()
-                .ForMember(dest => dest.IdentificadorAtendimento, opt => opt.MapFrom(src => src.AtendimentoId))
-                .ForMember(dest => dest.IdentificadorGrv, opt => opt.MapFrom(src => src.GrvId))
-                .ForMember(dest => dest.IdentificadorQualificacaoResponsavel, opt => opt.MapFrom(src => src.QualificacaoResponsavelId));
+                .ForMember(dest => dest.IdentificadorAtendimento, from => from.MapFrom(property => property.AtendimentoId))
+                .ForMember(dest => dest.IdentificadorGrv, from => from.MapFrom(property => property.GrvId))
+                .ForMember(dest => dest.IdentificadorQualificacaoResponsavel, from => from.MapFrom(property => property.QualificacaoResponsavelId));
 
             CreateMap<AgenciaBancariaModel, AgenciaBancariaViewModel>()
-                .ForMember(dest => dest.IdentificadorAgenciaBancaria, opt => opt.MapFrom(src => src.AgenciaBancariaId));
+                .ForMember(dest => dest.IdentificadorAgenciaBancaria, from => from.MapFrom(property => property.AgenciaBancariaId));
 
             CreateMap<AutoridadeResponsavelModel, AutoridadeResponsavelViewModel>()
-                .ForMember(dest => dest.IdentificadorAutoridadeResponsavel, opt => opt.MapFrom(src => src.AutoridadeResponsavelId))
-                .ForMember(dest => dest.IdentificadorOrgaoEmissor, opt => opt.MapFrom(src => src.OrgaoEmissorId));
+                .ForMember(dest => dest.IdentificadorAutoridadeResponsavel, from => from.MapFrom(property => property.AutoridadeResponsavelId))
+                .ForMember(dest => dest.IdentificadorOrgaoEmissor, from => from.MapFrom(property => property.OrgaoEmissorId));
 
             CreateMap<BancoModel, BancoViewModel>()
-                .ForMember(dest => dest.IdentificadorBanco, opt => opt.MapFrom(src => src.BancoId));
+                .ForMember(dest => dest.IdentificadorBanco, from => from.MapFrom(property => property.BancoId));
 
             CreateMap<ClienteModel, ClienteViewModel>()
-                .ForMember(dest => dest.IdentificadorCliente, opt => opt.MapFrom(src => src.ClienteId))
-                .ForMember(dest => dest.IdentificadorAgenciaBancaria, opt => opt.MapFrom(src => src.AgenciaBancariaId))
-                .ForMember(dest => dest.IdentificadorCEP, opt => opt.MapFrom(src => src.CEPId))
-                .ForMember(dest => dest.IdentificadorTipoLogradouro, opt => opt.MapFrom(src => src.TipoLogradouroId))
-                .ForMember(dest => dest.IdentificadorBairro, opt => opt.MapFrom(src => src.BairroId))
-                .ForMember(dest => dest.IdentificadorTipoMeioCobranca, opt => opt.MapFrom(src => src.TipoMeioCobrancaId))
-                .ForMember(dest => dest.IdentificadorEmpresa, opt => opt.MapFrom(src => src.EmpresaId))
-                .ForMember(dest => dest.IdentificadorOrgaoExecutivoTransito, opt => opt.MapFrom(src => src.OrgaoExecutivoTransitoId))
-                .ForMember(dest => dest.IdentificadorTipoChavePIX, opt => opt.MapFrom(src => src.PixTipoChaveId));
+                .ForMember(dest => dest.IdentificadorCliente, from => from.MapFrom(property => property.ClienteId))
+                .ForMember(dest => dest.IdentificadorAgenciaBancaria, from => from.MapFrom(property => property.AgenciaBancariaId))
+                .ForMember(dest => dest.IdentificadorCEP, from => from.MapFrom(property => property.CEPId))
+                .ForMember(dest => dest.IdentificadorTipoLogradouro, from => from.MapFrom(property => property.TipoLogradouroId))
+                .ForMember(dest => dest.IdentificadorBairro, from => from.MapFrom(property => property.BairroId))
+                .ForMember(dest => dest.IdentificadorTipoMeioCobranca, from => from.MapFrom(property => property.TipoMeioCobrancaId))
+                .ForMember(dest => dest.IdentificadorEmpresa, from => from.MapFrom(property => property.EmpresaId))
+                .ForMember(dest => dest.IdentificadorOrgaoExecutivoTransito, from => from.MapFrom(property => property.OrgaoExecutivoTransitoId))
+                .ForMember(dest => dest.IdentificadorTipoChavePIX, from => from.MapFrom(property => property.PixTipoChaveId));
 
             CreateMap<ClienteViewModel, ClienteSimplificadoViewModel>();
 
             CreateMap<CorModel, CorViewModel>()
-                .ForMember(dest => dest.IdentificadorCor, opt => opt.MapFrom(src => src.CorId));
+                .ForMember(dest => dest.IdentificadorCor, from => from.MapFrom(property => property.CorId));
 
             CreateMap<DepositoModel, DepositoViewModel>()
-                .ForMember(dest => dest.IdentificadorDeposito, opt => opt.MapFrom(src => src.DepositoId))
-                .ForMember(dest => dest.IdentificadorEmpresa, opt => opt.MapFrom(src => src.EmpresaId))
-                .ForMember(dest => dest.IdentificadorCEP, opt => opt.MapFrom(src => src.CEPId))
-                .ForMember(dest => dest.IdentificadorTipoLogradouro, opt => opt.MapFrom(src => src.TipoLogradouroId))
-                .ForMember(dest => dest.IdentificadorBairro, opt => opt.MapFrom(src => src.BairroId))
-                .ForMember(dest => dest.IdentificadorSistemaExterno, opt => opt.MapFrom(src => src.SistemaExternoId));
+                .ForMember(dest => dest.IdentificadorDeposito, from => from.MapFrom(property => property.DepositoId))
+                .ForMember(dest => dest.IdentificadorEmpresa, from => from.MapFrom(property => property.EmpresaId))
+                .ForMember(dest => dest.IdentificadorCEP, from => from.MapFrom(property => property.CEPId))
+                .ForMember(dest => dest.IdentificadorTipoLogradouro, from => from.MapFrom(property => property.TipoLogradouroId))
+                .ForMember(dest => dest.IdentificadorBairro, from => from.MapFrom(property => property.BairroId))
+                .ForMember(dest => dest.IdentificadorSistemaExterno, from => from.MapFrom(property => property.SistemaExternoId));
+
+            CreateMap<DetranRioVeiculoModel, DetranRioVeiculoViewModel>()
+                .ForMember(dest => dest.IdentificadorVeiculo, from => from.MapFrom(property => property.DetranVeiculoId))
+                .ForMember(dest => dest.InformacaoRoubo, from => from.MapFrom(property => property.InformacaoRoubo.ToNullIfEmpty()))
+                .ForMember(dest => dest.RestricaoEstelionato, from => from.MapFrom(property => property.RestricaoEstelionato.ToNullIfEmpty()));
+
+            CreateMap<CorModel, DetranRioVeiculoViewModel>()
+                .ForMember(dest => dest.Cor, from => from.MapFrom(x => x));
+
+            CreateMap<MarcaModeloModel, DetranRioVeiculoViewModel>()
+                .ForMember(dest => dest.MarcaModelo, from => from.MapFrom(x => x));
+
+            //CreateMap<DetranRioVeiculoRestricaoModel, DetranRioVeiculoViewModel>()
+            //    .ForMember(dest => dest.ListagemDetranRioVeiculoRestricao, from => from.MapFrom(x => x));
 
             CreateMap<EmpresaModel, EmpresaViewModel>()
-                .ForMember(dest => dest.IdentificadorEmpresa, opt => opt.MapFrom(src => src.EmpresaId))
-                .ForMember(dest => dest.IdentificadorEmpresaMatriz, opt => opt.MapFrom(src => src.EmpresaMatrizId))
-                .ForMember(dest => dest.IdentificadorEmpresaClassificacao, opt => opt.MapFrom(src => src.EmpresaClassificacaoId))
-                .ForMember(dest => dest.IdentificadorCEP, opt => opt.MapFrom(src => src.CEPId))
-                .ForMember(dest => dest.IdentificadorTipoLogradouro, opt => opt.MapFrom(src => src.TipoLogradouroId))
-                .ForMember(dest => dest.IdentificadorCNAE, opt => opt.MapFrom(src => src.CnaeId))
-                .ForMember(dest => dest.IdentificadorCNAEListaServico, opt => opt.MapFrom(src => src.CnaeListaServicoId));
+                .ForMember(dest => dest.IdentificadorEmpresa, from => from.MapFrom(property => property.EmpresaId))
+                .ForMember(dest => dest.IdentificadorEmpresaMatriz, from => from.MapFrom(property => property.EmpresaMatrizId))
+                .ForMember(dest => dest.IdentificadorEmpresaClassificacao, from => from.MapFrom(property => property.EmpresaClassificacaoId))
+                .ForMember(dest => dest.IdentificadorCEP, from => from.MapFrom(property => property.CEPId))
+                .ForMember(dest => dest.IdentificadorTipoLogradouro, from => from.MapFrom(property => property.TipoLogradouroId))
+                .ForMember(dest => dest.IdentificadorCNAE, from => from.MapFrom(property => property.CnaeId))
+                .ForMember(dest => dest.IdentificadorCNAEListaServico, from => from.MapFrom(property => property.CnaeListaServicoId));
 
             CreateMap<EnquadramentoInfracaoModel, EnquadramentoInfracaoViewModel>()
-                .ForMember(dest => dest.IdentificadorEnquadramentoInfracao, opt => opt.MapFrom(src => src.EnquadramentoInfracaoId))
-                .ForMember(dest => dest.FlagAtivo, opt => opt.MapFrom(src => src.Status));
+                .ForMember(dest => dest.IdentificadorEnquadramentoInfracao, from => from.MapFrom(property => property.EnquadramentoInfracaoId))
+                .ForMember(dest => dest.FlagAtivo, from => from.MapFrom(property => property.Status));
 
             CreateMap<FaturamentoProdutoModel, FaturamentoProdutoViewModel>()
-                .ForMember(dest => dest.CodigoProduto, opt => opt.MapFrom(src => src.FaturamentoProdutoId));
+                .ForMember(dest => dest.CodigoProduto, from => from.MapFrom(property => property.FaturamentoProdutoId));
 
             CreateMap<GrvModel, GrvViewModel>()
-                .ForMember(dest => dest.IdentificadorGrv, opt => opt.MapFrom(src => src.GrvId))
-                .ForMember(dest => dest.IdentificadorCliente, opt => opt.MapFrom(src => src.ClienteId))
-                .ForMember(dest => dest.IdentificadorDeposito, opt => opt.MapFrom(src => src.DepositoId))
-                .ForMember(dest => dest.IdentificadorTipoVeiculo, opt => opt.MapFrom(src => src.TipoVeiculoId))
-                .ForMember(dest => dest.IdentificadorReboquista, opt => opt.MapFrom(src => src.ReboquistaId))
-                .ForMember(dest => dest.IdentificadorReboque, opt => opt.MapFrom(src => src.ReboqueId))
-                .ForMember(dest => dest.IdentificadorAutoridadeResponsavel, opt => opt.MapFrom(src => src.AutoridadeResponsavelId))
-                .ForMember(dest => dest.IdentificadorCor, opt => opt.MapFrom(src => src.CorId))
-                .ForMember(dest => dest.IdentificadorMarcaModelo, opt => opt.MapFrom(src => src.MarcaModeloId))
-                .ForMember(dest => dest.IdentificadorMotivoApreensao, opt => opt.MapFrom(src => src.MotivoApreensaoId))
-                .ForMember(dest => dest.IdentificadorStatusOperacao, opt => opt.MapFrom(src => src.StatusOperacaoId))
-                .ForMember(dest => dest.IdentificadorLiberacao, opt => opt.MapFrom(src => src.LiberacaoId))
-                .ForMember(dest => dest.CodigoProduto, opt => opt.MapFrom(src => src.FaturamentoProdutoId));
+                .ForMember(dest => dest.IdentificadorGrv, from => from.MapFrom(property => property.GrvId))
+                .ForMember(dest => dest.IdentificadorCliente, from => from.MapFrom(property => property.ClienteId))
+                .ForMember(dest => dest.IdentificadorDeposito, from => from.MapFrom(property => property.DepositoId))
+                .ForMember(dest => dest.IdentificadorTipoVeiculo, from => from.MapFrom(property => property.TipoVeiculoId))
+                .ForMember(dest => dest.IdentificadorReboquista, from => from.MapFrom(property => property.ReboquistaId))
+                .ForMember(dest => dest.IdentificadorReboque, from => from.MapFrom(property => property.ReboqueId))
+                .ForMember(dest => dest.IdentificadorAutoridadeResponsavel, from => from.MapFrom(property => property.AutoridadeResponsavelId))
+                .ForMember(dest => dest.IdentificadorCor, from => from.MapFrom(property => property.CorId))
+                .ForMember(dest => dest.IdentificadorMarcaModelo, from => from.MapFrom(property => property.MarcaModeloId))
+                .ForMember(dest => dest.IdentificadorMotivoApreensao, from => from.MapFrom(property => property.MotivoApreensaoId))
+                .ForMember(dest => dest.IdentificadorStatusOperacao, from => from.MapFrom(property => property.StatusOperacaoId))
+                .ForMember(dest => dest.IdentificadorLiberacao, from => from.MapFrom(property => property.LiberacaoId))
+                .ForMember(dest => dest.CodigoProduto, from => from.MapFrom(property => property.FaturamentoProdutoId));
 
             CreateMap<LacreModel, LacreViewModel>()
-                .ForMember(dest => dest.IdentificadorLacre, opt => opt.MapFrom(src => src.LacreId));
+                .ForMember(dest => dest.IdentificadorLacre, from => from.MapFrom(property => property.LacreId));
 
             CreateMap<MarcaModeloModel, MarcaModeloViewModel>()
-                .ForMember(dest => dest.IdentificadorMarcaModelo, opt => opt.MapFrom(src => src.MarcaModeloId));
+                .ForMember(dest => dest.IdentificadorMarcaModelo, from => from.MapFrom(property => property.MarcaModeloId));
 
             CreateMap<MotivoApreensaoModel, MotivoApreensaoViewModel>()
-                .ForMember(dest => dest.IdentificadorMotivoApreensao, opt => opt.MapFrom(src => src.MotivoApreensaoId));
+                .ForMember(dest => dest.IdentificadorMotivoApreensao, from => from.MapFrom(property => property.MotivoApreensaoId));
 
             CreateMap<OrgaoEmissorModel, OrgaoEmissorViewModel>()
-                .ForMember(dest => dest.IdentificadorOrgaoEmissor, opt => opt.MapFrom(src => src.OrgaoEmissorId))
-                .ForMember(dest => dest.Nome, opt => opt.MapFrom(src => src.Descricao));
+                .ForMember(dest => dest.IdentificadorOrgaoEmissor, from => from.MapFrom(property => property.OrgaoEmissorId))
+                .ForMember(dest => dest.Nome, from => from.MapFrom(property => property.Descricao));
 
             CreateMap<QualificacaoResponsavelModel, QualificacaoResponsavelViewModel>()
-                .ForMember(dest => dest.IdentificadorQualificacaoResponsavel, opt => opt.MapFrom(src => src.QualificacaoResponsavelId));
+                .ForMember(dest => dest.IdentificadorQualificacaoResponsavel, from => from.MapFrom(property => property.QualificacaoResponsavelId));
 
             CreateMap<ReboqueModel, ReboqueViewModel>()
-                .ForMember(dest => dest.IdentificadorReboque, opt => opt.MapFrom(src => src.ReboqueId))
-                .ForMember(dest => dest.IdentificadorCliente, opt => opt.MapFrom(src => src.ClienteId))
-                .ForMember(dest => dest.IdentificadorDeposito, opt => opt.MapFrom(src => src.DepositoId));
+                .ForMember(dest => dest.IdentificadorReboque, from => from.MapFrom(property => property.ReboqueId))
+                .ForMember(dest => dest.IdentificadorCliente, from => from.MapFrom(property => property.ClienteId))
+                .ForMember(dest => dest.IdentificadorDeposito, from => from.MapFrom(property => property.DepositoId));
 
             CreateMap<ReboquistaModel, ReboquistaViewModel>()
-                .ForMember(dest => dest.IdentificadorReboquista, opt => opt.MapFrom(src => src.ReboquistaId))
-                .ForMember(dest => dest.IdentificadorCliente, opt => opt.MapFrom(src => src.ClienteId))
-                .ForMember(dest => dest.IdentificadorDeposito, opt => opt.MapFrom(src => src.DepositoId));
+                .ForMember(dest => dest.IdentificadorReboquista, from => from.MapFrom(property => property.ReboquistaId))
+                .ForMember(dest => dest.IdentificadorCliente, from => from.MapFrom(property => property.ClienteId))
+                .ForMember(dest => dest.IdentificadorDeposito, from => from.MapFrom(property => property.DepositoId));
 
             CreateMap<TabelaGenericaModel, TabelaGenericaViewModel>()
-                .ForMember(dest => dest.Identificador, opt => opt.MapFrom(src => src.TabelaGenericaId));
+                .ForMember(dest => dest.Identificador, from => from.MapFrom(property => property.TabelaGenericaId));
 
             CreateMap<TipoAvariaModel, TipoAvariaViewModel>()
-                .ForMember(dest => dest.IdentificadorTipoAvaria, opt => opt.MapFrom(src => src.TipoAvariaId));
+                .ForMember(dest => dest.IdentificadorTipoAvaria, from => from.MapFrom(property => property.TipoAvariaId));
 
             CreateMap<TipoDocumentoIdentificacaoModel, TipoDocumentoIdentificacaoViewModel>()
-                .ForMember(dest => dest.IdentificadorTipoDocumentoIdentificacao, opt => opt.MapFrom(src => src.TipoDocumentoIdentificacaoId));
+                .ForMember(dest => dest.IdentificadorTipoDocumentoIdentificacao, from => from.MapFrom(property => property.TipoDocumentoIdentificacaoId));
 
             CreateMap<TipoDocumentoIdentificacaoModel, TipoDocumentoIdentificacaoSimplificadoViewModel>()
-                .ForMember(dest => dest.IdentificadorTipoDocumentoIdentificacao, opt => opt.MapFrom(src => src.TipoDocumentoIdentificacaoId));
+                .ForMember(dest => dest.IdentificadorTipoDocumentoIdentificacao, from => from.MapFrom(property => property.TipoDocumentoIdentificacaoId));
 
             CreateMap<TipoMeioCobrancaModel, TipoMeioCobrancaViewModel>()
-                .ForMember(dest => dest.IdentificadorTipoMeioCobranca, opt => opt.MapFrom(src => src.TipoMeioCobrancaId));
+                .ForMember(dest => dest.IdentificadorTipoMeioCobranca, from => from.MapFrom(property => property.TipoMeioCobrancaId));
 
             CreateMap<TipoVeiculoModel, TipoVeiculoViewModel>()
-                .ForMember(dest => dest.IdentificadorTipoVeiculo, opt => opt.MapFrom(src => src.TipoVeiculoId));
+                .ForMember(dest => dest.IdentificadorTipoVeiculo, from => from.MapFrom(property => property.TipoVeiculoId));
 
             CreateMap<UsuarioModel, UsuarioViewModel>()
-                .ForMember(dest => dest.IdentificadorUsuario, opt => opt.MapFrom(src => src.UsuarioId));
+                .ForMember(dest => dest.IdentificadorUsuario, from => from.MapFrom(property => property.UsuarioId));
 
             CreateMap<VistoriaSituacaoChassiModel, VistoriaSituacaoChassiViewModel>()
-                .ForMember(dest => dest.IdentificadorSituacaoChassi, opt => opt.MapFrom(src => src.VistoriaSituacaoChassiId));
+                .ForMember(dest => dest.IdentificadorSituacaoChassi, from => from.MapFrom(property => property.VistoriaSituacaoChassiId));
 
             CreateMap<ViewEnderecoCompletoModel, EnderecoViewModel>()
-                .ForMember(dest => dest.IdentificadorCEP, opt => opt.MapFrom(src => src.CEPId))
-                .ForMember(dest => dest.IdentificadorMunicipio, opt => opt.MapFrom(src => src.MunicipioId))
-                .ForMember(dest => dest.IdentificadorBairro, opt => opt.MapFrom(src => src.BairroId))
-                .ForMember(dest => dest.IdentificadorTipoLogradouro, opt => opt.MapFrom(src => src.TipoLogradouroId));
+                .ForMember(dest => dest.IdentificadorCEP, from => from.MapFrom(property => property.CEPId))
+                .ForMember(dest => dest.IdentificadorMunicipio, from => from.MapFrom(property => property.MunicipioId))
+                .ForMember(dest => dest.IdentificadorBairro, from => from.MapFrom(property => property.BairroId))
+                .ForMember(dest => dest.IdentificadorTipoLogradouro, from => from.MapFrom(property => property.TipoLogradouroId));
 
             CreateMap<ViewUsuarioClienteDepositoReboqueModel, UsuarioClienteDepositoReboqueViewModel>()
-                .ForMember(dest => dest.IdentificadorCliente, opt => opt.MapFrom(src => src.ClienteId))
-                .ForMember(dest => dest.IdentificadorDeposito, opt => opt.MapFrom(src => src.DepositoId))
-                .ForMember(dest => dest.IdentificadorUsuario, opt => opt.MapFrom(src => src.UsuarioId))
-                .ForMember(dest => dest.IdentificadorReboque, opt => opt.MapFrom(src => src.ReboqueId));
+                .ForMember(dest => dest.IdentificadorCliente, from => from.MapFrom(property => property.ClienteId))
+                .ForMember(dest => dest.IdentificadorDeposito, from => from.MapFrom(property => property.DepositoId))
+                .ForMember(dest => dest.IdentificadorUsuario, from => from.MapFrom(property => property.UsuarioId))
+                .ForMember(dest => dest.IdentificadorReboque, from => from.MapFrom(property => property.ReboqueId));
 
             CreateMap<ViewUsuarioClienteDepositoReboquistaModel, UsuarioClienteDepositoReboquistaViewModel>()
-                .ForMember(dest => dest.IdentificadorCliente, opt => opt.MapFrom(src => src.ClienteId))
-                .ForMember(dest => dest.IdentificadorDeposito, opt => opt.MapFrom(src => src.DepositoId))
-                .ForMember(dest => dest.IdentificadorUsuario, opt => opt.MapFrom(src => src.UsuarioId))
-                .ForMember(dest => dest.IdentificadorReboquista, opt => opt.MapFrom(src => src.ReboquistaId));
+                .ForMember(dest => dest.IdentificadorCliente, from => from.MapFrom(property => property.ClienteId))
+                .ForMember(dest => dest.IdentificadorDeposito, from => from.MapFrom(property => property.DepositoId))
+                .ForMember(dest => dest.IdentificadorUsuario, from => from.MapFrom(property => property.UsuarioId))
+                .ForMember(dest => dest.IdentificadorReboquista, from => from.MapFrom(property => property.ReboquistaId));
 
             CreateMap<ViewUsuarioClienteDepositoModel, ClienteDepositoSimplificadoViewModel>()
-                .ForMember(dest => dest.IdentificadorDeposito, opt => opt.MapFrom(src => src.DepositoId))
-                .ForMember(dest => dest.IdentificadorCliente, opt => opt.MapFrom(src => src.ClienteId))
-                .ForMember(dest => dest.Nome, opt => opt.MapFrom(src => src.DepositoNome))
-                .ForMember(dest => dest.FlagAtivo, opt => opt.MapFrom(src => src.DepositoFlagAtivo));
+                .ForMember(dest => dest.IdentificadorDeposito, from => from.MapFrom(property => property.DepositoId))
+                .ForMember(dest => dest.IdentificadorCliente, from => from.MapFrom(property => property.ClienteId))
+                .ForMember(dest => dest.Nome, from => from.MapFrom(property => property.DepositoNome))
+                .ForMember(dest => dest.FlagAtivo, from => from.MapFrom(property => property.DepositoFlagAtivo));
 
             CreateMap<UsuarioClienteDepositoReboqueViewModel, ReboqueSimplificadoViewModel>()
-                .ForMember(dest => dest.Placa, opt => opt.MapFrom(src => src.ReboquePlaca))
-                .ForMember(dest => dest.FlagAtivo, opt => opt.MapFrom(src => src.ReboqueFlagAtivo));
+                .ForMember(dest => dest.Placa, from => from.MapFrom(property => property.ReboquePlaca))
+                .ForMember(dest => dest.FlagAtivo, from => from.MapFrom(property => property.ReboqueFlagAtivo));
 
             CreateMap<UsuarioClienteDepositoReboquistaViewModel, ReboquistaSimplificadoViewModel>()
-                .ForMember(dest => dest.Nome, opt => opt.MapFrom(src => src.ReboquistaNome))
-                .ForMember(dest => dest.FlagAtivo, opt => opt.MapFrom(src => src.ReboquistaFlagAtivo));
+                .ForMember(dest => dest.Nome, from => from.MapFrom(property => property.ReboquistaNome))
+                .ForMember(dest => dest.FlagAtivo, from => from.MapFrom(property => property.ReboquistaFlagAtivo));
 
             // ViewModel to Model
             CreateMap<CadastroCondutorViewModel, CondutorModel>()
-                .ForMember(dest => dest.Email, opt => opt.MapFrom(s => s.Email.ToLowerTrim()))
+                .ForMember(dest => dest.Email, from => from.MapFrom(s => s.Email.ToLowerTrim()))
                 .AddTransform<string>(s => s
                     .ToNullIfEmpty()
                     .ToUpperTrim())
-                .ForMember(dest => dest.Documento, opt => opt.MapFrom(s => s.Documento.GetNumbers()))
-                .ForMember(dest => dest.Identidade, opt => opt.MapFrom(s => s.Identidade.GetNumbers()));
+                .ForMember(dest => dest.Documento, from => from.MapFrom(s => s.Documento.GetNumbers()))
+                .ForMember(dest => dest.Identidade, from => from.MapFrom(s => s.Identidade.GetNumbers()));
 
             CreateMap<UsuarioClienteDepositoReboqueViewModel, UsuarioClienteDepositoReboqueViewModel>();
 
             CreateMap<CadastroEnquadramentoInfracaoViewModel, EnquadramentoInfracaoGrvModel>()
-                .ForMember(dest => dest.EnquadramentoInfracaoId, opt => opt.MapFrom(src => src.IdentificadorEnquadramentoInfracao));
+                .ForMember(dest => dest.EnquadramentoInfracaoId, from => from.MapFrom(property => property.IdentificadorEnquadramentoInfracao));
         }
     }
 }

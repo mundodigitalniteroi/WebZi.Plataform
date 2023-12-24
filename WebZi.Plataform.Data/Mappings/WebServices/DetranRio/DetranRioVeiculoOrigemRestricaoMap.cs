@@ -10,19 +10,19 @@ namespace WebZi.Plataform.Data.Mappings.WebServices.DetranRio
         {
             builder
                 .ToTable("tb_detran_veiculos_ws_restricoes_origem", "dbo")
-                .HasKey(e => e.DetranVeiculoOrigemRestricaoId);
+                .HasKey(x => x.DetranVeiculoOrigemRestricaoId);
 
-            builder.Property(e => e.DetranVeiculoOrigemRestricaoId)
+            builder.Property(x => x.DetranVeiculoOrigemRestricaoId)
                 .ValueGeneratedOnAdd()
                 .HasColumnName("id_detran_veiculos_ws_restricao_origem");
 
-            builder.Property(e => e.Descricao)
+            builder.Property(x => x.Descricao)
                 .IsRequired()
                 .HasMaxLength(30)
                 .IsUnicode(false)
                 .HasColumnName("descricao");
 
-            builder.Property(e => e.FlagPermiteEdicao)
+            builder.Property(x => x.FlagPermiteEdicao)
                 .IsRequired()
                 .HasMaxLength(1)
                 .IsUnicode(false)
