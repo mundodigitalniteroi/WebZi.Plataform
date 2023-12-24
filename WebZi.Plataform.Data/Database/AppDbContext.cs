@@ -335,7 +335,7 @@ namespace WebZi.Plataform.Data.Database
         #endregion Views
 
         #region WS DETRAN RJ
-        public DbSet<DetranRioVeiculoModel> DetranRioVeiculoModel { get; set; }
+        public DbSet<DetranRioVeiculoModel> DetranRioVeiculo { get; set; }
 
         public DbSet<DetranRioVeiculoOrigemRestricaoModel> DetranRioVeiculoOrigemRestricao { get; set; }
 

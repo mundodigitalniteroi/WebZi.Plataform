@@ -2,7 +2,7 @@
 {
     public class DetranRioVeiculoOrigemRestricaoViewModel
     {
-        public byte IdentificadorDetranVeiculoOrigemRestricao { get; set; }
+        public byte IdentificadorOrigemRestricao { get; set; }
 
         public string Descricao { get; set; }
     }

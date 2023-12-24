@@ -1,5 +1,4 @@
-﻿using WebZi.Plataform.Domain.Models.WebServices.Rio;
-using WebZi.Plataform.Domain.ViewModel.Sistema;
+﻿using WebZi.Plataform.Domain.ViewModel.Sistema;
 using WebZi.Plataform.Domain.ViewModel.Veiculo;
 
 namespace WebZi.Plataform.Domain.ViewModel.WebServices.DetranRio
@@ -30,8 +29,6 @@ namespace WebZi.Plataform.Domain.ViewModel.WebServices.DetranRio
 
         public string DescricaoCategoria { get; set; }
 
-        public string DescricaoTipo { get; set; }
-
         public string InformacaoRoubo { get; set; }
 
         public string PesoBrutoTotal { get; set; }
@@ -48,6 +45,8 @@ namespace WebZi.Plataform.Domain.ViewModel.WebServices.DetranRio
 
         public MarcaModeloViewModel MarcaModelo { get; set; }
 
-        public virtual ICollection<DetranRioVeiculoRestricaoViewModel> ListagemRestricao { get; set; }
+        public TipoVeiculoViewModel TipoVeiculo { get; set; } = new();
+
+        public List<DetranRioVeiculoRestricaoViewModel> ListagemRestricao { get; set; } = new();
     }
 }

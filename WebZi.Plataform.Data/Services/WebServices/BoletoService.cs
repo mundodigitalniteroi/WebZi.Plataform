@@ -399,7 +399,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
 
                     _context.FaturamentoBoletoImagem
                         .Where(x => x.FaturamentoBoletoId == FaturamentoBoleto.FaturamentoBoletoId)
-                    .Delete();
+                        .Delete();
 
                     new BucketService(_context, _httpClientFactory)
                         .DeleteFiles("FATURAMENBOLETO", FaturamentoBoleto.FaturamentoBoletoId);

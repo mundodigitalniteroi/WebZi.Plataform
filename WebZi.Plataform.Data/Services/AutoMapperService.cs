@@ -16,7 +16,6 @@ using WebZi.Plataform.Domain.Models.Usuario;
 using WebZi.Plataform.Domain.Models.Veiculo;
 using WebZi.Plataform.Domain.Models.Vistoria;
 using WebZi.Plataform.Domain.Models.WebServices.DetranRio;
-using WebZi.Plataform.Domain.Models.WebServices.Rio;
 using WebZi.Plataform.Domain.ViewModel.Atendimento;
 using WebZi.Plataform.Domain.ViewModel.Banco;
 using WebZi.Plataform.Domain.ViewModel.Cliente;
@@ -90,17 +89,20 @@ namespace WebZi.Plataform.Data.Services
 
             CreateMap<DetranRioVeiculoModel, DetranRioVeiculoViewModel>()
                 .ForMember(dest => dest.IdentificadorVeiculo, from => from.MapFrom(property => property.DetranVeiculoId))
+                .ForMember(dest => dest.Classificacao, from => from.MapFrom(property => property.Classificacao.ToNullIfEmpty()))
+                .ForMember(dest => dest.CodigoCategoria, from => from.MapFrom(property => property.CodigoCategoria.ToNullIfEmpty()))
+                .ForMember(dest => dest.DescricaoCategoria, from => from.MapFrom(property => property.DescricaoCategoria.ToNullIfEmpty()))
                 .ForMember(dest => dest.InformacaoRoubo, from => from.MapFrom(property => property.InformacaoRoubo.ToNullIfEmpty()))
-                .ForMember(dest => dest.RestricaoEstelionato, from => from.MapFrom(property => property.RestricaoEstelionato.ToNullIfEmpty()));
+                .ForMember(dest => dest.RestricaoEstelionato, from => from.MapFrom(property => property.RestricaoEstelionato.ToNullIfEmpty()))
+                .ForMember(dest => dest.Placa, from => from.MapFrom(property => property.Placa.ToNullIfEmpty()))
+                .ForMember(dest => dest.Chassi, from => from.MapFrom(property => property.Chassi.ToNullIfEmpty()))
+                .ForMember(dest => dest.Uf, from => from.MapFrom(property => property.Uf.ToNullIfEmpty()));
 
             CreateMap<CorModel, DetranRioVeiculoViewModel>()
                 .ForMember(dest => dest.Cor, from => from.MapFrom(x => x));
 
             CreateMap<MarcaModeloModel, DetranRioVeiculoViewModel>()
                 .ForMember(dest => dest.MarcaModelo, from => from.MapFrom(x => x));
-
-            //CreateMap<DetranRioVeiculoRestricaoModel, DetranRioVeiculoViewModel>()
-            //    .ForMember(dest => dest.ListagemDetranRioVeiculoRestricao, from => from.MapFrom(x => x));
 
             CreateMap<EmpresaModel, EmpresaViewModel>()
                 .ForMember(dest => dest.IdentificadorEmpresa, from => from.MapFrom(property => property.EmpresaId))
