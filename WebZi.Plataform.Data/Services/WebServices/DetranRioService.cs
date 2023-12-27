@@ -1,11 +1,9 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.ObjectModel;
-using System.Diagnostics;
-using System.Numerics;
+using Microsoft.EntityFrameworkCore.Storage;
 using System.Security.Principal;
 using System.ServiceModel;
-using WebZi.Plataform.CrossCutting.Number;
+using WebZi.Plataform.CrossCutting.Linq;
 using WebZi.Plataform.CrossCutting.Strings;
 using WebZi.Plataform.CrossCutting.Veiculo;
 using WebZi.Plataform.CrossCutting.Web;
@@ -111,17 +109,15 @@ namespace WebZi.Plataform.Data.Services.WebServices
                 .OrderByDescending(x => x.DetranVeiculoId)
                 .FirstOrDefaultAsync(x => DetranVeiculoId > 0 ? x.DetranVeiculoId == DetranVeiculoId : !Placa.IsNullOrWhiteSpace() ? x.Placa == Placa : x.Chassi == Chassi);
 
-            if (DetranRioVeiculoBD == null && DetranVeiculoId > 0)
+            if (DetranVeiculoId > 0)
             {
-                ResultView.Mensagem = MensagemViewHelper.SetNotFound();
+                if (DetranRioVeiculoBD == null)
+                {
+                    ResultView.Mensagem = MensagemViewHelper.SetNotFound();
 
-                return ResultView;
-            }
+                    return ResultView;
+                }
 
-            DetranRioVeiculoModel DetranRioVeiculoWS = new();
-
-            try
-            {
                 if (!DetranRioVeiculoBD.Placa.IsNullOrWhiteSpace())
                 {
                     Placa = DetranRioVeiculoBD.Placa;
@@ -130,11 +126,29 @@ namespace WebZi.Plataform.Data.Services.WebServices
                 {
                     Chassi = DetranRioVeiculoBD.Chassi;
                 }
+            }
 
-                if (DetranRioVeiculoBD.DataCadastro != DateTime.Now.Date)
+            DetranRioVeiculoModel DetranRioVeiculoWS = new();
+
+            try
+            {
+                if (DetranRioVeiculoBD == null || DetranRioVeiculoBD.DataCadastro != DateTime.Now.Date)
                 {
                     DetranRioVeiculoWS = await GetFromDetranAsync(Placa + Chassi, "ROOT");
+
+                    if (DetranRioVeiculoWS == null)
+                    {
+                        ResultView.Mensagem = MensagemViewHelper.SetNotFound("Veículo não encontrado no Departamento Estadual de Trânsito");
+
+                        return ResultView;
+                    }
                 }
+                else
+                {
+                    DetranRioVeiculoWS = null;
+                }
+
+                
             }
             catch (Exception ex)
             {
@@ -142,89 +156,229 @@ namespace WebZi.Plataform.Data.Services.WebServices
 
                 return ResultView;
             }
+            
+            DetranRioVeiculoBD = await _context.DetranRioVeiculo
+                .Include(x => x.Cor)
+                .Include(x => x.MarcaModelo)
+                .Include(x => x.ListagemDetranRioVeiculoRestricao)
+                .ThenInclude(x => x.DetranRioVeiculoOrigemRestricao)
+                .AsNoTracking()
+                .OrderByDescending(x => x.DetranVeiculoId)
+                .FirstOrDefaultAsync(x => !Placa.IsNullOrWhiteSpace() ? x.Placa == Placa : x.Chassi == Chassi);
 
-            if (DetranRioVeiculoBD == null)
+            //if (DetranRioVeiculoBD.DataCadastro != DateTime.Now.Date && DetranRioVeiculoWS != null)
+            //{
+            //    DetranRioVeiculoBD = await UpdateRestricaoAsync(DetranRioVeiculoBD, DetranRioVeiculoWS);
+            //}
+
+            return await SetValuesToDetranRioVeiculoAsync(DetranRioVeiculoBD);
+        }
+
+        //private async Task<DetranRioVeiculoModel> UpdateRestricaoAsync(DetranRioVeiculoModel DetranRioVeiculoBD, DetranRioVeiculoModel DetranRioVeiculoWS)
+        //{
+        //    bool persistir = false;
+
+        //    if (DetranRioVeiculoBD.InformacaoRoubo.ToStringIfNull() != DetranRioVeiculoWS.InformacaoRoubo.ToStringIfNull())
+        //    {
+        //        persistir = true;
+        //    }
+
+        //    if (DetranRioVeiculoBD.RestricaoEstelionato.ToStringIfNull() != DetranRioVeiculoWS.RestricaoEstelionato.ToStringIfNull())
+        //    {
+        //        persistir = true;
+        //    }
+
+        //    if (DetranRioVeiculoBD.ListagemDetranRioVeiculoRestricao.CountItens() != DetranRioVeiculoWS.ListagemDetranRioVeiculoRestricao.CountItens())
+        //    {
+        //        persistir = true;
+        //    }
+        //    else if (DetranRioVeiculoBD.ListagemDetranRioVeiculoRestricao.CountItens() == 1
+        //        && DetranRioVeiculoBD.ListagemDetranRioVeiculoRestricao.CountItens() == DetranRioVeiculoWS.ListagemDetranRioVeiculoRestricao.CountItens()
+        //        && DetranRioVeiculoBD.ListagemDetranRioVeiculoRestricao.FirstOrDefault().CodigoRestricao == 0)
+        //    {
+        //        DetranRioVeiculoRestricaoModel result = await _context.DetranRioVeiculoRestricao
+        //            .FirstOrDefaultAsync(x => x.DetranVeiculoRestricaoId == DetranRioVeiculoBD.ListagemDetranRioVeiculoRestricao.FirstOrDefault().DetranVeiculoRestricaoId);
+
+        //        result.CodigoRestricao = DetranRioVeiculoWS.ListagemDetranRioVeiculoRestricao.FirstOrDefault().CodigoRestricao;
+
+        //        using IDbContextTransaction transaction = _context.Database.BeginTransaction();
+
+        //        _context.SetUserContextInfo(1);
+
+        //        await _context.SaveChangesAsync();
+
+        //        transaction.Commit();
+        //    }
+
+        //    if (!persistir)
+        //    {
+        //        return DetranRioVeiculoBD;
+        //    }
+
+        //    byte DetranVeiculoOrigemRestricaoId = await _context.DetranRioVeiculoOrigemRestricao
+        //        .Where(x => x.Descricao == "DETRAN RJ")
+        //        .Select(x => x.DetranVeiculoOrigemRestricaoId)
+        //        .FirstOrDefaultAsync();
+
+        //    DetranRioVeiculoRestricaoModel DetranRioVeiculoRestricao = new();
+
+        //    if (DetranRioVeiculoWS.InformacaoRoubo.ToStringIfNull() != DetranRioVeiculoBD.InformacaoRoubo.ToStringIfNull())
+        //    {
+        //        if (DetranRioVeiculoWS.InformacaoRoubo.IsNullOrWhiteSpace())
+        //        {
+        //            await _context.DetranRioVeiculoRestricao
+        //                .Where(x => x.DetranVeiculoId == DetranRioVeiculoBD.DetranVeiculoId && x.TipoRestricao == "R")
+        //                .DeleteAsync();
+        //        }
+        //        else
+        //        {
+        //            DetranRioVeiculoRestricao = new()
+        //            {
+        //                DetranVeiculoId = DetranRioVeiculoBD.DetranVeiculoId,
+
+        //                DetranVeiculoOrigemRestricaoId = DetranVeiculoOrigemRestricaoId,
+
+        //                TipoRestricao = "R",
+
+        //                Restricao = DetranRioVeiculoWS.InformacaoRoubo
+        //            };
+
+        //            await _context.DetranRioVeiculoRestricao.AddAsync(DetranRioVeiculoRestricao);
+
+        //            await _context.SaveChangesAsync();
+        //        }
+        //    }
+
+        //    if (DetranRioVeiculoWS.RestricaoEstelionato.ToStringIfNull() != DetranRioVeiculoBD.RestricaoEstelionato.ToStringIfNull())
+        //    {
+        //        if (DetranRioVeiculoWS.InformacaoRoubo.IsNullOrWhiteSpace())
+        //        {
+        //            await _context.DetranRioVeiculoRestricao
+        //                .Where(x => x.DetranVeiculoId == DetranRioVeiculoBD.DetranVeiculoId && x.TipoRestricao == "E")
+        //                .DeleteAsync();
+        //        }
+        //        else
+        //        {
+        //            DetranRioVeiculoRestricao = new()
+        //            {
+        //                DetranVeiculoId = DetranRioVeiculoBD.DetranVeiculoId,
+
+        //                DetranVeiculoOrigemRestricaoId = DetranVeiculoOrigemRestricaoId,
+
+        //                TipoRestricao = "E",
+
+        //                Restricao = DetranRioVeiculoWS.RestricaoEstelionato
+        //            };
+
+        //            await _context.DetranRioVeiculoRestricao.AddAsync(DetranRioVeiculoRestricao);
+
+        //            await _context.SaveChangesAsync();
+        //        }
+        //    }
+
+        //    if (DetranRioVeiculoBD.ListagemDetranRioVeiculoRestricao.CountItens() == 0 && DetranRioVeiculoWS.ListagemDetranRioVeiculoRestricao.CountItens() > 0)
+        //    {
+        //        foreach (var item in DetranRioVeiculoWS.ListagemDetranRioVeiculoRestricao)
+        //        {
+        //            DetranRioVeiculoRestricao = new()
+        //            {
+        //                DetranVeiculoId = DetranRioVeiculoBD.DetranVeiculoId,
+
+        //                DetranVeiculoOrigemRestricaoId = DetranVeiculoOrigemRestricaoId,
+
+        //                TipoRestricao = item.TipoRestricao,
+
+        //                CodigoRestricao = item.CodigoRestricao,
+
+        //                Restricao = item.Restricao
+        //            };
+
+        //            await _context.DetranRioVeiculoRestricao.AddAsync(DetranRioVeiculoRestricao);
+
+        //            await _context.SaveChangesAsync();
+        //        }
+        //    }
+        //    else if (DetranRioVeiculoBD?.ListagemDetranRioVeiculoRestricao.CountItens() > 0 && DetranRioVeiculoWS?.ListagemDetranRioVeiculoRestricao.CountItens() == 0)
+        //    {
+        //        await _context.DetranRioVeiculoRestricao
+        //            .Where(x => x.DetranVeiculoId == DetranRioVeiculoBD.DetranVeiculoId && (new[] { "A", "J" }.Contains(x.TipoRestricao)))
+        //            .DeleteAsync();
+        //    }
+
+        //    DetranRioVeiculoModel DetranRioVeiculo = await _context.DetranRioVeiculo
+        //        .Include(x => x.ListagemDetranRioVeiculoRestricao)
+        //        .ThenInclude(x => x.DetranRioVeiculoOrigemRestricao)
+        //        .FirstOrDefaultAsync(x => !DetranRioVeiculoWS.Placa.IsNullOrWhiteSpace() ? x.Placa == DetranRioVeiculoWS.Placa : x.Chassi == DetranRioVeiculoWS.Chassi);
+
+        //    DetranRioVeiculo.InformacaoRoubo = DetranRioVeiculoWS.InformacaoRoubo;
+
+        //    DetranRioVeiculo.RestricaoEstelionato = DetranRioVeiculoWS.RestricaoEstelionato;
+
+        //    DetranRioVeiculo.FlagRegistroNormalizado = "S";
+
+        //    await _context.SaveChangesAsync();
+
+        //    return DetranRioVeiculo;
+        //}
+
+        private async Task<DetranRioVeiculoViewModel> SetValuesToDetranRioVeiculoAsync(DetranRioVeiculoModel DetranRioVeiculoBD)
+        {
+            DetranRioVeiculoViewModel ResultView = _mapper.Map<DetranRioVeiculoViewModel>(DetranRioVeiculoBD);
+
+            if (!DetranRioVeiculoBD.DescricaoTipo.IsNullOrWhiteSpace())
             {
-                await _context.DetranRioVeiculo.AddAsync(DetranRioVeiculoWS);
+                TipoVeiculoModel TipoVeiculo = await _context.TipoVeiculo
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(x => x.Descricao == DetranRioVeiculoBD.DescricaoTipo.ToUpperTrim());
 
-                await _context.SaveChangesAsync();
+                if (TipoVeiculo != null)
+                {
+                    ResultView.TipoVeiculo.IdentificadorTipoVeiculo = TipoVeiculo.TipoVeiculoId;
 
-                ResultView = await SetValuesToDetranRioVeiculoAsync(DetranRioVeiculoWS);
+                    ResultView.TipoVeiculo.Descricao = TipoVeiculo.Descricao;
 
-                return ResultView;
+                    ResultView.TipoVeiculo.FlagNaoRequerCnhNaLiberacao = TipoVeiculo.FlagNaoRequerCnhNaLiberacao;
+                }
+                else
+                {
+                    ResultView.TipoVeiculo = null;
+                }
             }
             else
             {
-                if (DetranRioVeiculoBD.DataCadastro != DateTime.Now.Date)
+                ResultView.TipoVeiculo = null;
+            }
+
+            if (DetranRioVeiculoBD.Cor != null)
+            {
+                ResultView.Cor = new()
                 {
-                    DetranRioVeiculoBD = await UpdateVeiculoAsync(DetranRioVeiculoBD, DetranRioVeiculoWS);
-                }
+                    IdentificadorCor = DetranRioVeiculoBD.Cor.CorId,
 
-                ResultView = await SetValuesToDetranRioVeiculoAsync(DetranRioVeiculoBD);
+                    Cor = DetranRioVeiculoBD.Cor.Cor,
 
-                return ResultView;
-            }
-        }
-
-        private async Task<DetranRioVeiculoModel> UpdateVeiculoAsync(DetranRioVeiculoModel DetranRioVeiculoBD, DetranRioVeiculoModel DetranRioVeiculoWS)
-        {
-            if (DetranRioVeiculoBD.InformacaoRoubo == DetranRioVeiculoWS.InformacaoRoubo
-             && DetranRioVeiculoBD.RestricaoEstelionato == DetranRioVeiculoWS.RestricaoEstelionato)
-            {
-                return DetranRioVeiculoBD;
+                    CorSecundaria = DetranRioVeiculoBD.Cor.CorSecundaria
+                };
             }
 
-            DetranRioVeiculoModel DetranRioVeiculo = await _context.DetranRioVeiculo
-                .Include(x => x.ListagemDetranRioVeiculoRestricao)
-                .FirstOrDefaultAsync(x => !DetranRioVeiculoWS.Placa.IsNullOrWhiteSpace() ? x.Placa == DetranRioVeiculoWS.Placa : x.Chassi == DetranRioVeiculoWS.Chassi);
-
-            DetranRioVeiculo = _mapper.Map<DetranRioVeiculoModel>(DetranRioVeiculoWS);
-
-            if (DetranRioVeiculoWS.InformacaoRoubo != DetranRioVeiculoBD.InformacaoRoubo)
+            if (DetranRioVeiculoBD.MarcaModelo != null)
             {
+                ResultView.MarcaModelo = new()
+                {
+                    IdentificadorMarcaModelo = DetranRioVeiculoBD.MarcaModelo.MarcaModeloId,
 
+                    MarcaModelo = DetranRioVeiculoBD.MarcaModelo.MarcaModelo
+                };
             }
 
-            if (DetranRioVeiculoWS.RestricaoEstelionato != DetranRioVeiculoBD.RestricaoEstelionato)
+            if (DetranRioVeiculoBD.ListagemDetranRioVeiculoRestricao != null)
             {
+                List<TabelaGenericaModel> ListTipoRestricao = await new TabelaGenericaService(_context)
+                    .ListAsync("DETRANRJ_TIPO_RESTRICAO");
 
-            }
-
-            if (DetranRioVeiculoWS?.ListagemDetranRioVeiculoRestricao.Count > 0)
-            {
-
-            }
-
-            await _context.SaveChangesAsync();
-
-            return DetranRioVeiculo;
-        }
-
-        private async Task<DetranRioVeiculoViewModel> SetValuesToDetranRioVeiculoAsync(DetranRioVeiculoModel result)
-        {
-            DetranRioVeiculoViewModel ResultView = _mapper.Map<DetranRioVeiculoViewModel>(result);
-
-            List<TabelaGenericaModel> ListTipoRestricao = await new TabelaGenericaService(_context)
-                .ListAsync("DETRANRJ_TIPO_RESTRICAO");
-
-            TipoVeiculoModel TipoVeiculo = await _context.TipoVeiculo
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(x => x.Descricao == result.DescricaoTipo.ToUpperTrim());
-
-            if (TipoVeiculo != null)
-            {
-                ResultView.TipoVeiculo.IdentificadorTipoVeiculo = TipoVeiculo.TipoVeiculoId;
-
-                ResultView.TipoVeiculo.Descricao = TipoVeiculo.Descricao;
-
-                ResultView.TipoVeiculo.FlagNaoRequerCnhNaLiberacao = TipoVeiculo.FlagNaoRequerCnhNaLiberacao;
-            }
-
-            if (result.ListagemDetranRioVeiculoRestricao != null)
-            {
                 DetranRioVeiculoRestricaoViewModel DetranRioVeiculoRestricao = new();
 
-                foreach (var item in result.ListagemDetranRioVeiculoRestricao)
+                foreach (var item in DetranRioVeiculoBD.ListagemDetranRioVeiculoRestricao)
                 {
                     DetranRioVeiculoRestricao = new()
                     {
@@ -283,7 +437,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.Name == "WSPatioxDetran");
 
-            DetranRetornoConsultaModel DetranRetornoConsulta = JsonHelper.DeserializeObject<DetranRetornoConsultaModel>(ClientConfig(WebServiceUrl)
+            DetranRetornoConsultaModel DetranRioVeiculoWS = JsonHelper.DeserializeObject<DetranRetornoConsultaModel>(ClientConfig(WebServiceUrl)
                 .ConsultarVeiculo(new ConsultarVeiculoRequest
                 {
                     placa = PlacaChassi.ToUpperTrim(),
@@ -291,68 +445,68 @@ namespace WebZi.Plataform.Data.Services.WebServices
                     operador = Operador.ToUpperTrim()
                 }).ConsultarVeiculoResult);
 
-            if (DetranRetornoConsulta.Retorno.StartsWith("VEICULO NAO CADASTRADO", StringComparison.OrdinalIgnoreCase))
+            if (DetranRioVeiculoWS.Retorno.StartsWith("VEICULO NAO CADASTRADO", StringComparison.OrdinalIgnoreCase))
             {
-                throw new Exception("VEICULO NAO CADASTRADO");
+                return null;
             }
-            else if (DetranRetornoConsulta.Retorno.StartsWith("PLACA INVALIDA", StringComparison.OrdinalIgnoreCase))
+            else if (DetranRioVeiculoWS.Retorno.StartsWith("PLACA INVALIDA", StringComparison.OrdinalIgnoreCase))
             {
-                throw new Exception("PLACA INVALIDA");
+                return null;
             }
-            else if (DetranRetornoConsulta.Retorno.StartsWith("VEICULO BAIXADO", StringComparison.OrdinalIgnoreCase))
+            else if (DetranRioVeiculoWS.Retorno.StartsWith("VEICULO BAIXADO", StringComparison.OrdinalIgnoreCase))
             {
-                throw new Exception("VEICULO BAIXADO");
+                return null;
             }
-            else if (!DetranRetornoConsulta.Retorno.Equals("OK", StringComparison.OrdinalIgnoreCase))
+            else if (!DetranRioVeiculoWS.Retorno.Equals("OK", StringComparison.OrdinalIgnoreCase))
             {
-                throw new Exception("Erro não informado ao consultar o WS");
+                return null;
             }
 
             DetranRioVeiculoModel DetranRioVeiculo = new()
             {
                 FlagRegistroNormalizado = "S",
 
-                AnoFabricacao = DetranRetornoConsulta.AnoFabricacao,
+                AnoFabricacao = DetranRioVeiculoWS.AnoFabricacao,
 
-                AnoModelo = DetranRetornoConsulta.AnoModelo,
+                AnoModelo = DetranRioVeiculoWS.AnoModelo,
 
-                AnoUltimaLicenca = DetranRetornoConsulta.AnoUltimaLicenca,
+                AnoUltimaLicenca = DetranRioVeiculoWS.AnoUltimaLicenca,
 
-                CapacidadeCarga = DetranRetornoConsulta.CapacidadeCarga,
+                CapacidadeCarga = DetranRioVeiculoWS.CapacidadeCarga,
 
-                CapacidadePassageiros = DetranRetornoConsulta.CapacidadePassageiros,
+                CapacidadePassageiros = DetranRioVeiculoWS.CapacidadePassageiros,
 
-                ChassiRemarcado = DetranRetornoConsulta.ChassiRemarcado.ToUpperTrim().Left(1),
+                ChassiRemarcado = DetranRioVeiculoWS.ChassiRemarcado.ToUpperTrim().Left(1),
 
-                Renavam = DetranRetornoConsulta.NumeroRenavam.Trim(),
+                Renavam = DetranRioVeiculoWS.NumeroRenavam.Trim(),
 
-                Chassi = DetranRetornoConsulta.Chassi.ToUpperTrim(),
+                Chassi = DetranRioVeiculoWS.Chassi.ToUpperTrim(),
 
-                Classificacao = DetranRetornoConsulta.Classificacao.ToUpperTrim(),
+                Classificacao = DetranRioVeiculoWS.Classificacao.ToUpperTrim(),
 
-                CodigoCategoria = DetranRetornoConsulta.CodigoCategoria.ToUpperTrim(),
+                CodigoCategoria = DetranRioVeiculoWS.CodigoCategoria.ToUpperTrim(),
 
-                DescricaoCategoria = DetranRetornoConsulta.DescricaoCategoria.ToUpperTrim(),
+                DescricaoCategoria = DetranRioVeiculoWS.DescricaoCategoria.ToUpperTrim(),
 
-                DescricaoTipo = DetranRetornoConsulta.DescricaoTipo.ToUpperTrim(),
+                DescricaoTipo = DetranRioVeiculoWS.DescricaoTipo.ToUpperTrim(),
 
-                InformacaoRoubo = DetranRetornoConsulta.InformacaoRoubo.ToUpperTrim().ToNullIfEmpty(),
+                InformacaoRoubo = DetranRioVeiculoWS.InformacaoRoubo.ToUpperTrim().ToNullIfEmpty(),
 
-                PesoBrutoTotal = DetranRetornoConsulta.PesoBrutoTotal.ToUpperTrim(),
+                PesoBrutoTotal = DetranRioVeiculoWS.PesoBrutoTotal.ToUpperTrim(),
 
-                Placa = DetranRetornoConsulta.Placa.ToUpperTrim(),
+                Placa = DetranRioVeiculoWS.Placa.ToUpperTrim(),
 
-                RestricaoEstelionato = DetranRetornoConsulta.RestricaoEstelionato.ToUpperTrim().ToNullIfEmpty(),
+                RestricaoEstelionato = DetranRioVeiculoWS.RestricaoEstelionato.ToUpperTrim().ToNullIfEmpty(),
 
-                Uf = DetranRetornoConsulta.Uf.ToUpperTrim(),
+                Uf = DetranRioVeiculoWS.Uf.ToUpperTrim(),
 
                 Cor = await _context.Cor
                     .AsNoTracking()
-                    .FirstOrDefaultAsync(x => x.CorSecundaria == DetranRetornoConsulta.DescricaoCor.ToUpperTrim()),
+                    .FirstOrDefaultAsync(x => x.CorSecundaria == DetranRioVeiculoWS.DescricaoCor.ToUpperTrim()),
 
                 MarcaModelo = await _context.MarcaModelo
                     .AsNoTracking()
-                    .FirstOrDefaultAsync(x => x.MarcaModelo == DetranRetornoConsulta.DescricaoMarca.ToUpperTrim())
+                    .FirstOrDefaultAsync(x => x.MarcaModelo == DetranRioVeiculoWS.DescricaoMarca.ToUpperTrim())
             };
 
             DetranRioVeiculo.CorId = DetranRioVeiculo.Cor.CorId;
@@ -365,80 +519,80 @@ namespace WebZi.Plataform.Data.Services.WebServices
 
             DetranRioVeiculoRestricaoModel DetranRioVeiculoRestricao = new();
 
-            if (!DetranRioVeiculo.InformacaoRoubo.IsNullOrWhiteSpace() 
+            if (!DetranRioVeiculo.InformacaoRoubo.IsNullOrWhiteSpace()
              || !DetranRioVeiculo.RestricaoEstelionato.IsNullOrWhiteSpace()
-             || DetranRetornoConsulta?.RestricoesAdministrativas.Count > 0
-             || DetranRetornoConsulta?.RestricoesJuridicas.Count > 0)
+             || DetranRioVeiculoWS?.RestricoesAdministrativas.Count > 0
+             || DetranRioVeiculoWS?.RestricoesJuridicas.Count > 0)
             {
                 DetranRioVeiculo.ListagemDetranRioVeiculoRestricao = new List<DetranRioVeiculoRestricaoModel>();
-            }
 
                 if (!DetranRioVeiculo.InformacaoRoubo.IsNullOrWhiteSpace() || !DetranRioVeiculo.RestricaoEstelionato.IsNullOrWhiteSpace())
-            {
-                if (!DetranRioVeiculo.InformacaoRoubo.IsNullOrWhiteSpace())
                 {
-                    DetranRioVeiculoRestricao = new()
+                    if (!DetranRioVeiculo.InformacaoRoubo.IsNullOrWhiteSpace())
                     {
-                        DetranVeiculoOrigemRestricaoId = DetranRioVeiculoOrigemRestricao.DetranVeiculoOrigemRestricaoId,
+                        DetranRioVeiculoRestricao = new()
+                        {
+                            DetranVeiculoOrigemRestricaoId = DetranRioVeiculoOrigemRestricao.DetranVeiculoOrigemRestricaoId,
 
-                        TipoRestricao = "R",
+                            TipoRestricao = "R",
 
-                        Restricao = DetranRioVeiculo.InformacaoRoubo
-                    };
+                            Restricao = DetranRioVeiculo.InformacaoRoubo
+                        };
 
-                    DetranRioVeiculo.ListagemDetranRioVeiculoRestricao.Add(DetranRioVeiculoRestricao);
+                        DetranRioVeiculo.ListagemDetranRioVeiculoRestricao.Add(DetranRioVeiculoRestricao);
+                    }
+
+                    if (!DetranRioVeiculo.RestricaoEstelionato.IsNullOrWhiteSpace())
+                    {
+                        DetranRioVeiculoRestricao = new()
+                        {
+                            DetranVeiculoOrigemRestricaoId = DetranRioVeiculoOrigemRestricao.DetranVeiculoOrigemRestricaoId,
+
+                            TipoRestricao = "E",
+
+                            Restricao = DetranRioVeiculo.RestricaoEstelionato
+                        };
+
+                        DetranRioVeiculo.ListagemDetranRioVeiculoRestricao.Add(DetranRioVeiculoRestricao);
+                    }
                 }
 
-                if (!DetranRioVeiculo.RestricaoEstelionato.IsNullOrWhiteSpace())
+                if (DetranRioVeiculoWS?.RestricoesAdministrativas.Count > 0)
                 {
-                    DetranRioVeiculoRestricao = new()
+                    foreach (var item in DetranRioVeiculoWS.RestricoesAdministrativas)
                     {
-                        DetranVeiculoOrigemRestricaoId = DetranRioVeiculoOrigemRestricao.DetranVeiculoOrigemRestricaoId,
+                        DetranRioVeiculoRestricao = new()
+                        {
+                            DetranVeiculoOrigemRestricaoId = DetranRioVeiculoOrigemRestricao.DetranVeiculoOrigemRestricaoId,
 
-                        TipoRestricao = "E",
+                            TipoRestricao = "A",
 
-                        Restricao = DetranRioVeiculo.RestricaoEstelionato
-                    };
+                            Restricao = item.Restricao,
 
-                    DetranRioVeiculo.ListagemDetranRioVeiculoRestricao.Add(DetranRioVeiculoRestricao);
+                            CodigoRestricao = item.Codigo
+                        };
+
+                        DetranRioVeiculo.ListagemDetranRioVeiculoRestricao.Add(DetranRioVeiculoRestricao);
+                    }
                 }
-            }
 
-            if (DetranRetornoConsulta?.RestricoesAdministrativas.Count > 0)
-            {
-                foreach (var item in DetranRetornoConsulta.RestricoesAdministrativas)
+                if (DetranRioVeiculoWS?.RestricoesJuridicas.Count > 0)
                 {
-                    DetranRioVeiculoRestricao = new()
+                    foreach (var item in DetranRioVeiculoWS.RestricoesJuridicas)
                     {
-                        DetranVeiculoOrigemRestricaoId = DetranRioVeiculoOrigemRestricao.DetranVeiculoOrigemRestricaoId,
+                        DetranRioVeiculoRestricao = new()
+                        {
+                            DetranVeiculoOrigemRestricaoId = DetranRioVeiculoOrigemRestricao.DetranVeiculoOrigemRestricaoId,
 
-                        TipoRestricao = "A",
+                            TipoRestricao = "J",
 
-                        Restricao = item.Restricao,
+                            Restricao = item.Restricao,
 
-                        CodigoRestricao = item.Codigo
-                    };
+                            CodigoRestricao = item.Codigo
+                        };
 
-                    DetranRioVeiculo.ListagemDetranRioVeiculoRestricao.Add(DetranRioVeiculoRestricao);
-                }
-            }
-
-            if (DetranRetornoConsulta?.RestricoesJuridicas.Count > 0)
-            {
-                foreach (var item in DetranRetornoConsulta.RestricoesJuridicas)
-                {
-                    DetranRioVeiculoRestricao = new()
-                    {
-                        DetranVeiculoOrigemRestricaoId = DetranRioVeiculoOrigemRestricao.DetranVeiculoOrigemRestricaoId,
-
-                        TipoRestricao = "J",
-
-                        Restricao = item.Restricao,
-
-                        CodigoRestricao = item.Codigo
-                    };
-
-                    DetranRioVeiculo.ListagemDetranRioVeiculoRestricao.Add(DetranRioVeiculoRestricao);
+                        DetranRioVeiculo.ListagemDetranRioVeiculoRestricao.Add(DetranRioVeiculoRestricao);
+                    }
                 }
             }
 

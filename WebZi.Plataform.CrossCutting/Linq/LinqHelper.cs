@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using WebZi.Plataform.CrossCutting.Number;
+﻿using WebZi.Plataform.CrossCutting.Number;
 using WebZi.Plataform.CrossCutting.Strings;
 
 namespace WebZi.Plataform.CrossCutting.Linq
@@ -105,6 +104,16 @@ namespace WebZi.Plataform.CrossCutting.Linq
         public static List<T> GetOrderlyList<T>(List<T> list) where T : class
         {
             return list?.Count == 0 ? list : list.OrderBy(x => x).ToList();
+        }
+
+        public static int CountItens<T>(this ICollection<T> list) where T : class
+        {
+            return list == null ? 0 : list.Count;
+        }
+
+        public static int CountItens<T>(this List<T> list) where T : class
+        {
+            return list == null ? 0 : list.Count;
         }
 
         public static bool ContainsDuplicates<T>(this List<T> list)

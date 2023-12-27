@@ -109,7 +109,12 @@ namespace WebZi.Plataform.CrossCutting.Strings
 
         public static string ToNullIfEmpty(this string input)
         {
-            return !string.IsNullOrWhiteSpace(input) ? input.Trim() : null;
+            return input.IsNullOrWhiteSpace() ? null : input;
+        }
+
+        public static string ToStringIfNull(this string input)
+        {
+            return input ?? string.Empty;
         }
 
         public static string ToTitleCase(this string input)

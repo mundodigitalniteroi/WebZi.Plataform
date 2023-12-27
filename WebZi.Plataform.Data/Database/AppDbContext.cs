@@ -82,9 +82,17 @@ namespace WebZi.Plataform.Data.Database
 
         public bool IsProd()
         {
-            return AppSettingsHelper.GetConnectionString("DefaultConnection").Contains("Producao", StringComparison.CurrentCultureIgnoreCase);
+            return AppSettingsHelper
+                .GetConnectionString("DefaultConnection")
+                .Contains("Producao", StringComparison.CurrentCultureIgnoreCase);
         }
 
+        /// <summary>
+        /// Define o ID do Usuário que será usado no Log da Tabela.
+        /// 
+        /// Nota: Esta função precisa ser executadas numa transação.
+        /// </summary>
+        /// <param name="UsuarioId">Identificador do Usuário</param>
         public void SetUserContextInfo(int UsuarioId)
         {
             Database.ExecuteSqlRaw($"EXECUTE dbo.sp_set_contextinfo {UsuarioId}");

@@ -18,7 +18,7 @@ namespace WebZi.Plataform.Domain.Models.WebServices.Rio
         /// </summary>
         public string TipoRestricao { get; set; }
 
-        public byte CodigoRestricao { get; set; }
+        public byte CodigoRestricao { get; set; } = 0;
 
         public string Restricao { get; set; }
 
