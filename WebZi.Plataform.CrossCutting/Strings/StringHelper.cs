@@ -47,7 +47,7 @@ namespace WebZi.Plataform.CrossCutting.Strings
 
         [GeneratedRegex("\\p{Mn}")]
         private static partial Regex RegexNormalize();
-        
+
         public static string Normalize(this string input)
         {
             return !input.IsNull() ? RegexNormalize().Replace(input.Normalize(NormalizationForm.FormD), string.Empty) : input;
@@ -95,6 +95,11 @@ namespace WebZi.Plataform.CrossCutting.Strings
             }
 
             return input.Left(1).ToLower() + CultureInfo.CurrentCulture.TextInfo.ToTitleCase(input)[1..];
+        }
+
+        public static string ToEmptyIfNull(this string input)
+        {
+            return input == null ? string.Empty : input;
         }
 
         public static string ToLowerTrim(this string input)

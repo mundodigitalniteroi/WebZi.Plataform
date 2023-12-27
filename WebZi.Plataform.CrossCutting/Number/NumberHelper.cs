@@ -28,6 +28,34 @@ namespace WebZi.Plataform.CrossCutting.Number
             return true;
         }
 
+        private static HashSet<Type> GetNumericTypes()
+        {
+            return new()
+            {
+                typeof(decimal),
+                typeof(byte),
+                typeof(decimal),
+                typeof(int),
+                typeof(long),
+                typeof(sbyte),
+                typeof(short),
+                typeof(uint),
+                typeof(ulong),
+                typeof(short),
+                typeof(ushort)
+            };
+        }
+
+        public static bool IsNumericType<T>(this List<T> value)
+        {
+            return GetNumericTypes().Contains(typeof(T));
+        }
+
+        public static bool IsNumericType<T>(this T value)
+        {
+            return GetNumericTypes().Contains(typeof(T));
+        }
+
         public static decimal GetPercentage(this decimal input, decimal percentage)
         {
             if (percentage > 100)

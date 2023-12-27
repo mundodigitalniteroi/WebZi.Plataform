@@ -98,6 +98,9 @@ namespace WebZi.Plataform.Data.Services
                 .ForMember(dest => dest.Chassi, from => from.MapFrom(property => property.Chassi.ToNullIfEmpty()))
                 .ForMember(dest => dest.Uf, from => from.MapFrom(property => property.Uf.ToNullIfEmpty()));
 
+            CreateMap<DetranRioVeiculoModel, DetranRioVeiculoModel>()
+                .ForMember(dest => dest.DetranVeiculoId, property => property.Ignore());
+
             CreateMap<CorModel, DetranRioVeiculoViewModel>()
                 .ForMember(dest => dest.Cor, from => from.MapFrom(x => x));
 

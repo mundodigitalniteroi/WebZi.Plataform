@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Text;
 using WebZi.Plataform.CrossCutting.Configuration;
+using WebZi.Plataform.CrossCutting.Linq;
 using WebZi.Plataform.CrossCutting.Secutity;
 using WebZi.Plataform.CrossCutting.Veiculo;
 using WebZi.Plataform.Data.Database;
@@ -45,10 +46,55 @@ class Program
 
         // _context.SaveChanges();        
 
-        string placa = VeiculoHelper.FormatPlaca( "ABC1234 ");
+        //Debugger.Break();
+
+        List<string> strings = new()
+        {
+            "e",
+
+            "B     ",
+
+            "",
+
+            " ",
+
+            null,
+
+            null,
+
+            "a"
+        };
+
+        List<int> numbers = new()
+        {
+           1
+        };
+
+        bool result = false;
+
+        result = numbers.ContainsNegativeOrZeroNumbers();
+
+        result = strings.ContainsDuplicates();
+
+        var newStrings = LinqHelper.GetList(strings, LinqHelper.LinqListFlags.OrderByDesc | LinqHelper.LinqListFlags.Trim | LinqHelper.LinqListFlags.ToNullIfWhiteSpace);
+
+        foreach (string s in newStrings)
+        {
+            WriteLine(s == null ? "null" : s + ".");
+        }
 
         Debugger.Break();
+    }
 
+    static void WriteLine(string message)
+    {
+        Debug.WriteLine(message);
+
+        Console.WriteLine(message);
+    }
+
+    static void CreateSecret()
+    {
         byte[] textoAsBytes = Encoding.ASCII.GetBytes("AliCE_PAiS#no%MAraViLHas12345678");
 
         string key = Convert.ToBase64String(textoAsBytes);
@@ -58,10 +104,5 @@ class Program
         string encrypted = CryptographyHelper.EncryptString(key, "TESTE");
 
         string decrypted = CryptographyHelper.DecryptString(key, encrypted);
-
-        if (true)
-        {
-
-        }
     }
 }

@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using WebZi.Plataform.CrossCutting.Contacts;
 using WebZi.Plataform.CrossCutting.Documents;
+using WebZi.Plataform.CrossCutting.Linq;
 using WebZi.Plataform.CrossCutting.Localizacao;
 using WebZi.Plataform.CrossCutting.Number;
 using WebZi.Plataform.CrossCutting.Strings;
@@ -234,7 +235,9 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 Condutor = _mapper.Map<CondutorModel>(GrvPersistencia.Condutor)
             };
 
-            Grv.Condutor.Email = Grv.Condutor.Email.ToLowerTrim().ToNullIfEmpty();
+            Grv.Condutor.Email = Grv.Condutor.Email
+                .ToLowerTrim()
+                .ToNullIfEmpty();
 
             TabelaGenericaModel AssinaturaCondutor = new TabelaGenericaService(_context)
                 .GetById(GrvPersistencia.Condutor.IdentificadorAssinaturaCondutor);
@@ -281,7 +284,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                     .OrderBy(x => x)
                     .ToList();
 
-                Grv.ListagemLacre = new HashSet<LacreModel>();
+                Grv.ListagemLacre = new List<LacreModel>();
 
                 foreach (string item in GrvPersistencia.ListagemLacre)
                 {
@@ -291,7 +294,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (GrvPersistencia.ListagemEquipamentoOpcional?.Count > 0)
             {
-                Grv.ListagemCondutorEquipamentoOpcional = new HashSet<CondutorEquipamentoOpcionalModel>();
+                Grv.ListagemCondutorEquipamentoOpcional = new List<CondutorEquipamentoOpcionalModel>();
 
                 CondutorEquipamentoOpcionalModel CondutorEquipamentoOpcional = new();
 
@@ -496,11 +499,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 return MensagemViewHelper.SetBadRequest("Informe os Lacres");
             }
 
-            ListagemLacre = ListagemLacre
-                .ConvertAll(x => x.ToUpperTrim().ToNullIfEmpty())
-                .Distinct()
-                .OrderBy(x => x)
-                .ToList();
+            ListagemLacre = LinqHelper
+                .GetList(ListagemLacre, LinqHelper.LinqListFlags.Distinct | LinqHelper.LinqListFlags.ToUpper | LinqHelper.LinqListFlags.OrderBy);
 
             GrvModel Grv = await GetByIdAsync(GrvId);
 
@@ -807,8 +807,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
             {
                 new BucketService(_context, _httpClientFactory)
                     .DeleteFiles("GRV_DOCCONDUTOR", Grv.ListagemCondutorDocumento
-                        .Select(x => x.CondutorDocumentoId)
-                        .ToList());
+                    .Select(x => x.CondutorDocumentoId)
+                    .ToList());
             }
 
             if (Grv.Atendimento != null)
@@ -1896,23 +1896,12 @@ namespace WebZi.Plataform.Domain.Services.GRV
             }
             else
             {
-                List<IGrouping<string, string>> Lacres = GrvPersistencia.ListagemLacre
-                    .Where(x => !string.IsNullOrWhiteSpace(x))
-                    .GroupBy(x => x)
-                    .Where(x => x.Count() > 1)
-                    .ToList();
-
-                if (Lacres.Count >= 1)
+                if (GrvPersistencia.ListagemLacre.ContainsDuplicates())
                 {
                     erros.Add("Existem Lacres duplicados");
                 }
 
-                Lacres = GrvPersistencia.ListagemLacre
-                    .Where(x => string.IsNullOrWhiteSpace(x))
-                    .GroupBy(x => x)
-                    .ToList();
-
-                if (Lacres.Count >= 1)
+                if (GrvPersistencia.ListagemLacre.ContainsNullOrWhiteSpaceValues())
                 {
                     erros.Add("Existem Lacres não informados");
                 }
@@ -2074,25 +2063,12 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 }
                 else
                 {
-                    List<IGrouping<decimal, decimal>> EnquadramentosInfracoes = GrvPersistencia.ListagemEnquadramentoInfracao
-                        .Where(x => x.IdentificadorEnquadramentoInfracao <= 0)
-                        .Select(x => x.IdentificadorEnquadramentoInfracao)
-                        .GroupBy(x => x)
-                        .ToList();
-
-                    if (EnquadramentosInfracoes.Count >= 1)
+                    if (GrvPersistencia.ListagemEnquadramentoInfracao.ContainsNegativeOrZeroNumbers())
                     {
                         ResultView.AvisosImpeditivos.Add("Existem Enquadramento da Infração com Identificador inválido");
                     }
 
-                    EnquadramentosInfracoes = GrvPersistencia.ListagemEnquadramentoInfracao
-                        .Where(x => x.IdentificadorEnquadramentoInfracao > 0)
-                        .Select(x => x.IdentificadorEnquadramentoInfracao)
-                        .GroupBy(x => x)
-                        .Where(x => x.Count() > 1)
-                        .ToList();
-
-                    if (EnquadramentosInfracoes.Count >= 1)
+                    if (GrvPersistencia.ListagemEnquadramentoInfracao.ContainsDuplicates())
                     {
                         ResultView.AvisosImpeditivos.Add("Existem Enquadramento da Infração duplicados");
                     }
@@ -2101,7 +2077,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                         if (GrvPersistencia.ListagemEnquadramentoInfracao.Exists(x => x.IdentificadorEnquadramentoInfracao > 0))
                         {
                             List<decimal> ids = GrvPersistencia.ListagemEnquadramentoInfracao
-                                .Where(x => x.IdentificadorEnquadramentoInfracao > 0 /*&& x.IdentificadorEnquadramentoInfracao < 9999*/)
+                                .Where(x => x.IdentificadorEnquadramentoInfracao > 0)
                                 .Select(x => x.IdentificadorEnquadramentoInfracao)
                                 .ToList();
 
