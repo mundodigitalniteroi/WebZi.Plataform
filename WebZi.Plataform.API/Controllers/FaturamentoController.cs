@@ -159,20 +159,20 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("Simulacao")]
         // TODO: [Authorize]
-        public async Task<ActionResult<TabelaGenericaViewModelList>> Simulacao()
+        public async Task<ActionResult<FaturamentoViewModel>> Simulacao(string PlacaChassi, int IdentificadorCliente, int IdentificadorDeposito)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            TabelaGenericaViewModelList ResultView = new();
+            FaturamentoViewModel ResultView = new();
 
             try
             {
                 ResultView = await _provider
-                    .GetService<TabelaGenericaService>()
-                    .ListToViewModelAsync("FAT_TIPO_COBRANCA");
+                    .GetService<FaturamentoService>()
+                    .SimularAsync(PlacaChassi, IdentificadorCliente, IdentificadorDeposito);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }

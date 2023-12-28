@@ -214,9 +214,12 @@ namespace WebZi.Plataform.Data.Services.Report
 
             GuiaPagamentoEstadiaReboque.NumeroChave = Grv.NumeroChave;
 
-            GuiaPagamentoEstadiaReboque.ReboquistaNome = Grv.Reboquista.Nome;
+            if (Grv.FlagComboio == "N")
+            {
+                GuiaPagamentoEstadiaReboque.ReboquistaNome = Grv.Reboquista.Nome;
 
-            GuiaPagamentoEstadiaReboque.ReboquePlaca = Grv.Reboque.Placa;
+                GuiaPagamentoEstadiaReboque.ReboquePlaca = Grv.Reboque.Placa;
+            }
 
             GuiaPagamentoEstadiaReboque.MarcaModelo = Grv.MarcaModelo.MarcaModelo;
 

@@ -33,7 +33,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<DetranRioService>()
-                    .GetByChassiAsync(Chassi);
+                    .GetViewByChassiAsync(Chassi);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -60,7 +60,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<DetranRioService>()
-                    .GetByIdAsync(IdentificadorVeiculo);
+                    .GetViewByIdAsync(IdentificadorVeiculo);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -87,7 +87,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<DetranRioService>()
-                    .GetByPlacaAsync(Placa);
+                    .GetViewByPlacaAsync(Placa);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }

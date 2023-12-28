@@ -16,15 +16,6 @@ namespace WebZi.Plataform.Data.Mappings.GRV
                 .HasColumnName("id_tipo_veiculo")
                 .ValueGeneratedOnAdd();
 
-            builder.Property(x => x.DataAlteracao)
-                .HasColumnType("smalldatetime")
-                .HasColumnName("data_alteracao");
-
-            builder.Property(x => x.DataCadastro)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("smalldatetime")
-                .HasColumnName("data_cadastro");
-
             builder.Property(x => x.Descricao)
                 .IsRequired()
                 .HasMaxLength(50)
@@ -52,6 +43,15 @@ namespace WebZi.Plataform.Data.Mappings.GRV
 
             builder.Property(x => x.UsuarioAlteracaoId)
                 .HasColumnName("id_usuario_alteracao");
+
+            builder.Property(x => x.DataCadastro)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("smalldatetime")
+                .HasColumnName("data_cadastro");
+
+            builder.Property(x => x.DataAlteracao)
+                .HasColumnType("smalldatetime")
+                .HasColumnName("data_alteracao");
 
             builder
                 .HasOne(x => x.UsuarioCadastro)

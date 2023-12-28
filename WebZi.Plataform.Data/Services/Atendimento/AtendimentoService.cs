@@ -539,7 +539,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                     ParametrosCalculoFaturamento.Atendimento = Atendimento;
 
                     ParametrosCalculoFaturamento.Faturamento = new FaturamentoService(_context, _mapper, _httpClientFactory)
-                        .Faturar(ParametrosCalculoFaturamento);
+                        .Faturar(ParametrosCalculoFaturamento, false);
 
                     CreateFotoResponsavel(Atendimento.AtendimentoId, AtendimentoInput);
 

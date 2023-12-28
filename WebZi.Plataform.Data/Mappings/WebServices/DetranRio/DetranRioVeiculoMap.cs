@@ -57,12 +57,7 @@ namespace WebZi.Plataform.Data.Mappings.WebServices.DetranRio
                 .IsFixedLength()
                 .UseCollation("SQL_Latin1_General_CP1_CI_AS")
                 .HasColumnName("codigo_categoria");
-            
-            builder.Property(x => x.DataCadastro)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("smalldatetime")
-                .HasColumnName("data_cadastro");
-            
+
             builder.Property(x => x.DescricaoCategoria)
                 .HasMaxLength(12)
                 .IsUnicode(false)
@@ -74,14 +69,6 @@ namespace WebZi.Plataform.Data.Mappings.WebServices.DetranRio
                 .IsUnicode(false)
                 .UseCollation("SQL_Latin1_General_CP1_CI_AS")
                 .HasColumnName("descricao_tipo");
-            
-            builder.Property(x => x.FlagRegistroNormalizado)
-                .HasMaxLength(1)
-                .IsUnicode(false)
-                .HasDefaultValueSql("('N')")
-                .IsFixedLength()
-                .UseCollation("SQL_Latin1_General_CP1_CI_AS")
-                .HasColumnName("flag_registro_normalizado");
             
             builder.Property(x => x.CorId)
                 .HasColumnName("id_cor");
@@ -124,6 +111,22 @@ namespace WebZi.Plataform.Data.Mappings.WebServices.DetranRio
                 .IsFixedLength()
                 .UseCollation("SQL_Latin1_General_CP1_CI_AS")
                 .HasColumnName("uf");
+
+            builder.Property(x => x.FlagRegistroNormalizado)
+                .HasMaxLength(1)
+                .IsUnicode(false)
+                .HasDefaultValueSql("('N')")
+                .IsFixedLength()
+                .UseCollation("SQL_Latin1_General_CP1_CI_AS")
+                .HasColumnName("flag_registro_normalizado");
+
+            builder.Property(x => x.DataCadastro)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("smalldatetime")
+                .HasColumnName("data_cadastro");
+
+            builder.Property(x => x.DataAlteracao)
+                .HasColumnType("smalldatetime");
         }
     }
 }

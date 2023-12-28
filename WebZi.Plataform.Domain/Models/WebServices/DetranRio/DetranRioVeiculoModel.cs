@@ -48,6 +48,8 @@ namespace WebZi.Plataform.Domain.Models.WebServices.DetranRio
 
         public DateTime DataCadastro { get; set; }
 
+        public DateTime? DataAlteracao { get; set; }
+
         public string FlagRegistroNormalizado { get; set; } = "N";
 
         public virtual CorModel Cor { get; set; }
