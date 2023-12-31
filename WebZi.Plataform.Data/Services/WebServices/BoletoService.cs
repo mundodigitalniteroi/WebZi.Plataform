@@ -58,7 +58,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
             if (!string.IsNullOrWhiteSpace(StatusBoleto))
             {
                 Faturamento = _context.Faturamento
-                    .Include(x => x.FaturamentoBoletos.Where(x => x.Status == StatusBoleto))
+                    .Include(x => x.ListagemBoleto.Where(x => x.Status == StatusBoleto))
                     .Include(x => x.TipoMeioCobranca)
                     .Include(x => x.Atendimento)
                     .ThenInclude(x => x.Grv)
@@ -69,7 +69,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
             else
             {
                 Faturamento = _context.Faturamento
-                    .Include(x => x.FaturamentoBoletos.Where(x => x.Status != "C"))
+                    .Include(x => x.ListagemBoleto.Where(x => x.Status != "C"))
                     .Include(x => x.TipoMeioCobranca)
                     .Include(x => x.Atendimento)
                     .ThenInclude(x => x.Grv)
@@ -113,7 +113,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
 
                 return ResultView;
             }
-            else if (Faturamento.FaturamentoBoletos?.Count == 0)
+            else if (Faturamento.ListagemBoleto?.Count == 0)
             {
                 ResultView.Mensagem = MensagemViewHelper.SetNotFound("Boleto foi cancelado ou inexistente");
 
@@ -143,7 +143,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
                     .Include(x => x.FaturamentoBoleto)
                     .OrderByDescending(x => x.FaturamentoBoletoId)
                     .AsNoTracking()
-                    .FirstOrDefault(x => x.FaturamentoBoleto.FaturamentoId == Faturamento.FaturamentoBoletos.FirstOrDefault().FaturamentoBoletoId
+                    .FirstOrDefault(x => x.FaturamentoBoleto.FaturamentoId == Faturamento.ListagemBoleto.FirstOrDefault().FaturamentoBoletoId
                                  && x.FaturamentoBoleto.Status != "C");
 
                 if (FaturamentoBoletoImagem != null)

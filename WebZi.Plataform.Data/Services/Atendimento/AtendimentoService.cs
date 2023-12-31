@@ -19,6 +19,7 @@ using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Atendimento;
 using WebZi.Plataform.Domain.Models.Bucket;
+using WebZi.Plataform.Domain.Models.ClienteDeposito;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.GRV;
 using WebZi.Plataform.Domain.Models.Pessoa.Documento;
@@ -525,9 +526,11 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             }
             #endregion Dados do Atendimento
 
-            CalculoFaturamentoParametroModel ParametrosCalculoFaturamento = await ConfigParametrosCalculoFaturamentoAsync(Grv, Atendimento, AtendimentoInput.IdentificadorTipoMeioCobranca, DataHoraPorDeposito);
+            CalculoFaturamentoParametroModel ParametrosCalculoFaturamento = await ConfigParametrosCalculoFaturamentoAsync(Grv, AtendimentoInput.IdentificadorTipoMeioCobranca, AtendimentoInput.IdentificadorUsuario, DataHoraPorDeposito);
 
             AtendimentoCadastroDTO AtendimentoCadastroResultView = new();
+
+            FaturamentoModel Faturamento = new();
 
             using (IDbContextTransaction transaction = _context.Database.BeginTransaction())
             {
@@ -537,14 +540,12 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
                     _context.SaveChanges();
 
-                    ParametrosCalculoFaturamento.Atendimento = Atendimento;
-
-                    ParametrosCalculoFaturamento.Faturamento = new FaturamentoService(_context, _mapper, _httpClientFactory)
-                        .Faturar(ParametrosCalculoFaturamento, false);
+                    Faturamento = new FaturamentoService(_context, _mapper, _httpClientFactory)
+                        .Faturar(ParametrosCalculoFaturamento);
 
                     CreateFotoResponsavel(Atendimento.AtendimentoId, AtendimentoInput);
 
-                    UpdateStatusERP(ParametrosCalculoFaturamento);
+                    UpdateStatusERP(ParametrosCalculoFaturamento.ClienteDeposito, Faturamento, Atendimento);
 
                     CreateLiberacaoLeilao(ParametrosCalculoFaturamento);
 
@@ -569,7 +570,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             // TODO:
             // GerarFormaPagamento(ParametrosCalculoFaturamento);
 
-            AtendimentoCadastroResultView.IdentificadorAtendimento = ParametrosCalculoFaturamento.Atendimento.AtendimentoId;
+            AtendimentoCadastroResultView.IdentificadorAtendimento = Atendimento.AtendimentoId;
 
             AtendimentoCadastroResultView.Mensagem = MensagemViewHelper.SetCreateSuccess();
 
@@ -591,7 +592,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             {
                 _context.LiberacaoLeilao.Add(new()
                 {
-                    GrvId = ParametrosCalculoFaturamento.Grv.GrvId,
+                    GrvId = ParametrosCalculoFaturamento.GrvId,
 
                     StatusOperacaoLeilaoId = ParametrosCalculoFaturamento.StatusOperacaoLeilaoId,
 
@@ -600,47 +601,53 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             }
         }
 
-        private async Task<CalculoFaturamentoParametroModel> ConfigParametrosCalculoFaturamentoAsync(GrvModel Grv, AtendimentoModel Atendimento, int TipoMeioCobrancaId, DateTime DataHoraPorDeposito)
+        private async Task<CalculoFaturamentoParametroModel> ConfigParametrosCalculoFaturamentoAsync(GrvModel Grv, int TipoMeioCobrancaId, int UsuarioCadastroId, DateTime DataHoraPorDeposito)
         {
+            ClienteDepositoModel ClienteDeposito = await _context.ClienteDeposito
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.ClienteId == Grv.ClienteId && x.DepositoId == Grv.DepositoId);
+
+            // Quando no cadastro do Cliente foi configurado o Tipo de Cobrança, este cadastro é o que será usado para o cadastro da Fatura.
+            TipoMeioCobrancaModel TipoMeioCobranca = await _context.TipoMeioCobranca
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.TipoMeioCobrancaId == 
+                    ((ClienteDeposito.Cliente.TipoMeioCobrancaId.HasValue && ClienteDeposito.Cliente.TipoMeioCobrancaId.Value > 0) ? 
+                    ClienteDeposito.Cliente.TipoMeioCobrancaId.Value : 
+                    TipoMeioCobrancaId));
+
             CalculoFaturamentoParametroModel ParametrosCalculoFaturamento = new()
             {
-                UsuarioCadastroId = Atendimento.UsuarioCadastroId,
+                DataHoraInicialParaCalculo = Grv.DataHoraGuarda.Value,
 
-                Grv = Grv,
-
-                ClienteDeposito = await _context.ClienteDeposito
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(x => x.ClienteId == Grv.ClienteId && x.DepositoId == Grv.DepositoId),
-
-                Atendimento = Atendimento,
+                DataHoraFinalParaCalculo = DateTime.MinValue,
 
                 DataHoraPorDeposito = DataHoraPorDeposito,
 
+                IsComboio = Grv.FlagComboio == "S",
+
+                // L: Aguardando Pagamento
+                // U: Aguardando Liberação Especial
+                StatusOperacaoId = TipoMeioCobranca.Alias != "LIBESP" ? "L" : "U",
+
+                FaturamentoProdutoId = Grv.FaturamentoProdutoId,
+
+                GrvId = Grv.GrvId,
+
+                NumeroFormularioGrv = Grv.NumeroFormularioGrv,
+
+                TipoVeiculoId = Grv.TipoVeiculoId,
+
+                ClienteDeposito = ClienteDeposito,
+
+                UsuarioCadastroId = UsuarioCadastroId,
+
                 // Esta funcionalidade altera o GRV com Status de Leilão para Status de Atendimento
                 // para que o fluxo do Atendimento/Faturamento/Liberação funcionem.
-                StatusOperacaoLeilaoId = new[] { "1", "2", "4" }.Contains(Grv.StatusOperacaoId) ? Grv.StatusOperacaoId : string.Empty,
+                StatusOperacaoLeilaoId = new[] { "1", "2", "4" }
+                    .Contains(Grv.StatusOperacaoId) ? Grv.StatusOperacaoId : string.Empty,
 
-                FaturamentoRegras = await _context.FaturamentoRegra
-                        .Include(x => x.FaturamentoRegraTipo)
-                        .Where(x => x.ClienteId == Grv.Cliente.ClienteId && x.DepositoId == Grv.Deposito.DepositoId)
-                        .AsNoTracking()
-                        .ToListAsync()
+                TipoMeioCobrancaId = TipoMeioCobranca.TipoMeioCobrancaId
             };
-
-            List<TipoMeioCobrancaModel> TiposMeiosCobrancas = await _context.TipoMeioCobranca
-                    .AsNoTracking()
-                    .ToListAsync();
-
-            ParametrosCalculoFaturamento.TipoMeioCobranca = TiposMeiosCobrancas
-                .FirstOrDefault(x => x.TipoMeioCobrancaId == (ParametrosCalculoFaturamento.ClienteDeposito.Cliente.TipoMeioCobrancaId.HasValue &&
-                                                              ParametrosCalculoFaturamento.ClienteDeposito.Cliente.TipoMeioCobrancaId.Value > 0 ? ParametrosCalculoFaturamento.ClienteDeposito.Cliente.TipoMeioCobrancaId.Value : TipoMeioCobrancaId));
-
-            // L: Aguardando Pagamento
-            // U: Aguardando Liberação Especial
-            ParametrosCalculoFaturamento.StatusOperacaoId = TiposMeiosCobrancas
-                .Where(x => x.TipoMeioCobrancaId == ParametrosCalculoFaturamento.TipoMeioCobranca.TipoMeioCobrancaId)
-                .FirstOrDefault()
-                .Alias != "LIBESP" ? "L" : "U";
 
             return ParametrosCalculoFaturamento;
         }
@@ -822,25 +829,25 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             }
         }
 
-        private void UpdateStatusERP(CalculoFaturamentoParametroModel ParametrosCalculoFaturamento)
+        private void UpdateStatusERP(ClienteDepositoModel ClienteDeposito, FaturamentoModel Faturamento, AtendimentoModel Atendimento)
         {
-            if (ParametrosCalculoFaturamento.ClienteDeposito.Cliente.FlagEmissaoNotaFiscal == "S" && !string.IsNullOrWhiteSpace(ParametrosCalculoFaturamento.ClienteDeposito.CodigoERPOrdemVenda))
+            if (ClienteDeposito.Cliente.FlagEmissaoNotaFiscal == "S" && !string.IsNullOrWhiteSpace(ClienteDeposito.CodigoERPOrdemVenda))
             {
-                ParametrosCalculoFaturamento.Atendimento.StatusCadastroERP = "P";
+                Atendimento.StatusCadastroERP = "P";
 
-                if (ParametrosCalculoFaturamento.Faturamento.ValorFaturado > 0)
+                if (Faturamento.ValorFaturado > 0)
                 {
-                    ParametrosCalculoFaturamento.Atendimento.StatusCadastroOrdemVendaERP = "P";
+                    Atendimento.StatusCadastroOrdemVendaERP = "P";
                 }
 
-                _context.Atendimento.Update(ParametrosCalculoFaturamento.Atendimento);
+                _context.Atendimento.Update(Atendimento);
             }
         }
 
         private void UpdateGrv(CalculoFaturamentoParametroModel ParametrosCalculoFaturamento)
         {
             GrvModel Grv = _context.Grv
-                .Where(x => x.GrvId == ParametrosCalculoFaturamento.Grv.GrvId)
+                .Where(x => x.GrvId == ParametrosCalculoFaturamento.GrvId)
                 .FirstOrDefault();
 
             Grv.StatusOperacaoId = ParametrosCalculoFaturamento.StatusOperacaoId;

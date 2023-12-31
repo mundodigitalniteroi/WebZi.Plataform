@@ -93,7 +93,7 @@ namespace WebZi.Plataform.Data.Services.Report
         {
             decimal ValorDemaisServicos = 0;
 
-            foreach (FaturamentoComposicaoModel Composicao in Faturamento.FaturamentoComposicoes)
+            foreach (FaturamentoComposicaoModel Composicao in Faturamento.ListagemFaturamentoComposicao)
             {
                 if (Composicao.FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.FaturamentoServicoTipo.OrdemImpressao == 1)
                 {
@@ -271,7 +271,7 @@ namespace WebZi.Plataform.Data.Services.Report
 
             FaturamentoModel Faturamento = await _context.Faturamento
                 .Include(x => x.TipoMeioCobranca)
-                .Include(x => x.FaturamentoComposicoes)
+                .Include(x => x.ListagemFaturamentoComposicao)
                 .ThenInclude(x => x.FaturamentoServicoTipoVeiculo)
                 .ThenInclude(x => x.FaturamentoServicoAssociado)
                 .ThenInclude(x => x.FaturamentoServicoTipo)

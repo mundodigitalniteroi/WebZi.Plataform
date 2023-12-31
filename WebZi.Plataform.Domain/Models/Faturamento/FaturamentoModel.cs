@@ -72,20 +72,20 @@ namespace WebZi.Plataform.Domain.Models.Faturamento
 
         public virtual UsuarioModel UsuarioAlteracao { get; set; }
 
-        public virtual ICollection<BoletoModel> FaturamentoBoletos { get; set; } = new List<BoletoModel>();
+        public virtual ICollection<BoletoModel> ListagemBoleto { get; set; } = new List<BoletoModel>();
 
-        public virtual ICollection<FaturamentoCodigoAutorizacaoCartaoModel> FaturamentoCodigosAutorizacoesCartoes { get; set; } = new List<FaturamentoCodigoAutorizacaoCartaoModel>();
+        public virtual ICollection<FaturamentoCodigoAutorizacaoCartaoModel> ListagemFaturamentoCodigoAutorizacaoCartao { get; set; } = new List<FaturamentoCodigoAutorizacaoCartaoModel>();
 
-        public virtual ICollection<FaturamentoComposicaoModel> FaturamentoComposicoes { get; set; } = new List<FaturamentoComposicaoModel>();
+        public virtual ICollection<FaturamentoComposicaoModel> ListagemFaturamentoComposicao { get; set; } = new List<FaturamentoComposicaoModel>();
 
-        public virtual ICollection<FaturamentoCartaoModel> FaturamentoCartoes { get; set; } = new List<FaturamentoCartaoModel>();
+        public virtual ICollection<FaturamentoCartaoModel> ListagemFaturamentoCartao { get; set; } = new List<FaturamentoCartaoModel>();
 
         //public virtual ICollection<LiberacaoEspecial> LiberacaoEspecials { get; set; }
 
         //public virtual ICollection<PixDinamicoSenhaConfirmacaoTranferencium> PixDinamicoSenhaConfirmacaoTranferencia { get; set; }
 
-        public virtual ICollection<PixEstaticoModel> PixEstaticos { get; set; }
+        public virtual ICollection<PixEstaticoModel> ListagemPixEstatico { get; set; }
 
-        public virtual ICollection<PixDinamicoModel> PixDinamicos { get; set; }
+        public virtual ICollection<PixDinamicoModel> ListagemPixDinamico { get; set; }
     }
 }

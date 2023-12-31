@@ -18,7 +18,7 @@
 
         public decimal? ClienteMetragemGuarda { get; set; }
 
-        public string ClienteCodigoSap { get; set; }
+        public string ClienteCodigoERP { get; set; }
 
         public string ClienteHoraDiaria { get; set; }
 
@@ -28,7 +28,7 @@
 
         public string ClienteFlagUsarHoraDiaria { get; set; }
 
-        public string ClienteFlagEmissaoNotaFiscalSap { get; set; }
+        public string ClienteFlagEmissaoNotaFiscalERP { get; set; }
 
         public string ClienteFlagCobrarDiariasDiasCorridos { get; set; }
 
@@ -64,7 +64,7 @@
 
         public string CodigoMaterial { get; set; }
 
-        public string SapDescricao { get; set; }
+        public string DescricaoERP { get; set; }
 
         public string CodigoDescricaoERP { get; set; }
 
@@ -82,7 +82,7 @@
 
         public string FlagServicoObrigatorioGlobal { get; set; }
 
-        public string FlagCobrarGgv { get; set; }
+        public string FlagCobrarGGV { get; set; }
 
         public string FlagNaoCobrarSeNaoUsouReboque { get; set; }
 
@@ -120,6 +120,18 @@
 
         public string FlagCobrarSomentePrimeiraFatura { get; set; }
 
+        public int FaturamentoServicoTipoVeiculoId { get; set; }
+
+        public byte TipoVeiculoId { get; set; }
+
+        public string TipoVeiculoNome { get; set; }
+
+        public string VeiculoDescricao { get; set; }
+
+        public string TipoVeiculoFlagNaoRequerCnhNaLiberacao { get; set; }
+
+        public string TipoVeiculoFlagAtivo { get; set; }
+
         public short? FaturamentoRegraTipoId { get; set; }
 
         public string FaturamentoRegraTipoCodigo { get; set; }
@@ -137,17 +149,5 @@
         public string NomeUsuarioAlteracao { get; set; }
 
         public DateTime? DataAlteracao { get; set; }
-
-        public int FaturamentoServicoTipoVeiculoId { get; set; }
-
-        public byte TipoVeiculoId { get; set; }
-
-        public string TipoVeiculosNome { get; set; }
-
-        public string VeiculoDescricao { get; set; }
-
-        public string TipoVeiculosFlagNaoRequerCnhNaLiberacao { get; set; }
-
-        public string TipoVeiculosFlagAtivo { get; set; }
     }
 }

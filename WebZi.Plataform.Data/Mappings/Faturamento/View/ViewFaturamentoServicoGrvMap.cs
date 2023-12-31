@@ -63,7 +63,7 @@ namespace WebZi.Plataform.Data.Mappings.Faturamento.View
                 .IsUnicode(false)
                 .HasColumnName("cliente_hora_diaria");
 
-            builder.Property(e => e.ClienteIdAgenciaBancaria)
+            builder.Property(e => e.ClienteAgenciaBancariaId)
                 .HasColumnName("cliente_id_agencia_bancaria");
 
             builder.Property(e => e.ClienteEmpresaId)
@@ -167,7 +167,7 @@ namespace WebZi.Plataform.Data.Mappings.Faturamento.View
                 .IsFixedLength()
                 .HasColumnName("flag_cobrar_somente_primeira_fatura");
 
-            builder.Property(e => e.FlagCobrarTelaGrv)
+            builder.Property(e => e.FlagCobrarGGV)
                 .IsRequired()
                 .HasMaxLength(1)
                 .IsUnicode(false)
@@ -366,44 +366,44 @@ namespace WebZi.Plataform.Data.Mappings.Faturamento.View
                 .IsFixedLength()
                 .HasColumnName("tipo_desconto");
 
-            builder.Property(e => e.TipoVeiculosFlagAtivo)
+            builder.Property(e => e.TipoVeiculoFlagAtivo)
                 .IsRequired()
                 .HasMaxLength(1)
                 .IsUnicode(false)
                 .IsFixedLength()
                 .HasColumnName("tipo_veiculos_flag_ativo");
 
-            builder.Property(e => e.TipoVeiculosFlagNaoRequerCnhNaLiberacao)
+            builder.Property(e => e.TipoVeiculoFlagNaoRequerCnhNaLiberacao)
                 .IsRequired()
                 .HasMaxLength(1)
                 .IsUnicode(false)
                 .IsFixedLength()
                 .HasColumnName("tipo_veiculos_flag_nao_requer_cnh_na_liberacao");
 
-            builder.Property(e => e.TipoVeiculosNome)
+            builder.Property(e => e.TipoVeiculoNome)
                 .IsRequired()
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("tipo_veiculos_nome");
 
-            builder.Property(e => e.TiposMeiosCobrancasCodigoERP)
+            builder.Property(e => e.TipoMeioCobrancaCodigoERP)
                 .HasMaxLength(1)
                 .IsUnicode(false)
                 .IsFixedLength()
                 .HasColumnName("tipos_meios_cobrancas_codigo_sap");
 
-            builder.Property(e => e.TiposMeiosCobrancasDescricao)
+            builder.Property(e => e.TipoMeioCobrancaDescricao)
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("tipos_meios_cobrancas_descricao");
 
-            builder.Property(e => e.TiposMeiosCobrancasFlagBanco)
+            builder.Property(e => e.TipoMeioCobrancaFlagBanco)
                 .HasMaxLength(1)
                 .IsUnicode(false)
                 .IsFixedLength()
                 .HasColumnName("tipos_meios_cobrancas_flag_banco");
 
-            builder.Property(e => e.TiposMeiosCobrancasFlagPossuiCodigoAutorizacaoCartao)
+            builder.Property(e => e.TipoMeioCobrancaFlagPossuiCodigoAutorizacaoCartao)
                 .HasMaxLength(1)
                 .IsUnicode(false)
                 .IsFixedLength()

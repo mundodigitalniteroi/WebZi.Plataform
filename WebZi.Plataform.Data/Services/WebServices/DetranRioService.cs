@@ -148,6 +148,11 @@ namespace WebZi.Plataform.Data.Services.WebServices
             }
             catch (Exception ex)
             {
+                if (DetranRioVeiculoBD != null)
+                {
+                    return await SetValuesToViewModelAsync(DetranRioVeiculoBD);
+                }
+
                 ResultView.Mensagem = MensagemViewHelper.SetServiceUnavailable("O Serviço do Departamento Estadual de Trânsito está inoperante ou indisponível", ex);
 
                 return ResultView;

@@ -1,24 +1,37 @@
 ﻿using WebZi.Plataform.Domain.Models.Atendimento;
 using WebZi.Plataform.Domain.Models.ClienteDeposito;
-using WebZi.Plataform.Domain.Models.GRV;
 
 namespace WebZi.Plataform.Domain.Models.Faturamento
 {
     public class CalculoFaturamentoParametroModel
     {
+        public string FaturamentoProdutoId { get; set; }
+
+        //public int ClienteId { get; set; }
+
+        //public int DepositoId { get; set; }
+
+        public int GrvId { get; set; }
+
+        public string NumeroFormularioGrv { get; set; }
+
+        public int TipoVeiculoId { get; set; }
+
+        public byte TipoMeioCobrancaId { get; set; }
+
         public int UsuarioCadastroId { get; set; }
 
-        public char OrigemTipoComposicao { get; set; } = 'P'; // P = PÁTIO, L = LEILÃO
+        public bool IsComboio { get; set; }
 
         public string StatusOperacaoId { get; set; }
 
-        public bool FlagCadastrarFaturamento { get; set; } = true;
+        public string StatusOperacaoLeilaoId { get; set; }
+
+        public bool IsSimulacao { get; set; }
+
+        public bool FaturarSemGrv { get; set; }
 
         public bool FlagPermissaoDataRetroativaFaturamento { get; set; }
-
-        public int Diarias { get; set; }
-
-        public string StatusOperacaoLeilaoId { get; set; }
 
         /// <summary>
         /// Quando for um Atendimento deve-se usar a Data/Hora da Guarda.
@@ -28,27 +41,19 @@ namespace WebZi.Plataform.Domain.Models.Faturamento
 
         public DateTime DataHoraFinalParaCalculo { get; set; }
 
-        public DateTime DataPrazoRetiradaVeiculo { get; set; }
-
         public DateTime DataHoraPorDeposito { get; set; }
 
         public bool FlagFaturamentoCompleto { get; set; } = true;
 
         public bool FaturamentoAdicional { get; set; }
 
-        public AtendimentoModel Atendimento { get; set; }
+        // public AtendimentoModel Atendimento { get; set; }
 
         public ClienteDepositoModel ClienteDeposito { get; set; }
 
-        public FaturamentoModel Faturamento { get; set; }
-
-        public GrvModel Grv { get; set; }
-
-        public TipoMeioCobrancaModel TipoMeioCobranca { get; set; }
+        // public FaturamentoModel Faturamento { get; set; }
 
         public List<CalculoFaturamentoDescontoModel> FaturamentoDescontos { get; set; }
-
-        public List<FaturamentoRegraModel> FaturamentoRegras { get; set; }
 
         public List<CalculoFaturamentoQuantidadeAlteradaModel> FaturamentoQuantidadesAlteradas { get; set; }
     }

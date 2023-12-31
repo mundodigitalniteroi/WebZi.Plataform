@@ -282,7 +282,7 @@ namespace WebZi.Plataform.Data.Helper
 
             foreach (string item in NewMessages.Erros)
             {
-                Message.Alertas.Add(item);
+                Message.Erros.Add(item);
             }
 
             return Message;

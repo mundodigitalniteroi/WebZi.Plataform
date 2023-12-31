@@ -31,26 +31,26 @@
         public DateTime? DataHoraFinalParaCalculo { get; set; }
 
 
-        public string FlagUsarHoraDiaria { get; set; }
+        public bool FlagUsarHoraDiaria { get; set; }
 
-        public string FlagEmissaoNotaFiscalSap { get; set; }
+        public bool FlagEmissaoNotaFiscalERP { get; set; }
 
-        public string FlagClienteRealizaFaturamentoArrecadacao { get; set; }
+        public bool FlagClienteRealizaFaturamentoArrecadacao { get; set; }
 
-        public string FlagCobrarDiariasDiasCorridos { get; set; }
+        public bool FlagCobrarDiariasDiasCorridos { get; set; }
 
-        public string FlagPrimeiroFaturamento { get; set; }
+        public bool IsPrimeiroFaturamento { get; set; }
 
-        public string FlagComboio { get; set; }
+        public bool IsComboio { get; set; }
 
         public DateTime DataHoraOntem { get; set; }
 
         public int QuantidadeDiariasPagas { get; set; }
 
-        public bool CobrarTodasDiarias { get; set; }
-
-        public List<DateTime> Feriados { get; set; }
+        public bool FlagCobrarTodasDiarias { get; set; }
 
         public int QuantidadeDiasUteis { get; set; }
+
+        public List<DateTime> Feriados { get; set; }
     }
 }

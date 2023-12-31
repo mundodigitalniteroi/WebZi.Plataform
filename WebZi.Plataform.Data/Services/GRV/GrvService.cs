@@ -768,7 +768,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             if (Grv.Atendimento != null)
             {
                 Faturamentos = _context.Faturamento
-                    .Include(x => x.FaturamentoBoletos)
+                    .Include(x => x.ListagemBoleto)
                     .Where(x => x.AtendimentoId == Grv.Atendimento.AtendimentoId)
                     .AsNoTracking()
                     .ToList();
@@ -823,9 +823,9 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 {
                     foreach (FaturamentoModel Faturamento in Faturamentos)
                     {
-                        if (Faturamento.FaturamentoBoletos?.Count > 0)
+                        if (Faturamento.ListagemBoleto?.Count > 0)
                         {
-                            foreach (BoletoModel FaturamentoBoleto in Faturamento.FaturamentoBoletos)
+                            foreach (BoletoModel FaturamentoBoleto in Faturamento.ListagemBoleto)
                             {
                                 new BucketService(_context, _httpClientFactory)
                                     .DeleteFiles("FATURAMENBOLETO", FaturamentoBoleto.FaturamentoBoletoId);

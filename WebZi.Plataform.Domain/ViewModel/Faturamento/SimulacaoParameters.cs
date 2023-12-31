@@ -14,6 +14,9 @@ namespace WebZi.Plataform.Domain.ViewModel.Faturamento
         [Required(ErrorMessage = "Propriedade obrigatória")]
         public int IdentificadorDeposito { get; set; }
 
+        [Required(ErrorMessage = "Propriedade obrigatória")]
+        public int IdentificadorUsuario { get; set; }
+
         public string Placa { get; set; }
 
         public string Chassi { get; set; }

@@ -17,7 +17,7 @@ namespace WebZi.Plataform.Data.Mappings.Faturamento.View
                 .IsUnicode(false)
                 .HasColumnName("cliente_cnpj");
 
-            builder.Property(e => e.ClienteCodigoSap)
+            builder.Property(e => e.ClienteCodigoERP)
                 .HasMaxLength(6)
                 .IsUnicode(false)
                 .HasColumnName("cliente_codigo_sap");
@@ -43,7 +43,7 @@ namespace WebZi.Plataform.Data.Mappings.Faturamento.View
                 .IsFixedLength()
                 .HasColumnName("cliente_flag_cobrar_diarias_dias_corridos");
 
-            builder.Property(e => e.ClienteFlagEmissaoNotaFiscalSap)
+            builder.Property(e => e.ClienteFlagEmissaoNotaFiscalERP)
                 .IsRequired()
                 .HasMaxLength(1)
                 .IsUnicode(false)
@@ -175,7 +175,7 @@ namespace WebZi.Plataform.Data.Mappings.Faturamento.View
                 .IsFixedLength()
                 .HasColumnName("flag_cobrar_somente_primeira_fatura");
 
-            builder.Property(e => e.FlagCobrarGgv)
+            builder.Property(e => e.FlagCobrarGGV)
                 .IsRequired()
                 .HasMaxLength(1)
                 .IsUnicode(false)
@@ -325,7 +325,7 @@ namespace WebZi.Plataform.Data.Mappings.Faturamento.View
                 .IsUnicode(false)
                 .HasColumnName("sap_condicao_pagamento_descricao");
 
-            builder.Property(e => e.SapDescricao)
+            builder.Property(e => e.DescricaoERP)
                 .IsRequired()
                 .HasMaxLength(50)
                 .IsUnicode(false)
@@ -349,21 +349,21 @@ namespace WebZi.Plataform.Data.Mappings.Faturamento.View
                 .IsUnicode(false)
                 .HasColumnName("tipo_cobranca_descricao");
 
-            builder.Property(e => e.TipoVeiculosFlagAtivo)
+            builder.Property(e => e.TipoVeiculoFlagAtivo)
                 .IsRequired()
                 .HasMaxLength(1)
                 .IsUnicode(false)
                 .IsFixedLength()
                 .HasColumnName("tipo_veiculos_flag_ativo");
 
-            builder.Property(e => e.TipoVeiculosFlagNaoRequerCnhNaLiberacao)
+            builder.Property(e => e.TipoVeiculoFlagNaoRequerCnhNaLiberacao)
                 .IsRequired()
                 .HasMaxLength(1)
                 .IsUnicode(false)
                 .IsFixedLength()
                 .HasColumnName("tipo_veiculos_flag_nao_requer_cnh_na_liberacao");
 
-            builder.Property(e => e.TipoVeiculosNome)
+            builder.Property(e => e.TipoVeiculoNome)
                 .IsRequired()
                 .HasMaxLength(50)
                 .IsUnicode(false)

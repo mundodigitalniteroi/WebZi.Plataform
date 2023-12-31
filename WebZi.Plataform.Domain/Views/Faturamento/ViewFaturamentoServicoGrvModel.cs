@@ -8,7 +8,7 @@
 
         public int ClienteId { get; set; }
 
-        public short ClienteIdAgenciaBancaria { get; set; }
+        public short ClienteAgenciaBancariaId { get; set; }
 
         public byte? ClienteTipoMeioCobrancaId { get; set; }
 
@@ -52,13 +52,13 @@
 
         public byte? TipoMeioCobrancaId { get; set; }
 
-        public string TiposMeiosCobrancasCodigoERP { get; set; }
+        public string TipoMeioCobrancaCodigoERP { get; set; }
 
-        public string TiposMeiosCobrancasDescricao { get; set; }
+        public string TipoMeioCobrancaDescricao { get; set; }
 
-        public string TiposMeiosCobrancasFlagBanco { get; set; }
+        public string TipoMeioCobrancaFlagBanco { get; set; }
 
-        public string TiposMeiosCobrancasFlagPossuiCodigoAutorizacaoCartao { get; set; }
+        public string TipoMeioCobrancaFlagPossuiCodigoAutorizacaoCartao { get; set; }
 
         public int FaturamentoServicoTipoId { get; set; }
 
@@ -84,7 +84,7 @@
 
         public string FlagServicoObrigatorioGlobal { get; set; }
 
-        public string FlagCobrarTelaGrv { get; set; }
+        public string FlagCobrarGGV { get; set; }
 
         public string FlagNaoCobrarSeNaoUsouReboque { get; set; }
 
@@ -124,13 +124,13 @@
 
         public byte TipoVeiculoId { get; set; }
 
-        public string TipoVeiculosNome { get; set; }
+        public string TipoVeiculoNome { get; set; }
 
         public string VeiculoDescricao { get; set; }
 
-        public string TipoVeiculosFlagNaoRequerCnhNaLiberacao { get; set; }
+        public string TipoVeiculoFlagNaoRequerCnhNaLiberacao { get; set; }
 
-        public string TipoVeiculosFlagAtivo { get; set; }
+        public string TipoVeiculoFlagAtivo { get; set; }
 
         public short? FaturamentoRegraTipoId { get; set; }
 

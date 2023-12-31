@@ -32,7 +32,7 @@ namespace WebZi.Plataform.Data.Services.Banco.PIX
 
             FaturamentoModel Faturamento = _context.Faturamento
                 .Include(x => x.TipoMeioCobranca)
-                .Include(x => x.PixEstaticos)
+                .Include(x => x.ListagemPixEstatico)
                 .Include(x => x.Atendimento)
                 .ThenInclude(x => x.Grv)
                 .ThenInclude(x => x.Cliente)
