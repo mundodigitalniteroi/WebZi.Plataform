@@ -3,7 +3,6 @@ using System.Text;
 using WebZi.Plataform.CrossCutting.Configuration;
 using WebZi.Plataform.CrossCutting.Linq;
 using WebZi.Plataform.CrossCutting.Secutity;
-using WebZi.Plataform.CrossCutting.Veiculo;
 using WebZi.Plataform.Data.Database;
 
 class Program

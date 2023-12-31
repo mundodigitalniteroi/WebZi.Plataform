@@ -3,7 +3,7 @@ using WebZi.Plataform.Domain.Models.GRV;
 
 namespace WebZi.Plataform.Domain.DTO.GRV
 {
-    public class StatusOperacaoViewModelList
+    public class StatusOperacaoListDTO
     {
         public MensagemDTO Mensagem { get; set; } = new();
 

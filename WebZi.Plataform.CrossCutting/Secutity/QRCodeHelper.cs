@@ -1,7 +1,6 @@
-﻿using System.Drawing;
+﻿using QRCoder;
+using System.Drawing;
 using System.Drawing.Imaging;
-
-using QRCoder;
 
 namespace WebZi.Plataform.CrossCutting.Secutity
 {

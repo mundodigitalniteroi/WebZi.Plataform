@@ -1,6 +1,5 @@
 ﻿using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.DTO.WebServices.DetranRio;
-using WebZi.Plataform.Domain.Models.Faturamento;
 
 namespace WebZi.Plataform.Domain.DTO.Faturamento
 {

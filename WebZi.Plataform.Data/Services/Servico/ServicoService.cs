@@ -202,7 +202,7 @@ namespace WebZi.Plataform.Data.Services.Servico
             }
 
             List<ReboqueModel> result = await _context.Reboque
-                .Where(x => x.ClienteId == ClienteId 
+                .Where(x => x.ClienteId == ClienteId
                     && x.DepositoId == DepositoId)
                 .AsNoTracking()
                 .ToListAsync();

@@ -1083,9 +1083,9 @@ namespace WebZi.Plataform.Domain.Services.GRV
             return ResultView;
         }
 
-        public async Task<AutoridadeResponsavelViewModelList> ListAutoridadeResponsavelAsync(string UF)
+        public async Task<AutoridadeResponsavelListDTO> ListAutoridadeResponsavelAsync(string UF)
         {
-            AutoridadeResponsavelViewModelList ResultView = new();
+            AutoridadeResponsavelListDTO ResultView = new();
 
             if (string.IsNullOrWhiteSpace(UF))
             {
@@ -1150,9 +1150,9 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 .DownloadFilesAsync("GRV_DOCCONDUTOR", DocumentosCondutor);
         }
 
-        public async Task<EnquadramentoInfracaoViewModelList> ListEnquadramentoInfracaoAsync()
+        public async Task<EnquadramentoInfracaoListDTO> ListEnquadramentoInfracaoAsync()
         {
-            EnquadramentoInfracaoViewModelList ResultView = new();
+            EnquadramentoInfracaoListDTO ResultView = new();
 
             List<EnquadramentoInfracaoModel> result = await _context.EnquadramentoInfracao
                 .AsNoTracking()
@@ -1253,9 +1253,9 @@ namespace WebZi.Plataform.Domain.Services.GRV
             return ResultView;
         }
 
-        public async Task<MotivoApreensaoViewModelList> ListMotivoApreensaoAsync()
+        public async Task<MotivoApreensaoListDTO> ListMotivoApreensaoAsync()
         {
-            MotivoApreensaoViewModelList ResultView = new();
+            MotivoApreensaoListDTO ResultView = new();
 
             List<MotivoApreensaoModel> result = await _context.MotivoApreensao
                 .AsNoTracking()

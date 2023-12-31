@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using WebZi.Plataform.CrossCutting.Date;
 using WebZi.Plataform.CrossCutting.Documents;
@@ -130,8 +129,11 @@ namespace WebZi.Plataform.Data.Services.WebServices
             {
                 ResultView.Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.Ok;
 
-                ResultView.Listagem.Add(new ImageDTO { Imagem = new HttpClientFactoryService(_httpClientFactory)
-                    .DownloadFile(BucketArquivo.Url) });
+                ResultView.Listagem.Add(new ImageDTO
+                {
+                    Imagem = new HttpClientFactoryService(_httpClientFactory)
+                    .DownloadFile(BucketArquivo.Url)
+                });
 
                 return ResultView;
             }
@@ -385,7 +387,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
         {
             // Apesar de ser uma lista, por regra, só pode haver 1 Boleto cadastrado não pago
             List<BoletoModel> result = _context.FaturamentoBoleto
-                    .Where(x => x.FaturamentoId == FaturamentoId 
+                    .Where(x => x.FaturamentoId == FaturamentoId
                              && x.Status == "N")
                     .ToList();
 

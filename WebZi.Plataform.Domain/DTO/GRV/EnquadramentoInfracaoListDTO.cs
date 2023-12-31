@@ -2,7 +2,7 @@
 
 namespace WebZi.Plataform.Domain.DTO.GRV
 {
-    public class EnquadramentoInfracaoViewModelList
+    public class EnquadramentoInfracaoListDTO
     {
         public MensagemDTO Mensagem { get; set; } = new();
 

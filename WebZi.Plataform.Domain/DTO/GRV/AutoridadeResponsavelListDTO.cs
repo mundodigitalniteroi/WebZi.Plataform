@@ -2,7 +2,7 @@
 
 namespace WebZi.Plataform.Domain.DTO.GRV
 {
-    public class AutoridadeResponsavelViewModelList
+    public class AutoridadeResponsavelListDTO
     {
         public MensagemDTO Mensagem { get; set; } = new();
 

@@ -1,5 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using WebZi.Plataform.Domain.Models.WebServices.Rio;
 
 namespace WebZi.Plataform.Data.Mappings.WebServices.DetranRio
@@ -13,13 +13,13 @@ namespace WebZi.Plataform.Data.Mappings.WebServices.DetranRio
                 .HasKey(e => e.DetranVeiculoRestricaoId);
 
             builder.Property(x => x.DetranVeiculoRestricaoId).HasColumnName("id_detran_veiculos_ws_restricoes");
-            
+
             builder.Property(x => x.CodigoRestricao).HasColumnName("codigo_restricao");
-            
+
             builder.Property(x => x.DetranVeiculoId).HasColumnName("id_detran_veiculo");
-            
+
             builder.Property(x => x.DetranVeiculoOrigemRestricaoId).HasColumnName("id_detran_veiculos_ws_restricao_origem");
-            
+
             builder.Property(x => x.Restricao)
                 .IsRequired()
                 .HasMaxLength(200)

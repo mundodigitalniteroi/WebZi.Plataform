@@ -2,7 +2,7 @@
 {
     public class FotoGgvParameters
     {
-        [Required(ErrorMessage = "Propriedade obrigatória")]
+        //[Required(ErrorMessage = "Propriedade obrigatória")]
         public int IdentificadorProcesso { get; set; }
 
         //[Required(ErrorMessage = "Propriedade obrigatória")]

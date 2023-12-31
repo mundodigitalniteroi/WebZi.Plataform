@@ -8,10 +8,14 @@ using WebZi.Plataform.CrossCutting.Strings;
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
-using WebZi.Plataform.Data.Services.WebServices;
 using WebZi.Plataform.Data.Services.Deposito;
 using WebZi.Plataform.Data.Services.Faturamento;
 using WebZi.Plataform.Data.Services.Leilao;
+using WebZi.Plataform.Data.Services.Sistema;
+using WebZi.Plataform.Data.Services.WebServices;
+using WebZi.Plataform.Domain.DTO.Atendimento;
+using WebZi.Plataform.Domain.DTO.Generic;
+using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Atendimento;
 using WebZi.Plataform.Domain.Models.Bucket;
@@ -22,10 +26,6 @@ using WebZi.Plataform.Domain.Services.GRV;
 using WebZi.Plataform.Domain.Services.Usuario;
 using WebZi.Plataform.Domain.ViewModel.Atendimento;
 using WebZi.Plataform.Domain.ViewModel.Pagamento;
-using WebZi.Plataform.Data.Services.Sistema;
-using WebZi.Plataform.Domain.DTO.Atendimento;
-using WebZi.Plataform.Domain.DTO.Generic;
-using WebZi.Plataform.Domain.DTO.Sistema;
 
 namespace WebZi.Plataform.Data.Services.Atendimento
 {
@@ -762,8 +762,11 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             if (BucketArquivo != null)
             {
-                ResultView.Listagem.Add(new ImageDTO { Imagem = new HttpClientFactoryService(_httpClientFactory)
-                    .DownloadFile(BucketArquivo.Url) });
+                ResultView.Listagem.Add(new ImageDTO
+                {
+                    Imagem = new HttpClientFactoryService(_httpClientFactory)
+                    .DownloadFile(BucketArquivo.Url)
+                });
 
                 ResultView.Mensagem = MensagemViewHelper.SetFound();
 

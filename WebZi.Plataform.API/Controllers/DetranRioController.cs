@@ -2,8 +2,6 @@
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.WebServices;
 using WebZi.Plataform.Domain.DTO.WebServices.DetranRio;
-using WebZi.Plataform.Domain.Models.WebServices.DetranRio;
-using WebZi.Plataform.Domain.ViewModel;
 
 namespace WebZi.Plataform.API.Controllers
 {
