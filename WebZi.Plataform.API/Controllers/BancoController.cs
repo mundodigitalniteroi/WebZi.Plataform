@@ -3,9 +3,9 @@ using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Banco;
 using WebZi.Plataform.Data.Services.Banco.PIX;
 using WebZi.Plataform.Data.Services.WebServices;
-using WebZi.Plataform.Domain.ViewModel.Banco;
-using WebZi.Plataform.Domain.ViewModel.Banco.PIX;
-using WebZi.Plataform.Domain.ViewModel.Generic;
+using WebZi.Plataform.Domain.DTO.Banco;
+using WebZi.Plataform.Domain.DTO.Banco.PIX;
+using WebZi.Plataform.Domain.DTO.Generic;
 
 namespace WebZi.Plataform.API.Controllers
 {
@@ -22,14 +22,14 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("GerarBoleto")]
         // TODO: [Authorize]
-        public ActionResult<ImageViewModelList> GerarBoleto(int IdentificadorFaturamento, int IdentificadorUsuario)
+        public ActionResult<ImageListDTO> GerarBoleto(int IdentificadorFaturamento, int IdentificadorUsuario)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            ImageViewModelList ResultView = new();
+            ImageListDTO ResultView = new();
 
             try
             {
@@ -49,14 +49,14 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("GerarPixDinamico")]
         // TODO: [Authorize]
-        public ActionResult<PixEstaticoGeradoViewModel> GerarPixDinamico(int IdentificadorFaturamento, int IdentificadorUsuario)
+        public ActionResult<PixEstaticoGeradoDTO> GerarPixDinamico(int IdentificadorFaturamento, int IdentificadorUsuario)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            PixEstaticoGeradoViewModel ResultView = new();
+            PixEstaticoGeradoDTO ResultView = new();
 
             try
             {
@@ -76,14 +76,14 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("GerarPixEstatico")]
         // TODO: [Authorize]
-        public ActionResult<PixEstaticoGeradoViewModel> GerarPixEstatico(int IdentificadorFaturamento, int IdentificadorUsuario)
+        public ActionResult<PixEstaticoGeradoDTO> GerarPixEstatico(int IdentificadorFaturamento, int IdentificadorUsuario)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            PixEstaticoGeradoViewModel ResultView = new();
+            PixEstaticoGeradoDTO ResultView = new();
 
             try
             {
@@ -103,14 +103,14 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("ListarBanco")]
         // TODO: [Authorize]
-        public async Task<ActionResult<BancoViewModelList>> ListarBanco()
+        public async Task<ActionResult<BancoListDTO>> ListarBanco()
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            BancoViewModelList ResultView = new();
+            BancoListDTO ResultView = new();
 
             try
             {
@@ -130,14 +130,14 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("ListarAgenciaBancaria")]
         // TODO: [Authorize]
-        public async Task<ActionResult<AgenciaBancariaViewModelList>> ListarAgenciaBancaria(short IdentificadorBanco)
+        public async Task<ActionResult<AgenciaBancariaListDTO>> ListarAgenciaBancaria(short IdentificadorBanco)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            AgenciaBancariaViewModelList ResultView = new();
+            AgenciaBancariaListDTO ResultView = new();
 
             try
             {
@@ -157,14 +157,14 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("SelecionarBoleto")]
         // TODO: [Authorize]
-        public ActionResult<ImageViewModelList> SelecionarBoleto(int IdentificadorFaturamento, int IdentificadorUsuario)
+        public ActionResult<ImageListDTO> SelecionarBoleto(int IdentificadorFaturamento, int IdentificadorUsuario)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            ImageViewModelList ResultView = new();
+            ImageListDTO ResultView = new();
 
             try
             {
@@ -184,14 +184,14 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("SelecionarBancoPorIdentificador")]
         // TODO: [Authorize]
-        public async Task<ActionResult<BancoViewModelList>> SelecionarBancoPorIdentificador(short IdentificadorBanco)
+        public async Task<ActionResult<BancoListDTO>> SelecionarBancoPorIdentificador(short IdentificadorBanco)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            BancoViewModelList ResultView = new();
+            BancoListDTO ResultView = new();
 
             try
             {
@@ -211,14 +211,14 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("SelecionarBancoPorNome")]
         // TODO: [Authorize]
-        public async Task<ActionResult<BancoViewModelList>> SelecionarBancoPorNome(string Nome)
+        public async Task<ActionResult<BancoListDTO>> SelecionarBancoPorNome(string Nome)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            BancoViewModelList ResultView = new();
+            BancoListDTO ResultView = new();
 
             try
             {

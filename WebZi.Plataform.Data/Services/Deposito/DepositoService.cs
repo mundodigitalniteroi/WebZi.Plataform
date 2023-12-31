@@ -3,13 +3,14 @@ using Microsoft.EntityFrameworkCore;
 using WebZi.Plataform.CrossCutting.Date;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
+using WebZi.Plataform.Domain.DTO.Deposito;
+using WebZi.Plataform.Domain.DTO.GRV.Pesquisa;
+using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Deposito;
 using WebZi.Plataform.Domain.Models.Localizacao;
 using WebZi.Plataform.Domain.Models.Sistema;
 using WebZi.Plataform.Domain.Models.Usuario;
-using WebZi.Plataform.Domain.ViewModel.Deposito;
-using WebZi.Plataform.Domain.ViewModel.GRV.Pesquisa;
 using WebZi.Plataform.Domain.Views.Localizacao;
 using WebZi.Plataform.Domain.Views.Usuario;
 
@@ -31,9 +32,9 @@ namespace WebZi.Plataform.Data.Services.Deposito
             _mapper = mapper;
         }
 
-        public async Task<DepositoViewModelList> GetByIdAsync(int DepositoId)
+        public async Task<DepositoListDTO> GetByIdAsync(int DepositoId)
         {
-            DepositoViewModelList ResultView = new();
+            DepositoListDTO ResultView = new();
 
             if (DepositoId <= 0)
             {
@@ -48,7 +49,7 @@ namespace WebZi.Plataform.Data.Services.Deposito
 
             if (result != null)
             {
-                ResultView.Listagem.Add(_mapper.Map<DepositoViewModel>(result));
+                ResultView.Listagem.Add(_mapper.Map<DepositoDTO>(result));
 
                 ResultView.Mensagem = MensagemViewHelper.SetFound();
             }
@@ -60,9 +61,9 @@ namespace WebZi.Plataform.Data.Services.Deposito
             return ResultView;
         }
 
-        public async Task<DepositoViewModelList> GetByNameAsync(string Name)
+        public async Task<DepositoListDTO> GetByNameAsync(string Name)
         {
-            DepositoViewModelList ResultView = new();
+            DepositoListDTO ResultView = new();
 
             if (string.IsNullOrWhiteSpace(Name))
             {
@@ -78,7 +79,7 @@ namespace WebZi.Plataform.Data.Services.Deposito
 
             if (result?.Count > 0)
             {
-                ResultView.Listagem = _mapper.Map<List<DepositoViewModel>>(result
+                ResultView.Listagem = _mapper.Map<List<DepositoDTO>>(result
                     .OrderBy(x => x.Nome)
                     .ToList());
 
@@ -151,9 +152,9 @@ namespace WebZi.Plataform.Data.Services.Deposito
             return DataHoraAtual;
         }
 
-        public async Task<DepositoViewModelList> ListAsync(int UsuarioId)
+        public async Task<DepositoListDTO> ListAsync(int UsuarioId)
         {
-            DepositoViewModelList ResultView = new();
+            DepositoListDTO ResultView = new();
 
             List<UsuarioDepositoModel> result = await _context.UsuarioDeposito
                 .Include(x => x.Deposito)
@@ -170,7 +171,7 @@ namespace WebZi.Plataform.Data.Services.Deposito
                     Depositos.Add(UsuarioDeposito.Deposito);
                 }
 
-                ResultView.Listagem = _mapper.Map<List<DepositoViewModel>>(Depositos
+                ResultView.Listagem = _mapper.Map<List<DepositoDTO>>(Depositos
                     .OrderBy(x => x.Nome)
                     .ToList());
 
@@ -184,9 +185,9 @@ namespace WebZi.Plataform.Data.Services.Deposito
             return ResultView;
         }
 
-        public async Task<ClienteDepositoSimplificadoViewModelList> ListResumeAsync(int UsuarioId)
+        public async Task<ClienteDepositoSimplificadoListDTO> ListResumeAsync(int UsuarioId)
         {
-            ClienteDepositoSimplificadoViewModelList ResultView = new();
+            ClienteDepositoSimplificadoListDTO ResultView = new();
 
             List<ViewUsuarioClienteDepositoModel> result = await _context.ViewUsuarioClienteDeposito
                 .Where(x => x.UsuarioId == UsuarioId)
@@ -195,7 +196,7 @@ namespace WebZi.Plataform.Data.Services.Deposito
 
             if (result?.Count > 0)
             {
-                ResultView.Listagem = _mapper.Map<List<ClienteDepositoSimplificadoViewModel>>(result
+                ResultView.Listagem = _mapper.Map<List<ClienteDepositoSimplificadoDTO>>(result
                     .OrderBy(x => x.DepositoNome)
                     .ToList());
 
@@ -207,6 +208,23 @@ namespace WebZi.Plataform.Data.Services.Deposito
             }
 
             return ResultView;
+        }
+
+        public async Task<MensagemDTO> ValidateDepositoAsync(int DepositoId)
+        {
+            if (DepositoId <= 0)
+            {
+                return MensagemViewHelper.SetBadRequest(MensagemPadraoEnum.IdentificadorDepositoInvalido);
+            }
+            else
+            {
+                if (!await _context.Deposito.AsNoTracking().AnyAsync(x => x.DepositoId == DepositoId))
+                {
+                    return MensagemViewHelper.SetBadRequest(MensagemPadraoEnum.NaoEncontradoDeposito);
+                }
+            }
+
+            return MensagemViewHelper.SetOk();
         }
     }
 }

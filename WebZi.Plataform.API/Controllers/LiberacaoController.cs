@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Liberacao;
-using WebZi.Plataform.Domain.ViewModel.Report;
+using WebZi.Plataform.Domain.DTO.Report;
 
 namespace WebZi.Plataform.API.Controllers
 {
@@ -18,20 +18,20 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("GuiaAutorizacaoRetiradaVeiculo")]
         // TODO: [Authorize]
-        public async Task<ActionResult<GuiaAutorizacaoRetiradaVeiculoViewModel>> GuiaAutorizacaoRetiradaVeiculo(int IdentificadorGrv, int IdentificadorUsuario)
+        public async Task<ActionResult<GuiaAutorizacaoRetiradaVeiculoDTO>> GuiaAutorizacaoRetiradaVeiculo(int IdentificadorProcesso, int IdentificadorUsuario)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            GuiaAutorizacaoRetiradaVeiculoViewModel ResultView = new();
+            GuiaAutorizacaoRetiradaVeiculoDTO ResultView = new();
 
             try
             {
                 ResultView = await _provider
                     .GetService<LiberacaoService>()
-                    .CreateGuiaAutorizacaoRetiradaVeiculoAsync(IdentificadorGrv, IdentificadorUsuario);
+                    .CreateGuiaAutorizacaoRetiradaVeiculoAsync(IdentificadorProcesso, IdentificadorUsuario);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -45,14 +45,14 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("ValidarGuiaAutorizacaoRetiradaVeiculo")]
         // TODO: [Authorize]
-        public async Task<ActionResult<ValidacaoGuiaAutorizacaoRetiradaVeiculoViewModel>> ValidarGuiaAutorizacaoRetiradaVeiculo(string Input, int IdentificadorUsuario)
+        public async Task<ActionResult<ValidacaoGuiaAutorizacaoRetiradaVeiculoDTO>> ValidarGuiaAutorizacaoRetiradaVeiculo(string Input, int IdentificadorUsuario)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            ValidacaoGuiaAutorizacaoRetiradaVeiculoViewModel ResultView = new();
+            ValidacaoGuiaAutorizacaoRetiradaVeiculoDTO ResultView = new();
 
             try
             {

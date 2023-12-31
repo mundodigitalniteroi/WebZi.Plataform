@@ -2,8 +2,8 @@
 using Microsoft.EntityFrameworkCore;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
+using WebZi.Plataform.Domain.DTO.Veiculo;
 using WebZi.Plataform.Domain.Models.Veiculo;
-using WebZi.Plataform.Domain.ViewModel.Veiculo;
 
 namespace WebZi.Plataform.Data.Services.GGV
 {
@@ -18,15 +18,15 @@ namespace WebZi.Plataform.Data.Services.GGV
             _mapper = mapper;
         }
 
-        public async Task<TipoAvariaViewModelList> ListTipoAvariaAsync()
+        public async Task<TipoAvariaListDTO> ListTipoAvariaAsync()
         {
-            TipoAvariaViewModelList ResultView = new();
+            TipoAvariaListDTO ResultView = new();
 
             List<TipoAvariaModel> result = await _context.TipoAvaria
                 .AsNoTracking()
                 .ToListAsync();
 
-            ResultView.Listagem = _mapper.Map<List<TipoAvariaViewModel>>(result.OrderBy(x => x.Descricao).ToList());
+            ResultView.Listagem = _mapper.Map<List<TipoAvariaDTO>>(result.OrderBy(x => x.Descricao).ToList());
 
             ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
 

@@ -1,7 +1,5 @@
 ﻿using WebZi.Plataform.Domain.Models.Atendimento;
-using WebZi.Plataform.Domain.Models.Cliente;
 using WebZi.Plataform.Domain.Models.ClienteDeposito;
-using WebZi.Plataform.Domain.Models.Deposito;
 using WebZi.Plataform.Domain.Models.GRV;
 
 namespace WebZi.Plataform.Domain.Models.Faturamento
@@ -28,7 +26,7 @@ namespace WebZi.Plataform.Domain.Models.Faturamento
         /// </summary>
         public DateTime DataHoraInicialParaCalculo { get; set; }
 
-        public DateTime DataLiberacao { get; set; }
+        public DateTime DataHoraFinalParaCalculo { get; set; }
 
         public DateTime DataPrazoRetiradaVeiculo { get; set; }
 
@@ -38,26 +36,20 @@ namespace WebZi.Plataform.Domain.Models.Faturamento
 
         public bool FaturamentoAdicional { get; set; }
 
-        public GrvModel Grv { get; set; }
-
-        public ClienteModel Cliente { get; set; }
-
-        public DepositoModel Deposito { get; set; }
+        public AtendimentoModel Atendimento { get; set; }
 
         public ClienteDepositoModel ClienteDeposito { get; set; }
 
+        public FaturamentoModel Faturamento { get; set; }
+
+        public GrvModel Grv { get; set; }
+
         public TipoMeioCobrancaModel TipoMeioCobranca { get; set; }
 
-        public List<TipoMeioCobrancaModel> TiposMeiosCobrancas { get; set; }
+        public List<CalculoFaturamentoDescontoModel> FaturamentoDescontos { get; set; }
 
         public List<FaturamentoRegraModel> FaturamentoRegras { get; set; }
 
-        public AtendimentoModel Atendimento { get; set; }
-
-        public FaturamentoModel Faturamento { get; set; }
-
         public List<CalculoFaturamentoQuantidadeAlteradaModel> FaturamentoQuantidadesAlteradas { get; set; }
-
-        public List<CalculoFaturamentoDescontoModel> FaturamentoDescontos { get; set; }
     }
 }

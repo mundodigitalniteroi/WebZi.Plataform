@@ -2,8 +2,8 @@
 using Microsoft.EntityFrameworkCore;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
+using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.Models.Sistema;
-using WebZi.Plataform.Domain.ViewModel.Sistema;
 
 namespace WebZi.Plataform.Data.Services.Sistema
 {
@@ -23,19 +23,19 @@ namespace WebZi.Plataform.Data.Services.Sistema
             _mapper = mapper;
         }
 
-        public async Task<CorViewModelList> ListarCorAsync(string Cor = "")
+        public async Task<CorListDTO> ListarCorAsync(string Cor = "")
         {
             List<CorModel> result = await _context.Cor
                 .Where(x => !string.IsNullOrWhiteSpace(Cor) ? x.Cor.Contains(Cor.ToUpper().Trim()) : true)
                 .AsNoTracking()
                 .ToListAsync();
 
-            CorViewModelList ResultView = new();
+            CorListDTO ResultView = new();
 
             if (result?.Count > 0)
             {
                 ResultView.Listagem = _mapper
-                    .Map<List<CorViewModel>>(result.OrderBy(x => x.Cor)
+                    .Map<List<CorDTO>>(result.OrderBy(x => x.Cor)
                     .ToList());
 
                 ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);

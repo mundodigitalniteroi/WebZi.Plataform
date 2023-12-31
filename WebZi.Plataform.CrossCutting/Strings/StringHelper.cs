@@ -58,7 +58,8 @@ namespace WebZi.Plataform.CrossCutting.Strings
             return !input.IsNull() ? input
                 .Replace(Environment.NewLine, replaceWith)
                 .Replace("\r", replaceWith)
-                .Replace("\n", replaceWith) : input;
+                .Replace("\n", replaceWith)
+                .Trim() : input;
         }
 
         public static string RemoveString(this string input, string oldValue)

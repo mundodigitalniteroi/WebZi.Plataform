@@ -7,12 +7,15 @@ using WebZi.Plataform.CrossCutting.Veiculo;
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
-using WebZi.Plataform.Data.Services.WebServices;
 using WebZi.Plataform.Data.Services.Deposito;
 using WebZi.Plataform.Data.Services.Empresa;
 using WebZi.Plataform.Data.Services.Faturamento;
 using WebZi.Plataform.Data.Services.Sistema;
 using WebZi.Plataform.Data.Services.Vistoria;
+using WebZi.Plataform.Data.Services.WebServices;
+using WebZi.Plataform.Domain.DTO.Generic;
+using WebZi.Plataform.Domain.DTO.GGV;
+using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.Models.Bucket;
 using WebZi.Plataform.Domain.Models.Condutor;
 using WebZi.Plataform.Domain.Models.Faturamento;
@@ -21,10 +24,7 @@ using WebZi.Plataform.Domain.Models.Sistema;
 using WebZi.Plataform.Domain.Models.Veiculo;
 using WebZi.Plataform.Domain.Models.Vistoria;
 using WebZi.Plataform.Domain.Services.GRV;
-using WebZi.Plataform.Domain.ViewModel;
-using WebZi.Plataform.Domain.ViewModel.Generic;
 using WebZi.Plataform.Domain.ViewModel.GGV;
-using WebZi.Plataform.Domain.ViewModel.GGV.Cadastro;
 
 namespace WebZi.Plataform.Data.Services.GGV
 {
@@ -41,9 +41,9 @@ namespace WebZi.Plataform.Data.Services.GGV
             _httpClientFactory = httpClientFactory;
         }
 
-        public async Task<MensagemViewModel> CreateGgvAsync(CadastroGgvViewModel GgvPersistencia)
+        public async Task<MensagemDTO> CreateGgvAsync(GgvParameters GgvPersistencia)
         {
-            MensagemViewModel ResultView = await ValidarInformacoesPersistenciaAsync(GgvPersistencia);
+            MensagemDTO ResultView = await ValidarInformacoesPersistenciaAsync(GgvPersistencia);
 
             if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
             {
@@ -51,7 +51,7 @@ namespace WebZi.Plataform.Data.Services.GGV
             }
 
             GrvModel Grv = await _context.Grv
-                .FirstOrDefaultAsync(x => x.GrvId == GgvPersistencia.IdentificadorGrv);
+                .FirstOrDefaultAsync(x => x.GrvId == GgvPersistencia.IdentificadorProcesso);
 
             DateTime DataHoraPorDeposito = new DepositoService(_context)
                 .GetDataHoraPorDeposito(Grv.DepositoId);
@@ -102,7 +102,7 @@ namespace WebZi.Plataform.Data.Services.GGV
                     .AsNoTracking()
                     .ToListAsync();
 
-                foreach (var item in GgvPersistencia.ListagemEquipamentoOpcional)
+                foreach (EquipamentoOpcionalParameters item in GgvPersistencia.ListagemEquipamentoOpcional)
                 {
                     CadastroCondutorEquipamentoOpcional = new()
                     {
@@ -267,11 +267,11 @@ namespace WebZi.Plataform.Data.Services.GGV
 
                 FaturamentoServicoGrvModel FaturamentoServicoGrv = new();
 
-                foreach (var item in GgvPersistencia.ListagemFaturamentoServicoGrv)
+                foreach (FaturamentoServicoGrvParameters item in GgvPersistencia.ListagemFaturamentoServicoGrv)
                 {
                     FaturamentoServicoGrv = new()
                     {
-                        GrvId = GgvPersistencia.IdentificadorGrv,
+                        GrvId = GgvPersistencia.IdentificadorProcesso,
 
                         FaturamentoServicoTipoVeiculoId = item.IdentificadorServicoAssociadoTipoVeiculo
                     };
@@ -313,7 +313,7 @@ namespace WebZi.Plataform.Data.Services.GGV
                 {
                     _context.Grv.Update(Grv);
 
-                    foreach (var item in ListagemCadastroCondutorEquipamentoOpcional)
+                    foreach (CondutorEquipamentoOpcionalModel item in ListagemCadastroCondutorEquipamentoOpcional)
                     {
                         if (item.CondutorEquipamentoOpcionalId > 0)
                         {
@@ -344,7 +344,7 @@ namespace WebZi.Plataform.Data.Services.GGV
 
                 List<BucketFileModel> Files = new();
 
-                foreach (CadastroFotoTipoCadastroViewModel item in GgvPersistencia.ListagemFotos)
+                foreach (FotoTipoCadastroParameters item in GgvPersistencia.ListagemFotos)
                 {
                     string TipoCadastro = ListagemTipoCadastroFoto
                         .Where(x => x.TabelaGenericaId == item.IdentificadorTipoCadastro)
@@ -360,7 +360,7 @@ namespace WebZi.Plataform.Data.Services.GGV
 
                 new BucketService(_context, _httpClientFactory)
                     .SendFiles("GGVFOTOSVEICCAD",
-                        GgvPersistencia.IdentificadorGrv,
+                        GgvPersistencia.IdentificadorProcesso,
                         GgvPersistencia.IdentificadorUsuario,
                         Files);
             }
@@ -368,10 +368,10 @@ namespace WebZi.Plataform.Data.Services.GGV
             return MensagemViewHelper.SetCreateSuccess(1);
         }
 
-        public async Task<MensagemViewModel> CreateFotosAsync(CadastroFotoGgvViewModel Fotos)
+        public async Task<MensagemDTO> CreateFotosAsync(FotoGgvParameters Fotos)
         {
-            MensagemViewModel ResultView = new GrvService(_context)
-                .ValidateInputGrv(Fotos.IdentificadorGrv, Fotos.IdentificadorUsuario);
+            MensagemDTO ResultView = new GrvService(_context)
+                .ValidateInputGrv(Fotos.IdentificadorProcesso, Fotos.IdentificadorUsuario);
 
             if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
             {
@@ -383,7 +383,7 @@ namespace WebZi.Plataform.Data.Services.GGV
                 return MensagemViewHelper.SetBadRequest("Nenhuma imagem enviada para a API");
             }
 
-            GrvModel Grv = new GrvService(_context).GetById(Fotos.IdentificadorGrv);
+            GrvModel Grv = new GrvService(_context).GetById(Fotos.IdentificadorProcesso);
 
             if (!new[] { "V", "L", "U", "T", "R", "E", "B", "D", "1", "2", "3", "4" }.Contains(Grv.StatusOperacao.StatusOperacaoId))
             {
@@ -395,7 +395,7 @@ namespace WebZi.Plataform.Data.Services.GGV
             List<TabelaGenericaModel> ListagemTipoCadastroFoto = await new TabelaGenericaService(_context)
                 .ListAsync("GGV_TIPO_CADASTRO_FOTO");
 
-            foreach (CadastroFotoTipoCadastroViewModel item in Fotos.ListagemFotos)
+            foreach (FotoTipoCadastroParameters item in Fotos.ListagemFotos)
             {
                 string TipoCadastro = ListagemTipoCadastroFoto
                     .Where(x => x.TabelaGenericaId == item.IdentificadorTipoCadastro)
@@ -406,19 +406,19 @@ namespace WebZi.Plataform.Data.Services.GGV
             }
 
             new BucketService(_context, _httpClientFactory)
-                .SendFiles("GGVFOTOSVEICCAD", Fotos.IdentificadorGrv, Fotos.IdentificadorUsuario, Files);
+                .SendFiles("GGVFOTOSVEICCAD", Fotos.IdentificadorProcesso, Fotos.IdentificadorUsuario, Files);
 
             return MensagemViewHelper.SetCreateSuccess(Fotos.ListagemFotos.Count);
         }
 
-        public async Task<MensagemViewModel> DeleteFotosAsync(int GrvId, int UsuarioId, List<int> ListagemTabelaOrigemId)
+        public async Task<MensagemDTO> DeleteFotosAsync(int GrvId, int UsuarioId, List<int> ListagemTabelaOrigemId)
         {
             if (ListagemTabelaOrigemId.Count == 0)
             {
                 return MensagemViewHelper.SetBadRequest("Informe os Identificadores das Fotos");
             }
 
-            MensagemViewModel ResultView = new GrvService(_context).ValidateInputGrv(GrvId, UsuarioId);
+            MensagemDTO ResultView = new GrvService(_context).ValidateInputGrv(GrvId, UsuarioId);
 
             if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
             {
@@ -461,13 +461,13 @@ namespace WebZi.Plataform.Data.Services.GGV
             return MensagemViewHelper.SetDeleteSuccess(BucketArquivos.Count, "Foto(s) excluída(s) com sucesso");
         }
 
-        public async Task<DadosMestresViewModel> ListDadosMestresAsync(int GrvId, int UsuarioId)
+        public async Task<DadosMestresDTO> ListDadosMestresAsync(int GrvId, int UsuarioId)
         {
             TabelaGenericaService TabelaGenericaService = new(_context, _mapper);
 
             VistoriaService VistoriaService = new(_context, _mapper);
 
-            DadosMestresViewModel DadosMestres = new()
+            DadosMestresDTO DadosMestres = new()
             {
                 Mensagem = MensagemViewHelper.SetOk(),
 
@@ -499,9 +499,9 @@ namespace WebZi.Plataform.Data.Services.GGV
             return DadosMestres;
         }
 
-        public async Task<ImageViewModelList> ListFotosAsync(int GrvId, int UsuarioId)
+        public async Task<ImageListDTO> ListFotosAsync(int GrvId, int UsuarioId)
         {
-            ImageViewModelList ResultView = new()
+            ImageListDTO ResultView = new()
             {
                 Mensagem = new GrvService(_context).ValidateInputGrv(GrvId, UsuarioId)
             };
@@ -515,15 +515,15 @@ namespace WebZi.Plataform.Data.Services.GGV
                 .DownloadFileAsync("GGVFOTOSVEICCAD", GrvId);
         }
 
-        public async Task<MensagemViewModel> ValidarInformacoesPersistenciaAsync(CadastroGgvViewModel GgvPersistencia)
+        public async Task<MensagemDTO> ValidarInformacoesPersistenciaAsync(GgvParameters GgvPersistencia)
         {
             if (GgvPersistencia == null)
             {
                 return MensagemViewHelper.SetBadRequest("O Modelo está nulo");
             }
 
-            MensagemViewModel ResultView = new GrvService(_context)
-                .ValidateInputGrv(GgvPersistencia.IdentificadorGrv, GgvPersistencia.IdentificadorUsuario);
+            MensagemDTO ResultView = new GrvService(_context)
+                .ValidateInputGrv(GgvPersistencia.IdentificadorProcesso, GgvPersistencia.IdentificadorUsuario);
 
             if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
             {
@@ -536,7 +536,7 @@ namespace WebZi.Plataform.Data.Services.GGV
                 .Include(x => x.StatusOperacao)
                 .Include(x => x.Deposito)
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.GrvId == GgvPersistencia.IdentificadorGrv);
+                .FirstOrDefaultAsync(x => x.GrvId == GgvPersistencia.IdentificadorProcesso);
 
             if (Grv.StatusOperacao.StatusOperacaoId != "G" && Grv.StatusOperacao.StatusOperacaoId != "V")
             {
@@ -788,11 +788,11 @@ namespace WebZi.Plataform.Data.Services.GGV
                         List<FaturamentoServicoGrvModel> FaturamentoServicoGrvList = _context.FaturamentoServicoGrv
                             .Include(x => x.FaturamentoServicoTipoVeiculo)
                             .ThenInclude(x => x.FaturamentoServicoAssociado)
-                            .Where(x => x.GrvId == GgvPersistencia.IdentificadorGrv)
+                            .Where(x => x.GrvId == GgvPersistencia.IdentificadorProcesso)
                             .AsNoTracking()
                             .ToList();
 
-                        foreach (var item in GgvPersistencia.ListagemFaturamentoServicoGrv)
+                        foreach (FaturamentoServicoGrvParameters item in GgvPersistencia.ListagemFaturamentoServicoGrv)
                         {
                             if (FaturamentoServicoGrvList?.Count > 0)
                             {

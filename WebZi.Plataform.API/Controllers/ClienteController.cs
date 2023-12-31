@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Cliente;
-using WebZi.Plataform.Domain.ViewModel.Cliente;
-using WebZi.Plataform.Domain.ViewModel.Generic;
+using WebZi.Plataform.Domain.DTO.Cliente;
+using WebZi.Plataform.Domain.DTO.Generic;
 
 namespace WebZi.Plataform.API.Controllers
 {
@@ -19,14 +19,14 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("Listar")]
         // TODO: [Authorize]
-        public async Task<ActionResult<ClienteViewModelList>> Listar(int IdentificadorUsuario)
+        public async Task<ActionResult<ClienteListDTO>> Listar(int IdentificadorUsuario)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            ClienteViewModelList ResultView = new();
+            ClienteListDTO ResultView = new();
 
             try
             {
@@ -46,14 +46,14 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("SelecionarLogomarca")]
         // TODO: [Authorize]
-        public async Task<ActionResult<ImageViewModelList>> SelecionarLogomarca(int IdentificadorCliente)
+        public async Task<ActionResult<ImageListDTO>> SelecionarLogomarca(int IdentificadorCliente)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            ImageViewModelList ResultView = new();
+            ImageListDTO ResultView = new();
 
             try
             {
@@ -73,14 +73,14 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("SelecionarPorIdentificador")]
         // TODO: [Authorize]
-        public async Task<ActionResult<ClienteViewModelList>> SelecionarPorIdentificador(int IdentificadorCliente)
+        public async Task<ActionResult<ClienteListDTO>> SelecionarPorIdentificador(int IdentificadorCliente)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            ClienteViewModelList ResultView = new();
+            ClienteListDTO ResultView = new();
 
             try
             {
@@ -100,14 +100,14 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("SelecionarPorNome")]
         // TODO: [Authorize]
-        public async Task<ActionResult<ClienteViewModelList>> SelecionarPorNome(string Nome)
+        public async Task<ActionResult<ClienteListDTO>> SelecionarPorNome(string Nome)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            ClienteViewModelList ResultView = new();
+            ClienteListDTO ResultView = new();
 
             try
             {

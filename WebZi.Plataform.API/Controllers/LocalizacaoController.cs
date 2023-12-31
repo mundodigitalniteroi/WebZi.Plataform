@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Localizacao;
-using WebZi.Plataform.Domain.ViewModel.Localizacao;
+using WebZi.Plataform.Domain.DTO.Localizacao;
 
 namespace WebZi.Plataform.API.Controllers
 {
@@ -18,14 +18,14 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("SelecionarEnderecoCompleto")]
         // TODO: [Authorize]
-        public ActionResult<EnderecoViewModel> SelecionarEnderecoCompleto(string CEP)
+        public ActionResult<EnderecoDTO> SelecionarEnderecoCompleto(string CEP)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            EnderecoViewModel ResultView = new();
+            EnderecoDTO ResultView = new();
 
             try
             {

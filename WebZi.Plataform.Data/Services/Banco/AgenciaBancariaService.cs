@@ -2,8 +2,8 @@
 using Microsoft.EntityFrameworkCore;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
+using WebZi.Plataform.Domain.DTO.Banco;
 using WebZi.Plataform.Domain.Models.Banco;
-using WebZi.Plataform.Domain.ViewModel.Banco;
 
 namespace WebZi.Plataform.Data.Services.Banco
 {
@@ -18,9 +18,9 @@ namespace WebZi.Plataform.Data.Services.Banco
             _mapper = mapper;
         }
 
-        public async Task<AgenciaBancariaViewModelList> GetByIdAsync(int AgenciaBancariaId)
+        public async Task<AgenciaBancariaListDTO> GetByIdAsync(int AgenciaBancariaId)
         {
-            AgenciaBancariaViewModelList ResultView = new();
+            AgenciaBancariaListDTO ResultView = new();
 
             if (AgenciaBancariaId <= 0)
             {
@@ -35,7 +35,7 @@ namespace WebZi.Plataform.Data.Services.Banco
 
             if (result != null)
             {
-                ResultView.Listagem.Add(_mapper.Map<AgenciaBancariaViewModel>(result));
+                ResultView.Listagem.Add(_mapper.Map<AgenciaBancariaDTO>(result));
 
                 ResultView.Mensagem = MensagemViewHelper.SetFound();
             }
@@ -47,9 +47,9 @@ namespace WebZi.Plataform.Data.Services.Banco
             return ResultView;
         }
 
-        public async Task<AgenciaBancariaViewModelList> GetByCodigoAgenciaAsync(int BancoId, string CodigoAgencia)
+        public async Task<AgenciaBancariaListDTO> GetByCodigoAgenciaAsync(int BancoId, string CodigoAgencia)
         {
-            AgenciaBancariaViewModelList ResultView = new();
+            AgenciaBancariaListDTO ResultView = new();
 
             List<string> erros = new();
 
@@ -76,7 +76,7 @@ namespace WebZi.Plataform.Data.Services.Banco
 
             if (result != null)
             {
-                ResultView.Listagem.Add(_mapper.Map<AgenciaBancariaViewModel>(result));
+                ResultView.Listagem.Add(_mapper.Map<AgenciaBancariaDTO>(result));
 
                 ResultView.Mensagem = MensagemViewHelper.SetFound();
             }
@@ -88,9 +88,9 @@ namespace WebZi.Plataform.Data.Services.Banco
             return ResultView;
         }
 
-        public async Task<AgenciaBancariaViewModelList> ListAsync(int BancoId)
+        public async Task<AgenciaBancariaListDTO> ListAsync(int BancoId)
         {
-            AgenciaBancariaViewModelList ResultView = new();
+            AgenciaBancariaListDTO ResultView = new();
 
             if (BancoId <= 0)
             {
@@ -111,7 +111,7 @@ namespace WebZi.Plataform.Data.Services.Banco
                     .ThenBy(x => x.ContaCorrente)
                     .ToList();
 
-                ResultView.Listagem = _mapper.Map<List<AgenciaBancariaViewModel>>(result);
+                ResultView.Listagem = _mapper.Map<List<AgenciaBancariaDTO>>(result);
 
                 ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
             }

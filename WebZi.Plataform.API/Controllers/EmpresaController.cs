@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Empresa;
-using WebZi.Plataform.Domain.ViewModel.Empresa;
+using WebZi.Plataform.Domain.DTO.Empresa;
 
 namespace WebZi.Plataform.API.Controllers
 {
@@ -18,14 +18,14 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("Listar")]
         // TODO: [Authorize]
-        public async Task<ActionResult<EmpresaViewModelList>> Listar(string CNPJ, string Nome)
+        public async Task<ActionResult<EmpresaListDTO>> Listar(string CNPJ, string Nome)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            EmpresaViewModelList ResultView = new();
+            EmpresaListDTO ResultView = new();
 
             try
             {

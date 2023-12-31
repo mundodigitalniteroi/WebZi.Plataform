@@ -7,7 +7,7 @@ using WebZi.Plataform.CrossCutting.Strings;
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
-using WebZi.Plataform.Domain.ViewModel.Localizacao;
+using WebZi.Plataform.Domain.DTO.Localizacao;
 using WebZi.Plataform.Domain.Views.Localizacao;
 
 namespace WebZi.Plataform.Data.Services.Localizacao
@@ -23,9 +23,9 @@ namespace WebZi.Plataform.Data.Services.Localizacao
             _mapper = mapper;
         }
 
-        public EnderecoViewModel GetById(int CEPId)
+        public EnderecoDTO GetById(int CEPId)
         {
-            EnderecoViewModel ResultView = new();
+            EnderecoDTO ResultView = new();
 
             if (CEPId <= 0)
             {
@@ -40,7 +40,7 @@ namespace WebZi.Plataform.Data.Services.Localizacao
 
             if (result != null)
             {
-                ResultView = _mapper.Map<EnderecoViewModel>(result);
+                ResultView = _mapper.Map<EnderecoDTO>(result);
 
                 ResultView.Mensagem = MensagemViewHelper.SetFound();
             }
@@ -52,9 +52,9 @@ namespace WebZi.Plataform.Data.Services.Localizacao
             return ResultView;
         }
 
-        public EnderecoViewModel GetByCEP(string CEP)
+        public EnderecoDTO GetByCEP(string CEP)
         {
-            EnderecoViewModel ResultView = new();
+            EnderecoDTO ResultView = new();
 
             if (CEP.IsNullOrWhiteSpace())
             {
@@ -78,7 +78,7 @@ namespace WebZi.Plataform.Data.Services.Localizacao
 
             if (result != null)
             {
-                ResultView = _mapper.Map<EnderecoViewModel>(result);
+                ResultView = _mapper.Map<EnderecoDTO>(result);
 
                 ResultView.Mensagem = MensagemViewHelper.SetFound();
             }

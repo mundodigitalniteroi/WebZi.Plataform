@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Pessoa;
-using WebZi.Plataform.Domain.ViewModel.Pessoa;
+using WebZi.Plataform.Domain.DTO.Pessoa;
 
 namespace WebZi.Plataform.API.Controllers
 {
@@ -18,14 +18,14 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("ListarTipoDocumentoIdentificacao")]
         // TODO: [Authorize]
-        public async Task<ActionResult<TipoDocumentoIdentificacaoViewModelList>> ListarTipoDocumentoIdentificacao()
+        public async Task<ActionResult<TipoDocumentoIdentificacaoListDTO>> ListarTipoDocumentoIdentificacao()
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            TipoDocumentoIdentificacaoViewModelList ResultView = new();
+            TipoDocumentoIdentificacaoListDTO ResultView = new();
 
             try
             {
@@ -45,14 +45,14 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("ListarTipoDocumentoIdentificacaoSimplificado")]
         // TODO: [Authorize]
-        public async Task<ActionResult<TipoDocumentoIdentificacaoSimplificadoViewModelList>> ListarTipoDocumentoIdentificacaoSimplificado()
+        public async Task<ActionResult<TipoDocumentoIdentificacaoSimplificadoListDTO>> ListarTipoDocumentoIdentificacaoSimplificado()
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            TipoDocumentoIdentificacaoSimplificadoViewModelList ResultView = new();
+            TipoDocumentoIdentificacaoSimplificadoListDTO ResultView = new();
 
             try
             {

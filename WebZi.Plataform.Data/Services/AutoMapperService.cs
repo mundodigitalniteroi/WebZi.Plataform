@@ -1,5 +1,23 @@
 ﻿using AutoMapper;
 using WebZi.Plataform.CrossCutting.Strings;
+using WebZi.Plataform.Domain.DTO.Atendimento;
+using WebZi.Plataform.Domain.DTO.Banco;
+using WebZi.Plataform.Domain.DTO.Cliente;
+using WebZi.Plataform.Domain.DTO.Deposito;
+using WebZi.Plataform.Domain.DTO.Documento;
+using WebZi.Plataform.Domain.DTO.Empresa;
+using WebZi.Plataform.Domain.DTO.Faturamento;
+using WebZi.Plataform.Domain.DTO.Generic;
+using WebZi.Plataform.Domain.DTO.GRV;
+using WebZi.Plataform.Domain.DTO.GRV.Pesquisa;
+using WebZi.Plataform.Domain.DTO.Localizacao;
+using WebZi.Plataform.Domain.DTO.Pessoa;
+using WebZi.Plataform.Domain.DTO.Servico;
+using WebZi.Plataform.Domain.DTO.Sistema;
+using WebZi.Plataform.Domain.DTO.Usuario;
+using WebZi.Plataform.Domain.DTO.Veiculo;
+using WebZi.Plataform.Domain.DTO.Vistoria;
+using WebZi.Plataform.Domain.DTO.WebServices.DetranRio;
 using WebZi.Plataform.Domain.Models.Atendimento;
 using WebZi.Plataform.Domain.Models.Banco;
 using WebZi.Plataform.Domain.Models.Cliente;
@@ -16,25 +34,7 @@ using WebZi.Plataform.Domain.Models.Usuario;
 using WebZi.Plataform.Domain.Models.Veiculo;
 using WebZi.Plataform.Domain.Models.Vistoria;
 using WebZi.Plataform.Domain.Models.WebServices.DetranRio;
-using WebZi.Plataform.Domain.ViewModel.Atendimento;
-using WebZi.Plataform.Domain.ViewModel.Banco;
-using WebZi.Plataform.Domain.ViewModel.Cliente;
-using WebZi.Plataform.Domain.ViewModel.Deposito;
-using WebZi.Plataform.Domain.ViewModel.Documento;
-using WebZi.Plataform.Domain.ViewModel.Empresa;
-using WebZi.Plataform.Domain.ViewModel.Faturamento;
-using WebZi.Plataform.Domain.ViewModel.Generic;
-using WebZi.Plataform.Domain.ViewModel.GRV;
 using WebZi.Plataform.Domain.ViewModel.GRV.Cadastro;
-using WebZi.Plataform.Domain.ViewModel.GRV.Pesquisa;
-using WebZi.Plataform.Domain.ViewModel.Localizacao;
-using WebZi.Plataform.Domain.ViewModel.Pessoa;
-using WebZi.Plataform.Domain.ViewModel.Servico;
-using WebZi.Plataform.Domain.ViewModel.Sistema;
-using WebZi.Plataform.Domain.ViewModel.Usuario;
-using WebZi.Plataform.Domain.ViewModel.Veiculo;
-using WebZi.Plataform.Domain.ViewModel.Vistoria;
-using WebZi.Plataform.Domain.ViewModel.WebServices.DetranRio;
 using WebZi.Plataform.Domain.Views.Localizacao;
 using WebZi.Plataform.Domain.Views.Usuario;
 
@@ -48,22 +48,22 @@ namespace WebZi.Plataform.Data.Services
             // CreateMap<ViewModel, Model>();
 
             // Model to ViewModel
-            CreateMap<AtendimentoModel, AtendimentoViewModel>()
+            CreateMap<AtendimentoModel, AtendimentoDTO>()
                 .ForMember(dest => dest.IdentificadorAtendimento, from => from.MapFrom(src => src.AtendimentoId))
-                .ForMember(dest => dest.IdentificadorGrv, from => from.MapFrom(src => src.GrvId))
+                .ForMember(dest => dest.IdentificadorProcesso, from => from.MapFrom(src => src.GrvId))
                 .ForMember(dest => dest.IdentificadorQualificacaoResponsavel, from => from.MapFrom(src => src.QualificacaoResponsavelId));
 
-            CreateMap<AgenciaBancariaModel, AgenciaBancariaViewModel>()
+            CreateMap<AgenciaBancariaModel, AgenciaBancariaDTO>()
                 .ForMember(dest => dest.IdentificadorAgenciaBancaria, from => from.MapFrom(src => src.AgenciaBancariaId));
 
-            CreateMap<AutoridadeResponsavelModel, AutoridadeResponsavelViewModel>()
+            CreateMap<AutoridadeResponsavelModel, AutoridadeResponsavelDTO>()
                 .ForMember(dest => dest.IdentificadorAutoridadeResponsavel, from => from.MapFrom(src => src.AutoridadeResponsavelId))
                 .ForMember(dest => dest.IdentificadorOrgaoEmissor, from => from.MapFrom(src => src.OrgaoEmissorId));
 
-            CreateMap<BancoModel, BancoViewModel>()
+            CreateMap<BancoModel, BancoDTO>()
                 .ForMember(dest => dest.IdentificadorBanco, from => from.MapFrom(src => src.BancoId));
 
-            CreateMap<ClienteModel, ClienteViewModel>()
+            CreateMap<ClienteModel, ClienteDTO>()
                 .ForMember(dest => dest.IdentificadorCliente, from => from.MapFrom(src => src.ClienteId))
                 .ForMember(dest => dest.IdentificadorAgenciaBancaria, from => from.MapFrom(src => src.AgenciaBancariaId))
                 .ForMember(dest => dest.IdentificadorCEP, from => from.MapFrom(src => src.CEPId))
@@ -74,12 +74,12 @@ namespace WebZi.Plataform.Data.Services
                 .ForMember(dest => dest.IdentificadorOrgaoExecutivoTransito, from => from.MapFrom(src => src.OrgaoExecutivoTransitoId))
                 .ForMember(dest => dest.IdentificadorTipoChavePIX, from => from.MapFrom(src => src.PixTipoChaveId));
 
-            CreateMap<ClienteViewModel, ClienteSimplificadoViewModel>();
+            CreateMap<ClienteDTO, ClienteSimplificadoDTO>();
 
-            CreateMap<CorModel, CorViewModel>()
+            CreateMap<CorModel, CorDTO>()
                 .ForMember(dest => dest.IdentificadorCor, from => from.MapFrom(src => src.CorId));
 
-            CreateMap<DepositoModel, DepositoViewModel>()
+            CreateMap<DepositoModel, DepositoDTO>()
                 .ForMember(dest => dest.IdentificadorDeposito, from => from.MapFrom(src => src.DepositoId))
                 .ForMember(dest => dest.IdentificadorEmpresa, from => from.MapFrom(src => src.EmpresaId))
                 .ForMember(dest => dest.IdentificadorCEP, from => from.MapFrom(src => src.CEPId))
@@ -87,7 +87,7 @@ namespace WebZi.Plataform.Data.Services
                 .ForMember(dest => dest.IdentificadorBairro, from => from.MapFrom(src => src.BairroId))
                 .ForMember(dest => dest.IdentificadorSistemaExterno, from => from.MapFrom(src => src.SistemaExternoId));
 
-            CreateMap<DetranRioVeiculoModel, DetranRioVeiculoViewModel>()
+            CreateMap<DetranRioVeiculoModel, DetranRioVeiculoDTO>()
                 .ForMember(dest => dest.IdentificadorVeiculo, from => from.MapFrom(src => src.DetranVeiculoId))
                 .ForMember(dest => dest.Classificacao, from => from.MapFrom(src => src.Classificacao.ToNullIfEmpty()))
                 .ForMember(dest => dest.CodigoCategoria, from => from.MapFrom(src => src.CodigoCategoria.ToNullIfEmpty()))
@@ -102,13 +102,13 @@ namespace WebZi.Plataform.Data.Services
                 .ForMember(dest => dest.DetranVeiculoId, option => option.Ignore())
                 .ForMember(dest => dest.DataCadastro, option => option.Ignore());
 
-            CreateMap<CorModel, DetranRioVeiculoViewModel>()
+            CreateMap<CorModel, DetranRioVeiculoDTO>()
                 .ForMember(dest => dest.Cor, from => from.MapFrom(x => x));
 
-            CreateMap<MarcaModeloModel, DetranRioVeiculoViewModel>()
+            CreateMap<MarcaModeloModel, DetranRioVeiculoDTO>()
                 .ForMember(dest => dest.MarcaModelo, from => from.MapFrom(x => x));
 
-            CreateMap<EmpresaModel, EmpresaViewModel>()
+            CreateMap<EmpresaModel, EmpresaDTO>()
                 .ForMember(dest => dest.IdentificadorEmpresa, from => from.MapFrom(src => src.EmpresaId))
                 .ForMember(dest => dest.IdentificadorEmpresaMatriz, from => from.MapFrom(src => src.EmpresaMatrizId))
                 .ForMember(dest => dest.IdentificadorEmpresaClassificacao, from => from.MapFrom(src => src.EmpresaClassificacaoId))
@@ -117,15 +117,15 @@ namespace WebZi.Plataform.Data.Services
                 .ForMember(dest => dest.IdentificadorCNAE, from => from.MapFrom(src => src.CnaeId))
                 .ForMember(dest => dest.IdentificadorCNAEListaServico, from => from.MapFrom(src => src.CnaeListaServicoId));
 
-            CreateMap<EnquadramentoInfracaoModel, EnquadramentoInfracaoViewModel>()
+            CreateMap<EnquadramentoInfracaoModel, EnquadramentoInfracaoDTO>()
                 .ForMember(dest => dest.IdentificadorEnquadramentoInfracao, from => from.MapFrom(src => src.EnquadramentoInfracaoId))
                 .ForMember(dest => dest.FlagAtivo, from => from.MapFrom(src => src.Status));
 
-            CreateMap<FaturamentoProdutoModel, FaturamentoProdutoViewModel>()
+            CreateMap<FaturamentoProdutoModel, FaturamentoProdutoDTO>()
                 .ForMember(dest => dest.CodigoProduto, from => from.MapFrom(src => src.FaturamentoProdutoId));
 
-            CreateMap<GrvModel, GrvViewModel>()
-                .ForMember(dest => dest.IdentificadorGrv, from => from.MapFrom(src => src.GrvId))
+            CreateMap<GrvModel, GrvDTO>()
+                .ForMember(dest => dest.IdentificadorProcesso, from => from.MapFrom(src => src.GrvId))
                 .ForMember(dest => dest.IdentificadorCliente, from => from.MapFrom(src => src.ClienteId))
                 .ForMember(dest => dest.IdentificadorDeposito, from => from.MapFrom(src => src.DepositoId))
                 .ForMember(dest => dest.IdentificadorTipoVeiculo, from => from.MapFrom(src => src.TipoVeiculoId))
@@ -139,90 +139,90 @@ namespace WebZi.Plataform.Data.Services
                 .ForMember(dest => dest.IdentificadorLiberacao, from => from.MapFrom(src => src.LiberacaoId))
                 .ForMember(dest => dest.CodigoProduto, from => from.MapFrom(src => src.FaturamentoProdutoId));
 
-            CreateMap<LacreModel, LacreViewModel>()
+            CreateMap<LacreModel, LacreDTO>()
                 .ForMember(dest => dest.IdentificadorLacre, from => from.MapFrom(src => src.LacreId));
 
-            CreateMap<MarcaModeloModel, MarcaModeloViewModel>()
+            CreateMap<MarcaModeloModel, MarcaModeloDTO>()
                 .ForMember(dest => dest.IdentificadorMarcaModelo, from => from.MapFrom(src => src.MarcaModeloId));
 
-            CreateMap<MotivoApreensaoModel, MotivoApreensaoViewModel>()
+            CreateMap<MotivoApreensaoModel, MotivoApreensaoDTO>()
                 .ForMember(dest => dest.IdentificadorMotivoApreensao, from => from.MapFrom(src => src.MotivoApreensaoId));
 
-            CreateMap<OrgaoEmissorModel, OrgaoEmissorViewModel>()
+            CreateMap<OrgaoEmissorModel, OrgaoEmissorDTO>()
                 .ForMember(dest => dest.IdentificadorOrgaoEmissor, from => from.MapFrom(src => src.OrgaoEmissorId))
                 .ForMember(dest => dest.Nome, from => from.MapFrom(src => src.Descricao));
 
-            CreateMap<QualificacaoResponsavelModel, QualificacaoResponsavelViewModel>()
+            CreateMap<QualificacaoResponsavelModel, QualificacaoResponsavelDTO>()
                 .ForMember(dest => dest.IdentificadorQualificacaoResponsavel, from => from.MapFrom(src => src.QualificacaoResponsavelId));
 
-            CreateMap<ReboqueModel, ReboqueViewModel>()
+            CreateMap<ReboqueModel, ReboqueDTO>()
                 .ForMember(dest => dest.IdentificadorReboque, from => from.MapFrom(src => src.ReboqueId))
                 .ForMember(dest => dest.IdentificadorCliente, from => from.MapFrom(src => src.ClienteId))
                 .ForMember(dest => dest.IdentificadorDeposito, from => from.MapFrom(src => src.DepositoId));
 
-            CreateMap<ReboquistaModel, ReboquistaViewModel>()
+            CreateMap<ReboquistaModel, ReboquistaDTO>()
                 .ForMember(dest => dest.IdentificadorReboquista, from => from.MapFrom(src => src.ReboquistaId))
                 .ForMember(dest => dest.IdentificadorCliente, from => from.MapFrom(src => src.ClienteId))
                 .ForMember(dest => dest.IdentificadorDeposito, from => from.MapFrom(src => src.DepositoId));
 
-            CreateMap<TabelaGenericaModel, TabelaGenericaViewModel>()
+            CreateMap<TabelaGenericaModel, TabelaGenericaDTO>()
                 .ForMember(dest => dest.Identificador, from => from.MapFrom(src => src.TabelaGenericaId));
 
-            CreateMap<TipoAvariaModel, TipoAvariaViewModel>()
+            CreateMap<TipoAvariaModel, TipoAvariaDTO>()
                 .ForMember(dest => dest.IdentificadorTipoAvaria, from => from.MapFrom(src => src.TipoAvariaId));
 
-            CreateMap<TipoDocumentoIdentificacaoModel, TipoDocumentoIdentificacaoViewModel>()
+            CreateMap<TipoDocumentoIdentificacaoModel, TipoDocumentoIdentificacaoDTO>()
                 .ForMember(dest => dest.IdentificadorTipoDocumentoIdentificacao, from => from.MapFrom(src => src.TipoDocumentoIdentificacaoId));
 
-            CreateMap<TipoDocumentoIdentificacaoModel, TipoDocumentoIdentificacaoSimplificadoViewModel>()
+            CreateMap<TipoDocumentoIdentificacaoModel, TipoDocumentoIdentificacaoSimplificadoDTO>()
                 .ForMember(dest => dest.IdentificadorTipoDocumentoIdentificacao, from => from.MapFrom(src => src.TipoDocumentoIdentificacaoId));
 
-            CreateMap<TipoMeioCobrancaModel, TipoMeioCobrancaViewModel>()
+            CreateMap<TipoMeioCobrancaModel, TipoMeioCobrancaDTO>()
                 .ForMember(dest => dest.IdentificadorTipoMeioCobranca, from => from.MapFrom(src => src.TipoMeioCobrancaId));
 
-            CreateMap<TipoVeiculoModel, TipoVeiculoViewModel>()
+            CreateMap<TipoVeiculoModel, TipoVeiculoDTO>()
                 .ForMember(dest => dest.IdentificadorTipoVeiculo, from => from.MapFrom(src => src.TipoVeiculoId));
 
-            CreateMap<UsuarioModel, UsuarioViewModel>()
+            CreateMap<UsuarioModel, UsuarioDTO>()
                 .ForMember(dest => dest.IdentificadorUsuario, from => from.MapFrom(src => src.UsuarioId));
 
-            CreateMap<VistoriaSituacaoChassiModel, VistoriaSituacaoChassiViewModel>()
+            CreateMap<VistoriaSituacaoChassiModel, VistoriaSituacaoChassiDTO>()
                 .ForMember(dest => dest.IdentificadorSituacaoChassi, from => from.MapFrom(src => src.VistoriaSituacaoChassiId));
 
-            CreateMap<ViewEnderecoCompletoModel, EnderecoViewModel>()
+            CreateMap<ViewEnderecoCompletoModel, EnderecoDTO>()
                 .ForMember(dest => dest.IdentificadorCEP, from => from.MapFrom(src => src.CEPId))
                 .ForMember(dest => dest.IdentificadorMunicipio, from => from.MapFrom(src => src.MunicipioId))
                 .ForMember(dest => dest.IdentificadorBairro, from => from.MapFrom(src => src.BairroId))
                 .ForMember(dest => dest.IdentificadorTipoLogradouro, from => from.MapFrom(src => src.TipoLogradouroId));
 
-            CreateMap<ViewUsuarioClienteDepositoReboqueModel, UsuarioClienteDepositoReboqueViewModel>()
+            CreateMap<ViewUsuarioClienteDepositoReboqueModel, UsuarioClienteDepositoReboqueDTO>()
                 .ForMember(dest => dest.IdentificadorCliente, from => from.MapFrom(src => src.ClienteId))
                 .ForMember(dest => dest.IdentificadorDeposito, from => from.MapFrom(src => src.DepositoId))
                 .ForMember(dest => dest.IdentificadorUsuario, from => from.MapFrom(src => src.UsuarioId))
                 .ForMember(dest => dest.IdentificadorReboque, from => from.MapFrom(src => src.ReboqueId));
 
-            CreateMap<ViewUsuarioClienteDepositoReboquistaModel, UsuarioClienteDepositoReboquistaViewModel>()
+            CreateMap<ViewUsuarioClienteDepositoReboquistaModel, UsuarioClienteDepositoReboquistaDTO>()
                 .ForMember(dest => dest.IdentificadorCliente, from => from.MapFrom(src => src.ClienteId))
                 .ForMember(dest => dest.IdentificadorDeposito, from => from.MapFrom(src => src.DepositoId))
                 .ForMember(dest => dest.IdentificadorUsuario, from => from.MapFrom(src => src.UsuarioId))
                 .ForMember(dest => dest.IdentificadorReboquista, from => from.MapFrom(src => src.ReboquistaId));
 
-            CreateMap<ViewUsuarioClienteDepositoModel, ClienteDepositoSimplificadoViewModel>()
+            CreateMap<ViewUsuarioClienteDepositoModel, ClienteDepositoSimplificadoDTO>()
                 .ForMember(dest => dest.IdentificadorDeposito, from => from.MapFrom(src => src.DepositoId))
                 .ForMember(dest => dest.IdentificadorCliente, from => from.MapFrom(src => src.ClienteId))
                 .ForMember(dest => dest.Nome, from => from.MapFrom(src => src.DepositoNome))
                 .ForMember(dest => dest.FlagAtivo, from => from.MapFrom(src => src.DepositoFlagAtivo));
 
-            CreateMap<UsuarioClienteDepositoReboqueViewModel, ReboqueSimplificadoViewModel>()
+            CreateMap<UsuarioClienteDepositoReboqueDTO, ReboqueSimplificadoDTO>()
                 .ForMember(dest => dest.Placa, from => from.MapFrom(src => src.ReboquePlaca))
                 .ForMember(dest => dest.FlagAtivo, from => from.MapFrom(src => src.ReboqueFlagAtivo));
 
-            CreateMap<UsuarioClienteDepositoReboquistaViewModel, ReboquistaSimplificadoViewModel>()
+            CreateMap<UsuarioClienteDepositoReboquistaDTO, ReboquistaSimplificadoDTO>()
                 .ForMember(dest => dest.Nome, from => from.MapFrom(src => src.ReboquistaNome))
                 .ForMember(dest => dest.FlagAtivo, from => from.MapFrom(src => src.ReboquistaFlagAtivo));
 
             // ViewModel to Model
-            CreateMap<CadastroCondutorViewModel, CondutorModel>()
+            CreateMap<CondutorParameters, CondutorModel>()
                 .ForMember(dest => dest.Email, from => from.MapFrom(s => s.Email.ToLowerTrim()))
                 .AddTransform<string>(s => s
                     .ToNullIfEmpty()
@@ -230,9 +230,9 @@ namespace WebZi.Plataform.Data.Services
                 .ForMember(dest => dest.Documento, from => from.MapFrom(s => s.Documento.GetNumbers()))
                 .ForMember(dest => dest.Identidade, from => from.MapFrom(s => s.Identidade.GetNumbers()));
 
-            CreateMap<UsuarioClienteDepositoReboqueViewModel, UsuarioClienteDepositoReboqueViewModel>();
+            CreateMap<UsuarioClienteDepositoReboqueDTO, UsuarioClienteDepositoReboqueDTO>();
 
-            CreateMap<CadastroEnquadramentoInfracaoViewModel, EnquadramentoInfracaoGrvModel>()
+            CreateMap<EnquadramentoInfracaoParameters, EnquadramentoInfracaoGrvModel>()
                 .ForMember(dest => dest.EnquadramentoInfracaoId, from => from.MapFrom(src => src.IdentificadorEnquadramentoInfracao));
         }
     }

@@ -2,8 +2,8 @@
 using System.Globalization;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Services.Deposito;
+using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.Models.Leilao;
-using WebZi.Plataform.Domain.ViewModel;
 
 namespace WebZi.Plataform.Data.Services.Leilao
 {
@@ -16,7 +16,7 @@ namespace WebZi.Plataform.Data.Services.Leilao
             _context = context;
         }
 
-        public async Task<MensagemViewModel> GetAvisosLeilaoAsync(int GrvId, string StatusOperacaoId)
+        public async Task<MensagemDTO> GetAvisosLeilaoAsync(int GrvId, string StatusOperacaoId)
         {
             if (!new[] { "V", "L", "T", "1", "2", "4" }.Contains(StatusOperacaoId))
             {
@@ -32,7 +32,7 @@ namespace WebZi.Plataform.Data.Services.Leilao
                 .AsNoTracking()
                 .FirstOrDefaultAsync(w => w.GrvId == GrvId);
 
-            MensagemViewModel mensagem = new();
+            MensagemDTO mensagem = new();
 
             if (LeilaoLote != null)
             {

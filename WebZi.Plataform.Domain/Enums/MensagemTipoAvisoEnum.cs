@@ -2,10 +2,12 @@
 {
     public enum MensagemTipoAvisoEnum
     {
-        Informativo,
+        Alerta,
 
+        Erro,
+        
         Impeditivo,
 
-        Erro
+        Informativo
     }
 }

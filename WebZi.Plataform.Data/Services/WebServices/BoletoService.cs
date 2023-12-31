@@ -9,13 +9,13 @@ using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Sistema;
 using WebZi.Plataform.Data.WsBoleto;
+using WebZi.Plataform.Domain.DTO.Generic;
 using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Bucket;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.Sistema;
 using WebZi.Plataform.Domain.Models.WebServices.Boleto;
 using WebZi.Plataform.Domain.Services.GRV;
-using WebZi.Plataform.Domain.ViewModel.Generic;
 using WebZi.Plataform.Domain.Views.Faturamento;
 using Z.EntityFramework.Plus;
 using static WebZi.Plataform.Data.WsBoleto.WsBoletoSoapClient;
@@ -33,19 +33,19 @@ namespace WebZi.Plataform.Data.Services.WebServices
             _httpClientFactory = httpClientFactory;
         }
 
-        public ImageViewModelList GetBoletoNaoPago(int FaturamentoId, int UsuarioId)
+        public ImageListDTO GetBoletoNaoPago(int FaturamentoId, int UsuarioId)
         {
             return GetBoleto(FaturamentoId, UsuarioId, "N");
         }
 
-        public ImageViewModelList GetBoletoNaoCancelado(int FaturamentoId, int UsuarioId)
+        public ImageListDTO GetBoletoNaoCancelado(int FaturamentoId, int UsuarioId)
         {
             return GetBoleto(FaturamentoId, UsuarioId);
         }
 
-        private ImageViewModelList GetBoleto(int FaturamentoId, int UsuarioId, string StatusBoleto = "")
+        private ImageListDTO GetBoleto(int FaturamentoId, int UsuarioId, string StatusBoleto = "")
         {
-            ImageViewModelList ResultView = new();
+            ImageListDTO ResultView = new();
 
             if (FaturamentoId <= 0)
             {
@@ -130,7 +130,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
             {
                 ResultView.Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.Ok;
 
-                ResultView.Listagem.Add(new ImageViewModel { Imagem = new HttpClientFactoryService(_httpClientFactory)
+                ResultView.Listagem.Add(new ImageDTO { Imagem = new HttpClientFactoryService(_httpClientFactory)
                     .DownloadFile(BucketArquivo.Url) });
 
                 return ResultView;
@@ -148,7 +148,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
                 {
                     ResultView.Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.Ok;
 
-                    ResultView.Listagem.Add(new ImageViewModel { Imagem = FaturamentoBoletoImagem.Imagem });
+                    ResultView.Listagem.Add(new ImageDTO { Imagem = FaturamentoBoletoImagem.Imagem });
 
                     return ResultView;
                 }
@@ -161,9 +161,9 @@ namespace WebZi.Plataform.Data.Services.WebServices
             }
         }
 
-        public ImageViewModelList Create(int FaturamentoId, int UsuarioId)
+        public ImageListDTO Create(int FaturamentoId, int UsuarioId)
         {
-            ImageViewModelList ResultView = new();
+            ImageListDTO ResultView = new();
 
             if (FaturamentoId <= 0)
             {
@@ -374,7 +374,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
             }
             #endregion Cadastro do Boleto e da Imagem
 
-            ResultView.Listagem.Add(new ImageViewModel { Imagem = BoletoGerado.Boleto });
+            ResultView.Listagem.Add(new ImageDTO { Imagem = BoletoGerado.Boleto });
 
             ResultView.Mensagem = MensagemViewHelper.SetOk("Boleto gerado com sucesso");
 

@@ -2,8 +2,8 @@
 using Microsoft.EntityFrameworkCore;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
+using WebZi.Plataform.Domain.DTO.Banco;
 using WebZi.Plataform.Domain.Models.Faturamento;
-using WebZi.Plataform.Domain.ViewModel.Faturamento;
 
 namespace WebZi.Plataform.Data.Services.Faturamento
 {
@@ -18,9 +18,9 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             _mapper = mapper;
         }
 
-        public TipoMeioCobrancaViewModelList GetById(byte TipoMeioCobrancaId)
+        public TipoMeioCobrancaListDTO GetById(byte TipoMeioCobrancaId)
         {
-            TipoMeioCobrancaViewModelList ResultView = new();
+            TipoMeioCobrancaListDTO ResultView = new();
 
             TipoMeioCobrancaModel result = _context.TipoMeioCobranca
                 .AsNoTracking()
@@ -28,7 +28,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             if (result != null)
             {
-                ResultView.Listagem.Add(_mapper.Map<TipoMeioCobrancaViewModel>(result));
+                ResultView.Listagem.Add(_mapper.Map<TipoMeioCobrancaDTO>(result));
 
                 ResultView.Mensagem = MensagemViewHelper.SetFound();
             }
@@ -40,9 +40,9 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             return ResultView;
         }
 
-        public TipoMeioCobrancaViewModelList List()
+        public TipoMeioCobrancaListDTO List()
         {
-            TipoMeioCobrancaViewModelList ResultView = new();
+            TipoMeioCobrancaListDTO ResultView = new();
 
             List<TipoMeioCobrancaModel> result = _context.TipoMeioCobranca
                 .Where(x => x.FlagAtivo == "S")
@@ -51,7 +51,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             if (result?.Count > 0)
             {
-                ResultView.Listagem = _mapper.Map<List<TipoMeioCobrancaViewModel>>(result
+                ResultView.Listagem = _mapper.Map<List<TipoMeioCobrancaDTO>>(result
                     .OrderBy(x => x.Descricao)
                     .ToList());
 

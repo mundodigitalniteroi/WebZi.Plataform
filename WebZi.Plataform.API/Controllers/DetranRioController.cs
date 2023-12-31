@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.WebServices;
+using WebZi.Plataform.Domain.DTO.WebServices.DetranRio;
 using WebZi.Plataform.Domain.Models.WebServices.DetranRio;
 using WebZi.Plataform.Domain.ViewModel;
-using WebZi.Plataform.Domain.ViewModel.WebServices.DetranRio;
 
 namespace WebZi.Plataform.API.Controllers
 {
@@ -20,14 +20,14 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("ConsultarVeiculoPorChassi")]
         // TODO: [Authorize]
-        public async Task<ActionResult<DetranRioVeiculoViewModel>> ConsultarVeiculoPorChassi(string Chassi)
+        public async Task<ActionResult<DetranRioVeiculoDTO>> ConsultarVeiculoPorChassi(string Chassi)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            DetranRioVeiculoViewModel ResultView = new();
+            DetranRioVeiculoDTO ResultView = new();
 
             try
             {
@@ -47,14 +47,14 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("ConsultarVeiculoPorIdentificador")]
         // TODO: [Authorize]
-        public async Task<ActionResult<DetranRioVeiculoViewModel>> ConsultarVeiculoPorIdentificador(int IdentificadorVeiculo)
+        public async Task<ActionResult<DetranRioVeiculoDTO>> ConsultarVeiculoPorIdentificador(int IdentificadorVeiculo)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            DetranRioVeiculoViewModel ResultView = new();
+            DetranRioVeiculoDTO ResultView = new();
 
             try
             {
@@ -74,14 +74,14 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("ConsultarVeiculoPorPlaca")]
         // TODO: [Authorize]
-        public async Task<ActionResult<DetranRioVeiculoViewModel>> ConsultarVeiculoPorPlaca(string Placa)
+        public async Task<ActionResult<DetranRioVeiculoDTO>> ConsultarVeiculoPorPlaca(string Placa)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            DetranRioVeiculoViewModel ResultView = new();
+            DetranRioVeiculoDTO ResultView = new();
 
             try
             {

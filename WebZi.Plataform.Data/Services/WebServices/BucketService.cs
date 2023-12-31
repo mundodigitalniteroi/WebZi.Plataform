@@ -2,10 +2,10 @@
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Sistema;
+using WebZi.Plataform.Domain.DTO.Generic;
 using WebZi.Plataform.Domain.Models.Bucket;
 using WebZi.Plataform.Domain.Models.Bucket.Work;
 using WebZi.Plataform.Domain.Models.Sistema;
-using WebZi.Plataform.Domain.ViewModel.Generic;
 
 namespace WebZi.Plataform.Data.Services.WebServices
 {
@@ -178,7 +178,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
 
             List<BucketArquivoEnvioModel> ArquivosEnvio = new();
 
-            foreach (var File in Files)
+            foreach (BucketFileModel File in Files)
             {
                 NomeArquivo = Guid.NewGuid().ToString() + ".jpg";
 
@@ -246,7 +246,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
             }
         }
 
-        public async Task<ImageViewModelList> DownloadFileAsync(string CodigoTabelaOrigem, int TabelaOrigemId)
+        public async Task<ImageListDTO> DownloadFileAsync(string CodigoTabelaOrigem, int TabelaOrigemId)
         {
             List<string> erros = new();
 
@@ -260,7 +260,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
                 erros.Add("Primeiro é necessário informar o Identificador da Tabela de Origem");
             }
 
-            ImageViewModelList ResultView = new();
+            ImageListDTO ResultView = new();
 
             if (erros.Count > 0)
             {
@@ -306,7 +306,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
             return ResultView;
         }
 
-        public async Task<ImageViewModelList> DownloadFilesAsync(string CodigoTabelaOrigem, List<int> ListagemTabelaOrigemId)
+        public async Task<ImageListDTO> DownloadFilesAsync(string CodigoTabelaOrigem, List<int> ListagemTabelaOrigemId)
         {
             List<string> erros = new();
 
@@ -320,7 +320,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
                 erros.Add("Primeiro é necessário informar os Identificadorer da Tabela de Origem");
             }
 
-            ImageViewModelList ResultView = new();
+            ImageListDTO ResultView = new();
 
             if (erros.Count > 0)
             {

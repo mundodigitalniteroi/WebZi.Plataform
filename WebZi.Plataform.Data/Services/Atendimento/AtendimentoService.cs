@@ -20,11 +20,12 @@ using WebZi.Plataform.Domain.Models.GRV;
 using WebZi.Plataform.Domain.Models.Pessoa.Documento;
 using WebZi.Plataform.Domain.Services.GRV;
 using WebZi.Plataform.Domain.Services.Usuario;
-using WebZi.Plataform.Domain.ViewModel;
 using WebZi.Plataform.Domain.ViewModel.Atendimento;
-using WebZi.Plataform.Domain.ViewModel.Generic;
 using WebZi.Plataform.Domain.ViewModel.Pagamento;
 using WebZi.Plataform.Data.Services.Sistema;
+using WebZi.Plataform.Domain.DTO.Atendimento;
+using WebZi.Plataform.Domain.DTO.Generic;
+using WebZi.Plataform.Domain.DTO.Sistema;
 
 namespace WebZi.Plataform.Data.Services.Atendimento
 {
@@ -41,15 +42,15 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             _httpClientFactory = httpClientFactory;
         }
 
-        public async Task<MensagemViewModel> CheckInformacoesParaCadastroAsync(AtendimentoCadastroInputViewModel AtendimentoCadastro)
+        public async Task<MensagemDTO> CheckInformacoesParaCadastroAsync(AtendimentoParameters AtendimentoCadastro)
         {
             if (AtendimentoCadastro.IdentificadorTipoMeioCobranca <= 0)
             {
                 return MensagemViewHelper.SetBadRequest("Identificador da Forma de Pagamento inválido");
             }
 
-            MensagemViewModel ResultView = new GrvService(_context)
-                .ValidateInputGrv(AtendimentoCadastro.IdentificadorGrv, AtendimentoCadastro.IdentificadorUsuario);
+            MensagemDTO ResultView = new GrvService(_context)
+                .ValidateInputGrv(AtendimentoCadastro.IdentificadorProcesso, AtendimentoCadastro.IdentificadorUsuario);
 
             if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
             {
@@ -63,7 +64,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 .Include(x => x.StatusOperacao)
                 .Include(x => x.Atendimento)
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.GrvId == AtendimentoCadastro.IdentificadorGrv);
+                .FirstOrDefaultAsync(x => x.GrvId == AtendimentoCadastro.IdentificadorProcesso);
 
             if (!new[] { "B", "D", "V", "L", "E", "1", "2", "3", "4", "7" }.Contains(Grv.StatusOperacao.StatusOperacaoId))
             {
@@ -369,9 +370,9 @@ namespace WebZi.Plataform.Data.Services.Atendimento
         }
 
         // TODO: Este método não está finalizado
-        public async Task<MensagemViewModel> CheckInformacoesParaPagamentoAsync(PagamentoViewModel Atendimento)
+        public async Task<MensagemDTO> CheckInformacoesParaPagamentoAsync(PagamentoParameters Atendimento)
         {
-            MensagemViewModel mensagem = new();
+            MensagemDTO mensagem = new();
 
             #region Consultas
             if (Atendimento.IdentificadorFaturamento <= 0)
@@ -414,13 +415,13 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             return mensagem;
         }
 
-        public async Task<AtendimentoCadastroResultViewModel> CreateAtendimentoAsync(AtendimentoCadastroInputViewModel AtendimentoInput)
+        public async Task<AtendimentoCadastroDTO> CreateAtendimentoAsync(AtendimentoParameters AtendimentoInput)
         {
             #region Consultas
             GrvModel Grv = await _context.Grv
                 .Include(x => x.Cliente)
                 .Include(x => x.Deposito)
-                .Where(x => x.GrvId == AtendimentoInput.IdentificadorGrv)
+                .Where(x => x.GrvId == AtendimentoInput.IdentificadorProcesso)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
 
@@ -431,7 +432,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             #region Dados do Atendimento
             AtendimentoModel Atendimento = new()
             {
-                GrvId = AtendimentoInput.IdentificadorGrv,
+                GrvId = AtendimentoInput.IdentificadorProcesso,
 
                 QualificacaoResponsavelId = AtendimentoInput.IdentificadorQualificacaoResponsavel,
 
@@ -526,7 +527,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             CalculoFaturamentoParametroModel ParametrosCalculoFaturamento = await ConfigParametrosCalculoFaturamentoAsync(Grv, Atendimento, AtendimentoInput.IdentificadorTipoMeioCobranca, DataHoraPorDeposito);
 
-            AtendimentoCadastroResultViewModel AtendimentoCadastroResultView = new();
+            AtendimentoCadastroDTO AtendimentoCadastroResultView = new();
 
             using (IDbContextTransaction transaction = _context.Database.BeginTransaction())
             {
@@ -575,7 +576,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             return AtendimentoCadastroResultView;
         }
 
-        private void CreateFotoResponsavel(int AtendimentoId, AtendimentoCadastroInputViewModel AtendimentoInput)
+        private void CreateFotoResponsavel(int AtendimentoId, AtendimentoParameters AtendimentoInput)
         {
             if (AtendimentoInput.ResponsavelFoto != null)
             {
@@ -607,10 +608,6 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
                 Grv = Grv,
 
-                Cliente = Grv.Cliente,
-
-                Deposito = Grv.Deposito,
-
                 ClienteDeposito = await _context.ClienteDeposito
                     .AsNoTracking()
                     .FirstOrDefaultAsync(x => x.ClienteId == Grv.ClienteId && x.DepositoId == Grv.DepositoId),
@@ -623,10 +620,6 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 // para que o fluxo do Atendimento/Faturamento/Liberação funcionem.
                 StatusOperacaoLeilaoId = new[] { "1", "2", "4" }.Contains(Grv.StatusOperacaoId) ? Grv.StatusOperacaoId : string.Empty,
 
-                TiposMeiosCobrancas = await _context.TipoMeioCobranca
-                    .AsNoTracking()
-                    .ToListAsync(),
-
                 FaturamentoRegras = await _context.FaturamentoRegra
                         .Include(x => x.FaturamentoRegraTipo)
                         .Where(x => x.ClienteId == Grv.Cliente.ClienteId && x.DepositoId == Grv.Deposito.DepositoId)
@@ -634,22 +627,27 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                         .ToListAsync()
             };
 
-            ParametrosCalculoFaturamento.TipoMeioCobranca = ParametrosCalculoFaturamento.TiposMeiosCobrancas
-                .FirstOrDefault(x => x.TipoMeioCobrancaId == (ParametrosCalculoFaturamento.Cliente.TipoMeioCobrancaId.HasValue &&
-                                                              ParametrosCalculoFaturamento.Cliente.TipoMeioCobrancaId.Value > 0 ? ParametrosCalculoFaturamento.Cliente.TipoMeioCobrancaId.Value : TipoMeioCobrancaId));
+            List<TipoMeioCobrancaModel> TiposMeiosCobrancas = await _context.TipoMeioCobranca
+                    .AsNoTracking()
+                    .ToListAsync();
+
+            ParametrosCalculoFaturamento.TipoMeioCobranca = TiposMeiosCobrancas
+                .FirstOrDefault(x => x.TipoMeioCobrancaId == (ParametrosCalculoFaturamento.ClienteDeposito.Cliente.TipoMeioCobrancaId.HasValue &&
+                                                              ParametrosCalculoFaturamento.ClienteDeposito.Cliente.TipoMeioCobrancaId.Value > 0 ? ParametrosCalculoFaturamento.ClienteDeposito.Cliente.TipoMeioCobrancaId.Value : TipoMeioCobrancaId));
 
             // L: Aguardando Pagamento
             // U: Aguardando Liberação Especial
-            ParametrosCalculoFaturamento.StatusOperacaoId = ParametrosCalculoFaturamento.TiposMeiosCobrancas
+            ParametrosCalculoFaturamento.StatusOperacaoId = TiposMeiosCobrancas
                 .Where(x => x.TipoMeioCobrancaId == ParametrosCalculoFaturamento.TipoMeioCobranca.TipoMeioCobrancaId)
-                .FirstOrDefault().Alias != "LIBESP" ? "L" : "U";
+                .FirstOrDefault()
+                .Alias != "LIBESP" ? "L" : "U";
 
             return ParametrosCalculoFaturamento;
         }
 
-        public async Task<AtendimentoViewModel> GetByIdAsync(int AtendimentoId, int UsuarioId)
+        public async Task<AtendimentoDTO> GetByIdAsync(int AtendimentoId, int UsuarioId)
         {
-            AtendimentoViewModel ResultView = new();
+            AtendimentoDTO ResultView = new();
 
             if (AtendimentoId <= 0)
             {
@@ -685,16 +683,16 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 return ResultView;
             }
 
-            ResultView = _mapper.Map<AtendimentoViewModel>(Grv.Atendimento);
+            ResultView = _mapper.Map<AtendimentoDTO>(Grv.Atendimento);
 
             ResultView.Mensagem = MensagemViewHelper.SetFound();
 
             return ResultView;
         }
 
-        public async Task<AtendimentoViewModel> GetByProcessoAsync(string NumeroProcesso, string CodigoProduto, int ClienteId, int DepositoId, int UsuarioId)
+        public async Task<AtendimentoDTO> GetByProcessoAsync(string NumeroProcesso, string CodigoProduto, int ClienteId, int DepositoId, int UsuarioId)
         {
-            AtendimentoViewModel ResultView = new()
+            AtendimentoDTO ResultView = new()
             {
                 Mensagem = new GrvService(_context).ValidateInputGrv(NumeroProcesso, CodigoProduto, ClienteId, DepositoId, UsuarioId)
             };
@@ -719,16 +717,16 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 return ResultView;
             }
 
-            ResultView = _mapper.Map<AtendimentoViewModel>(Grv.Atendimento);
+            ResultView = _mapper.Map<AtendimentoDTO>(Grv.Atendimento);
 
             ResultView.Mensagem = MensagemViewHelper.SetFound();
 
             return ResultView;
         }
 
-        public async Task<ImageViewModelList> GetResponsavelFotoAsync(int AtendimentoId, int UsuarioId)
+        public async Task<ImageListDTO> GetResponsavelFotoAsync(int AtendimentoId, int UsuarioId)
         {
-            ImageViewModelList ResultView = new();
+            ImageListDTO ResultView = new();
 
             List<string> erros = new();
 
@@ -764,7 +762,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             if (BucketArquivo != null)
             {
-                ResultView.Listagem.Add(new ImageViewModel { Imagem = new HttpClientFactoryService(_httpClientFactory)
+                ResultView.Listagem.Add(new ImageDTO { Imagem = new HttpClientFactoryService(_httpClientFactory)
                     .DownloadFile(BucketArquivo.Url) });
 
                 ResultView.Mensagem = MensagemViewHelper.SetFound();
@@ -780,7 +778,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
                 if (AtendimentoFotoResponsavel != null)
                 {
-                    ResultView.Listagem.Add(new ImageViewModel { Imagem = AtendimentoFotoResponsavel.Foto });
+                    ResultView.Listagem.Add(new ImageDTO { Imagem = AtendimentoFotoResponsavel.Foto });
 
                     ResultView.Mensagem = MensagemViewHelper.SetFound();
 
@@ -795,9 +793,9 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             }
         }
 
-        public async Task<QualificacaoResponsavelViewModelList> ListQualificacaoResponsavelAsync()
+        public async Task<QualificacaoResponsavelListDTO> ListQualificacaoResponsavelAsync()
         {
-            QualificacaoResponsavelViewModelList ResultView = new();
+            QualificacaoResponsavelListDTO ResultView = new();
 
             List<QualificacaoResponsavelModel> result = await _context.QualificacaoResponsavel
                 .AsNoTracking()
@@ -805,7 +803,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             if (result?.Count > 0)
             {
-                ResultView.Listagem = _mapper.Map<List<QualificacaoResponsavelViewModel>>(result
+                ResultView.Listagem = _mapper.Map<List<QualificacaoResponsavelDTO>>(result
                     .OrderBy(x => x.Descricao)
                     .ToList());
 
@@ -823,7 +821,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
         private void UpdateStatusERP(CalculoFaturamentoParametroModel ParametrosCalculoFaturamento)
         {
-            if (ParametrosCalculoFaturamento.Cliente.FlagEmissaoNotaFiscal == "S" && !string.IsNullOrWhiteSpace(ParametrosCalculoFaturamento.ClienteDeposito.CodigoERPOrdemVenda))
+            if (ParametrosCalculoFaturamento.ClienteDeposito.Cliente.FlagEmissaoNotaFiscal == "S" && !string.IsNullOrWhiteSpace(ParametrosCalculoFaturamento.ClienteDeposito.CodigoERPOrdemVenda))
             {
                 ParametrosCalculoFaturamento.Atendimento.StatusCadastroERP = "P";
 

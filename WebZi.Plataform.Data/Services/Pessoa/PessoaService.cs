@@ -2,8 +2,8 @@
 using Microsoft.EntityFrameworkCore;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
+using WebZi.Plataform.Domain.DTO.Pessoa;
 using WebZi.Plataform.Domain.Models.Pessoa.Documento;
-using WebZi.Plataform.Domain.ViewModel.Pessoa;
 
 namespace WebZi.Plataform.Data.Services.Pessoa
 {
@@ -23,9 +23,9 @@ namespace WebZi.Plataform.Data.Services.Pessoa
             _mapper = mapper;
         }
 
-        public async Task<TipoDocumentoIdentificacaoViewModelList> ListTipoDocumentoIdentificacaoAsync()
+        public async Task<TipoDocumentoIdentificacaoListDTO> ListTipoDocumentoIdentificacaoAsync()
         {
-            TipoDocumentoIdentificacaoViewModelList ResultView = new();
+            TipoDocumentoIdentificacaoListDTO ResultView = new();
 
             List<TipoDocumentoIdentificacaoModel> result = await _context.TipoDocumentoIdentificacao
                 .AsNoTracking()
@@ -34,7 +34,7 @@ namespace WebZi.Plataform.Data.Services.Pessoa
             if (result?.Count > 0)
             {
                 ResultView.Listagem = _mapper
-                    .Map<List<TipoDocumentoIdentificacaoViewModel>>(result
+                    .Map<List<TipoDocumentoIdentificacaoDTO>>(result
                     .OrderBy(x => x.Codigo)
                     .ToList());
 
@@ -48,9 +48,9 @@ namespace WebZi.Plataform.Data.Services.Pessoa
             return ResultView;
         }
 
-        public async Task<TipoDocumentoIdentificacaoSimplificadoViewModelList> ListTipoDocumentoIdentificacaoSimplificadoAsync()
+        public async Task<TipoDocumentoIdentificacaoSimplificadoListDTO> ListTipoDocumentoIdentificacaoSimplificadoAsync()
         {
-            TipoDocumentoIdentificacaoSimplificadoViewModelList ResultView = new();
+            TipoDocumentoIdentificacaoSimplificadoListDTO ResultView = new();
 
             List<TipoDocumentoIdentificacaoModel> result = await _context.TipoDocumentoIdentificacao
                 .Where(x => x.FlagAtivo == "S"
@@ -61,7 +61,7 @@ namespace WebZi.Plataform.Data.Services.Pessoa
             if (result?.Count > 0)
             {
                 ResultView.Listagem = _mapper
-                    .Map<List<TipoDocumentoIdentificacaoSimplificadoViewModel>>(result
+                    .Map<List<TipoDocumentoIdentificacaoSimplificadoDTO>>(result
                     .OrderBy(x => x.Codigo)
                     .ToList());
 

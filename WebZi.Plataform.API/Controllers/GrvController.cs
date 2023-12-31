@@ -2,11 +2,13 @@
 using System.ComponentModel.DataAnnotations;
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Helper;
+using WebZi.Plataform.Domain.DTO.Bucket;
+using WebZi.Plataform.Domain.DTO.Generic;
+using WebZi.Plataform.Domain.DTO.GRV;
+using WebZi.Plataform.Domain.DTO.GRV.Cadastro;
+using WebZi.Plataform.Domain.DTO.GRV.Pesquisa;
+using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.Services.GRV;
-using WebZi.Plataform.Domain.ViewModel;
-using WebZi.Plataform.Domain.ViewModel.Bucket;
-using WebZi.Plataform.Domain.ViewModel.Generic;
-using WebZi.Plataform.Domain.ViewModel.GRV;
 using WebZi.Plataform.Domain.ViewModel.GRV.Cadastro;
 using WebZi.Plataform.Domain.ViewModel.GRV.Pesquisa;
 
@@ -26,14 +28,14 @@ namespace WebZi.Plataform.API.Controllers
         [HttpPost("Cadastrar")]
         // TODO: [Authorize]
         [IgnoreAntiforgeryToken]
-        public async Task<ActionResult<ResultadoCadastroGrvViewModel>> Cadastrar([FromBody] CadastroGrvViewModel Grv)
+        public async Task<ActionResult<ResultadoCadastroGrvDTO>> Cadastrar([FromBody] GrvParameters Grv)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            ResultadoCadastroGrvViewModel ResultView = new();
+            ResultadoCadastroGrvDTO ResultView = new();
 
             try
             {
@@ -77,14 +79,14 @@ namespace WebZi.Plataform.API.Controllers
         [HttpPost("CadastrarAssinaturaAgente")]
         // TODO: [Authorize]
         [IgnoreAntiforgeryToken]
-        public async Task<ActionResult<MensagemViewModel>> CadastrarAssinaturaAgente([FromBody] BucketCadastroViewModel Json)
+        public async Task<ActionResult<MensagemDTO>> CadastrarAssinaturaAgente([FromBody] BucketDTO Json)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            MensagemViewModel ResultView;
+            MensagemDTO ResultView;
 
             try
             {
@@ -105,14 +107,14 @@ namespace WebZi.Plataform.API.Controllers
         [HttpPost("CadastrarAssinaturaCondutor")]
         // TODO: [Authorize]
         [IgnoreAntiforgeryToken]
-        public async Task<ActionResult<MensagemViewModel>> CadastrarAssinaturaCondutor([FromBody] BucketCadastroViewModel Json)
+        public async Task<ActionResult<MensagemDTO>> CadastrarAssinaturaCondutor([FromBody] BucketDTO Json)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            MensagemViewModel ResultView;
+            MensagemDTO ResultView;
 
             try
             {
@@ -133,14 +135,14 @@ namespace WebZi.Plataform.API.Controllers
         [HttpPost("CadastrarDocumentoCondutor")]
         // TODO: [Authorize]
         [IgnoreAntiforgeryToken]
-        public ActionResult<MensagemViewModel> CadastrarDocumentoCondutor([FromBody] CadastroCondutorDocumentoViewModelList ListagemDocumentoCondutor)
+        public ActionResult<MensagemDTO> CadastrarDocumentoCondutor([FromBody] CondutorDocumentoParametersList ListagemDocumentoCondutor)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            MensagemViewModel ResultView;
+            MensagemDTO ResultView;
 
             try
             {
@@ -161,14 +163,14 @@ namespace WebZi.Plataform.API.Controllers
         [HttpPost("CadastrarFotos")]
         // TODO: [Authorize]
         [IgnoreAntiforgeryToken]
-        public ActionResult<MensagemViewModel> CadastrarFotos([FromBody] CadastroFotoGrvViewModel Fotos)
+        public ActionResult<MensagemDTO> CadastrarFotos([FromBody] FotoGrvParameters Fotos)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            MensagemViewModel ResultView;
+            MensagemDTO ResultView;
 
             try
             {
@@ -189,20 +191,20 @@ namespace WebZi.Plataform.API.Controllers
         [HttpPost("CadastrarLacres")]
         // TODO: [Authorize]
         [IgnoreAntiforgeryToken]
-        public async Task<ActionResult<MensagemViewModel>> CadastrarLacres(int IdentificadorGrv, int IdentificadorUsuario, [FromBody] List<string> ListagemLacre)
+        public async Task<ActionResult<MensagemDTO>> CadastrarLacres(int IdentificadorProcesso, int IdentificadorUsuario, [FromBody] List<string> ListagemLacre)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            MensagemViewModel ResultView;
+            MensagemDTO ResultView;
 
             try
             {
                 ResultView = await _provider
                     .GetService<GrvService>()
-                    .CreateLacresAsync(IdentificadorGrv, IdentificadorUsuario, ListagemLacre);
+                    .CreateLacresAsync(IdentificadorProcesso, IdentificadorUsuario, ListagemLacre);
 
                 return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
             }
@@ -216,20 +218,20 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpDelete("ExcluirAssinaturaAgente")]
         // TODO: [Authorize]
-        public async Task<ActionResult<MensagemViewModel>> ExcluirAssinaturaAgente(int IdentificadorGrv, int IdentificadorUsuario)
+        public async Task<ActionResult<MensagemDTO>> ExcluirAssinaturaAgente(int IdentificadorProcesso, int IdentificadorUsuario)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            MensagemViewModel ResultView;
+            MensagemDTO ResultView;
 
             try
             {
                 ResultView = await _provider
                     .GetService<GrvService>()
-                    .DeleteAssinaturaAgenteAsync(IdentificadorGrv, IdentificadorUsuario);
+                    .DeleteAssinaturaAgenteAsync(IdentificadorProcesso, IdentificadorUsuario);
 
                 return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
             }
@@ -243,20 +245,20 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpDelete("ExcluirAssinaturaCondutor")]
         // TODO: [Authorize]
-        public async Task<ActionResult<MensagemViewModel>> ExcluirAssinaturaCondutor(int IdentificadorGrv, int IdentificadorUsuario)
+        public async Task<ActionResult<MensagemDTO>> ExcluirAssinaturaCondutor(int IdentificadorProcesso, int IdentificadorUsuario)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            MensagemViewModel ResultView;
+            MensagemDTO ResultView;
 
             try
             {
                 ResultView = await _provider
                     .GetService<GrvService>()
-                    .DeleteAssinaturaCondutorAsync(IdentificadorGrv, IdentificadorUsuario);
+                    .DeleteAssinaturaCondutorAsync(IdentificadorProcesso, IdentificadorUsuario);
 
                 return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
             }
@@ -271,20 +273,20 @@ namespace WebZi.Plataform.API.Controllers
         [HttpDelete("ExcluirFotos")]
         // TODO: [Authorize]
         [IgnoreAntiforgeryToken]
-        public async Task<ActionResult<MensagemViewModel>> ExcluirFotos(int IdentificadorGrv, int IdentificadorUsuario, [FromBody] List<int> ListagemIdentificadorTabelaOrigem)
+        public async Task<ActionResult<MensagemDTO>> ExcluirFotos(int IdentificadorProcesso, int IdentificadorUsuario, [FromBody] List<int> ListagemIdentificadorTabelaOrigem)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            MensagemViewModel ResultView;
+            MensagemDTO ResultView;
 
             try
             {
                 ResultView = await _provider
                     .GetService<GrvService>()
-                    .DeleteFotosAsync(IdentificadorGrv, IdentificadorUsuario, ListagemIdentificadorTabelaOrigem);
+                    .DeleteFotosAsync(IdentificadorProcesso, IdentificadorUsuario, ListagemIdentificadorTabelaOrigem);
 
                 return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
             }
@@ -299,20 +301,20 @@ namespace WebZi.Plataform.API.Controllers
         [HttpDelete("ExcluirGrv")]
         // TODO: [Authorize]
         [IgnoreAntiforgeryToken]
-        public async Task<ActionResult<MensagemViewModel>> ExcluirGrv(int IdentificadorGrv, string Login, [DataType(DataType.Password)] string Senha)
+        public async Task<ActionResult<MensagemDTO>> ExcluirGrv(int IdentificadorProcesso, string Login, [DataType(DataType.Password)] string Senha)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            MensagemViewModel ResultView;
+            MensagemDTO ResultView;
 
             try
             {
                 ResultView = await _provider
                     .GetService<GrvService>()
-                    .DeleteGrvAsync(IdentificadorGrv, Login, Senha);
+                    .DeleteGrvAsync(IdentificadorProcesso, Login, Senha);
 
                 return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
             }
@@ -327,14 +329,14 @@ namespace WebZi.Plataform.API.Controllers
         [HttpDelete("ExcluirGrvPorProcesso")]
         // TODO: [Authorize]
         [IgnoreAntiforgeryToken]
-        public async Task<ActionResult<MensagemViewModel>> ExcluirGrvPorProcesso(string NumeroProcesso, string CodigoProduto, int IdentificadorCliente, int IdentificadorDeposito, string Login, [DataType(DataType.Password)] string Senha)
+        public async Task<ActionResult<MensagemDTO>> ExcluirGrvPorProcesso(string NumeroProcesso, string CodigoProduto, int IdentificadorCliente, int IdentificadorDeposito, string Login, [DataType(DataType.Password)] string Senha)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            MensagemViewModel ResultView;
+            MensagemDTO ResultView;
 
             try
             {
@@ -355,20 +357,20 @@ namespace WebZi.Plataform.API.Controllers
         [HttpDelete("ExcluirLacres")]
         // TODO: [Authorize]
         [IgnoreAntiforgeryToken]
-        public async Task<ActionResult<MensagemViewModel>> ExcluirLacres(int IdentificadorGrv, int IdentificadorUsuario, [FromBody] List<int> ListagemIdentificadorLacre)
+        public async Task<ActionResult<MensagemDTO>> ExcluirLacres(int IdentificadorProcesso, int IdentificadorUsuario, [FromBody] List<int> ListagemIdentificadorLacre)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            MensagemViewModel ResultView;
+            MensagemDTO ResultView;
 
             try
             {
                 ResultView = await _provider
                     .GetService<GrvService>()
-                    .DeleteLacresAsync(IdentificadorGrv, IdentificadorUsuario, ListagemIdentificadorLacre);
+                    .DeleteLacresAsync(IdentificadorProcesso, IdentificadorUsuario, ListagemIdentificadorLacre);
 
                 return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
             }
@@ -382,20 +384,20 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("ListarDocumentosCondutor")]
         // TODO: [Authorize]
-        public async Task<ActionResult<ImageViewModelList>> ListarDocumentosCondutor(int IdentificadorGrv, int IdentificadorUsuario)
+        public async Task<ActionResult<ImageListDTO>> ListarDocumentosCondutor(int IdentificadorProcesso, int IdentificadorUsuario)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            ImageViewModelList ResultView = new();
+            ImageListDTO ResultView = new();
 
             try
             {
                 ResultView = await _provider
                     .GetService<GrvService>()
-                    .ListDocumentosCondutorAsync(IdentificadorGrv, IdentificadorUsuario);
+                    .ListDocumentosCondutorAsync(IdentificadorProcesso, IdentificadorUsuario);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -409,20 +411,20 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("ListarFotos")]
         // TODO: [Authorize]
-        public async Task<ActionResult<ImageViewModelList>> ListarFotos(int IdentificadorGrv, int IdentificadorUsuario)
+        public async Task<ActionResult<ImageListDTO>> ListarFotos(int IdentificadorProcesso, int IdentificadorUsuario)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            ImageViewModelList ResultView = new();
+            ImageListDTO ResultView = new();
 
             try
             {
                 ResultView = await _provider
                     .GetService<GrvService>()
-                    .ListFotoAsync(IdentificadorGrv, IdentificadorUsuario);
+                    .ListFotoAsync(IdentificadorProcesso, IdentificadorUsuario);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -436,7 +438,7 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("ListarLacres")]
         // TODO: [Authorize]
-        public async Task<ActionResult<LacreViewModelList>> ListarLacres(int IdentificadorGrv, int IdentificadorUsuario)
+        public async Task<ActionResult<LacreViewModelList>> ListarLacres(int IdentificadorProcesso, int IdentificadorUsuario)
         {
             if (!ModelState.IsValid)
             {
@@ -449,7 +451,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<GrvService>()
-                    .ListLacreAsync(IdentificadorGrv, IdentificadorUsuario);
+                    .ListLacreAsync(IdentificadorProcesso, IdentificadorUsuario);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -464,14 +466,14 @@ namespace WebZi.Plataform.API.Controllers
         [HttpPost("Pesquisar")]
         [IgnoreAntiforgeryToken]
         // TODO: [Authorize]
-        public async Task<ActionResult<GrvViewModelList>> Pesquisar([FromBody] GrvPesquisaInputViewModel ParametrosPesquisa)
+        public async Task<ActionResult<GrvViewModelList>> Pesquisar([FromBody] GrvPesquisaParameters ParametrosPesquisa)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            GrvPesquisaResultViewModelList ResultView = new();
+            GrvPesquisaResultListDTO ResultView = new();
 
             try
             {
@@ -498,7 +500,7 @@ namespace WebZi.Plataform.API.Controllers
                 return BadRequest(ModelState);
             }
 
-            ImageViewModelList ResultView = new();
+            ImageListDTO ResultView = new();
 
             try
             {
@@ -525,7 +527,7 @@ namespace WebZi.Plataform.API.Controllers
                 return BadRequest(ModelState);
             }
 
-            ImageViewModelList ResultView = new();
+            ImageListDTO ResultView = new();
 
             try
             {
@@ -545,7 +547,7 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("SelecionarPorIdentificador")]
         // TODO: [Authorize]
-        public async Task<ActionResult<GrvViewModel>> SelecionarPorIdentificador(int IdentificadorGrv, int IdentificadorUsuario)
+        public async Task<ActionResult<GrvDTO>> SelecionarPorIdentificador(int IdentificadorProcesso, int IdentificadorUsuario)
         {
             if (!ModelState.IsValid)
             {
@@ -558,7 +560,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<GrvService>()
-                    .GetByIdAsync(IdentificadorGrv, IdentificadorUsuario);
+                    .GetByIdAsync(IdentificadorProcesso, IdentificadorUsuario);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -573,14 +575,14 @@ namespace WebZi.Plataform.API.Controllers
         [HttpPost("ValidarInformacoesParaCadastro")]
         [IgnoreAntiforgeryToken]
         // TODO: [Authorize]
-        public async Task<ActionResult<MensagemViewModel>> ValidarInformacoesParaCadastro([FromBody] CadastroGrvViewModel Grv)
+        public async Task<ActionResult<MensagemDTO>> ValidarInformacoesParaCadastro([FromBody] GrvParameters Grv)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            MensagemViewModel ResultView;
+            MensagemDTO ResultView;
 
             try
             {
@@ -600,20 +602,20 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("VerificarAlteracaoStatusProcesso")]
         // TODO: [Authorize]
-        public async Task<ActionResult<MensagemViewModel>> VerificarAlteracaoStatusProcesso(int IdentificadorGrv, string IdentificadorStatusOperacao, int IdentificadorUsuario)
+        public async Task<ActionResult<MensagemDTO>> VerificarAlteracaoStatusProcesso(int IdentificadorProcesso, string IdentificadorStatusOperacao, int IdentificadorUsuario)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            MensagemViewModel ResultView;
+            MensagemDTO ResultView;
 
             try
             {
                 ResultView = await _provider
                     .GetService<GrvService>()
-                    .CheckAlteracaoStatusGrvAsync(IdentificadorGrv, IdentificadorStatusOperacao, IdentificadorUsuario);
+                    .CheckAlteracaoStatusGrvAsync(IdentificadorProcesso, IdentificadorStatusOperacao, IdentificadorUsuario);
 
                 return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
             }

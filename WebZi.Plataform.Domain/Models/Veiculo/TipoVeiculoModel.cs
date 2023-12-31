@@ -18,7 +18,7 @@ namespace WebZi.Plataform.Domain.Models.Veiculo
 
         public DateTime? DataAlteracao { get; set; }
 
-        public string FlagNaoRequerCnhNaLiberacao { get; set; }
+        public string FlagNaoRequerCnhNaLiberacao { get; set; } = "N";
 
         public string FlagAtivo { get; set; } = "S";
 

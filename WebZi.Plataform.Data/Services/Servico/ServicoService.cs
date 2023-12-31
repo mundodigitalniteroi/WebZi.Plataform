@@ -3,13 +3,13 @@ using Microsoft.EntityFrameworkCore;
 using WebZi.Plataform.CrossCutting.Veiculo;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
+using WebZi.Plataform.Domain.DTO.GRV.Pesquisa;
+using WebZi.Plataform.Domain.DTO.Servico;
+using WebZi.Plataform.Domain.DTO.Usuario;
 using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Cliente;
 using WebZi.Plataform.Domain.Models.Deposito;
 using WebZi.Plataform.Domain.Models.Servico;
-using WebZi.Plataform.Domain.ViewModel.GRV.Pesquisa;
-using WebZi.Plataform.Domain.ViewModel.Servico;
-using WebZi.Plataform.Domain.ViewModel.Usuario;
 using WebZi.Plataform.Domain.Views.Usuario;
 
 namespace WebZi.Plataform.Data.Services.Servico
@@ -25,9 +25,9 @@ namespace WebZi.Plataform.Data.Services.Servico
             _mapper = mapper;
         }
 
-        public async Task<ReboqueViewModelList> GetReboqueByIdAsync(int ReboqueId)
+        public async Task<ReboqueListDTO> GetReboqueByIdAsync(int ReboqueId)
         {
-            ReboqueViewModelList ResultView = new();
+            ReboqueListDTO ResultView = new();
 
             if (ReboqueId <= 0)
             {
@@ -42,7 +42,7 @@ namespace WebZi.Plataform.Data.Services.Servico
 
             if (result != null)
             {
-                ResultView.Listagem.Add(_mapper.Map<ReboqueViewModel>(result));
+                ResultView.Listagem.Add(_mapper.Map<ReboqueDTO>(result));
 
                 ResultView.Mensagem = MensagemViewHelper.SetFound();
             }
@@ -54,7 +54,7 @@ namespace WebZi.Plataform.Data.Services.Servico
             return ResultView;
         }
 
-        public async Task<ReboqueViewModelList> GetReboqueByPlacaAsync(string Placa, int ClienteId, int DepositoId)
+        public async Task<ReboqueListDTO> GetReboqueByPlacaAsync(string Placa, int ClienteId, int DepositoId)
         {
             List<string> erros = new();
 
@@ -77,7 +77,7 @@ namespace WebZi.Plataform.Data.Services.Servico
                 erros.Add(MensagemPadraoEnum.IdentificadorDepositoInvalido);
             }
 
-            ReboqueViewModelList ResultView = new();
+            ReboqueListDTO ResultView = new();
 
             if (erros.Count > 0)
             {
@@ -115,7 +115,7 @@ namespace WebZi.Plataform.Data.Services.Servico
 
             if (result != null)
             {
-                ResultView.Listagem.Add(_mapper.Map<ReboqueViewModel>(result));
+                ResultView.Listagem.Add(_mapper.Map<ReboqueDTO>(result));
 
                 ResultView.Mensagem = MensagemViewHelper.SetFound();
             }
@@ -127,9 +127,9 @@ namespace WebZi.Plataform.Data.Services.Servico
             return ResultView;
         }
 
-        public async Task<ReboquistaViewModelList> GetReboquistaByIdAsync(int ReboquistaId)
+        public async Task<ReboquistaListDTO> GetReboquistaByIdAsync(int ReboquistaId)
         {
-            ReboquistaViewModelList ResultView = new();
+            ReboquistaListDTO ResultView = new();
 
             if (ReboquistaId <= 0)
             {
@@ -144,7 +144,7 @@ namespace WebZi.Plataform.Data.Services.Servico
 
             if (result != null)
             {
-                ResultView.Listagem.Add(_mapper.Map<ReboquistaViewModel>(result));
+                ResultView.Listagem.Add(_mapper.Map<ReboquistaDTO>(result));
 
                 ResultView.Mensagem = MensagemViewHelper.SetFound();
             }
@@ -156,7 +156,7 @@ namespace WebZi.Plataform.Data.Services.Servico
             return ResultView;
         }
 
-        public async Task<ReboqueViewModelList> ListReboqueAsync(int ClienteId, int DepositoId)
+        public async Task<ReboqueListDTO> ListReboqueAsync(int ClienteId, int DepositoId)
         {
             List<string> erros = new();
 
@@ -170,7 +170,7 @@ namespace WebZi.Plataform.Data.Services.Servico
                 erros.Add(MensagemPadraoEnum.IdentificadorDepositoInvalido);
             }
 
-            ReboqueViewModelList ResultView = new();
+            ReboqueListDTO ResultView = new();
 
             if (erros.Count > 0)
             {
@@ -209,7 +209,7 @@ namespace WebZi.Plataform.Data.Services.Servico
 
             if (result?.Count > 0)
             {
-                ResultView.Listagem = _mapper.Map<List<ReboqueViewModel>>(result
+                ResultView.Listagem = _mapper.Map<List<ReboqueDTO>>(result
                     .OrderBy(x => x.Placa)
                     .ToList());
 
@@ -223,9 +223,9 @@ namespace WebZi.Plataform.Data.Services.Servico
             return ResultView;
         }
 
-        public async Task<UsuarioClienteDepositoReboqueViewModelList> ListReboqueByUsuarioIdAsync(int UsuarioId)
+        public async Task<UsuarioClienteDepositoReboqueListDTO> ListReboqueByUsuarioIdAsync(int UsuarioId)
         {
-            UsuarioClienteDepositoReboqueViewModelList ResultView = new();
+            UsuarioClienteDepositoReboqueListDTO ResultView = new();
 
             List<ViewUsuarioClienteDepositoReboqueModel> result = await _context.ViewUsuarioClienteDepositoReboque
                 .Where(x => x.UsuarioId == UsuarioId)
@@ -234,7 +234,7 @@ namespace WebZi.Plataform.Data.Services.Servico
 
             if (result?.Count > 0)
             {
-                ResultView.Listagem = _mapper.Map<List<UsuarioClienteDepositoReboqueViewModel>>(result
+                ResultView.Listagem = _mapper.Map<List<UsuarioClienteDepositoReboqueDTO>>(result
                     .OrderBy(x => x.ReboquePlaca)
                     .ToList());
 
@@ -248,15 +248,15 @@ namespace WebZi.Plataform.Data.Services.Servico
             return ResultView;
         }
 
-        public async Task<ReboqueSimplificadoViewModelList> ListResumeReboqueByUsuarioIdAsync(int UsuarioId)
+        public async Task<ReboqueSimplificadoListDTO> ListResumeReboqueByUsuarioIdAsync(int UsuarioId)
         {
-            ReboqueSimplificadoViewModelList ResultView = new();
+            ReboqueSimplificadoListDTO ResultView = new();
 
-            UsuarioClienteDepositoReboqueViewModelList result = await ListReboqueByUsuarioIdAsync(UsuarioId);
+            UsuarioClienteDepositoReboqueListDTO result = await ListReboqueByUsuarioIdAsync(UsuarioId);
 
             if (result.Listagem?.Count > 0)
             {
-                ResultView.Listagem = _mapper.Map<List<ReboqueSimplificadoViewModel>>(result.Listagem);
+                ResultView.Listagem = _mapper.Map<List<ReboqueSimplificadoDTO>>(result.Listagem);
 
                 ResultView.Mensagem = MensagemViewHelper.SetFound(result.Listagem.Count);
             }
@@ -268,7 +268,7 @@ namespace WebZi.Plataform.Data.Services.Servico
             return ResultView;
         }
 
-        public async Task<ReboquistaViewModelList> ListReboquistaAsync(int ClienteId, int DepositoId)
+        public async Task<ReboquistaListDTO> ListReboquistaAsync(int ClienteId, int DepositoId)
         {
             List<string> erros = new();
 
@@ -282,7 +282,7 @@ namespace WebZi.Plataform.Data.Services.Servico
                 erros.Add(MensagemPadraoEnum.IdentificadorDepositoInvalido);
             }
 
-            ReboquistaViewModelList ResultView = new();
+            ReboquistaListDTO ResultView = new();
 
             if (erros.Count > 0)
             {
@@ -321,7 +321,7 @@ namespace WebZi.Plataform.Data.Services.Servico
 
             if (result?.Count > 0)
             {
-                ResultView.Listagem = _mapper.Map<List<ReboquistaViewModel>>(result
+                ResultView.Listagem = _mapper.Map<List<ReboquistaDTO>>(result
                     .OrderBy(x => x.Nome)
                     .ToList());
 
@@ -335,9 +335,9 @@ namespace WebZi.Plataform.Data.Services.Servico
             return ResultView;
         }
 
-        public async Task<UsuarioClienteDepositoReboquistaViewModelList> ListReboquistaByUsuarioIdAsync(int UsuarioId)
+        public async Task<UsuarioClienteDepositoReboquistaListDTO> ListReboquistaByUsuarioIdAsync(int UsuarioId)
         {
-            UsuarioClienteDepositoReboquistaViewModelList ResultView = new();
+            UsuarioClienteDepositoReboquistaListDTO ResultView = new();
 
             List<ViewUsuarioClienteDepositoReboquistaModel> result = await _context.ViewUsuarioClienteDepositoReboquista
                 .Where(x => x.UsuarioId == UsuarioId)
@@ -346,7 +346,7 @@ namespace WebZi.Plataform.Data.Services.Servico
 
             if (result?.Count > 0)
             {
-                ResultView.Listagem = _mapper.Map<List<UsuarioClienteDepositoReboquistaViewModel>>(result
+                ResultView.Listagem = _mapper.Map<List<UsuarioClienteDepositoReboquistaDTO>>(result
                     .OrderBy(x => x.ReboquistaNome)
                     .ToList());
 
@@ -360,15 +360,15 @@ namespace WebZi.Plataform.Data.Services.Servico
             return ResultView;
         }
 
-        public async Task<ReboquistaSimplificadoViewModelList> ListResumeReboquistaByUsuarioIdAsync(int UsuarioId)
+        public async Task<ReboquistaSimplificadoListDTO> ListResumeReboquistaByUsuarioIdAsync(int UsuarioId)
         {
-            ReboquistaSimplificadoViewModelList ResultView = new();
+            ReboquistaSimplificadoListDTO ResultView = new();
 
-            UsuarioClienteDepositoReboquistaViewModelList result = await ListReboquistaByUsuarioIdAsync(UsuarioId);
+            UsuarioClienteDepositoReboquistaListDTO result = await ListReboquistaByUsuarioIdAsync(UsuarioId);
 
             if (result.Listagem?.Count > 0)
             {
-                ResultView.Listagem = _mapper.Map<List<ReboquistaSimplificadoViewModel>>(result.Listagem);
+                ResultView.Listagem = _mapper.Map<List<ReboquistaSimplificadoDTO>>(result.Listagem);
 
                 ResultView.Mensagem = MensagemViewHelper.SetFound(result.Listagem.Count);
             }

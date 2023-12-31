@@ -4,8 +4,8 @@ using WebZi.Plataform.CrossCutting.Documents;
 using WebZi.Plataform.CrossCutting.Strings;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
+using WebZi.Plataform.Domain.DTO.Empresa;
 using WebZi.Plataform.Domain.Models.Empresa;
-using WebZi.Plataform.Domain.ViewModel.Empresa;
 
 namespace WebZi.Plataform.Data.Services.Empresa
 {
@@ -20,9 +20,9 @@ namespace WebZi.Plataform.Data.Services.Empresa
             _mapper = mapper;
         }
 
-        public async Task<EmpresaViewModelList> GetByIdAsync(int EmpresaId)
+        public async Task<EmpresaListDTO> GetByIdAsync(int EmpresaId)
         {
-            EmpresaViewModelList ResultView = new();
+            EmpresaListDTO ResultView = new();
 
             if (EmpresaId <= 0)
             {
@@ -38,7 +38,7 @@ namespace WebZi.Plataform.Data.Services.Empresa
 
             if (result?.Count > 0)
             {
-                ResultView.Listagem = _mapper.Map<List<EmpresaViewModel>>(result.OrderBy(x => x.Nome).ToList());
+                ResultView.Listagem = _mapper.Map<List<EmpresaDTO>>(result.OrderBy(x => x.Nome).ToList());
 
                 ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
             }
@@ -50,7 +50,7 @@ namespace WebZi.Plataform.Data.Services.Empresa
             return ResultView;
         }
 
-        public async Task<EmpresaViewModelList> ListAsync(string CNPJ = "", string Nome = "")
+        public async Task<EmpresaListDTO> ListAsync(string CNPJ = "", string Nome = "")
         {
             List<string> erros = new();
 
@@ -59,7 +59,7 @@ namespace WebZi.Plataform.Data.Services.Empresa
                 erros.Add("CNPJ inválido");
             }
 
-            EmpresaViewModelList ResultView = new();
+            EmpresaListDTO ResultView = new();
 
             if (erros.Count > 0)
             {
@@ -76,7 +76,7 @@ namespace WebZi.Plataform.Data.Services.Empresa
 
             if (result?.Count > 0)
             {
-                ResultView.Listagem = _mapper.Map<List<EmpresaViewModel>>(result.OrderBy(x => x.Nome).ToList());
+                ResultView.Listagem = _mapper.Map<List<EmpresaDTO>>(result.OrderBy(x => x.Nome).ToList());
 
                 ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
             }

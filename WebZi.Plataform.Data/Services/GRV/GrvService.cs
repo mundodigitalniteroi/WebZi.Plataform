@@ -18,6 +18,13 @@ using WebZi.Plataform.Data.Services.Faturamento;
 using WebZi.Plataform.Data.Services.Localizacao;
 using WebZi.Plataform.Data.Services.Sistema;
 using WebZi.Plataform.Data.Services.WebServices;
+using WebZi.Plataform.Domain.DTO.Generic;
+using WebZi.Plataform.Domain.DTO.GRV;
+using WebZi.Plataform.Domain.DTO.GRV.Cadastro;
+using WebZi.Plataform.Domain.DTO.GRV.Pesquisa;
+using WebZi.Plataform.Domain.DTO.Localizacao;
+using WebZi.Plataform.Domain.DTO.Sistema;
+using WebZi.Plataform.Domain.DTO.Usuario;
 using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Bucket;
 using WebZi.Plataform.Domain.Models.Bucket.Work;
@@ -34,13 +41,9 @@ using WebZi.Plataform.Domain.Models.Usuario;
 using WebZi.Plataform.Domain.Models.Veiculo;
 using WebZi.Plataform.Domain.Models.WebServices.Boleto;
 using WebZi.Plataform.Domain.Services.Usuario;
-using WebZi.Plataform.Domain.ViewModel;
-using WebZi.Plataform.Domain.ViewModel.Generic;
-using WebZi.Plataform.Domain.ViewModel.GRV;
+using WebZi.Plataform.Domain.ViewModel.GGV;
 using WebZi.Plataform.Domain.ViewModel.GRV.Cadastro;
 using WebZi.Plataform.Domain.ViewModel.GRV.Pesquisa;
-using WebZi.Plataform.Domain.ViewModel.Localizacao;
-using WebZi.Plataform.Domain.ViewModel.Usuario;
 using WebZi.Plataform.Domain.Views.Usuario;
 using Z.EntityFramework.Plus;
 
@@ -72,9 +75,9 @@ namespace WebZi.Plataform.Domain.Services.GRV
             _httpClientFactory = httpClientFactory;
         }
 
-        public async Task<MensagemViewModel> CreateAssinaturaAgenteAsync(int GrvId, int UsuarioId, byte[] Imagem)
+        public async Task<MensagemDTO> CreateAssinaturaAgenteAsync(int GrvId, int UsuarioId, byte[] Imagem)
         {
-            MensagemViewModel ResultView = ValidateInputGrv(GrvId, UsuarioId);
+            MensagemDTO ResultView = ValidateInputGrv(GrvId, UsuarioId);
 
             if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
             {
@@ -109,9 +112,9 @@ namespace WebZi.Plataform.Domain.Services.GRV
             return MensagemViewHelper.SetCreateSuccess();
         }
 
-        public async Task<MensagemViewModel> CreateAssinaturaCondutorAsync(int GrvId, int UsuarioId, byte[] Imagem)
+        public async Task<MensagemDTO> CreateAssinaturaCondutorAsync(int GrvId, int UsuarioId, byte[] Imagem)
         {
-            MensagemViewModel ResultView = ValidateInputGrv(GrvId, UsuarioId);
+            MensagemDTO ResultView = ValidateInputGrv(GrvId, UsuarioId);
 
             if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
             {
@@ -146,7 +149,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             return MensagemViewHelper.SetCreateSuccess();
         }
 
-        public ResultadoCadastroGrvViewModel CreateGrv(CadastroGrvViewModel GrvPersistencia)
+        public ResultadoCadastroGrvDTO CreateGrv(GrvParameters GrvPersistencia)
         {
             GrvModel Grv = new()
             {
@@ -246,7 +249,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (!string.IsNullOrWhiteSpace(GrvPersistencia.EnderecoLocalizacaoVeiculoCEP))
             {
-                EnderecoViewModel Endereco = new EnderecoService(_context, _mapper)
+                EnderecoDTO Endereco = new EnderecoService(_context, _mapper)
                     .GetByCEP(GrvPersistencia.EnderecoLocalizacaoVeiculoCEP
                     .Replace("-", ""));
 
@@ -298,7 +301,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
                 CondutorEquipamentoOpcionalModel CondutorEquipamentoOpcional = new();
 
-                foreach (var item in GrvPersistencia.ListagemEquipamentoOpcional)
+                foreach (EquipamentoOpcionalParameters item in GrvPersistencia.ListagemEquipamentoOpcional)
                 {
                     CondutorEquipamentoOpcional = new()
                     {
@@ -331,7 +334,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 Grv.StatusOperacaoId = "B";
             }
 
-            ResultadoCadastroGrvViewModel ResultView = new();
+            ResultadoCadastroGrvDTO ResultView = new();
 
             using (IDbContextTransaction transaction = _context.Database.BeginTransaction())
             {
@@ -357,7 +360,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                         _context.SaveChanges();
                     }
 
-                    ResultView.IdentificadorGrv = Grv.GrvId;
+                    ResultView.IdentificadorProcesso = Grv.GrvId;
 
                     transaction.Commit();
                 }
@@ -399,13 +402,13 @@ namespace WebZi.Plataform.Domain.Services.GRV
             return ResultView;
         }
 
-        private void CreateDocumentosCondutor(int GrvId, int UsuarioId, List<CadastroCondutorDocumentoViewModel> ListagemDocumentoCondutor)
+        private void CreateDocumentosCondutor(int GrvId, int UsuarioId, List<CondutorDocumentoParameters> ListagemDocumentoCondutor)
         {
             List<BucketListaCadastroModel> Files = new();
 
             CondutorDocumentoModel CondutorDocumento;
 
-            foreach (CadastroCondutorDocumentoViewModel item in ListagemDocumentoCondutor)
+            foreach (CondutorDocumentoParameters item in ListagemDocumentoCondutor)
             {
                 CondutorDocumento = new()
                 {
@@ -432,9 +435,9 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 .SendFiles("GRV_DOCCONDUTOR", UsuarioId, Files);
         }
 
-        public MensagemViewModel CreateDocumentosCondutor(CadastroCondutorDocumentoViewModelList ListagemDocumentoCondutor)
+        public MensagemDTO CreateDocumentosCondutor(CondutorDocumentoParametersList ListagemDocumentoCondutor)
         {
-            MensagemViewModel ResultView = ValidateInputGrv(ListagemDocumentoCondutor.IdentificadorGrv, ListagemDocumentoCondutor.IdentificadorUsuario);
+            MensagemDTO ResultView = ValidateInputGrv(ListagemDocumentoCondutor.IdentificadorProcesso, ListagemDocumentoCondutor.IdentificadorUsuario);
 
             if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
             {
@@ -446,21 +449,21 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 return MensagemViewHelper.SetBadRequest("Nenhuma imagem enviada para a API");
             }
 
-            GrvModel Grv = GetById(ListagemDocumentoCondutor.IdentificadorGrv);
+            GrvModel Grv = GetById(ListagemDocumentoCondutor.IdentificadorProcesso);
 
             if (!new[] { "G", "V", "L", "U", "T", "R", "E", "B", "D", "1", "2", "3", "4" }.Contains(Grv.StatusOperacao.StatusOperacaoId))
             {
                 return MensagemViewHelper.SetBadRequest($"O Status atual deste GRV não permite o envio de Fotos. Status atual: {Grv.StatusOperacao.Descricao}");
             }
 
-            CreateDocumentosCondutor(ListagemDocumentoCondutor.IdentificadorGrv, ListagemDocumentoCondutor.IdentificadorUsuario, ListagemDocumentoCondutor.ListagemDocumentoCondutor);
+            CreateDocumentosCondutor(ListagemDocumentoCondutor.IdentificadorProcesso, ListagemDocumentoCondutor.IdentificadorUsuario, ListagemDocumentoCondutor.ListagemDocumentoCondutor);
 
             return MensagemViewHelper.SetCreateSuccess(ListagemDocumentoCondutor.ListagemDocumentoCondutor.Count);
         }
 
-        public MensagemViewModel CreateFotos(CadastroFotoGrvViewModel Fotos)
+        public MensagemDTO CreateFotos(FotoGrvParameters Fotos)
         {
-            MensagemViewModel ResultView = ValidateInputGrv(Fotos.IdentificadorGrv, Fotos.IdentificadorUsuario);
+            MensagemDTO ResultView = ValidateInputGrv(Fotos.IdentificadorProcesso, Fotos.IdentificadorUsuario);
 
             if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
             {
@@ -472,7 +475,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 return MensagemViewHelper.SetBadRequest("Nenhuma imagem enviada para a API");
             }
 
-            GrvModel Grv = GetById(Fotos.IdentificadorGrv);
+            GrvModel Grv = GetById(Fotos.IdentificadorProcesso);
 
             if (!new[] { "G", "V", "L", "U", "T", "R", "E", "B", "D", "1", "2", "3", "4" }.Contains(Grv.StatusOperacao.StatusOperacaoId))
             {
@@ -480,14 +483,14 @@ namespace WebZi.Plataform.Domain.Services.GRV
             }
 
             new BucketService(_context, _httpClientFactory)
-                .SendFiles("GRVFOTOSVEICCAD", Fotos.IdentificadorGrv, Fotos.IdentificadorUsuario, Fotos.Fotos);
+                .SendFiles("GRVFOTOSVEICCAD", Fotos.IdentificadorProcesso, Fotos.IdentificadorUsuario, Fotos.Fotos);
 
             return MensagemViewHelper.SetCreateSuccess(Fotos.Fotos.Count);
         }
 
-        public async Task<MensagemViewModel> CreateLacresAsync(int GrvId, int UsuarioId, List<string> ListagemLacre)
+        public async Task<MensagemDTO> CreateLacresAsync(int GrvId, int UsuarioId, List<string> ListagemLacre)
         {
-            MensagemViewModel ResultView = ValidateInputGrv(GrvId, UsuarioId);
+            MensagemDTO ResultView = ValidateInputGrv(GrvId, UsuarioId);
 
             if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
             {
@@ -561,9 +564,9 @@ namespace WebZi.Plataform.Domain.Services.GRV
             return MensagemViewHelper.SetCreateSuccess(ListagemLacre.Count, "Lacre(s) cadastrado(s) com sucesso");
         }
 
-        public async Task<MensagemViewModel> DeleteAssinaturaAgenteAsync(int GrvId, int UsuarioId)
+        public async Task<MensagemDTO> DeleteAssinaturaAgenteAsync(int GrvId, int UsuarioId)
         {
-            MensagemViewModel ResultView = ValidateInputGrv(GrvId, UsuarioId);
+            MensagemDTO ResultView = ValidateInputGrv(GrvId, UsuarioId);
 
             if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
             {
@@ -594,9 +597,9 @@ namespace WebZi.Plataform.Domain.Services.GRV
             return MensagemViewHelper.SetDeleteSuccess();
         }
 
-        public async Task<MensagemViewModel> DeleteAssinaturaCondutorAsync(int GrvId, int UsuarioId)
+        public async Task<MensagemDTO> DeleteAssinaturaCondutorAsync(int GrvId, int UsuarioId)
         {
-            MensagemViewModel ResultView = ValidateInputGrv(GrvId, UsuarioId);
+            MensagemDTO ResultView = ValidateInputGrv(GrvId, UsuarioId);
 
             if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
             {
@@ -627,9 +630,9 @@ namespace WebZi.Plataform.Domain.Services.GRV
             return MensagemViewHelper.SetDeleteSuccess();
         }
 
-        public async Task<MensagemViewModel> DeleteFotosAsync(int GrvId, int UsuarioId, List<int> ListagemTabelaOrigemId)
+        public async Task<MensagemDTO> DeleteFotosAsync(int GrvId, int UsuarioId, List<int> ListagemTabelaOrigemId)
         {
-            MensagemViewModel ResultView = ValidateInputGrv(GrvId, UsuarioId);
+            MensagemDTO ResultView = ValidateInputGrv(GrvId, UsuarioId);
 
             if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
             {
@@ -677,17 +680,17 @@ namespace WebZi.Plataform.Domain.Services.GRV
             return MensagemViewHelper.SetFound(BucketArquivos.Count, "Foto(s) excluída(s) com sucesso");
         }
 
-        public async Task<MensagemViewModel> DeleteGrvAsync(string NumeroFormularioGrv, string FaturamentoProdutoId, int ClienteId, int DepositoId, string Login, string Senha)
+        public async Task<MensagemDTO> DeleteGrvAsync(string NumeroFormularioGrv, string FaturamentoProdutoId, int ClienteId, int DepositoId, string Login, string Senha)
         {
-            UsuarioViewModel Usuario = await new UsuarioService(_context, _mapper)
-                .GetByLoginAsync(Login, Senha);
+            UsuarioDTO Usuario = await new UsuarioService(_context, _mapper)
+                .GetByCredentialsAsync(Login, Senha);
 
             if (Usuario.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
             {
                 return Usuario.Mensagem;
             }
 
-            MensagemViewModel ResultView = ValidateInputGrv(NumeroFormularioGrv, FaturamentoProdutoId, ClienteId, DepositoId, Usuario.IdentificadorUsuario);
+            MensagemDTO ResultView = ValidateInputGrv(NumeroFormularioGrv, FaturamentoProdutoId, ClienteId, DepositoId, Usuario.IdentificadorUsuario);
 
             if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
             {
@@ -704,10 +707,10 @@ namespace WebZi.Plataform.Domain.Services.GRV
             return await DeleteGrvAsync(Grv.GrvId, Usuario.IdentificadorUsuario);
         }
 
-        public async Task<MensagemViewModel> DeleteGrvAsync(int GrvId, string Login, string Senha)
+        public async Task<MensagemDTO> DeleteGrvAsync(int GrvId, string Login, string Senha)
         {
-            UsuarioViewModel Usuario = await new UsuarioService(_context, _mapper)
-                .GetByLoginAsync(Login, Senha);
+            UsuarioDTO Usuario = await new UsuarioService(_context, _mapper)
+                .GetByCredentialsAsync(Login, Senha);
 
             if (Usuario.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
             {
@@ -718,7 +721,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 return MensagemViewHelper.SetBadRequest(MensagemPadraoEnum.IdentificadorGrvInvalido);
             }
 
-            MensagemViewModel ResultView = ValidateInputGrv(GrvId, Usuario.IdentificadorUsuario);
+            MensagemDTO ResultView = ValidateInputGrv(GrvId, Usuario.IdentificadorUsuario);
 
             if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
             {
@@ -728,9 +731,9 @@ namespace WebZi.Plataform.Domain.Services.GRV
             return await DeleteGrvAsync(GrvId, Usuario.IdentificadorUsuario);
         }
 
-        private async Task<MensagemViewModel> DeleteGrvAsync(int GrvId, int UsuarioId)
+        private async Task<MensagemDTO> DeleteGrvAsync(int GrvId, int UsuarioId)
         {
-            MensagemViewModel ResultView = new();
+            MensagemDTO ResultView = new();
 
             UsuarioPermissaoModel UsuarioPermissao = await _context.UsuarioPermissao
                 .Include(x => x.TipoPermissao)
@@ -835,9 +838,9 @@ namespace WebZi.Plataform.Domain.Services.GRV
             return MensagemViewHelper.SetOk("GRV excluído com sucesso");
         }
 
-        public async Task<MensagemViewModel> DeleteLacresAsync(int GrvId, int UsuarioId, List<int> ListagemIdentificadorLacre)
+        public async Task<MensagemDTO> DeleteLacresAsync(int GrvId, int UsuarioId, List<int> ListagemIdentificadorLacre)
         {
-            MensagemViewModel ResultView = ValidateInputGrv(GrvId, UsuarioId);
+            MensagemDTO ResultView = ValidateInputGrv(GrvId, UsuarioId);
 
             if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
             {
@@ -946,7 +949,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 return ResultView;
             }
 
-            ResultView.Listagem.Add(_mapper.Map<GrvViewModel>(Grv));
+            ResultView.Listagem.Add(_mapper.Map<GrvDTO>(Grv));
 
             ResultView.Mensagem = MensagemViewHelper.SetFound();
 
@@ -986,16 +989,16 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 return ResultView;
             }
 
-            ResultView.Listagem.Add(_mapper.Map<GrvViewModel>(Grv));
+            ResultView.Listagem.Add(_mapper.Map<GrvDTO>(Grv));
 
             ResultView.Mensagem = MensagemViewHelper.SetFound();
 
             return ResultView;
         }
 
-        public async Task<ImageViewModelList> GetAssinaturaAgenteAsync(int GrvId, int UsuarioId)
+        public async Task<ImageListDTO> GetAssinaturaAgenteAsync(int GrvId, int UsuarioId)
         {
-            ImageViewModelList ResultView = new()
+            ImageListDTO ResultView = new()
             {
                 Mensagem = ValidateInputGrv(GrvId, UsuarioId)
             };
@@ -1022,9 +1025,9 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 .DownloadFileAsync("GRVASSINAAGENTE", GrvId);
         }
 
-        public async Task<ImageViewModelList> GetAssinaturaCondutorAsync(int GrvId, int UsuarioId)
+        public async Task<ImageListDTO> GetAssinaturaCondutorAsync(int GrvId, int UsuarioId)
         {
-            ImageViewModelList ResultView = new()
+            ImageListDTO ResultView = new()
             {
                 Mensagem = ValidateInputGrv(GrvId, UsuarioId)
             };
@@ -1051,9 +1054,9 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 .DownloadFileAsync("GRVASSINACONDUT", GrvId);
         }
 
-        public async Task<StatusOperacaoViewModelList> GetStatusOperacaoByIdAsync(string StatusOperacaoId)
+        public async Task<StatusOperacaoListDTO> GetStatusOperacaoByIdAsync(string StatusOperacaoId)
         {
-            StatusOperacaoViewModelList ResultView = new();
+            StatusOperacaoListDTO ResultView = new();
 
             if (string.IsNullOrWhiteSpace(StatusOperacaoId))
             {
@@ -1111,7 +1114,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (result.AutoridadesResponsaveis?.Count > 0)
             {
-                ResultView.Listagem = _mapper.Map<List<AutoridadeResponsavelViewModel>>(result.AutoridadesResponsaveis
+                ResultView.Listagem = _mapper.Map<List<AutoridadeResponsavelDTO>>(result.AutoridadesResponsaveis
                     .OrderBy(x => x.Divisao)
                     .ToList());
 
@@ -1125,9 +1128,9 @@ namespace WebZi.Plataform.Domain.Services.GRV
             return ResultView;
         }
 
-        public async Task<ImageViewModelList> ListDocumentosCondutorAsync(int GrvId, int UsuarioId)
+        public async Task<ImageListDTO> ListDocumentosCondutorAsync(int GrvId, int UsuarioId)
         {
-            ImageViewModelList ResultView = new()
+            ImageListDTO ResultView = new()
             {
                 Mensagem = ValidateInputGrv(GrvId, UsuarioId)
             };
@@ -1157,7 +1160,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (result?.Count > 0)
             {
-                ResultView.Listagem = _mapper.Map<List<EnquadramentoInfracaoViewModel>>(result
+                ResultView.Listagem = _mapper.Map<List<EnquadramentoInfracaoDTO>>(result
                     .OrderBy(x => x.Descricao.Trim())
                     .ToList());
 
@@ -1171,9 +1174,9 @@ namespace WebZi.Plataform.Domain.Services.GRV
             return ResultView;
         }
 
-        public async Task<ImageViewModelList> ListFotoAsync(int GrvId, int UsuarioId)
+        public async Task<ImageListDTO> ListFotoAsync(int GrvId, int UsuarioId)
         {
-            ImageViewModelList ResultView = new()
+            ImageListDTO ResultView = new()
             {
                 Mensagem = ValidateInputGrv(GrvId, UsuarioId)
             };
@@ -1187,7 +1190,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 .DownloadFileAsync("GRVFOTOSVEICCAD", GrvId);
         }
 
-        public async Task<GrvPesquisaDadosMestresViewModel> ListItemPesquisaAsync(int UsuarioId)
+        public async Task<GrvPesquisaDadosMestresDTO> ListItemPesquisaAsync(int UsuarioId)
         {
             return new()
             {
@@ -1236,7 +1239,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (result?.Count > 0)
             {
-                ResultView.Listagem = _mapper.Map<List<LacreViewModel>>(result
+                ResultView.Listagem = _mapper.Map<List<LacreDTO>>(result
                     .OrderBy(x => x.Lacre)
                     .ToList());
 
@@ -1260,7 +1263,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (result?.Count > 0)
             {
-                ResultView.Listagem = _mapper.Map<List<MotivoApreensaoViewModel>>(result
+                ResultView.Listagem = _mapper.Map<List<MotivoApreensaoDTO>>(result
                     .OrderBy(x => x.Descricao)
                     .ToList());
 
@@ -1274,9 +1277,9 @@ namespace WebZi.Plataform.Domain.Services.GRV
             return ResultView;
         }
 
-        public async Task<StatusOperacaoViewModelList> ListStatusOperacaoAsync()
+        public async Task<StatusOperacaoListDTO> ListStatusOperacaoAsync()
         {
-            StatusOperacaoViewModelList ResultView = new();
+            StatusOperacaoListDTO ResultView = new();
 
             List<StatusOperacaoModel> result = await _context.StatusOperacao
                 .AsNoTracking()
@@ -1300,7 +1303,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             return ResultView;
         }
 
-        public async Task<GrvPesquisaResultViewModelList> SearchAsync(GrvPesquisaInputViewModel GrvPesquisa)
+        public async Task<GrvPesquisaResultListDTO> SearchAsync(GrvPesquisaParameters GrvPesquisa)
         {
             List<string> erros = new();
 
@@ -1407,7 +1410,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 erros.Add("O período de pesquisa não pode superar 180 dias");
             }
 
-            GrvPesquisaResultViewModelList ResultView = new();
+            GrvPesquisaResultListDTO ResultView = new();
 
             if (erros.Count > 0)
             {
@@ -1449,7 +1452,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             {
                 ResultView.Listagem.Add(new()
                 {
-                    IdentificadorGrv = Grv.GrvId,
+                    IdentificadorProcesso = Grv.GrvId,
 
                     StatusOperacaoId = Grv.StatusOperacaoId,
 
@@ -1476,7 +1479,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             return ResultView;
         }
 
-        public MensagemViewModel ValidateInputGrv(int GrvId, int UsuarioId)
+        public MensagemDTO ValidateInputGrv(int GrvId, int UsuarioId)
         {
             List<string> erros = new();
 
@@ -1498,17 +1501,17 @@ namespace WebZi.Plataform.Domain.Services.GRV
             return ValidateInputGrv(GrvId, UsuarioId, "", "", 0, 0);
         }
 
-        public MensagemViewModel ValidateInputGrv(GrvModel Grv, int UsuarioId)
+        public MensagemDTO ValidateInputGrv(GrvModel Grv, int UsuarioId)
         {
             return ValidateInputGrv(Grv.GrvId, UsuarioId, Grv.NumeroFormularioGrv, Grv.FaturamentoProdutoId, Grv.ClienteId, Grv.DepositoId);
         }
 
-        public MensagemViewModel ValidateInputGrv(string NumeroFormularioGrv, string FaturamentoProdutoId, int ClienteId, int DepositoId, int UsuarioId)
+        public MensagemDTO ValidateInputGrv(string NumeroFormularioGrv, string FaturamentoProdutoId, int ClienteId, int DepositoId, int UsuarioId)
         {
             return ValidateInputGrv(0, UsuarioId, NumeroFormularioGrv, FaturamentoProdutoId, ClienteId, DepositoId);
         }
 
-        private MensagemViewModel ValidateInputGrv(int GrvId, int UsuarioId, string NumeroFormularioGrv, string FaturamentoProdutoId, int ClienteId, int DepositoId)
+        private MensagemDTO ValidateInputGrv(int GrvId, int UsuarioId, string NumeroFormularioGrv, string FaturamentoProdutoId, int ClienteId, int DepositoId)
         {
             if (!new UsuarioService(_context).IsUserActive(UsuarioId))
             {
@@ -1590,7 +1593,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
                 if (ClienteDeposito == null)
                 {
-                    return MensagemViewHelper.SetNotFound("Este Cliente e Depósito não são associados");
+                    return MensagemViewHelper.SetNotFound(MensagemPadraoEnum.NaoEncontradoAssociacaoClienteDeposito);
                 }
             }
 
@@ -1625,9 +1628,9 @@ namespace WebZi.Plataform.Domain.Services.GRV
             return MensagemViewHelper.SetOk();
         }
 
-        public async Task<MensagemViewModel> CheckAlteracaoStatusGrvAsync(int GrvId, string StatusOperacaoId, int UsuarioId)
+        public async Task<MensagemDTO> CheckAlteracaoStatusGrvAsync(int GrvId, string StatusOperacaoId, int UsuarioId)
         {
-            MensagemViewModel ResultView = ValidateInputGrv(GrvId, UsuarioId);
+            MensagemDTO ResultView = ValidateInputGrv(GrvId, UsuarioId);
 
             if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
             {
@@ -1660,7 +1663,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             return MensagemViewHelper.SetOk("O Status da Operação não foi alterado");
         }
 
-        public async Task<MensagemViewModel> CheckInformacoesPersistenciaAsync(CadastroGrvViewModel GrvPersistencia)
+        public async Task<MensagemDTO> CheckInformacoesPersistenciaAsync(GrvParameters GrvPersistencia)
         {
             if (GrvPersistencia == null)
             {
@@ -1932,7 +1935,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 return MensagemViewHelper.SetUnauthorized();
             }
 
-            MensagemViewModel ResultView = new();
+            MensagemDTO ResultView = new();
 
             ClienteModel Cliente = await _context.Cliente
                 .Include(x => x.Endereco)

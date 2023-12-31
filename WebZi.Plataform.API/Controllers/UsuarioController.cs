@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WebZi.Plataform.Data.Helper;
+using WebZi.Plataform.Domain.DTO.Usuario;
 using WebZi.Plataform.Domain.Services.Usuario;
 using WebZi.Plataform.Domain.ViewModel.Usuario;
 
@@ -19,14 +20,14 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("SelecionarPorIdentificador")]
         // TODO: [Authorize]
-        public async Task<ActionResult<UsuarioViewModel>> SelecionarPorIdentificador(int IdentificadorUsuario)
+        public async Task<ActionResult<UsuarioDTO>> SelecionarPorIdentificador(int IdentificadorUsuario)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            UsuarioViewModel ResultView = new();
+            UsuarioDTO ResultView = new();
 
             try
             {
@@ -46,14 +47,14 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("SelecionarPorLogin")]
         // TODO: [Authorize]
-        public async Task<ActionResult<UsuarioViewModel>> SelecionarPorLogin(string Login)
+        public async Task<ActionResult<UsuarioDTO>> SelecionarPorLogin(string Login)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            UsuarioViewModel ResultView = new();
+            UsuarioDTO ResultView = new();
 
             try
             {
@@ -73,20 +74,20 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpPost("Login")]
         [AllowAnonymous]
-        public async Task<ActionResult<UsuarioViewModel>> Login([FromBody] UsuarioLogin Login)
+        public async Task<ActionResult<UsuarioDTO>> Login([FromBody] UsuarioLoginParameters Login)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            UsuarioViewModel ResultView = new();
+            UsuarioDTO ResultView = new();
 
             try
             {
                 ResultView = await _provider
                     .GetService<UsuarioService>()
-                    .GetByLoginAsync(Login.Usuario, Login.Senha);
+                    .GetByCredentialsAsync(Login.Usuario, Login.Senha);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }

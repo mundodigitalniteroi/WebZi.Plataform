@@ -2,10 +2,10 @@
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.GGV;
-using WebZi.Plataform.Domain.ViewModel;
-using WebZi.Plataform.Domain.ViewModel.Generic;
+using WebZi.Plataform.Domain.DTO.Generic;
+using WebZi.Plataform.Domain.DTO.GGV;
+using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.ViewModel.GGV;
-using WebZi.Plataform.Domain.ViewModel.GGV.Cadastro;
 
 namespace WebZi.Plataform.API.Controllers
 {
@@ -23,14 +23,14 @@ namespace WebZi.Plataform.API.Controllers
         [HttpPost("Cadastrar")]
         // TODO: [Authorize]
         [IgnoreAntiforgeryToken]
-        public async Task<ActionResult<MensagemViewModel>> Cadastrar([FromBody] CadastroGgvViewModel Ggv)
+        public async Task<ActionResult<MensagemDTO>> Cadastrar([FromBody] GgvParameters Ggv)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            MensagemViewModel ResultView;
+            MensagemDTO ResultView;
 
             try
             {
@@ -74,14 +74,14 @@ namespace WebZi.Plataform.API.Controllers
         [HttpPost("CadastrarFotos")]
         // TODO: [Authorize]
         [IgnoreAntiforgeryToken]
-        public async Task<ActionResult<MensagemViewModel>> CadastrarFotos([FromBody] CadastroFotoGgvViewModel Fotos)
+        public async Task<ActionResult<MensagemDTO>> CadastrarFotos([FromBody] FotoGgvParameters Fotos)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            MensagemViewModel ResultView;
+            MensagemDTO ResultView;
 
             try
             {
@@ -102,20 +102,20 @@ namespace WebZi.Plataform.API.Controllers
         [HttpDelete("ExcluirFotos")]
         // TODO: [Authorize]
         [IgnoreAntiforgeryToken]
-        public async Task<ActionResult<MensagemViewModel>> ExcluirFotos(int IdentificadorGrv, int IdentificadorUsuario, [FromBody] List<int> ListagemIdentificadorTabelaOrigem)
+        public async Task<ActionResult<MensagemDTO>> ExcluirFotos(int IdentificadorProcesso, int IdentificadorUsuario, [FromBody] List<int> ListagemIdentificadorTabelaOrigem)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            MensagemViewModel ResultView;
+            MensagemDTO ResultView;
 
             try
             {
                 ResultView = await _provider
                     .GetService<GgvService>()
-                    .DeleteFotosAsync(IdentificadorGrv, IdentificadorUsuario, ListagemIdentificadorTabelaOrigem);
+                    .DeleteFotosAsync(IdentificadorProcesso, IdentificadorUsuario, ListagemIdentificadorTabelaOrigem);
 
                 return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
             }
@@ -129,14 +129,14 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("ListarDadosMestres")]
         // TODO: [Authorize]
-        public async Task<ActionResult<DadosMestresViewModel>> ListarDadosMestres(int GrvId, int UsuarioId)
+        public async Task<ActionResult<DadosMestresDTO>> ListarDadosMestres(int GrvId, int UsuarioId)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            DadosMestresViewModel ResultView = new();
+            DadosMestresDTO ResultView = new();
 
             try
             {
@@ -156,20 +156,20 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("ListarFotos")]
         // TODO: [Authorize]
-        public async Task<ActionResult<ImageViewModelList>> ListarFotos(int IdentificadorGrv, int IdentificadorUsuario)
+        public async Task<ActionResult<ImageListDTO>> ListarFotos(int IdentificadorProcesso, int IdentificadorUsuario)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            ImageViewModelList ResultView = new();
+            ImageListDTO ResultView = new();
 
             try
             {
                 ResultView = await _provider
                     .GetService<GgvService>()
-                    .ListFotosAsync(IdentificadorGrv, IdentificadorUsuario);
+                    .ListFotosAsync(IdentificadorProcesso, IdentificadorUsuario);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }

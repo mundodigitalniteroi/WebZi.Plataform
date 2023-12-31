@@ -4,8 +4,8 @@ using WebZi.Plataform.CrossCutting.Localizacao;
 using WebZi.Plataform.CrossCutting.Strings;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
+using WebZi.Plataform.Domain.DTO.Documento;
 using WebZi.Plataform.Domain.Models.Documento;
-using WebZi.Plataform.Domain.ViewModel.Documento;
 
 namespace WebZi.Plataform.Data.Services.Documento
 {
@@ -20,9 +20,9 @@ namespace WebZi.Plataform.Data.Services.Documento
             _mapper = mapper;
         }
 
-        public async Task<OrgaoEmissorViewModelList> ListOrgaoEmissorAsync(string UF)
+        public async Task<OrgaoEmissorListDTO> ListOrgaoEmissorAsync(string UF)
         {
-            OrgaoEmissorViewModelList ResultView = new();
+            OrgaoEmissorListDTO ResultView = new();
 
             if (string.IsNullOrWhiteSpace(UF))
             {
@@ -51,7 +51,7 @@ namespace WebZi.Plataform.Data.Services.Documento
 
             if (result?.Count > 0)
             {
-                ResultView.Listagem = _mapper.Map<List<OrgaoEmissorViewModel>>(result
+                ResultView.Listagem = _mapper.Map<List<OrgaoEmissorDTO>>(result
                     .OrderBy(x => x.Descricao)
                     .ToList());
 

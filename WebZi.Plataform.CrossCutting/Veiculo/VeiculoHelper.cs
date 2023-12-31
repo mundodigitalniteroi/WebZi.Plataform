@@ -90,9 +90,9 @@ namespace WebZi.Plataform.CrossCutting.Veiculo
 
 
             int[] digitos = GetDigitosInvertidos(input);
-            var verificador = GetDigitoVerificador(input);
-            var soma = GetSoma(digitos);
-            var verificadorCalculado = GetVerificador(soma);
+            int verificador = GetDigitoVerificador(input);
+            int soma = GetSoma(digitos);
+            int verificadorCalculado = GetVerificador(soma);
             return verificadorCalculado == verificador;
         }
 
@@ -111,8 +111,8 @@ namespace WebZi.Plataform.CrossCutting.Veiculo
 
         private static int GetSoma(int[] digitos)
         {
-            var soma = 0;
-            for (var i = 0; i < digitos.Length; i++)
+            int soma = 0;
+            for (int i = 0; i < digitos.Length; i++)
             {
                 soma += digitos[i] * GetFactor(i);
             }
@@ -136,7 +136,7 @@ namespace WebZi.Plataform.CrossCutting.Veiculo
 
         private static int GetVerificador(int soma)
         {
-            var valor = 11 - (soma % 11);
+            int valor = 11 - (soma % 11);
             if (valor >= 10) return 0;
             return valor;
         }

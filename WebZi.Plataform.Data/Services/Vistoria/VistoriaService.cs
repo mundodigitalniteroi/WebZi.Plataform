@@ -2,8 +2,8 @@
 using Microsoft.EntityFrameworkCore;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
+using WebZi.Plataform.Domain.DTO.Vistoria;
 using WebZi.Plataform.Domain.Models.Vistoria;
-using WebZi.Plataform.Domain.ViewModel.Vistoria;
 
 namespace WebZi.Plataform.Data.Services.Vistoria
 {
@@ -18,9 +18,9 @@ namespace WebZi.Plataform.Data.Services.Vistoria
             _mapper = mapper;
         }
 
-        public async Task<VistoriaStatusViewModelList> ListStatusVistoriaAsync()
+        public async Task<VistoriaStatusListDTO> ListStatusVistoriaAsync()
         {
-            VistoriaStatusViewModelList ResultView = new();
+            VistoriaStatusListDTO ResultView = new();
 
             List<VistoriaStatusModel> result = await _context.VistoriaStatus
                 .AsNoTracking()
@@ -30,7 +30,7 @@ namespace WebZi.Plataform.Data.Services.Vistoria
                 .OrderBy(x => x.Descricao)
                 .ToList();
 
-            foreach (var item in result)
+            foreach (VistoriaStatusModel item in result)
             {
                 ResultView.Listagem.Add(new()
                 {
@@ -44,15 +44,15 @@ namespace WebZi.Plataform.Data.Services.Vistoria
             return ResultView;
         }
 
-        public async Task<VistoriaSituacaoChassiViewModelList> ListSituacaoChassiAsync()
+        public async Task<VistoriaSituacaoChassiListDTO> ListSituacaoChassiAsync()
         {
-            VistoriaSituacaoChassiViewModelList ResultView = new();
+            VistoriaSituacaoChassiListDTO ResultView = new();
 
             List<VistoriaSituacaoChassiModel> result = await _context.VistoriaSituacaoChassi
                 .AsNoTracking()
                 .ToListAsync();
 
-            ResultView.Listagem = _mapper.Map<List<VistoriaSituacaoChassiViewModel>>(result
+            ResultView.Listagem = _mapper.Map<List<VistoriaSituacaoChassiDTO>>(result
                 .OrderBy(x => x.Descricao)
                 .ToList());
 

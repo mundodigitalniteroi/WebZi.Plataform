@@ -130,7 +130,7 @@ namespace WebZi.Plataform.CrossCutting.Linq
                 return false;
             }
 
-            foreach (var item in list)
+            foreach (T item in list)
             {
                 if (Convert.ToDecimal(item) <= 0)
                 {

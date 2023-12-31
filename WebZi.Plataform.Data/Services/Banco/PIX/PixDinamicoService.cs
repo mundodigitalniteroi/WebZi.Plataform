@@ -2,11 +2,11 @@
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
+using WebZi.Plataform.Domain.DTO.Banco.PIX;
 using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.Sistema;
 using WebZi.Plataform.Domain.Services.GRV;
-using WebZi.Plataform.Domain.ViewModel.Banco.PIX;
 
 namespace WebZi.Plataform.Data.Services.Banco.PIX
 {
@@ -19,9 +19,9 @@ namespace WebZi.Plataform.Data.Services.Banco.PIX
             _context = context;
         }
 
-        public PixEstaticoGeradoViewModel Create(int FaturamentoId, int UsuarioId)
+        public PixEstaticoGeradoDTO Create(int FaturamentoId, int UsuarioId)
         {
-            PixEstaticoGeradoViewModel ResultView = new();
+            PixEstaticoGeradoDTO ResultView = new();
 
             if (FaturamentoId <= 0)
             {

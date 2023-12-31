@@ -4,13 +4,14 @@ using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.WebServices;
+using WebZi.Plataform.Domain.DTO.Cliente;
+using WebZi.Plataform.Domain.DTO.Generic;
+using WebZi.Plataform.Domain.DTO.GRV.Pesquisa;
+using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Cliente;
 using WebZi.Plataform.Domain.Models.Sistema;
 using WebZi.Plataform.Domain.Models.Usuario;
-using WebZi.Plataform.Domain.ViewModel.Cliente;
-using WebZi.Plataform.Domain.ViewModel.Generic;
-using WebZi.Plataform.Domain.ViewModel.GRV.Pesquisa;
 
 namespace WebZi.Plataform.Data.Services.Cliente
 {
@@ -19,6 +20,11 @@ namespace WebZi.Plataform.Data.Services.Cliente
         private readonly AppDbContext _context;
         private readonly IMapper _mapper;
         private readonly IHttpClientFactory _httpClientFactory;
+
+        public ClienteService(AppDbContext context)
+        {
+            _context = context;
+        }
 
         public ClienteService(AppDbContext context, IMapper mapper)
         {
@@ -33,9 +39,9 @@ namespace WebZi.Plataform.Data.Services.Cliente
             _httpClientFactory = httpClientFactory;
         }
 
-        public async Task<ClienteViewModelList> GetByIdAsync(int ClienteId)
+        public async Task<ClienteListDTO> GetByIdAsync(int ClienteId)
         {
-            ClienteViewModelList ResultView = new();
+            ClienteListDTO ResultView = new();
 
             if (ClienteId <= 0)
             {
@@ -50,7 +56,7 @@ namespace WebZi.Plataform.Data.Services.Cliente
 
             if (result != null)
             {
-                ResultView.Listagem.Add(_mapper.Map<ClienteViewModel>(result));
+                ResultView.Listagem.Add(_mapper.Map<ClienteDTO>(result));
 
                 ResultView.Mensagem = MensagemViewHelper.SetFound();
             }
@@ -62,9 +68,9 @@ namespace WebZi.Plataform.Data.Services.Cliente
             return ResultView;
         }
 
-        public async Task<ClienteViewModelList> GetByNameAsync(string Name)
+        public async Task<ClienteListDTO> GetByNameAsync(string Name)
         {
-            ClienteViewModelList ResultView = new();
+            ClienteListDTO ResultView = new();
 
             if (string.IsNullOrWhiteSpace(Name))
             {
@@ -80,7 +86,7 @@ namespace WebZi.Plataform.Data.Services.Cliente
 
             if (result?.Count > 0)
             {
-                ResultView.Listagem = _mapper.Map<List<ClienteViewModel>>(result
+                ResultView.Listagem = _mapper.Map<List<ClienteDTO>>(result
                     .OrderBy(x => x.Nome)
                     .ToList());
 
@@ -93,9 +99,9 @@ namespace WebZi.Plataform.Data.Services.Cliente
             return ResultView;
         }
 
-        public async Task<ImageViewModelList> GetLogomarcaAsync(int ClienteId)
+        public async Task<ImageListDTO> GetLogomarcaAsync(int ClienteId)
         {
-            ImageViewModelList ResultView = await new BucketService(_context, _httpClientFactory)
+            ImageListDTO ResultView = await new BucketService(_context, _httpClientFactory)
                 .DownloadFileAsync("CADLOGOCLIENTE", ClienteId);
 
             if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok && ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.NotFound)
@@ -113,7 +119,7 @@ namespace WebZi.Plataform.Data.Services.Cliente
                     .AsNoTracking()
                     .FirstOrDefaultAsync();
 
-                ResultView.Listagem.Add(new ImageViewModel { Imagem = ConfiguracaoLogo.LogoPadraoSistema });
+                ResultView.Listagem.Add(new ImageDTO { Imagem = ConfiguracaoLogo.LogoPadraoSistema });
 
                 ResultView.Mensagem = MensagemViewHelper.SetFound();
 
@@ -121,9 +127,9 @@ namespace WebZi.Plataform.Data.Services.Cliente
             }
         }
 
-        public async Task<ClienteViewModelList> ListAsync(int UsuarioId)
+        public async Task<ClienteListDTO> ListAsync(int UsuarioId)
         {
-            ClienteViewModelList ResultView = new();
+            ClienteListDTO ResultView = new();
 
             List<UsuarioClienteModel> result = await _context.UsuarioCliente
                 .Include(x => x.Cliente)
@@ -140,7 +146,7 @@ namespace WebZi.Plataform.Data.Services.Cliente
                     Clientes.Add(UsuarioCliente.Cliente);
                 }
 
-                ResultView.Listagem = _mapper.Map<List<ClienteViewModel>>(Clientes
+                ResultView.Listagem = _mapper.Map<List<ClienteDTO>>(Clientes
                     .OrderBy(x => x.Nome)
                     .ToList());
 
@@ -154,15 +160,15 @@ namespace WebZi.Plataform.Data.Services.Cliente
             return ResultView;
         }
 
-        public async Task<ClienteSimplificadoViewModelList> ListResumeAsync(int UsuarioId)
+        public async Task<ClienteSimplificadoListDTO> ListResumeAsync(int UsuarioId)
         {
-            ClienteSimplificadoViewModelList ResultView = new();
+            ClienteSimplificadoListDTO ResultView = new();
 
-            ClienteViewModelList result = await ListAsync(UsuarioId);
+            ClienteListDTO result = await ListAsync(UsuarioId);
 
             if (result.Listagem?.Count > 0)
             {
-                ResultView.Listagem = _mapper.Map<List<ClienteSimplificadoViewModel>>(result.Listagem);
+                ResultView.Listagem = _mapper.Map<List<ClienteSimplificadoDTO>>(result.Listagem);
 
                 ResultView.Mensagem = MensagemViewHelper.SetFound(result.Listagem.Count);
             }
@@ -172,6 +178,23 @@ namespace WebZi.Plataform.Data.Services.Cliente
             }
 
             return ResultView;
+        }
+
+        public async Task<MensagemDTO> ValidateClienteAsync(int ClienteId)
+        {
+            if (ClienteId <= 0)
+            {
+                return MensagemViewHelper.SetBadRequest(MensagemPadraoEnum.IdentificadorClienteInvalido);
+            }
+            else
+            {
+                if (!await _context.Cliente.AsNoTracking().AnyAsync(x => x.ClienteId == ClienteId))
+                {
+                    return MensagemViewHelper.SetBadRequest(MensagemPadraoEnum.NaoEncontradoCliente);
+                }
+            }
+
+            return MensagemViewHelper.SetOk();
         }
     }
 }

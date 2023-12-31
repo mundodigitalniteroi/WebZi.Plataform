@@ -2,8 +2,8 @@
 using Microsoft.EntityFrameworkCore;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
+using WebZi.Plataform.Domain.DTO.Generic;
 using WebZi.Plataform.Domain.Models.Sistema;
-using WebZi.Plataform.Domain.ViewModel.Generic;
 
 namespace WebZi.Plataform.Data.Services.Sistema
 {
@@ -65,9 +65,9 @@ namespace WebZi.Plataform.Data.Services.Sistema
                 .ToList() : null;
         }
 
-        public async Task<TabelaGenericaViewModelList> ListToViewModelAsync(string Codigo)
+        public async Task<TabelaGenericaListDTO> ListToViewModelAsync(string Codigo)
         {
-            TabelaGenericaViewModelList ResultView = new();
+            TabelaGenericaListDTO ResultView = new();
 
             List<TabelaGenericaModel> result = await ListAsync(Codigo);
 
@@ -79,7 +79,7 @@ namespace WebZi.Plataform.Data.Services.Sistema
             }
 
             ResultView.Listagem = _mapper
-                .Map<List<TabelaGenericaViewModel>>(result);
+                .Map<List<TabelaGenericaDTO>>(result);
 
             ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
 

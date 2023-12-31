@@ -9,11 +9,12 @@ using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Sistema;
 using WebZi.Plataform.Data.WsDetranRio;
+using WebZi.Plataform.Domain.DTO.Veiculo;
+using WebZi.Plataform.Domain.DTO.WebServices.DetranRio;
 using WebZi.Plataform.Domain.Models.Sistema;
 using WebZi.Plataform.Domain.Models.Veiculo;
 using WebZi.Plataform.Domain.Models.WebServices.DetranRio;
 using WebZi.Plataform.Domain.Models.WebServices.Rio;
-using WebZi.Plataform.Domain.ViewModel.WebServices.DetranRio;
 using Z.EntityFramework.Plus;
 
 namespace WebZi.Plataform.Data.Services.WebServices
@@ -29,9 +30,9 @@ namespace WebZi.Plataform.Data.Services.WebServices
             _mapper = mapper;
         }
 
-        public async Task<DetranRioVeiculoViewModel> GetViewByIdAsync(int DetranVeiculoId)
+        public async Task<DetranRioVeiculoDTO> GetViewByIdAsync(int DetranVeiculoId)
         {
-            DetranRioVeiculoViewModel ResultView = new();
+            DetranRioVeiculoDTO ResultView = new();
 
             if (DetranVeiculoId <= 0)
             {
@@ -43,9 +44,9 @@ namespace WebZi.Plataform.Data.Services.WebServices
             return await GetViewByIdPlacaOrChassyAsync(0, string.Empty);
         }
 
-        public async Task<DetranRioVeiculoViewModel> GetViewByPlacaAsync(string Placa)
+        public async Task<DetranRioVeiculoDTO> GetViewByPlacaAsync(string Placa)
         {
-            DetranRioVeiculoViewModel ResultView = new();
+            DetranRioVeiculoDTO ResultView = new();
 
             if (!Placa.IsPlaca())
             {
@@ -57,9 +58,9 @@ namespace WebZi.Plataform.Data.Services.WebServices
             return await GetViewByIdPlacaOrChassyAsync(0, Placa.NormalizePlaca());
         }
 
-        public async Task<DetranRioVeiculoViewModel> GetViewByChassiAsync(string Chassi)
+        public async Task<DetranRioVeiculoDTO> GetViewByChassiAsync(string Chassi)
         {
-            DetranRioVeiculoViewModel ResultView = new();
+            DetranRioVeiculoDTO ResultView = new();
 
             if (!Chassi.IsChassi())
             {
@@ -71,9 +72,9 @@ namespace WebZi.Plataform.Data.Services.WebServices
             return await GetViewByIdPlacaOrChassyAsync(0, Chassi.NormalizeChassi());
         }
 
-        private async Task<DetranRioVeiculoViewModel> GetViewByIdPlacaOrChassyAsync(int DetranVeiculoId, string PlacaChassi)
+        private async Task<DetranRioVeiculoDTO> GetViewByIdPlacaOrChassyAsync(int DetranVeiculoId, string PlacaChassi)
         {
-            DetranRioVeiculoViewModel ResultView = new();
+            DetranRioVeiculoDTO ResultView = new();
 
             string Placa = string.Empty;
 
@@ -133,13 +134,6 @@ namespace WebZi.Plataform.Data.Services.WebServices
                 if (DetranRioVeiculoBD == null || DetranRioVeiculoBD.DataCadastro != DateTime.Now.Date)
                 {
                     DetranRioVeiculoWS = await GetFromDetranAsync(Placa + Chassi, "ROOT");
-
-                    if (DetranRioVeiculoWS == null)
-                    {
-                        ResultView.Mensagem = MensagemViewHelper.SetNotFound("O Serviço do Departamento Estadual de Trânsito está inoperante ou indisponível");
-
-                        return ResultView;
-                    }
                 }
                 else
                 {
@@ -204,7 +198,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
             }
             if (!DetranRioVeiculoWS.Retorno.Equals("OK", StringComparison.CurrentCultureIgnoreCase))
             {
-                throw new Exception(DetranRioVeiculoWS.Retorno.RemoveLineBreaks().Trim());
+                throw new Exception(DetranRioVeiculoWS.Retorno.RemoveLineBreaks());
             }
 
             DetranRioVeiculoModel DetranRioVeiculo = new()
@@ -304,7 +298,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
 
                 if (DetranRioVeiculoWS?.RestricoesAdministrativas.Count > 0)
                 {
-                    foreach (var item in DetranRioVeiculoWS.RestricoesAdministrativas)
+                    foreach (DetranRetornoConsultaRestricaoModel item in DetranRioVeiculoWS.RestricoesAdministrativas)
                     {
                         DetranRioVeiculoRestricao = new()
                         {
@@ -323,7 +317,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
 
                 if (DetranRioVeiculoWS?.RestricoesJuridicas.Count > 0)
                 {
-                    foreach (var item in DetranRioVeiculoWS.RestricoesJuridicas)
+                    foreach (DetranRetornoConsultaRestricaoModel item in DetranRioVeiculoWS.RestricoesJuridicas)
                     {
                         DetranRioVeiculoRestricao = new()
                         {
@@ -442,64 +436,45 @@ namespace WebZi.Plataform.Data.Services.WebServices
             return DetranRioVeiculoWS;
         }
 
-        private async Task<DetranRioVeiculoViewModel> SetValuesToViewModelAsync(DetranRioVeiculoModel DetranRioVeiculoBD)
+        private async Task<DetranRioVeiculoDTO> SetValuesToViewModelAsync(DetranRioVeiculoModel DetranRioVeiculoBD)
         {
-            DetranRioVeiculoViewModel ResultView = _mapper.Map<DetranRioVeiculoViewModel>(DetranRioVeiculoBD);
+            DetranRioVeiculoDTO ResultView = _mapper.Map<DetranRioVeiculoDTO>(DetranRioVeiculoBD);
 
             if (!DetranRioVeiculoBD.DescricaoTipo.IsNullOrWhiteSpace())
             {
                 TipoVeiculoModel TipoVeiculo = await _context.TipoVeiculo
                     .AsNoTracking()
-                    .FirstOrDefaultAsync(x => x.Descricao == DetranRioVeiculoBD.DescricaoTipo.ToUpperTrim());
+                    .FirstOrDefaultAsync(x => x.Descricao == DetranRioVeiculoBD.DescricaoTipo);
 
-                if (TipoVeiculo != null)
+                if (TipoVeiculo == null)
                 {
-                    ResultView.TipoVeiculo.IdentificadorTipoVeiculo = TipoVeiculo.TipoVeiculoId;
+                    TipoVeiculo = new()
+                    {
+                        Descricao = DetranRioVeiculoBD.DescricaoTipo,
 
-                    ResultView.TipoVeiculo.Descricao = TipoVeiculo.Descricao;
+                        UsuarioCadastroId = 1
+                    };
 
-                    ResultView.TipoVeiculo.FlagNaoRequerCnhNaLiberacao = TipoVeiculo.FlagNaoRequerCnhNaLiberacao;
+                    await _context.TipoVeiculo.AddAsync(TipoVeiculo);
+
+                    await _context.SaveChangesAsync();
                 }
-                else
-                {
-                    ResultView.TipoVeiculo = null;
-                }
+
+                ResultView.TipoVeiculo = _mapper.Map<TipoVeiculoDTO>(TipoVeiculo);
             }
             else
             {
                 ResultView.TipoVeiculo = null;
             }
 
-            if (DetranRioVeiculoBD.Cor != null)
-            {
-                ResultView.Cor = new()
-                {
-                    IdentificadorCor = DetranRioVeiculoBD.Cor.CorId,
-
-                    Cor = DetranRioVeiculoBD.Cor.Cor,
-
-                    CorSecundaria = DetranRioVeiculoBD.Cor.CorSecundaria
-                };
-            }
-
-            if (DetranRioVeiculoBD.MarcaModelo != null)
-            {
-                ResultView.MarcaModelo = new()
-                {
-                    IdentificadorMarcaModelo = DetranRioVeiculoBD.MarcaModelo.MarcaModeloId,
-
-                    MarcaModelo = DetranRioVeiculoBD.MarcaModelo.MarcaModelo
-                };
-            }
-
-            if (DetranRioVeiculoBD.ListagemDetranRioVeiculoRestricao != null)
+            if (DetranRioVeiculoBD.ListagemDetranRioVeiculoRestricao?.Count > 0)
             {
                 List<TabelaGenericaModel> ListTipoRestricao = await new TabelaGenericaService(_context)
                     .ListAsync("DETRANRJ_TIPO_RESTRICAO");
 
-                DetranRioVeiculoRestricaoViewModel DetranRioVeiculoRestricao = new();
+                DetranRioVeiculoRestricaoDTO DetranRioVeiculoRestricao = new();
 
-                foreach (var item in DetranRioVeiculoBD.ListagemDetranRioVeiculoRestricao)
+                foreach (DetranRioVeiculoRestricaoModel item in DetranRioVeiculoBD.ListagemDetranRioVeiculoRestricao)
                 {
                     DetranRioVeiculoRestricao = new()
                     {
@@ -546,6 +521,10 @@ namespace WebZi.Plataform.Data.Services.WebServices
                     ResultView.ListagemRestricao.Add(DetranRioVeiculoRestricao);
                 }
             }
+            else
+            {
+                ResultView.ListagemRestricao = null;
+            }
 
             ResultView.Mensagem = MensagemViewHelper.SetFound();
 
@@ -567,7 +546,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
                     .Where(x => !Placa.IsNullOrWhiteSpace() ? x.Placa == Placa : x.Chassi == Chassi)
                     .ToListAsync();
 
-                foreach (var item in ListDetranRioVeiculo)
+                foreach (DetranRioVeiculoModel item in ListDetranRioVeiculo)
                 {
                     if (item?.ListagemDetranRioVeiculoRestricao.Count > 0)
                     {

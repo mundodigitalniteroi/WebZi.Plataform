@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using WebZi.Plataform.Data.Services.Atendimento;
-using WebZi.Plataform.Domain.ViewModel;
+using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.ViewModel.Pagamento;
 
 namespace WebZi.Plataform.API.Controllers
@@ -19,14 +19,14 @@ namespace WebZi.Plataform.API.Controllers
         [HttpPost("ValidarInformacoesParaPagamento")]
         // TODO: [Authorize]
         [IgnoreAntiforgeryToken]
-        public async Task<ActionResult<MensagemViewModel>> ValidarInformacoesParaPagamento([FromBody] PagamentoViewModel Atendimento)
+        public async Task<ActionResult<MensagemDTO>> ValidarInformacoesParaPagamento([FromBody] PagamentoParameters Atendimento)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            MensagemViewModel mensagem = await _provider
+            MensagemDTO mensagem = await _provider
                 .GetService<AtendimentoService>()
                 .CheckInformacoesParaPagamentoAsync(Atendimento);
 

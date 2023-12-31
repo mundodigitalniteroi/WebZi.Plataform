@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Deposito;
-using WebZi.Plataform.Domain.ViewModel.Deposito;
+using WebZi.Plataform.Domain.DTO.Deposito;
+using WebZi.Plataform.Domain.DTO.Sistema;
 
 namespace WebZi.Plataform.API.Controllers
 {
@@ -18,14 +19,14 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("Listar")]
         // TODO: [Authorize]
-        public async Task<ActionResult<DepositoViewModelList>> Listar(int IdentificadorUsuario)
+        public async Task<ActionResult<DepositoListDTO>> Listar(int IdentificadorUsuario)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            DepositoViewModelList ResultView = new();
+            DepositoListDTO ResultView = new();
 
             try
             {
@@ -67,7 +68,7 @@ namespace WebZi.Plataform.API.Controllers
             }
             catch (Exception ex)
             {
-                var Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+                MensagemDTO Mensagem = MensagemViewHelper.SetInternalServerError(ex);
 
                 return StatusCode((int)Mensagem.HtmlStatusCode, Mensagem);
             }
@@ -75,14 +76,14 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("SelecionarPorIdentificador")]
         // TODO: [Authorize]
-        public async Task<ActionResult<DepositoViewModelList>> SelecionarPorIdentificador(int Identificador)
+        public async Task<ActionResult<DepositoListDTO>> SelecionarPorIdentificador(int Identificador)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            DepositoViewModelList ResultView = new();
+            DepositoListDTO ResultView = new();
 
             try
             {
@@ -102,14 +103,14 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("SelecionarPorNome")]
         // TODO: [Authorize]
-        public async Task<ActionResult<DepositoViewModelList>> SelecionarPorNome(string Nome)
+        public async Task<ActionResult<DepositoListDTO>> SelecionarPorNome(string Nome)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            DepositoViewModelList ResultView = new();
+            DepositoListDTO ResultView = new();
 
             try
             {

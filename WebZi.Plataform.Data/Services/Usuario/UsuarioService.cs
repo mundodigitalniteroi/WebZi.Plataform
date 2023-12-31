@@ -5,9 +5,9 @@ using System.Data;
 using System.Text;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
+using WebZi.Plataform.Domain.DTO.Usuario;
 using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Usuario;
-using WebZi.Plataform.Domain.ViewModel.Usuario;
 
 namespace WebZi.Plataform.Domain.Services.Usuario
 {
@@ -27,9 +27,9 @@ namespace WebZi.Plataform.Domain.Services.Usuario
             _mapper = mapper;
         }
 
-        private async Task<UsuarioViewModel> GetAsync(int UsuarioId, string Username, string Password)
+        private async Task<UsuarioDTO> GetAsync(int UsuarioId, string Username, string Password)
         {
-            UsuarioViewModel ResultView = new();
+            UsuarioDTO ResultView = new();
 
             Username = Username.ToUpper().Trim();
 
@@ -100,7 +100,7 @@ namespace WebZi.Plataform.Domain.Services.Usuario
             {
                 ResultView = new();
 
-                ResultView = _mapper.Map<UsuarioViewModel>(result);
+                ResultView = _mapper.Map<UsuarioDTO>(result);
 
                 ResultView.Mensagem = MensagemViewHelper.SetFound();
 
@@ -119,7 +119,7 @@ namespace WebZi.Plataform.Domain.Services.Usuario
 
                     foreach (var item in ListagemUsuarioClienteDeposito)
                     {
-                        ResultView.ListagemClienteDepositoAssociado.Add(new UsuarioClienteDepositoViewModel { IdentificadorCliente = item.ClienteId, IdentificadorDeposito = item.DepositoId });
+                        ResultView.ListagemClienteDepositoAssociado.Add(new UsuarioClienteDepositoDTO { IdentificadorCliente = item.ClienteId, IdentificadorDeposito = item.DepositoId });
                     }
                 }
                 else
@@ -137,17 +137,17 @@ namespace WebZi.Plataform.Domain.Services.Usuario
             }
         }
 
-        public async Task<UsuarioViewModel> GetByIdAsync(int UsuarioId)
+        public async Task<UsuarioDTO> GetByIdAsync(int UsuarioId)
         {
             return await GetAsync(UsuarioId, string.Empty, string.Empty);
         }
 
-        public async Task<UsuarioViewModel> GetByUsernameAsync(string Username)
+        public async Task<UsuarioDTO> GetByUsernameAsync(string Username)
         {
             return await GetAsync(0, Username, string.Empty);
         }
 
-        public async Task<UsuarioViewModel> GetByLoginAsync(string Username, string Password)
+        public async Task<UsuarioDTO> GetByCredentialsAsync(string Username, string Password)
         {
             return await GetAsync(0, Username, Password);
         }
@@ -168,6 +168,15 @@ namespace WebZi.Plataform.Domain.Services.Usuario
                 .FirstOrDefaultAsync(x => x.UsuarioId == UsuarioId);
 
             return Usuario != null && Usuario.FlagAtivo != "N";
+        }
+
+        public async Task<bool> IsUserAssociadoClienteDepositoAsync(int UsuarioId, int ClienteId, int DepositoId)
+        {
+            return await _context.ViewUsuarioClienteDeposito
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.UsuarioId == UsuarioId
+                                       && x.ClienteId == ClienteId
+                                       && x.DepositoId == DepositoId) != null;
         }
     }
 }

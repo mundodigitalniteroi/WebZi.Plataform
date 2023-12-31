@@ -2,9 +2,10 @@
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Atendimento;
-using WebZi.Plataform.Domain.ViewModel;
+using WebZi.Plataform.Domain.DTO.Atendimento;
+using WebZi.Plataform.Domain.DTO.Generic;
+using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.ViewModel.Atendimento;
-using WebZi.Plataform.Domain.ViewModel.Generic;
 
 namespace WebZi.Plataform.API.Controllers
 {
@@ -22,14 +23,14 @@ namespace WebZi.Plataform.API.Controllers
         [HttpPost("Cadastrar")]
         // TODO: [Authorize]
         [IgnoreAntiforgeryToken]
-        public async Task<ActionResult<AtendimentoCadastroResultViewModel>> Cadastrar([FromBody] AtendimentoCadastroInputViewModel Atendimento)
+        public async Task<ActionResult<AtendimentoCadastroDTO>> Cadastrar([FromBody] AtendimentoParameters Atendimento)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            AtendimentoCadastroResultViewModel ResultView = new();
+            AtendimentoCadastroDTO ResultView = new();
 
             try
             {
@@ -67,14 +68,14 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("SelecionarFotoResponsavel")]
         // TODO: [Authorize]
-        public async Task<ActionResult<ImageViewModelList>> SelecionarFotoResponsavel(int IdentificadorAtendimento, int IdentificadorUsuario)
+        public async Task<ActionResult<ImageListDTO>> SelecionarFotoResponsavel(int IdentificadorAtendimento, int IdentificadorUsuario)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            ImageViewModelList ResultView = new();
+            ImageListDTO ResultView = new();
 
             try
             {
@@ -94,14 +95,14 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("SelecionarPorIdentificador")]
         // TODO: [Authorize]
-        public async Task<ActionResult<AtendimentoViewModel>> SelecionarPorIdentificador(int IdentificadorAtendimento, int IdentificadorUsuario)
+        public async Task<ActionResult<AtendimentoDTO>> SelecionarPorIdentificador(int IdentificadorAtendimento, int IdentificadorUsuario)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            AtendimentoViewModel ResultView = new();
+            AtendimentoDTO ResultView = new();
 
             try
             {
@@ -121,14 +122,14 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("SelecionarPorProcesso")]
         // TODO: [Authorize]
-        public async Task<ActionResult<AtendimentoViewModel>> SelecionarPorProcesso(string NumeroProcesso, string CodigoProduto, int IdentificadorCliente, int IdentificadorDeposito, int IdentificadorUsuario)
+        public async Task<ActionResult<AtendimentoDTO>> SelecionarPorProcesso(string NumeroProcesso, string CodigoProduto, int IdentificadorCliente, int IdentificadorDeposito, int IdentificadorUsuario)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            AtendimentoViewModel ResultView = new();
+            AtendimentoDTO ResultView = new();
 
             try
             {
@@ -149,14 +150,14 @@ namespace WebZi.Plataform.API.Controllers
         [HttpPost("ValidarInformacoesParaCadastro")]
         [IgnoreAntiforgeryToken]
         // TODO: [Authorize]
-        public async Task<ActionResult<MensagemViewModel>> ValidarInformacoesParaCadastro([FromBody] AtendimentoCadastroInputViewModel Atendimento)
+        public async Task<ActionResult<MensagemDTO>> ValidarInformacoesParaCadastro([FromBody] AtendimentoParameters Atendimento)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            MensagemViewModel ResultView;
+            MensagemDTO ResultView;
 
             try
             {

@@ -7,7 +7,9 @@ namespace WebZi.Plataform.Domain.Enums
         public const string NaoEncontradoAtendimento = "Atendimento inexistente";
         
         public static readonly string NaoEncontradoCliente = "Cliente inexistente";
-        
+
+        public static readonly string NaoEncontradoAssociacaoClienteDeposito = "Este Cliente e Depósito não são associados";
+
         public static readonly string NaoEncontradoDeposito = "Depósito inexistente";
         
         public static readonly string NaoEncontradoFaturamento = "Faturamento inexistente";
@@ -53,7 +55,9 @@ namespace WebZi.Plataform.Domain.Enums
         public static readonly string InformeNumeroProcesso = "Informe o Número do Processo";
         
         public static readonly string NumeroProcessoInvalido = "Número do Processo inválido";
-        
+
+        public static readonly string UsuarioSemPermissaoAcessoClienteDeposito = "Usuário sem permissão de acesso ao Cliente e Depósito";
+
         public static readonly string UsuarioSemPermissaoAcessoGrv = "Usuário sem permissão de acesso ao GRV";
     }
 }

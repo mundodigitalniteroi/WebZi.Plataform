@@ -76,7 +76,7 @@ class Program
 
         result = strings.ContainsDuplicates();
 
-        var newStrings = LinqHelper.GetList(strings, LinqHelper.LinqListFlags.OrderByDesc | LinqHelper.LinqListFlags.Trim | LinqHelper.LinqListFlags.ToNullIfWhiteSpace);
+        List<string> newStrings = LinqHelper.GetList(strings, LinqHelper.LinqListFlags.OrderByDesc | LinqHelper.LinqListFlags.Trim | LinqHelper.LinqListFlags.ToNullIfWhiteSpace);
 
         foreach (string s in newStrings)
         {

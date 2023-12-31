@@ -15,12 +15,12 @@ using WebZi.Plataform.Data.Services.Cliente;
 using WebZi.Plataform.Data.Services.Faturamento;
 using WebZi.Plataform.Data.Services.Localizacao;
 using WebZi.Plataform.Data.Services.Report;
+using WebZi.Plataform.Domain.DTO.Generic;
+using WebZi.Plataform.Domain.DTO.Report;
 using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.GRV;
 using WebZi.Plataform.Domain.Models.Localizacao;
 using WebZi.Plataform.Domain.Services.GRV;
-using WebZi.Plataform.Domain.ViewModel.Generic;
-using WebZi.Plataform.Domain.ViewModel.Report;
 using WebZi.Plataform.Domain.Views.Usuario;
 
 namespace WebZi.Plataform.Data.Services.Liberacao
@@ -43,9 +43,9 @@ namespace WebZi.Plataform.Data.Services.Liberacao
             _httpClientFactory = httpClientFactory;
         }
 
-        public async Task<GuiaAutorizacaoRetiradaVeiculoViewModel> CreateGuiaAutorizacaoRetiradaVeiculoAsync(int GrvId, int UsuarioId)
+        public async Task<GuiaAutorizacaoRetiradaVeiculoDTO> CreateGuiaAutorizacaoRetiradaVeiculoAsync(int GrvId, int UsuarioId)
         {
-            GuiaAutorizacaoRetiradaVeiculoViewModel ResultView = new()
+            GuiaAutorizacaoRetiradaVeiculoDTO ResultView = new()
             {
                 Mensagem = new GrvService(_context)
                     .ValidateInputGrv(GrvId, UsuarioId)
@@ -88,7 +88,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                 return ResultView;
             }
 
-            GuiaPagamentoReboqueEstadiaViewModel GuiaPagamentoReboqueEstadia = await new GuiaPagamentoReboqueEstadiaService(_context, _mapper, _httpClientFactory)
+            GuiaPagamentoReboqueEstadiaDTO GuiaPagamentoReboqueEstadia = await new GuiaPagamentoReboqueEstadiaService(_context, _mapper, _httpClientFactory)
                 .GetGuiaPagamentoReboqueEstadiaAsync(FaturamentoId, UsuarioId, true);
 
             if (GuiaPagamentoReboqueEstadia == null)
@@ -188,7 +188,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
             #endregion FORMA DE LIBERAÇÃO
 
             // LOGOMARCA
-            ImageViewModelList Listagem = await new ClienteService(_context, _mapper, _httpClientFactory)
+            ImageListDTO Listagem = await new ClienteService(_context, _mapper, _httpClientFactory)
                 .GetLogomarcaAsync(Grv.ClienteId);
 
             ResultView.Logo = Listagem
@@ -209,9 +209,9 @@ namespace WebZi.Plataform.Data.Services.Liberacao
             return ResultView;
         }
 
-        public async Task<ValidacaoGuiaAutorizacaoRetiradaVeiculoViewModel> ValidarGuiaAutorizacaoRetiradaVeiculoAsync(string input, int UsuarioId)
+        public async Task<ValidacaoGuiaAutorizacaoRetiradaVeiculoDTO> ValidarGuiaAutorizacaoRetiradaVeiculoAsync(string input, int UsuarioId)
         {
-            ValidacaoGuiaAutorizacaoRetiradaVeiculoViewModel ResultView = new();
+            ValidacaoGuiaAutorizacaoRetiradaVeiculoDTO ResultView = new();
 
             if (input.IsNullOrWhiteSpace())
             {
@@ -323,7 +323,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
 
             ResultView = new()
             {
-                IdentificadorGrv = splitted[0].ToInt(),
+                IdentificadorProcesso = splitted[0].ToInt(),
 
                 Cliente = Grv.Cliente.Nome,
 
@@ -388,13 +388,13 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                     .OrderBy(x => x.Lacre)
                     .ToList();
 
-                foreach (var item in Grv.ListagemLacre)
+                foreach (LacreModel item in Grv.ListagemLacre)
                 {
                     ResultView.ListagemLacre.Add(item.Lacre);
                 }
             }
 
-            ImageViewModelList FotoResponsavel = await new AtendimentoService(_context, _mapper, _httpClientFactory)
+            ImageListDTO FotoResponsavel = await new AtendimentoService(_context, _mapper, _httpClientFactory)
                 .GetResponsavelFotoAsync(Grv.Atendimento.AtendimentoId, UsuarioId);
 
             if (FotoResponsavel.Listagem?.Count > 0)

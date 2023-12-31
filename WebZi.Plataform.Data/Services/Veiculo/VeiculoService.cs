@@ -3,8 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using WebZi.Plataform.CrossCutting.Strings;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
+using WebZi.Plataform.Domain.DTO.Veiculo;
 using WebZi.Plataform.Domain.Models.Veiculo;
-using WebZi.Plataform.Domain.ViewModel.Veiculo;
 
 namespace WebZi.Plataform.Data.Services.Veiculo
 {
@@ -19,9 +19,9 @@ namespace WebZi.Plataform.Data.Services.Veiculo
             _mapper = mapper;
         }
 
-        public async Task<EquipamentoOpcionalViewModelList> ListEquipamentoOpcionalAsync(byte TipoVeiculoId)
+        public async Task<EquipamentoOpcionalListDTO> ListEquipamentoOpcionalAsync(byte TipoVeiculoId)
         {
-            EquipamentoOpcionalViewModelList ResultView = new();
+            EquipamentoOpcionalListDTO ResultView = new();
 
             if (TipoVeiculoId <= 0)
             {
@@ -38,9 +38,9 @@ namespace WebZi.Plataform.Data.Services.Veiculo
 
             if (result != null)
             {
-                EquipamentoOpcionalViewModel EquipamentoOpcionalView = new();
+                EquipamentoOpcionalDTO EquipamentoOpcionalView = new();
 
-                foreach (var item in result.TiposVeiculosEquipamentosAssociacoes)
+                foreach (TipoVeiculoEquipamentoAssociacaoModel item in result.TiposVeiculosEquipamentosAssociacoes)
                 {
                     EquipamentoOpcionalView = new()
                     {
@@ -68,9 +68,9 @@ namespace WebZi.Plataform.Data.Services.Veiculo
             return ResultView;
         }
 
-        public async Task<MarcaModeloViewModelList> ListMarcaModeloAsync(string MarcaModelo)
+        public async Task<MarcaModeloListDTO> ListMarcaModeloAsync(string MarcaModelo)
         {
-            MarcaModeloViewModelList ResultView = new();
+            MarcaModeloListDTO ResultView = new();
 
             if (string.IsNullOrWhiteSpace(MarcaModelo))
             {
@@ -93,22 +93,25 @@ namespace WebZi.Plataform.Data.Services.Veiculo
                 return ResultView;
             }
 
-            ResultView.Listagem = _mapper.Map<List<MarcaModeloViewModel>>(result);
+            ResultView.Listagem = _mapper.Map<List<MarcaModeloDTO>>(result);
 
             ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
 
             return ResultView;
         }
 
-        public async Task<TipoVeiculoViewModelList> ListTipoVeiculoAsync()
+        public async Task<TipoVeiculoListDTO> ListTipoVeiculoAsync()
         {
-            TipoVeiculoViewModelList ResultView = new();
+            TipoVeiculoListDTO ResultView = new();
 
             List<TipoVeiculoModel> result = await _context.TipoVeiculo
                 .AsNoTracking()
                 .ToListAsync();
 
-            ResultView.Listagem = _mapper.Map<List<TipoVeiculoViewModel>>(result.OrderBy(x => x.Descricao).ToList());
+            ResultView.Listagem = _mapper
+                .Map<List<TipoVeiculoDTO>>(result
+                .OrderBy(x => x.Descricao)
+                .ToList());
 
             ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
 

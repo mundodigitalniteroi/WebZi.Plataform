@@ -9,17 +9,18 @@ using WebZi.Plataform.Data.Services.Servico;
 using WebZi.Plataform.Data.Services.Sistema;
 using WebZi.Plataform.Data.Services.Veiculo;
 using WebZi.Plataform.Data.Services.Vistoria;
+using WebZi.Plataform.Domain.DTO.Atendimento;
+using WebZi.Plataform.Domain.DTO.Banco;
+using WebZi.Plataform.Domain.DTO.Documento;
+using WebZi.Plataform.Domain.DTO.Faturamento;
+using WebZi.Plataform.Domain.DTO.Generic;
+using WebZi.Plataform.Domain.DTO.GRV;
+using WebZi.Plataform.Domain.DTO.GRV.Pesquisa;
+using WebZi.Plataform.Domain.DTO.Servico;
+using WebZi.Plataform.Domain.DTO.Sistema;
+using WebZi.Plataform.Domain.DTO.Veiculo;
+using WebZi.Plataform.Domain.DTO.Vistoria;
 using WebZi.Plataform.Domain.Services.GRV;
-using WebZi.Plataform.Domain.ViewModel.Atendimento;
-using WebZi.Plataform.Domain.ViewModel.Documento;
-using WebZi.Plataform.Domain.ViewModel.Faturamento;
-using WebZi.Plataform.Domain.ViewModel.Generic;
-using WebZi.Plataform.Domain.ViewModel.GRV;
-using WebZi.Plataform.Domain.ViewModel.GRV.Pesquisa;
-using WebZi.Plataform.Domain.ViewModel.Servico;
-using WebZi.Plataform.Domain.ViewModel.Sistema;
-using WebZi.Plataform.Domain.ViewModel.Veiculo;
-using WebZi.Plataform.Domain.ViewModel.Vistoria;
 
 namespace WebZi.Plataform.API.Controllers
 {
@@ -36,14 +37,14 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("ListarAssinaturaCondutor")]
         // TODO: [Authorize]
-        public async Task<ActionResult<TabelaGenericaViewModelList>> ListarAssinaturaCondutor()
+        public async Task<ActionResult<TabelaGenericaListDTO>> ListarAssinaturaCondutor()
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            TabelaGenericaViewModelList ResultView = new();
+            TabelaGenericaListDTO ResultView = new();
 
             try
             {
@@ -63,14 +64,14 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("ListarAutoridadeResponsavel")]
         // TODO: [Authorize]
-        public async Task<ActionResult<AutoridadeResponsavelViewModelList>> ListarAutoridadeResponsavel(string UF)
+        public async Task<ActionResult<AutoridadeResponsavelListDTO>> ListarAutoridadeResponsavel(string UF)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            AutoridadeResponsavelViewModelList ResultView = new();
+            AutoridadeResponsavelListDTO ResultView = new();
 
             try
             {
@@ -90,14 +91,14 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("ListarCor")]
         // TODO: [Authorize]
-        public async Task<ActionResult<CorViewModelList>> ListarCor(string Cor)
+        public async Task<ActionResult<CorListDTO>> ListarCor(string Cor)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            CorViewModelList ResultView = new();
+            CorListDTO ResultView = new();
 
             try
             {
@@ -117,14 +118,14 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("ListarEnquadramentoInfracao")]
         // TODO: [Authorize]
-        public async Task<ActionResult<EnquadramentoInfracaoViewModelList>> ListarEnquadramentoInfracao()
+        public async Task<ActionResult<EnquadramentoInfracaoListDTO>> ListarEnquadramentoInfracao()
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            EnquadramentoInfracaoViewModelList ResultView = new();
+            EnquadramentoInfracaoListDTO ResultView = new();
 
             try
             {
@@ -144,14 +145,14 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("ListarEquipamentoOpcional")]
         // TODO: [Authorize]
-        public async Task<ActionResult<EquipamentoOpcionalViewModelList>> ListarEquipamentoOpcional(byte IdentificadorTipoVeiculo)
+        public async Task<ActionResult<EquipamentoOpcionalListDTO>> ListarEquipamentoOpcional(byte IdentificadorTipoVeiculo)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            EquipamentoOpcionalViewModelList ResultView = new();
+            EquipamentoOpcionalListDTO ResultView = new();
 
             try
             {
@@ -171,14 +172,14 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("ListarEstadoGeralVeiculo")]
         // TODO: [Authorize]
-        public async Task<ActionResult<TabelaGenericaViewModelList>> ListarEstadoGeralVeiculo()
+        public async Task<ActionResult<TabelaGenericaListDTO>> ListarEstadoGeralVeiculo()
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            TabelaGenericaViewModelList ResultView = new();
+            TabelaGenericaListDTO ResultView = new();
 
             try
             {
@@ -198,14 +199,14 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("ListarItensParaPesquisa")]
         // TODO: [Authorize]
-        public async Task<ActionResult<GrvPesquisaDadosMestresViewModel>> ListarItensParaPesquisa(int IdentificadorUsuario)
+        public async Task<ActionResult<GrvPesquisaDadosMestresDTO>> ListarItensParaPesquisa(int IdentificadorUsuario)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            GrvPesquisaDadosMestresViewModel ResultView;
+            GrvPesquisaDadosMestresDTO ResultView;
 
             try
             {
@@ -217,7 +218,7 @@ namespace WebZi.Plataform.API.Controllers
             }
             catch (Exception ex)
             {
-                var error = MensagemViewHelper.SetInternalServerError(ex);
+                MensagemDTO error = MensagemViewHelper.SetInternalServerError(ex);
 
                 return StatusCode((int)error.HtmlStatusCode, error);
             }
@@ -225,14 +226,14 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("ListarMarcaModelo")]
         // TODO: [Authorize]
-        public async Task<ActionResult<MarcaModeloViewModelList>> ListarMarcaModelo(string MarcaModelo)
+        public async Task<ActionResult<MarcaModeloListDTO>> ListarMarcaModelo(string MarcaModelo)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            MarcaModeloViewModelList ResultView = new();
+            MarcaModeloListDTO ResultView = new();
 
             try
             {
@@ -252,14 +253,14 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("ListarMotivoApreensao")]
         // TODO: [Authorize]
-        public async Task<ActionResult<MotivoApreensaoViewModelList>> ListarMotivoApreensao()
+        public async Task<ActionResult<MotivoApreensaoListDTO>> ListarMotivoApreensao()
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            MotivoApreensaoViewModelList ResultView = new();
+            MotivoApreensaoListDTO ResultView = new();
 
             try
             {
@@ -279,14 +280,14 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("ListarOrgaoEmissor")]
         // TODO: [Authorize]
-        public async Task<ActionResult<OrgaoEmissorViewModelList>> ListarOrgaoEmissor(string UF)
+        public async Task<ActionResult<OrgaoEmissorListDTO>> ListarOrgaoEmissor(string UF)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            OrgaoEmissorViewModelList ResultView = new();
+            OrgaoEmissorListDTO ResultView = new();
 
             try
             {
@@ -306,14 +307,14 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("ListarProduto")]
         // TODO: [Authorize]
-        public async Task<ActionResult<FaturamentoProdutoViewModelList>> ListarProduto()
+        public async Task<ActionResult<FaturamentoProdutoListDTO>> ListarProduto()
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            FaturamentoProdutoViewModelList ResultView = new();
+            FaturamentoProdutoListDTO ResultView = new();
 
             try
             {
@@ -333,14 +334,14 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("ListarQualificacaoResponsavel")]
         // TODO: [Authorize]
-        public async Task<ActionResult<QualificacaoResponsavelViewModelList>> ListarQualificacaoResponsavel()
+        public async Task<ActionResult<QualificacaoResponsavelListDTO>> ListarQualificacaoResponsavel()
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            QualificacaoResponsavelViewModelList ResultView = new();
+            QualificacaoResponsavelListDTO ResultView = new();
 
             try
             {
@@ -360,14 +361,14 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("ListarReboque")]
         // TODO: [Authorize]
-        public async Task<ActionResult<ReboqueViewModelList>> ListarReboque(int IdentificadorCliente, int IdentificadorDeposito)
+        public async Task<ActionResult<ReboqueListDTO>> ListarReboque(int IdentificadorCliente, int IdentificadorDeposito)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            ReboqueViewModelList ResultView = new();
+            ReboqueListDTO ResultView = new();
 
             try
             {
@@ -387,14 +388,14 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("ListarReboquista")]
         // TODO: [Authorize]
-        public async Task<ActionResult<ReboquistaViewModelList>> ListarReboquista(int IdentificadorCliente, int IdentificadorDeposito)
+        public async Task<ActionResult<ReboquistaListDTO>> ListarReboquista(int IdentificadorCliente, int IdentificadorDeposito)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            ReboquistaViewModelList ResultView = new();
+            ReboquistaListDTO ResultView = new();
 
             try
             {
@@ -414,14 +415,14 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("ListarSituacaoChassi")]
         // TODO: [Authorize]
-        public async Task<ActionResult<VistoriaSituacaoChassiViewModelList>> ListarSituacaoChassi()
+        public async Task<ActionResult<VistoriaSituacaoChassiListDTO>> ListarSituacaoChassi()
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            VistoriaSituacaoChassiViewModelList ResultView = new();
+            VistoriaSituacaoChassiListDTO ResultView = new();
 
             try
             {
@@ -441,14 +442,14 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("ListarStatusOperacao")]
         // TODO: [Authorize]
-        public async Task<ActionResult<StatusOperacaoViewModelList>> ListarStatusOperacao()
+        public async Task<ActionResult<StatusOperacaoListDTO>> ListarStatusOperacao()
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            StatusOperacaoViewModelList ResultView = new();
+            StatusOperacaoListDTO ResultView = new();
 
             try
             {
@@ -468,14 +469,14 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("ListarStatusVistoria")]
         // TODO: [Authorize]
-        public async Task<ActionResult<VistoriaStatusViewModelList>> ListarStatusVistoria()
+        public async Task<ActionResult<VistoriaStatusListDTO>> ListarStatusVistoria()
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            VistoriaStatusViewModelList ResultView = new();
+            VistoriaStatusListDTO ResultView = new();
 
             try
             {
@@ -495,14 +496,14 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("ListarTipoAvaria")]
         // TODO: [Authorize]
-        public async Task<ActionResult<TipoAvariaViewModelList>> ListarTipoAvaria()
+        public async Task<ActionResult<TipoAvariaListDTO>> ListarTipoAvaria()
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            TipoAvariaViewModelList ResultView = new();
+            TipoAvariaListDTO ResultView = new();
 
             try
             {
@@ -522,14 +523,14 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("ListarTipoCadastroFotoGGV")]
         // TODO: [Authorize]
-        public async Task<ActionResult<TabelaGenericaViewModelList>> ListarTipoCadastroFotoGGV()
+        public async Task<ActionResult<TabelaGenericaListDTO>> ListarTipoCadastroFotoGGV()
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            TabelaGenericaViewModelList ResultView = new();
+            TabelaGenericaListDTO ResultView = new();
 
             try
             {
@@ -549,14 +550,14 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("ListarTipoDirecao")]
         // TODO: [Authorize]
-        public async Task<ActionResult<TabelaGenericaViewModelList>> ListarTipoDirecao()
+        public async Task<ActionResult<TabelaGenericaListDTO>> ListarTipoDirecao()
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            TabelaGenericaViewModelList ResultView = new();
+            TabelaGenericaListDTO ResultView = new();
 
             try
             {
@@ -576,14 +577,14 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("ListarTipoMeioCobranca")]
         // TODO: [Authorize]
-        public ActionResult<TipoMeioCobrancaViewModelList> ListarTipoMeioCobranca()
+        public ActionResult<TipoMeioCobrancaListDTO> ListarTipoMeioCobranca()
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            TipoMeioCobrancaViewModelList ResultView = new();
+            TipoMeioCobrancaListDTO ResultView = new();
 
             try
             {
@@ -603,14 +604,14 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("ListarTipoVeiculo")]
         // TODO: [Authorize]
-        public async Task<ActionResult<TipoVeiculoViewModelList>> ListarTipoVeiculo()
+        public async Task<ActionResult<TipoVeiculoListDTO>> ListarTipoVeiculo()
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            TipoVeiculoViewModelList ResultView = new();
+            TipoVeiculoListDTO ResultView = new();
 
             try
             {
@@ -630,14 +631,14 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("SelecionarReboquePorIdentificador")]
         // TODO: [Authorize]
-        public async Task<ActionResult<ReboqueViewModelList>> SelecionarReboquePorIdentificador(int IdentificadorReboque)
+        public async Task<ActionResult<ReboqueListDTO>> SelecionarReboquePorIdentificador(int IdentificadorReboque)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            ReboqueViewModelList ResultView = new();
+            ReboqueListDTO ResultView = new();
 
             try
             {
@@ -657,14 +658,14 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("SelecionarReboquePorPlaca")]
         // TODO: [Authorize]
-        public async Task<ActionResult<ReboqueViewModelList>> SelecionarReboquePorPlaca(string Placa, int IdentificadorCliente, int IdentificadorDeposito)
+        public async Task<ActionResult<ReboqueListDTO>> SelecionarReboquePorPlaca(string Placa, int IdentificadorCliente, int IdentificadorDeposito)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            ReboqueViewModelList ResultView = new();
+            ReboqueListDTO ResultView = new();
 
             try
             {
@@ -684,14 +685,14 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("SelecionarReboquistaPorIdentificador")]
         // TODO: [Authorize]
-        public async Task<ActionResult<ReboquistaViewModelList>> SelecionarReboquistaPorIdentificador(int IdentificadorReboquista)
+        public async Task<ActionResult<ReboquistaListDTO>> SelecionarReboquistaPorIdentificador(int IdentificadorReboquista)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            ReboquistaViewModelList ResultView = new();
+            ReboquistaListDTO ResultView = new();
 
             try
             {

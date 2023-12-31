@@ -2,8 +2,8 @@
 using Microsoft.EntityFrameworkCore;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
+using WebZi.Plataform.Domain.DTO.Banco;
 using WebZi.Plataform.Domain.Models.Banco;
-using WebZi.Plataform.Domain.ViewModel.Banco;
 
 namespace WebZi.Plataform.Data.Services.Banco
 {
@@ -18,9 +18,9 @@ namespace WebZi.Plataform.Data.Services.Banco
             _mapper = mapper;
         }
 
-        public async Task<BancoViewModelList> GetByIdAsync(short BancoId)
+        public async Task<BancoListDTO> GetByIdAsync(short BancoId)
         {
-            BancoViewModelList ResultView = new();
+            BancoListDTO ResultView = new();
 
             if (BancoId <= 0)
             {
@@ -35,7 +35,7 @@ namespace WebZi.Plataform.Data.Services.Banco
 
             if (result != null)
             {
-                ResultView.Listagem.Add(_mapper.Map<BancoViewModel>(result));
+                ResultView.Listagem.Add(_mapper.Map<BancoDTO>(result));
 
                 ResultView.Mensagem = MensagemViewHelper.SetFound();
             }
@@ -47,9 +47,9 @@ namespace WebZi.Plataform.Data.Services.Banco
             return ResultView;
         }
 
-        public async Task<BancoViewModelList> GetByNameAsync(string Name)
+        public async Task<BancoListDTO> GetByNameAsync(string Name)
         {
-            BancoViewModelList ResultView = new();
+            BancoListDTO ResultView = new();
 
             if (string.IsNullOrWhiteSpace(Name))
             {
@@ -69,7 +69,7 @@ namespace WebZi.Plataform.Data.Services.Banco
                     .OrderBy(x => x.Nome)
                     .ToList();
 
-                ResultView.Listagem = _mapper.Map<List<BancoViewModel>>(result);
+                ResultView.Listagem = _mapper.Map<List<BancoDTO>>(result);
 
                 ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
             }
@@ -81,9 +81,9 @@ namespace WebZi.Plataform.Data.Services.Banco
             return ResultView;
         }
 
-        public async Task<BancoViewModelList> ListAsync()
+        public async Task<BancoListDTO> ListAsync()
         {
-            BancoViewModelList ResultView = new();
+            BancoListDTO ResultView = new();
 
             List<BancoModel> result = await _context.Banco
                 .AsNoTracking()
@@ -95,7 +95,7 @@ namespace WebZi.Plataform.Data.Services.Banco
                     .OrderBy(x => x.Nome)
                     .ToList();
 
-                ResultView.Listagem = _mapper.Map<List<BancoViewModel>>(result);
+                ResultView.Listagem = _mapper.Map<List<BancoDTO>>(result);
 
                 ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
             }

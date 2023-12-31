@@ -10,14 +10,14 @@ using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Cliente;
 using WebZi.Plataform.Data.Services.Deposito;
 using WebZi.Plataform.Data.Services.Localizacao;
+using WebZi.Plataform.Domain.DTO.Generic;
+using WebZi.Plataform.Domain.DTO.Report;
 using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Atendimento;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.GRV;
 using WebZi.Plataform.Domain.Models.Usuario;
 using WebZi.Plataform.Domain.Services.GRV;
-using WebZi.Plataform.Domain.ViewModel.Generic;
-using WebZi.Plataform.Domain.ViewModel.Report;
 
 namespace WebZi.Plataform.Data.Services.Report
 {
@@ -34,7 +34,7 @@ namespace WebZi.Plataform.Data.Services.Report
             _httpClientFactory = httpClientFactory;
         }
 
-        private GuiaPagamentoReboqueEstadiaViewModel FillAtendimento(GuiaPagamentoReboqueEstadiaViewModel GuiaPagamentoEstadiaReboque, AtendimentoModel Atendimento)
+        private GuiaPagamentoReboqueEstadiaDTO FillAtendimento(GuiaPagamentoReboqueEstadiaDTO GuiaPagamentoEstadiaReboque, AtendimentoModel Atendimento)
         {
             GuiaPagamentoEstadiaReboque.QualificacaoResponsavel = Atendimento.QualificacaoResponsavel.Descricao;
 
@@ -64,7 +64,7 @@ namespace WebZi.Plataform.Data.Services.Report
             return GuiaPagamentoEstadiaReboque;
         }
 
-        private GuiaPagamentoReboqueEstadiaViewModel FillCliente(GuiaPagamentoReboqueEstadiaViewModel GuiaPagamentoEstadiaReboque, GrvModel Grv)
+        private GuiaPagamentoReboqueEstadiaDTO FillCliente(GuiaPagamentoReboqueEstadiaDTO GuiaPagamentoEstadiaReboque, GrvModel Grv)
         {
             GuiaPagamentoEstadiaReboque.ClienteNome = Grv.Cliente.Nome;
 
@@ -89,7 +89,7 @@ namespace WebZi.Plataform.Data.Services.Report
             return GuiaPagamentoEstadiaReboque;
         }
 
-        private GuiaPagamentoReboqueEstadiaViewModel FillComposicaoFaturamento(GuiaPagamentoReboqueEstadiaViewModel GuiaPagamentoEstadiaReboque, FaturamentoModel Faturamento)
+        private GuiaPagamentoReboqueEstadiaDTO FillComposicaoFaturamento(GuiaPagamentoReboqueEstadiaDTO GuiaPagamentoEstadiaReboque, FaturamentoModel Faturamento)
         {
             decimal ValorDemaisServicos = 0;
 
@@ -131,7 +131,7 @@ namespace WebZi.Plataform.Data.Services.Report
             return GuiaPagamentoEstadiaReboque;
         }
 
-        private GuiaPagamentoReboqueEstadiaViewModel FillDataHoraAtual(GuiaPagamentoReboqueEstadiaViewModel GuiaPagamentoEstadiaReboque, int DepositoId)
+        private GuiaPagamentoReboqueEstadiaDTO FillDataHoraAtual(GuiaPagamentoReboqueEstadiaDTO GuiaPagamentoEstadiaReboque, int DepositoId)
         {
             DateTime DataHoraAtual = new DepositoService(_context, _mapper)
                 .GetDataHoraPorDeposito(DepositoId);
@@ -147,7 +147,7 @@ namespace WebZi.Plataform.Data.Services.Report
             return GuiaPagamentoEstadiaReboque;
         }
 
-        private GuiaPagamentoReboqueEstadiaViewModel FillDeposito(GuiaPagamentoReboqueEstadiaViewModel GuiaPagamentoEstadiaReboque, GrvModel Grv)
+        private GuiaPagamentoReboqueEstadiaDTO FillDeposito(GuiaPagamentoReboqueEstadiaDTO GuiaPagamentoEstadiaReboque, GrvModel Grv)
         {
             GuiaPagamentoEstadiaReboque.DepositoNome = Grv.Deposito.Nome;
 
@@ -159,7 +159,7 @@ namespace WebZi.Plataform.Data.Services.Report
             return GuiaPagamentoEstadiaReboque;
         }
 
-        private GuiaPagamentoReboqueEstadiaViewModel FillFaturamento(GuiaPagamentoReboqueEstadiaViewModel GuiaPagamentoEstadiaReboque, FaturamentoModel Faturamento)
+        private GuiaPagamentoReboqueEstadiaDTO FillFaturamento(GuiaPagamentoReboqueEstadiaDTO GuiaPagamentoEstadiaReboque, FaturamentoModel Faturamento)
         {
             GuiaPagamentoEstadiaReboque.FaturamentoNumeroIdentificacao = Faturamento.NumeroIdentificacao;
 
@@ -181,7 +181,7 @@ namespace WebZi.Plataform.Data.Services.Report
             return GuiaPagamentoEstadiaReboque;
         }
 
-        private GuiaPagamentoReboqueEstadiaViewModel FillGrv(GuiaPagamentoReboqueEstadiaViewModel GuiaPagamentoEstadiaReboque, GrvModel Grv)
+        private GuiaPagamentoReboqueEstadiaDTO FillGrv(GuiaPagamentoReboqueEstadiaDTO GuiaPagamentoEstadiaReboque, GrvModel Grv)
         {
             if (!string.IsNullOrWhiteSpace(Grv.Placa))
             {
@@ -230,7 +230,7 @@ namespace WebZi.Plataform.Data.Services.Report
             return GuiaPagamentoEstadiaReboque;
         }
 
-        private GuiaPagamentoReboqueEstadiaViewModel FillRodape(GuiaPagamentoReboqueEstadiaViewModel GuiaPagamentoEstadiaReboque, int UsuarioId)
+        private GuiaPagamentoReboqueEstadiaDTO FillRodape(GuiaPagamentoReboqueEstadiaDTO GuiaPagamentoEstadiaReboque, int UsuarioId)
         {
             UsuarioModel Usuario = _context.Usuario
                 .Include(x => x.Pessoa)
@@ -258,9 +258,9 @@ namespace WebZi.Plataform.Data.Services.Report
             return GuiaPagamentoEstadiaReboque;
         }
 
-        public async Task<GuiaPagamentoReboqueEstadiaViewModel> GetGuiaPagamentoReboqueEstadiaAsync(int FaturamentoId, int UsuarioId, bool SelecionarFaturamentoPago = false)
+        public async Task<GuiaPagamentoReboqueEstadiaDTO> GetGuiaPagamentoReboqueEstadiaAsync(int FaturamentoId, int UsuarioId, bool SelecionarFaturamentoPago = false)
         {
-            GuiaPagamentoReboqueEstadiaViewModel ResultView = new();
+            GuiaPagamentoReboqueEstadiaDTO ResultView = new();
 
             if (FaturamentoId <= 0)
             {
@@ -340,7 +340,7 @@ namespace WebZi.Plataform.Data.Services.Report
                 return ResultView;
             }
 
-            GuiaPagamentoReboqueEstadiaViewModel GuiaPagamentoEstadiaReboque = new();
+            GuiaPagamentoReboqueEstadiaDTO GuiaPagamentoEstadiaReboque = new();
 
             // GRV
             GuiaPagamentoEstadiaReboque = FillGrv(GuiaPagamentoEstadiaReboque, Grv);
@@ -367,7 +367,7 @@ namespace WebZi.Plataform.Data.Services.Report
             GuiaPagamentoEstadiaReboque = FillRodape(GuiaPagamentoEstadiaReboque, UsuarioId);
 
             // LOGOMARCA
-            ImageViewModelList Listagem = await new ClienteService(_context, _mapper, _httpClientFactory)
+            ImageListDTO Listagem = await new ClienteService(_context, _mapper, _httpClientFactory)
                 .GetLogomarcaAsync(Grv.ClienteId);
 
             GuiaPagamentoEstadiaReboque.Logo = Listagem.Listagem

@@ -87,7 +87,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 .AsNoTracking()
                 .ToList();
 
-            if (RegrasFaturamento.Count == 0)
+            if (RegrasFaturamento?.Count == 0)
             {
                 RegrasFaturamento = null;
             }
