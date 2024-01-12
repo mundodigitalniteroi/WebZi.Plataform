@@ -28,6 +28,8 @@ namespace WebZi.Plataform.Domain.Models.Faturamento
         /// Q = Quantidade;
         /// T = Tempo entre duas Datas;
         /// V = Valor.
+        /// 
+        /// Tabela de Descrição: tb_dep_tabela_generica, coluna ValorCadastro
         /// </summary>
         public string TipoComposicao { get; set; }
 

@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using System.Data;
+using System.Diagnostics;
 using WebZi.Plataform.CrossCutting.Date;
 using WebZi.Plataform.CrossCutting.Number;
 using WebZi.Plataform.CrossCutting.Strings;
@@ -215,7 +216,21 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             ResultView.Faturamento = _mapper.Map<FaturamentoDTO>(Faturamento);
 
-            ResultView.Faturamento.ListagemFaturamentoComposicao= _mapper.Map<List<FaturamentoComposicaoDTO>>(Faturamento.ListagemFaturamentoComposicao);
+            ResultView.Faturamento.ListagemFaturamentoComposicao = _mapper.Map<List<FaturamentoComposicaoDTO>>(Faturamento.ListagemFaturamentoComposicao);
+
+            FaturamentoServicoTipoVeiculoModel FaturamentoServicoTipoVeiculo = new();
+
+            foreach (var item in ResultView.Faturamento.ListagemFaturamentoComposicao)
+            {
+                FaturamentoServicoTipoVeiculo = _context.FaturamentoServicoTipoVeiculo
+                    .Include(x => x.FaturamentoServicoAssociado)
+                    .AsNoTracking()
+                    .FirstOrDefault(x => x.FaturamentoServicoTipoVeiculoId == item.IdentificadorFaturamentoServicoTipoVeiculo);
+
+                item.DescricaoTipoComposicao = FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.Descricao;
+
+                Debugger.Break();
+            }
 
             ResultView.Mensagem = MensagemViewHelper.SetOk();
 
@@ -346,7 +361,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             #endregion Verificação de Faturamentos anteriores
 
             #region Cálculo das Diárias
-            CalculoDiariasModel CalculoDiarias =new CalculoDiariasService(_context)
+            CalculoDiariasModel CalculoDiarias = new CalculoDiariasService(_context)
                 .Calcular(ParametrosCalculoFaturamento);
 
             ParametrosCalculoFaturamento.DataHoraInicialParaCalculo = CalculoDiarias.DataHoraInicialParaCalculo;

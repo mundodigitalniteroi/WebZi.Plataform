@@ -10,12 +10,6 @@
 
         public int? IdentificadorUsuarioAlteracaoQuantidade { get; set; }
 
-        public decimal ValorTipoComposicao { get; set; }
-
-        public decimal? QuantidadeComposicao { get; set; } = 1;
-
-        public decimal ValorComposicao { get; set; }
-
         /// <summary>
         /// Tipo da Cobrança:
         /// D = Diárias;
@@ -26,6 +20,16 @@
         /// V = Valor.
         /// </summary>
         public string TipoComposicao { get; set; }
+
+        public string DescricaoTipoComposicao { get; set; }
+
+        public decimal? QuantidadeComposicao { get; set; } = 1;
+
+        public decimal ValorTipoComposicao { get; set; }
+
+        public decimal ValorComposicao { get; set; }
+
+        public decimal ValorFaturado { get; set; }
 
         /// <summary>
         /// Tipo do Desconto:
@@ -46,8 +50,6 @@
         public decimal? ValorDesconto { get; set; }
 
         public string ObservacaoDesconto { get; set; }
-
-        public decimal ValorFaturado { get; set; }
 
         public decimal? QuantidadeAlterada { get; set; }
 
