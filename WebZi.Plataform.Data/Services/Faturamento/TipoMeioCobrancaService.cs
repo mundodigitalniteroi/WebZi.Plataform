@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Domain.DTO.Banco;
-using WebZi.Plataform.Domain.Models.Faturamento;
+using WebZi.Plataform.Domain.Models.Banco;
 
 namespace WebZi.Plataform.Data.Services.Faturamento
 {
@@ -18,13 +18,13 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             _mapper = mapper;
         }
 
-        public TipoMeioCobrancaListDTO GetById(byte TipoMeioCobrancaId)
+        public async Task<TipoMeioCobrancaListDTO> GetByIdAsync(byte TipoMeioCobrancaId)
         {
             TipoMeioCobrancaListDTO ResultView = new();
 
-            TipoMeioCobrancaModel result = _context.TipoMeioCobranca
+            TipoMeioCobrancaModel result = await _context.TipoMeioCobranca
                 .AsNoTracking()
-                .FirstOrDefault(x => x.TipoMeioCobrancaId == TipoMeioCobrancaId);
+                .FirstOrDefaultAsync(x => x.TipoMeioCobrancaId == TipoMeioCobrancaId);
 
             if (result != null)
             {
@@ -40,14 +40,14 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             return ResultView;
         }
 
-        public TipoMeioCobrancaListDTO List()
+        public async Task<TipoMeioCobrancaListDTO> ListAsync()
         {
             TipoMeioCobrancaListDTO ResultView = new();
 
-            List<TipoMeioCobrancaModel> result = _context.TipoMeioCobranca
+            List<TipoMeioCobrancaModel> result = await _context.TipoMeioCobranca
                 .Where(x => x.FlagAtivo == "S")
                 .AsNoTracking()
-                .ToList();
+                .ToListAsync();
 
             if (result?.Count > 0)
             {

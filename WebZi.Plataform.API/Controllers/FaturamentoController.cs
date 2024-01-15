@@ -6,7 +6,6 @@ using WebZi.Plataform.Data.Services.Report;
 using WebZi.Plataform.Data.Services.Sistema;
 using WebZi.Plataform.Domain.DTO.Faturamento;
 using WebZi.Plataform.Domain.DTO.Faturamento.Servico;
-using WebZi.Plataform.Domain.DTO.Generic;
 using WebZi.Plataform.Domain.DTO.Report;
 using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.ViewModel.Faturamento;
@@ -161,7 +160,7 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpPost("Simulacao")]
         [IgnoreAntiforgeryToken]
-        public async Task<ActionResult<object>> Simular([FromBody] SimulacaoParameters Parametros)
+        public async Task<ActionResult<SimulacaoDTO>> Simular([FromBody] SimulacaoParameters Parametros)
         {
             if (!ModelState.IsValid)
             {

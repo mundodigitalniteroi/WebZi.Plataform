@@ -26,7 +26,7 @@
 
         public int? IdentificadorLiberacao { get; set; }
 
-        public string NumeroFormularioGrv { get; set; }
+        public string NumeroFormularioProcesso { get; set; }
 
         public string CodigoProduto { get; set; }
 

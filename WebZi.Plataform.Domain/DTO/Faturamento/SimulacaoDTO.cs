@@ -11,6 +11,18 @@ namespace WebZi.Plataform.Domain.DTO.Faturamento
 
         public string NumeroProcesso { get; set; }
 
+        public int IdentificadorAtendimento { get; set; }
+
+        public DateTime? DataHoraRemocao { get; set; }
+
+        public DateTime? DataHoraGuarda { get; set; }
+
+        public DateTime DataHoraInicialParaCalculo { get; set; }
+
+        public DateTime DataHoraFinalParaCalculo { get; set; }
+
+        public int QuantidadeDiarias { get; set; }
+
         public FaturamentoProdutoDTO Produto { get; set; }
 
         public FaturamentoDTO Faturamento { get; set; }

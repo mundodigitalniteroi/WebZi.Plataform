@@ -58,6 +58,6 @@ namespace WebZi.Plataform.Domain.DTO.Faturamento
 
         // public virtual TipoMeioCobrancaModel TipoMeioCobranca { get; set; }
 
-        public List<FaturamentoComposicaoDTO> ListagemFaturamentoComposicao { get; set; }
+        public List<FaturamentoComposicaoDTO> ListagemFaturamentoServico { get; set; }
     }
 }

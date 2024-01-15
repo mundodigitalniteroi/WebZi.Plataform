@@ -18,6 +18,7 @@ using WebZi.Plataform.Domain.DTO.Generic;
 using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Atendimento;
+using WebZi.Plataform.Domain.Models.Banco;
 using WebZi.Plataform.Domain.Models.Bucket;
 using WebZi.Plataform.Domain.Models.ClienteDeposito;
 using WebZi.Plataform.Domain.Models.Faturamento;
@@ -532,6 +533,8 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             FaturamentoModel Faturamento = new();
 
+            CalculoDiariasModel CalculoDiarias = new();
+
             using (IDbContextTransaction transaction = _context.Database.BeginTransaction())
             {
                 try
@@ -541,7 +544,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                     _context.SaveChanges();
 
                     Faturamento = new FaturamentoService(_context, _mapper, _httpClientFactory)
-                        .Faturar(ParametrosCalculoFaturamento);
+                        .Faturar(ParametrosCalculoFaturamento, out CalculoDiarias);
 
                     CreateFotoResponsavel(Atendimento.AtendimentoId, AtendimentoInput);
 

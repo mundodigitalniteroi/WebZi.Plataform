@@ -7,7 +7,6 @@ using WebZi.Plataform.Domain.DTO.Deposito;
 using WebZi.Plataform.Domain.DTO.Documento;
 using WebZi.Plataform.Domain.DTO.Empresa;
 using WebZi.Plataform.Domain.DTO.Faturamento;
-using WebZi.Plataform.Domain.DTO.Generic;
 using WebZi.Plataform.Domain.DTO.GRV;
 using WebZi.Plataform.Domain.DTO.GRV.Pesquisa;
 using WebZi.Plataform.Domain.DTO.Localizacao;
@@ -131,10 +130,14 @@ namespace WebZi.Plataform.Data.Services
                 .ForMember(dest => dest.IdentificadorTipoMeioCobranca, from => from.MapFrom(src => src.TipoMeioCobrancaId));
 
             CreateMap<FaturamentoComposicaoModel, FaturamentoComposicaoDTO>()
-                .ForMember(dest => dest.IdentificadorFaturamentoComposicao, from => from.MapFrom(src => src.FaturamentoComposicaoId))
+                .ForMember(dest => dest.IdentificadorFaturamentoServico, from => from.MapFrom(src => src.FaturamentoComposicaoId))
                 .ForMember(dest => dest.IdentificadorFaturamentoServicoTipoVeiculo, from => from.MapFrom(src => src.FaturamentoServicoTipoVeiculoId))
                 .ForMember(dest => dest.IdentificadorUsuarioDesconto, from => from.MapFrom(src => src.UsuarioDescontoId))
-                .ForMember(dest => dest.IdentificadorUsuarioAlteracaoQuantidade, from => from.MapFrom(src => src.UsuarioAlteracaoQuantidadeId));
+                .ForMember(dest => dest.IdentificadorUsuarioAlteracaoQuantidade, from => from.MapFrom(src => src.UsuarioAlteracaoQuantidadeId))
+                .ForMember(dest => dest.TipoServico, from => from.MapFrom(src => src.TipoComposicao))
+                .ForMember(dest => dest.QuantidadeServico, from => from.MapFrom(src => src.QuantidadeComposicao))
+                .ForMember(dest => dest.ValorTipoServico, from => from.MapFrom(src => src.ValorTipoComposicao))
+                .ForMember(dest => dest.ValorServico, from => from.MapFrom(src => src.ValorComposicao));
 
             CreateMap<FaturamentoProdutoModel, FaturamentoProdutoDTO>()
                 .ForMember(dest => dest.CodigoProduto, from => from.MapFrom(src => src.FaturamentoProdutoId));

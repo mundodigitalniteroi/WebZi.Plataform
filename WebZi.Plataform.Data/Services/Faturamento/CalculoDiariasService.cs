@@ -19,40 +19,40 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             _context = context;
         }
 
-        public CalculoDiariasModel Calcular(CalculoFaturamentoParametroModel ParametrosCalculoFaturamento)
+        public CalculoDiariasModel Calcular(CalculoFaturamentoParametroModel ParametrosCalculoDiarias)
         {
             CalculoDiariasModel CalculoDiarias = new()
             {
-                ClienteId = ParametrosCalculoFaturamento.ClienteDeposito.ClienteId,
+                ClienteId = ParametrosCalculoDiarias.ClienteDeposito.ClienteId,
 
-                DepositoId = ParametrosCalculoFaturamento.ClienteDeposito.DepositoId,
+                DepositoId = ParametrosCalculoDiarias.ClienteDeposito.DepositoId,
 
-                MaximoDiariasParaCobranca = ParametrosCalculoFaturamento.ClienteDeposito.Cliente.MaximoDiariasParaCobranca,
+                MaximoDiariasParaCobranca = ParametrosCalculoDiarias.ClienteDeposito.Cliente.MaximoDiariasParaCobranca,
 
-                MaximoDiasVencimento = ParametrosCalculoFaturamento.ClienteDeposito.Cliente.MaximoDiasVencimento,
+                MaximoDiasVencimento = ParametrosCalculoDiarias.ClienteDeposito.Cliente.MaximoDiasVencimento,
 
-                HoraDiaria = ParametrosCalculoFaturamento.ClienteDeposito.Cliente.HoraDiaria,
+                HoraDiaria = ParametrosCalculoDiarias.ClienteDeposito.Cliente.HoraDiaria,
 
-                DataHoraInicialParaCalculo = ParametrosCalculoFaturamento.DataHoraInicialParaCalculo,
+                DataHoraInicialParaCalculo = ParametrosCalculoDiarias.DataHoraInicialParaCalculo,
 
-                DataHoraFinalParaCalculo = ParametrosCalculoFaturamento.DataHoraFinalParaCalculo,
+                DataHoraFinalParaCalculo = ParametrosCalculoDiarias.DataHoraFinalParaCalculo,
 
-                FlagClienteRealizaFaturamentoArrecadacao = ParametrosCalculoFaturamento.ClienteDeposito.Cliente.FlagClienteRealizaFaturamentoArrecadacao == "S",
+                FlagClienteRealizaFaturamentoArrecadacao = ParametrosCalculoDiarias.ClienteDeposito.Cliente.FlagClienteRealizaFaturamentoArrecadacao == "S",
 
-                FlagUsarHoraDiaria = ParametrosCalculoFaturamento.ClienteDeposito.Cliente.FlagUsarHoraDiaria == "S",
+                FlagUsarHoraDiaria = ParametrosCalculoDiarias.ClienteDeposito.Cliente.FlagUsarHoraDiaria == "S",
 
-                FlagEmissaoNotaFiscalERP = ParametrosCalculoFaturamento.ClienteDeposito.Cliente.FlagEmissaoNotaFiscal == "S",
+                FlagEmissaoNotaFiscalERP = ParametrosCalculoDiarias.ClienteDeposito.Cliente.FlagEmissaoNotaFiscal == "S",
 
-                FlagCobrarDiariasDiasCorridos = ParametrosCalculoFaturamento.ClienteDeposito.Cliente.FlagCobrarDiariasDiasCorridos == "S",
+                FlagCobrarDiariasDiasCorridos = ParametrosCalculoDiarias.ClienteDeposito.Cliente.FlagCobrarDiariasDiasCorridos == "S",
 
-                IsComboio = ParametrosCalculoFaturamento.IsComboio,
+                IsComboio = ParametrosCalculoDiarias.IsComboio,
 
-                IsPrimeiroFaturamento = (new[] { "V", "1", "B", "D" }.Contains(ParametrosCalculoFaturamento.StatusOperacaoId)),
+                IsPrimeiroFaturamento = (new[] { "V", "1", "B", "D" }.Contains(ParametrosCalculoDiarias.StatusOperacaoId)),
             };
 
             if (!CalculoDiarias.DataHoraFinalParaCalculo.HasValue || CalculoDiarias.DataHoraFinalParaCalculo == DateTime.MinValue)
             {
-                CalculoDiarias.DataHoraFinalParaCalculo = ParametrosCalculoFaturamento.DataHoraPorDeposito;
+                CalculoDiarias.DataHoraFinalParaCalculo = ParametrosCalculoDiarias.DataHoraPorDeposito;
             }
 
             #region REGRA DA HORA DA VIRADA DA DIÁRIA
@@ -215,7 +215,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             CalculoDiarias.Diarias = GetMaximoDiaCobranca(CalculoDiarias.MaximoDiariasParaCobranca, CalculoDiarias.Diarias, CalculoDiarias.QuantidadeDiariasPagas);
 
-            if (ParametrosCalculoFaturamento.FaturamentoAdicional)
+            if (ParametrosCalculoDiarias.FaturamentoAdicional)
             {
                 CalculoDiarias.Diarias = GetMaximoDiariasCobrarFaturaAdicional(RegrasFaturamento, CalculoDiarias.Diarias);
             }

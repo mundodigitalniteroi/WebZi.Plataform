@@ -1,6 +1,5 @@
 ﻿using WebZi.Plataform.Domain.DTO.Empresa;
 using WebZi.Plataform.Domain.DTO.Faturamento.Servico;
-using WebZi.Plataform.Domain.DTO.Generic;
 using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.DTO.Veiculo;
 using WebZi.Plataform.Domain.DTO.Vistoria;

@@ -1,6 +1,4 @@
-﻿using WebZi.Plataform.Domain.DTO.Sistema;
-
-namespace WebZi.Plataform.Domain.DTO.Generic
+﻿namespace WebZi.Plataform.Domain.DTO.Sistema
 {
     public class TabelaGenericaListDTO
     {

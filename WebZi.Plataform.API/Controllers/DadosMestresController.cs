@@ -13,7 +13,6 @@ using WebZi.Plataform.Domain.DTO.Atendimento;
 using WebZi.Plataform.Domain.DTO.Banco;
 using WebZi.Plataform.Domain.DTO.Documento;
 using WebZi.Plataform.Domain.DTO.Faturamento;
-using WebZi.Plataform.Domain.DTO.Generic;
 using WebZi.Plataform.Domain.DTO.GRV;
 using WebZi.Plataform.Domain.DTO.GRV.Pesquisa;
 using WebZi.Plataform.Domain.DTO.Servico;
@@ -577,7 +576,7 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("ListarTipoMeioCobranca")]
         // TODO: [Authorize]
-        public ActionResult<TipoMeioCobrancaListDTO> ListarTipoMeioCobranca()
+        public async Task<ActionResult<TipoMeioCobrancaListDTO>> ListarTipoMeioCobranca()
         {
             if (!ModelState.IsValid)
             {
@@ -588,9 +587,9 @@ namespace WebZi.Plataform.API.Controllers
 
             try
             {
-                ResultView = _provider
+                ResultView = await _provider
                     .GetService<TipoMeioCobrancaService>()
-                    .List();
+                    .ListAsync();
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }

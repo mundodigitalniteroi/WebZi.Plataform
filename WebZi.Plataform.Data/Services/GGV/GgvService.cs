@@ -340,7 +340,7 @@ namespace WebZi.Plataform.Data.Services.GGV
             if (GgvPersistencia.ListagemFotos?.Count > 0)
             {
                 List<TabelaGenericaModel> ListagemTipoCadastroFoto = await TabelaGenericaService
-                        .ListAsync("GGV_TIPO_CADASTRO_FOTO");
+                    .ListAsync("GGV_TIPO_CADASTRO_FOTO");
 
                 List<BucketFileModel> Files = new();
 

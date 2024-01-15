@@ -1,4 +1,5 @@
 ﻿using WebZi.Plataform.Domain.Models.Atendimento;
+using WebZi.Plataform.Domain.Models.Banco;
 using WebZi.Plataform.Domain.Models.Banco.PIX;
 using WebZi.Plataform.Domain.Models.Banco.PIX.Dinamico;
 using WebZi.Plataform.Domain.Models.Usuario;
