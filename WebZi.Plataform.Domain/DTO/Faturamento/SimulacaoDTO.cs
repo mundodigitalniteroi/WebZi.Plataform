@@ -7,6 +7,12 @@ namespace WebZi.Plataform.Domain.DTO.Faturamento
     {
         public MensagemDTO Mensagem { get; set; } = new();
 
+        public SimulacaoClienteDTO Cliente { get; set; }
+
+        public SimulacaoDepositoDTO Deposito { get; set; }
+
+        public SimulacaoProdutoDTO Produto { get; set; }
+
         public int IdentificadorProcesso { get; set; }
 
         public string NumeroProcesso { get; set; }
@@ -23,9 +29,7 @@ namespace WebZi.Plataform.Domain.DTO.Faturamento
 
         public int QuantidadeDiarias { get; set; }
 
-        public FaturamentoProdutoDTO Produto { get; set; }
-
-        public FaturamentoDTO Faturamento { get; set; }
+        public SimulacaoFaturamentoDTO Faturamento { get; set; }
 
         public DetranRioVeiculoDTO Veiculo { get; set; }
 

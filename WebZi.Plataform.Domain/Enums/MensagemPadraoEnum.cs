@@ -14,7 +14,7 @@
 
         public static readonly string NaoEncontradoFaturamentoProduto = "Código do Produto inexistente";
 
-        public static readonly string NaoEncontradoGrv = "GRV inexistente";
+        public static readonly string NaoEncontradoGrv = "Processo inexistente";
 
         public static readonly string NaoEncontradoStatusOperacao = "Status da Operação inexistente";
 
@@ -34,7 +34,7 @@
 
         public static readonly string IdentificadorFormaPagamentoInvalido = "Identificador da Forma de Pagamento inválido";
 
-        public static readonly string IdentificadorGrvInvalido = "Identificador do GRV inválido";
+        public static readonly string IdentificadorGrvInvalido = "Identificador do Processo inválido";
 
         public static readonly string IdentificadorMarcaModeloInvalido = "Identificador da Marca/Modelo inválido";
 
@@ -56,6 +56,6 @@
 
         public static readonly string UsuarioSemPermissaoAcessoClienteDeposito = "Usuário sem permissão de acesso ao Cliente e Depósito";
 
-        public static readonly string UsuarioSemPermissaoAcessoGrv = "Usuário sem permissão de acesso ao GRV";
+        public static readonly string UsuarioSemPermissaoAcessoGrv = "Usuário sem permissão de acesso ao Processo";
     }
 }

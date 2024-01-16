@@ -93,7 +93,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (Grv.StatusOperacao.StatusOperacaoId != "G")
             {
-                return MensagemViewHelper.SetBadRequest($"O Status atual deste GRV não permite o envio da Imagem da Assinatura do Agente. Status atual: {Grv.StatusOperacao.Descricao}");
+                return MensagemViewHelper.SetBadRequest($"O Status atual deste Processo não permite o envio da Imagem da Assinatura do Agente. Status atual: {Grv.StatusOperacao.Descricao}");
             }
 
             BucketArquivoModel BucketArquivo = await _context.BucketArquivo
@@ -130,7 +130,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (Grv.StatusOperacao.StatusOperacaoId != "G")
             {
-                return MensagemViewHelper.SetBadRequest($"O Status atual deste GRV não permite o envio da Imagem da Assinatura do Condutor. Status atual: {Grv.StatusOperacao.Descricao}");
+                return MensagemViewHelper.SetBadRequest($"O Status atual deste Processo não permite o envio da Imagem da Assinatura do Condutor. Status atual: {Grv.StatusOperacao.Descricao}");
             }
 
             BucketArquivoModel BucketArquivo = await _context.BucketArquivo
@@ -453,7 +453,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (!new[] { "G", "V", "L", "U", "T", "R", "E", "B", "D", "1", "2", "3", "4" }.Contains(Grv.StatusOperacao.StatusOperacaoId))
             {
-                return MensagemViewHelper.SetBadRequest($"O Status atual deste GRV não permite o envio de Fotos. Status atual: {Grv.StatusOperacao.Descricao}");
+                return MensagemViewHelper.SetBadRequest($"O Status atual deste Processo não permite o envio de Fotos. Status atual: {Grv.StatusOperacao.Descricao}");
             }
 
             CreateDocumentosCondutor(ListagemDocumentoCondutor.IdentificadorProcesso, ListagemDocumentoCondutor.IdentificadorUsuario, ListagemDocumentoCondutor.ListagemDocumentoCondutor);
@@ -479,7 +479,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (!new[] { "G", "V", "L", "U", "T", "R", "E", "B", "D", "1", "2", "3", "4" }.Contains(Grv.StatusOperacao.StatusOperacaoId))
             {
-                return MensagemViewHelper.SetBadRequest($"O Status atual deste GRV não permite o envio de Fotos. Status atual: {Grv.StatusOperacao.Descricao}");
+                return MensagemViewHelper.SetBadRequest($"O Status atual deste Processo não permite o envio de Fotos. Status atual: {Grv.StatusOperacao.Descricao}");
             }
 
             new BucketService(_context, _httpClientFactory)
@@ -509,7 +509,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (!new[] { "E", "G", "L", "R", "T", "U", "V" }.Contains(Grv.StatusOperacaoId))
             {
-                return MensagemViewHelper.SetBadRequest($"O Status atual deste GRV não permite o cadastro de Lacres. Status atual: {Grv.StatusOperacao.Descricao}");
+                return MensagemViewHelper.SetBadRequest($"O Status atual deste Processo não permite o cadastro de Lacres. Status atual: {Grv.StatusOperacao.Descricao}");
             }
 
             List<LacreModel> Lacres = await _context.Lacre
@@ -577,7 +577,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (Grv.StatusOperacao.StatusOperacaoId != "G")
             {
-                return MensagemViewHelper.SetBadRequest($"O Status atual deste GRV não permite a exclusão da Imagem da Assinatura do Agente. Status atual: {Grv.StatusOperacao.Descricao}");
+                return MensagemViewHelper.SetBadRequest($"O Status atual deste Processo não permite a exclusão da Imagem da Assinatura do Agente. Status atual: {Grv.StatusOperacao.Descricao}");
             }
 
             BucketArquivoModel BucketArquivo = await _context.BucketArquivo
@@ -610,7 +610,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (Grv.StatusOperacao.StatusOperacaoId != "G")
             {
-                return MensagemViewHelper.SetBadRequest($"O Status atual deste GRV não permite a exclusão da Imagem da Assinatura do Condutor. Status atual: {Grv.StatusOperacao.Descricao}");
+                return MensagemViewHelper.SetBadRequest($"O Status atual deste Processo não permite a exclusão da Imagem da Assinatura do Condutor. Status atual: {Grv.StatusOperacao.Descricao}");
             }
 
             BucketArquivoModel BucketArquivo = await _context.BucketArquivo
@@ -648,7 +648,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (!new[] { "E", "G", "L", "R", "T", "U", "V" }.Contains(Grv.StatusOperacaoId))
             {
-                return MensagemViewHelper.SetBadRequest($"O Status atual deste GRV não permite a exclusão de Fotos. Status atual: {Grv.StatusOperacao.Descricao}");
+                return MensagemViewHelper.SetBadRequest($"O Status atual deste Processo não permite a exclusão de Fotos. Status atual: {Grv.StatusOperacao.Descricao}");
             }
 
             List<BucketArquivoModel> BucketArquivos = await _context.BucketArquivo
@@ -663,7 +663,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             {
                 List<string> erros = new()
                 {
-                    $"A(s) seguinte(s) Fotos não pertencem ao GRV {GrvId}:"
+                    $"A(s) seguinte(s) Fotos não pertencem ao Processo {GrvId}:"
                 };
 
                 foreach (BucketArquivoModel BucketArquivo in BucketArquivos)
@@ -743,7 +743,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (UsuarioPermissao == null)
             {
-                return MensagemViewHelper.SetUnauthorized("Usuário não possui permissão para excluir GRV");
+                return MensagemViewHelper.SetUnauthorized("Usuário não possui permissão para excluir Processos");
             }
 
             GrvModel Grv = await _context.Grv
@@ -760,7 +760,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             }
             else if (!new[] { "M", "P", "G", "V" }.Contains(Grv.StatusOperacaoId))
             {
-                return MensagemViewHelper.SetBadRequest($"O Status atual deste GRV não permite a exclusão. Status atual: {Grv.StatusOperacao.Descricao}");
+                return MensagemViewHelper.SetBadRequest($"O Status atual deste Processo não permite a exclusão. Status atual: {Grv.StatusOperacao.Descricao}");
             }
 
             List<FaturamentoModel> Faturamentos = null;
@@ -835,7 +835,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 }
             }
 
-            return MensagemViewHelper.SetOk("GRV excluído com sucesso");
+            return MensagemViewHelper.SetOk("Processo excluído com sucesso");
         }
 
         public async Task<MensagemDTO> DeleteLacresAsync(int GrvId, int UsuarioId, List<int> ListagemIdentificadorLacre)
@@ -856,7 +856,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (!new[] { "E", "G", "L", "R", "T", "U", "V" }.Contains(Grv.StatusOperacaoId))
             {
-                return MensagemViewHelper.SetBadRequest($"O Status atual deste GRV não permite a exclusão de Lacres. Status atual: {Grv.StatusOperacao.Descricao}");
+                return MensagemViewHelper.SetBadRequest($"O Status atual deste Processo não permite a exclusão de Lacres. Status atual: {Grv.StatusOperacao.Descricao}");
             }
 
             List<LacreModel> Lacres = await _context.Lacre
@@ -869,7 +869,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             {
                 List<string> erros = new()
                 {
-                    $"O(s) seguinte(s) Lacre(s) pertencem à outro GRV:"
+                    $"O(s) seguinte(s) Lacre(s) pertencem à outro Processo:"
                 };
 
                 foreach (LacreModel item in Lacres)
@@ -1522,7 +1522,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (GrvId <= 0 && string.IsNullOrWhiteSpace(NumeroFormularioGrv))
             {
-                erros.Add("Informe o Identificador do GRV ou o Número do Processo");
+                erros.Add("Informe o Identificador ou o Número do Processo");
             }
             else if (GrvId <= 0)
             {
@@ -1607,7 +1607,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
                 if (Grv == null)
                 {
-                    return MensagemViewHelper.SetUnauthorized("Usuário não possui acesso ao GRV ou o GRV não existe");
+                    return MensagemViewHelper.SetUnauthorized("Usuário não possui acesso ao Processo ou o Processo não existe");
                 }
             }
             else
@@ -1621,7 +1621,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
                 if (Grv == null)
                 {
-                    return MensagemViewHelper.SetUnauthorized("Usuário não possui acesso ao GRV ou o GRV não existe");
+                    return MensagemViewHelper.SetUnauthorized("Usuário não possui acesso ao Processo ou o Processo não existe");
                 }
             }
 
@@ -1976,7 +1976,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                     .AsNoTracking()
                     .FirstOrDefaultAsync(x => x.StatusOperacaoId == "B");
 
-                ResultView.AvisosInformativos.Add($"Esse GRV receberá o Status de Operação {StatusOperacao.Descricao} devido à configuração do Cliente");
+                ResultView.AvisosInformativos.Add($"Esse Processo receberá o Status de Operação {StatusOperacao.Descricao} devido à configuração do Cliente");
             }
 
             DateTime DataHoraPorDeposito = new DepositoService(_context)
@@ -2231,7 +2231,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (Grv != null)
             {
-                ResultView.AvisosImpeditivos.Add("GRV já cadastrado");
+                ResultView.AvisosImpeditivos.Add("Processo já cadastrado");
             }
 
             #endregion Consultas

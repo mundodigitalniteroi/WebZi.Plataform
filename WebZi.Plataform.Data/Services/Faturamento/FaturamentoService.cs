@@ -12,6 +12,7 @@ using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.ClienteDeposito;
 using WebZi.Plataform.Data.Services.Deposito;
+using WebZi.Plataform.Data.Services.Localizacao;
 using WebZi.Plataform.Data.Services.Sistema;
 using WebZi.Plataform.Data.Services.WebServices;
 using WebZi.Plataform.Domain.DTO.Faturamento;
@@ -350,7 +351,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
                 if (FaturamentoServicosGrvs?.Count == 0)
                 {
-                    throw new Exception("Não foi encontrado Serviço associado à este GRV");
+                    throw new Exception("Não foi encontrado Serviço associado à este Processo");
                 }
             }
             #endregion Selecionar os Serviços cadastrados no GRV
@@ -387,7 +388,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             // P = Fatura Paga.
 
             // Se existir ao menos 1 Fatura paga, não deve dar Desconto
-            if (!ParametrosCalculoFaturamento.FaturarSemGrv)
+            if (Atendimento != null && !ParametrosCalculoFaturamento.FaturarSemGrv)
             {
                 if (_context.Faturamento
                     .Where(x => x.AtendimentoId == Atendimento.AtendimentoId
@@ -403,7 +404,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             // Consulta da última Fatura para cancelar
             FaturamentoModel UltimoFaturamento = null;
 
-            if (!ParametrosCalculoFaturamento.FaturarSemGrv)
+            if (Atendimento != null && !ParametrosCalculoFaturamento.FaturarSemGrv)
             {
                 UltimoFaturamento = _context.Faturamento
                     .OrderByDescending(x => x.FaturamentoId)
@@ -706,7 +707,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             #endregion Composição do Faturamento
 
             #region Tributação
-            if (!ParametrosCalculoFaturamento.FaturarSemGrv && ValorFaturado > 0)
+            if (Atendimento != null && !ParametrosCalculoFaturamento.FaturarSemGrv && ValorFaturado > 0)
             {
                 List<CalculoTributacaoModel> Tributacoes = CalcularTributacao(_context,
                     ParametrosCalculoFaturamento,
@@ -734,7 +735,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             {
                 Faturamento = new()
                 {
-                    AtendimentoId = Atendimento.AtendimentoId,
+                    AtendimentoId = Atendimento != null ? Atendimento.AtendimentoId : 0,
 
                     UsuarioCadastroId = ParametrosCalculoFaturamento.UsuarioCadastroId,
 
@@ -1114,54 +1115,54 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             if (model.IdentificadorProcesso > 0)
             {
                 Grv = await _context.Grv
+                    .Include(x => x.Cliente)
+                    .ThenInclude(x => x.Endereco)
+                    .Include(x => x.Deposito)
+                    .ThenInclude(x => x.Endereco)
                     .Include(x => x.FaturamentoProduto)
                     .Include(x => x.TipoVeiculo)
                     .Include(x => x.Atendimento)
                     .AsNoTracking()
                     .FirstOrDefaultAsync(x => x.GrvId == model.IdentificadorProcesso);
-
-                if (Grv == null)
-                {
-                    ResultView.Mensagem = MensagemViewHelper.SetNewMessage(ResultView.Mensagem, MensagemPadraoEnum.NaoEncontradoGrv, MensagemTipoAvisoEnum.Impeditivo);
-
-                    return ResultView;
-                }
+            }
+            else
+            {
+                Grv = await _context.Grv
+                    .Include(x => x.Cliente)
+                    .ThenInclude(x => x.Endereco)
+                    .Include(x => x.Deposito)
+                    .ThenInclude(x => x.Endereco)
+                    .Include(x => x.FaturamentoProduto)
+                    .Include(x => x.TipoVeiculo)
+                    .Include(x => x.Atendimento)
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(x => !model.Placa.IsNullOrWhiteSpace() ? x.Placa == model.Placa : true
+                                           && !model.Chassi.IsNullOrWhiteSpace() ? x.Chassi == model.Chassi : true);
             }
 
             if (Grv == null)
             {
-                if (!model.CodigoProduto.IsNullOrWhiteSpace())
-                {
-                    ResultView.Produto = await GetProdutoAsync(model.CodigoProduto.ToUpperTrim());
+                ResultView.Mensagem = MensagemViewHelper.SetNewMessage(ResultView.Mensagem, MensagemPadraoEnum.NaoEncontradoGrv, MensagemTipoAvisoEnum.Impeditivo);
 
-                    if (ResultView.Produto == null)
-                    {
-                        ResultView.Mensagem = MensagemViewHelper.SetNewMessage(ResultView.Mensagem, MensagemPadraoEnum.NaoEncontradoFaturamentoProduto, MensagemTipoAvisoEnum.Impeditivo);
-                    }
-                }
-                else
-                {
-                    ResultView.Produto = await GetProdutoAsync("DEP");
-                }
+                return ResultView;
             }
-            else
+
+            if (new[] { "E", "3", "7" }.Contains(Grv.StatusOperacaoId))
             {
-                ResultView.Produto = _mapper.Map<FaturamentoProdutoDTO>(Grv.FaturamentoProduto);
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest($"O Status atual deste Processo não permite a execução da Simulação. " +
+                    $"Descrição do Status atual: {Grv.StatusOperacao.Descricao.ToUpper()}");
+
+                return ResultView;
             }
+
+            ResultView.Produto = _mapper.Map<SimulacaoProdutoDTO>(Grv.FaturamentoProduto);
 
             ResultView.Mensagem = await new ClienteDepositoService(_context)
                 .ValidateClienteDepositoAsync(model.IdentificadorCliente, model.IdentificadorDeposito);
 
             DetranRioService DetranRioService = new(_context, _mapper);
 
-            if (Grv != null)
-            {
-                ResultView.Veiculo = Grv.Placa.IsPlaca() ? await DetranRioService.GetViewByPlacaAsync(Grv.Placa) : await DetranRioService.GetViewByChassiAsync(Grv.Chassi);
-            }
-            else
-            {
-                ResultView.Veiculo = model.Placa.IsPlaca() ? await DetranRioService.GetViewByPlacaAsync(model.Placa) : await DetranRioService.GetViewByChassiAsync(model.Chassi);
-            }
+            ResultView.Veiculo = Grv.Placa.IsPlaca() ? await DetranRioService.GetViewByPlacaAsync(Grv.Placa) : await DetranRioService.GetViewByChassiAsync(Grv.Chassi);
 
             if (ResultView.Veiculo.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
             {
@@ -1186,13 +1187,13 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             CalculoFaturamentoParametroModel ParametrosCalculoFaturamento = new()
             {
-                DataHoraInicialParaCalculo = model.DataHoraInicialParaCalculo ?? DataHoraPorDeposito,
+                DataHoraInicialParaCalculo = model.DataHoraInicialParaCalculo.HasValue ? model.DataHoraInicialParaCalculo.Value : Grv.DataHoraGuarda.Value,
 
                 DataHoraFinalParaCalculo = model.DataHoraFinalParaCalculo ?? DataHoraPorDeposito,
 
                 DataHoraPorDeposito = DataHoraPorDeposito,
 
-                FaturarSemGrv = model.IdentificadorProcesso <= 0,
+                FaturarSemGrv = false,
 
                 IsSimulacao = true,
 
@@ -1214,15 +1215,16 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     .AsNoTracking()
                     .FirstOrDefaultAsync(x => x.ClienteId == model.IdentificadorCliente && x.DepositoId == model.IdentificadorDeposito)
             };
+
             #endregion Aplicação das Configurações
 
             CalculoDiariasModel CalculoDiarias = new();
 
             FaturamentoModel Faturamento = Faturar(ParametrosCalculoFaturamento, out CalculoDiarias);
 
-            ResultView.Faturamento = _mapper.Map<FaturamentoDTO>(Faturamento);
+            ResultView.Faturamento = _mapper.Map<SimulacaoFaturamentoDTO>(Faturamento);
 
-            ResultView.Faturamento.ListagemFaturamentoServico = _mapper.Map<List<FaturamentoComposicaoDTO>>(Faturamento.ListagemFaturamentoComposicao);
+            ResultView.Faturamento.ListagemFaturamentoServico = _mapper.Map<List<SimulacaoFaturamentoComposicaoDTO>>(Faturamento.ListagemFaturamentoComposicao);
 
             FaturamentoServicoTipoVeiculoModel FaturamentoServicoTipoVeiculo = new();
 
@@ -1245,20 +1247,17 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 item.DataVigenciaFinal = FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.DataVigenciaFinal;
             }
 
-            if (Grv != null)
+            ResultView.IdentificadorProcesso = Grv.GrvId;
+
+            ResultView.NumeroProcesso = Grv.NumeroFormularioGrv;
+
+            ResultView.DataHoraRemocao = Grv.DataHoraRemocao;
+
+            ResultView.DataHoraGuarda = Grv.DataHoraGuarda;
+
+            if (Grv.Atendimento != null)
             {
-                ResultView.IdentificadorProcesso = Grv.GrvId;
-
-                ResultView.NumeroProcesso = Grv.NumeroFormularioGrv;
-
-                ResultView.DataHoraRemocao = Grv.DataHoraRemocao;
-
-                ResultView.DataHoraGuarda = Grv.DataHoraGuarda;
-
-                if (Grv.Atendimento != null)
-                {
-                    ResultView.IdentificadorAtendimento = Grv.Atendimento.AtendimentoId;
-                }
+                ResultView.IdentificadorAtendimento = Grv.Atendimento.AtendimentoId;
             }
 
             ResultView.DataHoraInicialParaCalculo = CalculoDiarias.DataHoraInicialParaCalculo;
@@ -1270,6 +1269,24 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             ResultView.Mensagem = MensagemViewHelper.SetOk();
 
             ResultView.DataHoraSimulacao = DateTime.Now;
+
+            EnderecoService Endereco = new();
+
+            ResultView.Cliente = new()
+            {
+                Nome = Grv.Cliente.Nome,
+
+                Endereco = Endereco.FormatarEndereco(Grv.Cliente.Endereco, Grv.Cliente.NumeroEndereco, Grv.Cliente.ComplementoEndereco)
+            };
+
+            ResultView.Deposito = new()
+            {
+                Nome = Grv.Deposito.Nome,
+
+                Telefone = Grv.Deposito.TelefoneMob,
+
+                Endereco = Endereco.FormatarEndereco(Grv.Deposito.Endereco, Grv.Deposito.NumeroEndereco, Grv.Deposito.ComplementoEndereco)
+            };
 
             return ResultView;
         }

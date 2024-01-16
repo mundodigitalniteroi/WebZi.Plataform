@@ -167,7 +167,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
                 .OrderByDescending(x => x.DetranVeiculoId)
                 .FirstOrDefaultAsync(x => !Placa.IsNullOrWhiteSpace() ? x.Placa == Placa : x.Chassi == Chassi);
 
-            if (DetranRioVeiculoBD.DataCadastro != DateTime.Now.Date && DetranRioVeiculoWS != null)
+            if (DetranRioVeiculoBD.DataCadastro != DateTime.Now.Date && DetranRioVeiculoBD.DataAlteracao != DateTime.Now.Date && DetranRioVeiculoWS != null)
             {
                 DetranRioVeiculoBD = await UpdateAsync(DetranRioVeiculoBD, DetranRioVeiculoWS);
             }
@@ -379,7 +379,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
             {
                 persistir = true;
             }
-            else if (DetranRioVeiculoBD.CodigoCategoria != DetranRioVeiculoWS.CodigoCategoria)
+            else if (DetranRioVeiculoBD.CodigoCategoria.Trim() != DetranRioVeiculoWS.CodigoCategoria)
             {
                 persistir = true;
             }
@@ -422,15 +422,45 @@ namespace WebZi.Plataform.Data.Services.WebServices
             }
 
             DetranRioVeiculoModel DetranRioVeiculo = await _context.DetranRioVeiculo
-                .Include(x => x.ListagemDetranRioVeiculoRestricao)
-                .ThenInclude(x => x.DetranRioVeiculoOrigemRestricao)
                 .FirstOrDefaultAsync(x => !DetranRioVeiculoWS.Placa.IsNullOrWhiteSpace() ? x.Placa == DetranRioVeiculoWS.Placa : x.Chassi == DetranRioVeiculoWS.Chassi);
 
-            DetranRioVeiculo = _mapper.Map<DetranRioVeiculoModel>(DetranRioVeiculoWS);
+            DetranRioVeiculo.AnoFabricacao = DetranRioVeiculoWS.AnoFabricacao;
 
-            DetranRioVeiculo.DetranVeiculoId = DetranRioVeiculoBD.DetranVeiculoId;
+            DetranRioVeiculo.AnoModelo = DetranRioVeiculoWS.AnoModelo;
 
-            DetranRioVeiculo.DataCadastro = DetranRioVeiculoBD.DataCadastro;
+            DetranRioVeiculo.AnoUltimaLicenca = DetranRioVeiculoWS.AnoUltimaLicenca;
+
+            DetranRioVeiculo.CapacidadeCarga = DetranRioVeiculoWS.CapacidadeCarga;
+
+            DetranRioVeiculo.CapacidadePassageiros = DetranRioVeiculoWS.CapacidadePassageiros;
+
+            DetranRioVeiculo.Chassi = DetranRioVeiculoWS.Chassi;
+
+            DetranRioVeiculo.ChassiRemarcado = DetranRioVeiculoWS.ChassiRemarcado;
+
+            DetranRioVeiculo.Classificacao = DetranRioVeiculoWS.Classificacao;
+
+            DetranRioVeiculo.CodigoCategoria = DetranRioVeiculoWS.CodigoCategoria;
+
+            DetranRioVeiculo.CorId = DetranRioVeiculoWS.CorId;
+
+            DetranRioVeiculo.DescricaoCategoria = DetranRioVeiculoWS.DescricaoCategoria;
+
+            DetranRioVeiculo.DescricaoTipo = DetranRioVeiculoWS.DescricaoTipo;
+
+            DetranRioVeiculo.InformacaoRoubo = DetranRioVeiculoWS.InformacaoRoubo;
+
+            DetranRioVeiculo.MarcaModeloId = DetranRioVeiculoWS.MarcaModeloId;
+
+            DetranRioVeiculo.PesoBrutoTotal = DetranRioVeiculoWS.PesoBrutoTotal;
+
+            DetranRioVeiculo.Placa = DetranRioVeiculoWS.Placa;
+
+            DetranRioVeiculo.Renavam = DetranRioVeiculoWS.Renavam;
+
+            DetranRioVeiculo.RestricaoEstelionato = DetranRioVeiculoWS.RestricaoEstelionato;
+
+            DetranRioVeiculo.Uf = DetranRioVeiculoWS.Uf;
 
             DetranRioVeiculo.FlagRegistroNormalizado = "S";
 
@@ -438,7 +468,14 @@ namespace WebZi.Plataform.Data.Services.WebServices
 
             await _context.SaveChangesAsync();
 
-            return DetranRioVeiculoWS;
+            return await _context.DetranRioVeiculo
+                .Include(x => x.Cor)
+                .Include(x => x.MarcaModelo)
+                .Include(x => x.ListagemDetranRioVeiculoRestricao)
+                .ThenInclude(x => x.DetranRioVeiculoOrigemRestricao)
+                .AsNoTracking()
+                .OrderByDescending(x => x.DetranVeiculoId)
+                .FirstOrDefaultAsync(x => x.DetranVeiculoId == DetranRioVeiculo.DetranVeiculoId);
         }
 
         private async Task<DetranRioVeiculoDTO> SetValuesToViewModelAsync(DetranRioVeiculoModel DetranRioVeiculoBD)

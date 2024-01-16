@@ -68,14 +68,14 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.GrvId == AtendimentoCadastro.IdentificadorProcesso);
 
-            if (!new[] { "B", "D", "V", "L", "E", "1", "2", "3", "4", "7" }.Contains(Grv.StatusOperacao.StatusOperacaoId))
+            if (!new[] { "B", "D", "V", "L", "E", "1", "2", "3", "4", "7" }.Contains(Grv.StatusOperacaoId))
             {
-                return MensagemViewHelper.SetBadRequest($"O Status atual deste GRV não permite o cadastro do Atendimento. " +
+                return MensagemViewHelper.SetBadRequest($"O Status atual deste Processo não permite o cadastro do Atendimento. " +
                     $"Descrição do Status atual: {Grv.StatusOperacao.Descricao.ToUpper()}");
             }
             else if (Grv.Atendimento != null)
             {
-                return MensagemViewHelper.SetBadRequest($"Este GRV já possui um Atendimento cadastrado. Identificador do Atendimento: {Grv.Atendimento.AtendimentoId}");
+                return MensagemViewHelper.SetBadRequest($"Este Processo já possui um Atendimento cadastrado. Identificador do Atendimento: {Grv.Atendimento.AtendimentoId}");
             }
             #endregion Consultas
 
@@ -408,7 +408,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             // TODO: Verificar o Status para confirmação do Pagamento
             if (grv.StatusOperacao.StatusOperacaoId != "V" && grv.StatusOperacao.StatusOperacaoId != "1")
             {
-                mensagem.AvisosImpeditivos.Add($"Status do GRV não está apto para o cadastro do Atendimento: {grv.StatusOperacao.Descricao.ToUpperTrim()}");
+                mensagem.AvisosImpeditivos.Add($"Status do Processo não está apto para o cadastro do Atendimento: {grv.StatusOperacao.Descricao.ToUpperTrim()}");
 
                 return mensagem;
             }

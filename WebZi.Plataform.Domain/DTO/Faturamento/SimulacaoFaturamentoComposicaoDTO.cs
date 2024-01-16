@@ -1,14 +1,8 @@
 ﻿namespace WebZi.Plataform.Domain.DTO.Faturamento
 {
-    public class FaturamentoComposicaoDTO
+    public class SimulacaoFaturamentoComposicaoDTO
     {
-        public int IdentificadorFaturamentoServico { get; set; }
-
         public int? IdentificadorFaturamentoServicoTipoVeiculo { get; set; }
-
-        public int? IdentificadorUsuarioDesconto { get; set; }
-
-        public int? IdentificadorUsuarioAlteracaoQuantidade { get; set; }
 
         /// <summary>
         /// Tipo da Cobrança:
@@ -40,25 +34,6 @@
 
         public decimal ValorTipoServico { get; set; }
 
-        public decimal ValorServico { get; set; }
-
         public decimal ValorFaturado { get; set; }
-
-        /// <summary>
-        /// Tipo do Desconto:
-        /// P = Porcentagem;
-        /// V = Valor.
-        /// </summary>
-        public string TipoDesconto { get; set; }
-
-        public int? QuantidadeDesconto { get; set; }
-
-        public decimal? ValorDesconto { get; set; }
-
-        public string ObservacaoDesconto { get; set; }
-
-        public decimal? QuantidadeAlterada { get; set; }
-
-        public string ObservacaoQuantidadeAlterada { get; set; }
     }
 }

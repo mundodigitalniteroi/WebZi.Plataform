@@ -387,7 +387,7 @@ namespace WebZi.Plataform.Data.Services.GGV
 
             if (!new[] { "V", "L", "U", "T", "R", "E", "B", "D", "1", "2", "3", "4" }.Contains(Grv.StatusOperacao.StatusOperacaoId))
             {
-                return MensagemViewHelper.SetBadRequest($"O Status atual deste GRV não permite o envio de Fotos. Status atual: {Grv.StatusOperacao.Descricao}");
+                return MensagemViewHelper.SetBadRequest($"O Status atual deste Processo não permite o envio de Fotos. Status atual: {Grv.StatusOperacao.Descricao}");
             }
 
             List<BucketFileModel> Files = new();
@@ -429,7 +429,7 @@ namespace WebZi.Plataform.Data.Services.GGV
 
             if (!new[] { "E", "B", "D", "G", "L", "R", "T", "U", "V" }.Contains(Grv.StatusOperacaoId))
             {
-                return MensagemViewHelper.SetBadRequest($"O Status atual deste GRV não permite a exclusão de Fotos. Status atual: {Grv.StatusOperacao.Descricao}");
+                return MensagemViewHelper.SetBadRequest($"O Status atual deste Processo não permite a exclusão de Fotos. Status atual: {Grv.StatusOperacao.Descricao}");
             }
 
             List<BucketArquivoModel> BucketArquivos = await _context.BucketArquivo
@@ -444,7 +444,7 @@ namespace WebZi.Plataform.Data.Services.GGV
             {
                 List<string> erros = new()
                 {
-                    $"A(s) seguinte(s) Fotos não pertencem ao GRV {GrvId}:"
+                    $"A(s) seguinte(s) Fotos não pertencem ao Processo {GrvId}:"
                 };
 
                 foreach (BucketArquivoModel BucketArquivo in BucketArquivos)
@@ -540,7 +540,7 @@ namespace WebZi.Plataform.Data.Services.GGV
 
             if (Grv.StatusOperacao.StatusOperacaoId != "G" && Grv.StatusOperacao.StatusOperacaoId != "V")
             {
-                erros.Add($"O Status do GRV não está apto para o cadastro do GGV. " +
+                erros.Add($"O Status do Processo não está apto para o cadastro do GGV. " +
                     $"Status atual: {Grv.StatusOperacao.Descricao.ToUpper()}");
             }
 
@@ -801,7 +801,7 @@ namespace WebZi.Plataform.Data.Services.GGV
 
                                 if (FaturamentoServicoGrv != null)
                                 {
-                                    erros.Add($"O Serviço {FaturamentoServicoGrv.FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.Descricao} já está cadastrado para este GRV");
+                                    erros.Add($"O Serviço {FaturamentoServicoGrv.FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.Descricao} já está cadastrado para este Processo");
                                 }
                             }
                             else

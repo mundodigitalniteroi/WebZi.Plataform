@@ -4,6 +4,7 @@ namespace WebZi.Plataform.Domain.ViewModel.Faturamento
 {
     public class SimulacaoParameters
     {
+        [Required(ErrorMessage = "Propriedade obrigatória")]
         public string CodigoProduto { get; set; }
 
         public int IdentificadorProcesso { get; set; }

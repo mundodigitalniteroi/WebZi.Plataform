@@ -45,7 +45,7 @@ namespace WebZi.Plataform.Data.Services.Leilao
                     LeilaoLote.Leilao.LeilaoStatus.Ativo != "I" &&
                     LeilaoLote.LeilaoLoteStatus.ValidaLote == "S")
                 {
-                    mensagem.AvisosImpeditivos.Add($"Este GRV está associado ao Leilão {LeilaoLote.Leilao.Descricao}, Data {dataLeilao:dd/MM/yyyy}, Lote {LeilaoLote.NumeroLote}");
+                    mensagem.AvisosImpeditivos.Add($"Este Processo está associado ao Leilão {LeilaoLote.Leilao.Descricao}, Data {dataLeilao:dd/MM/yyyy}, Lote {LeilaoLote.NumeroLote}");
                     mensagem.AvisosImpeditivos.Add("CANCELAR");
                 }
                 else if (LeilaoLote.Leilao.LeilaoStatus.Ativo != "I"
@@ -53,13 +53,13 @@ namespace WebZi.Plataform.Data.Services.Leilao
                 {
                     if (new[] { "V", "1" }.Contains(StatusOperacaoId))
                     {
-                        mensagem.AvisosImpeditivos.Add($"Este GRV está associado ao Leilão {LeilaoLote.Leilao.Descricao}, Data {dataLeilao:dd/MM/yyyy}, Lote {LeilaoLote.NumeroLote}, o veículo não pode ser atendido");
+                        mensagem.AvisosImpeditivos.Add($"Este Processo está associado ao Leilão {LeilaoLote.Leilao.Descricao}, Data {dataLeilao:dd/MM/yyyy}, Lote {LeilaoLote.NumeroLote}, o veículo não pode ser atendido");
                         mensagem.AvisosImpeditivos.Add("CANCELAR_E_ENVIAR_EMAIL");
                     }
                     else if (new[] { "L", "T", "2", "4" }.Contains(StatusOperacaoId)
                          && (dataLeilao.Date - DataHoraPorDeposito.Date).TotalDays <= 1)
                     {
-                        mensagem.AvisosImpeditivos.Add($"Este GRV está associado ao Leilão {LeilaoLote.Leilao.Descricao}, Data {dataLeilao:dd/MM/yyyy}, Lote {LeilaoLote.NumeroLote}, para dar prosseguimento a esta Liberação é necessário acionar a equipe do Leilões");
+                        mensagem.AvisosImpeditivos.Add($"Este Processo está associado ao Leilão {LeilaoLote.Leilao.Descricao}, Data {dataLeilao:dd/MM/yyyy}, Lote {LeilaoLote.NumeroLote}, para dar prosseguimento a esta Liberação é necessário acionar a equipe do Leilões");
                         mensagem.AvisosImpeditivos.Add("CANCELAR");
                     }
                 }

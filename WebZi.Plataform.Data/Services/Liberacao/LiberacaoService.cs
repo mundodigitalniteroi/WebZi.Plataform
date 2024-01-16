@@ -66,7 +66,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
             if (Grv.StatusOperacaoId is not "R" and not "T" and not "E")
             {
                 ResultView.Mensagem = MensagemViewHelper
-                    .SetBadRequest($"O Status atual deste GRV não permite a geração do Documento. Status atual: {Grv.StatusOperacao.Descricao}");
+                    .SetBadRequest($"O Status atual deste Processo não permite a geração do Documento. Status atual: {Grv.StatusOperacao.Descricao}");
 
                 return ResultView;
             }
@@ -75,7 +75,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                 if (DateTime.Now.Date > Grv.Liberacao.DataCadastro.Date)
                 {
                     ResultView.Mensagem.Alertas
-                        .Add($"Este GRV foi entregue em {Grv.Liberacao.DataCadastro:dd/MM/yyyy}, as informações impressas no Documento estão desatualizadas");
+                        .Add($"Este Processo foi entregue em {Grv.Liberacao.DataCadastro:dd/MM/yyyy}, as informações impressas no Documento estão desatualizadas");
                 }
             }
 
@@ -105,7 +105,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
 
             ResultView.DadosCodigoAutorizacao = "Link para validação";
 
-            ResultView.DadosProcessoGrv = "Dados do Processo GRV: " + GuiaPagamentoReboqueEstadia.NumeroFormularioGrv + " - " + "Depósito: " + GuiaPagamentoReboqueEstadia.DepositoNome;
+            ResultView.DadosProcessoGrv = "Dados do Processo Processo: " + GuiaPagamentoReboqueEstadia.NumeroFormularioGrv + " - " + "Depósito: " + GuiaPagamentoReboqueEstadia.DepositoNome;
 
             ResultView.DadosTipoProcesso = "REGISTRO DE APREENSÃO";
 
@@ -277,7 +277,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
             {
                 if (DateTime.Now.Date > Grv.Liberacao.DataCadastro.Date)
                 {
-                    ResultView.Mensagem.Alertas.Add($"Este GRV foi entregue em {Grv.Liberacao.DataCadastro:dd/MM/yyyy}");
+                    ResultView.Mensagem.Alertas.Add($"Este Processo foi entregue em {Grv.Liberacao.DataCadastro:dd/MM/yyyy}");
                 }
             }
 

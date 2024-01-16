@@ -17,6 +17,8 @@ namespace WebZi.Plataform.Data.Services.Localizacao
         private readonly AppDbContext _context;
         private readonly IMapper _mapper;
 
+        public EnderecoService() { }
+
         public EnderecoService(AppDbContext context, IMapper mapper)
         {
             _context = context;
