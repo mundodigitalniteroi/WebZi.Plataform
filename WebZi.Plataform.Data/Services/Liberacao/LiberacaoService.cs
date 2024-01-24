@@ -60,6 +60,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                 .Include(x => x.StatusOperacao)
                 .Include(x => x.Cliente)
                 .Include(x => x.Liberacao)
+                .Include(x => x.ListagemLacre)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.GrvId == GrvId);
 
@@ -98,6 +99,10 @@ namespace WebZi.Plataform.Data.Services.Liberacao
 
                 return ResultView;
             }
+
+            ResultView.IdentificadorProcesso = Grv.GrvId;
+
+            ResultView.NumeroProcesso = Grv.NumeroFormularioGrv;
 
             ResultView.ClienteNome = GuiaPagamentoReboqueEstadia.ClienteNome;
 
@@ -203,6 +208,13 @@ namespace WebZi.Plataform.Data.Services.Liberacao
             string decrypted = CryptographyHelper.DecryptString(key, encrypted);
 
             ResultView.QRCode = QRCodeHelper.CreateImageAsByteArray(encrypted, "PNG");
+
+            if (Grv.ListagemLacre?.Count > 0)
+            {
+                ResultView.ListagemLacre = new();
+
+                ResultView.ListagemLacre.AddRange(Grv.ListagemLacre.Select(x => x.Lacre).ToList());
+            }
 
             ResultView.Mensagem = MensagemViewHelper.SetOk(ResultView.Mensagem, "Documento gerado com sucesso");
 

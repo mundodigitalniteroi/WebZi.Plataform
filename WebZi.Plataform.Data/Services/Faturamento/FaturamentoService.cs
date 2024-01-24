@@ -345,7 +345,9 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 FaturamentoServicosGrvs = _context.ViewFaturamentoServicoGrv
                     .Where(x => x.GrvId == ParametrosCalculoFaturamento.GrvId &&
                                 x.FaturamentoProdutoId == ParametrosCalculoFaturamento.FaturamentoProdutoId &&
-                                x.FlagTributacao == "N")
+                                x.FlagTributacao == "N" &&
+                                (x.FlagRealizarCobranca == null || x.FlagRealizarCobranca == "S") &&
+                                (x.FlagCobrarGGV == "N" || (x.FlagCobrarGGV == "S" && x.Valor > 0)))
                     .AsNoTracking()
                     .ToList();
 
@@ -361,7 +363,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 .Where(x => x.ClienteId == ParametrosCalculoFaturamento.ClienteDeposito.ClienteId &&
                             x.DepositoId == ParametrosCalculoFaturamento.ClienteDeposito.DepositoId &&
                             x.TipoVeiculoId == ParametrosCalculoFaturamento.TipoVeiculoId &&
-                            x.FaturamentoProdutoId == ParametrosCalculoFaturamento.FaturamentoProdutoId)
+                            x.FaturamentoProdutoId == ParametrosCalculoFaturamento.FaturamentoProdutoId &&
+                            x.DataVigenciaFinal == null)
                 .AsNoTracking()
                 .ToList();
 
@@ -1068,7 +1071,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 {
                     erros.Add("Placa inválida");
                 }
-                else if (model.Placa.IsNullOrWhiteSpace() && !model.Placa.IsChassi())
+                else if (model.Placa.IsNullOrWhiteSpace() && (model.Chassi.Length < 6 || model.Chassi.Length > 24 || (model.Chassi.Length == 17 && !model.Chassi.IsChassi())))
                 {
                     erros.Add("Chassi inválido");
                 }
@@ -1115,10 +1118,6 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             if (model.IdentificadorProcesso > 0)
             {
                 Grv = await _context.Grv
-                    .Include(x => x.Cliente)
-                    .ThenInclude(x => x.Endereco)
-                    .Include(x => x.Deposito)
-                    .ThenInclude(x => x.Endereco)
                     .Include(x => x.FaturamentoProduto)
                     .Include(x => x.TipoVeiculo)
                     .Include(x => x.Atendimento)
@@ -1128,10 +1127,6 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             else
             {
                 Grv = await _context.Grv
-                    .Include(x => x.Cliente)
-                    .ThenInclude(x => x.Endereco)
-                    .Include(x => x.Deposito)
-                    .ThenInclude(x => x.Endereco)
                     .Include(x => x.FaturamentoProduto)
                     .Include(x => x.TipoVeiculo)
                     .Include(x => x.Atendimento)
@@ -1162,15 +1157,18 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             DetranRioService DetranRioService = new(_context, _mapper);
 
-            ResultView.Veiculo = Grv.Placa.IsPlaca() ? await DetranRioService.GetViewByPlacaAsync(Grv.Placa) : await DetranRioService.GetViewByChassiAsync(Grv.Chassi);
+            if (!Grv.Placa.IsNullOrWhiteSpace() || !Grv.Chassi.IsNullOrWhiteSpace())
+            {
+                ResultView.Veiculo = Grv.Placa.IsPlaca() ? await DetranRioService.GetViewByPlacaAsync(Grv.Placa) : await DetranRioService.GetViewByChassiAsync(Grv.Chassi);
 
-            if (ResultView.Veiculo.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
-            {
-                ResultView.Mensagem = MensagemViewHelper.SetNewMessages(ResultView.Mensagem, ResultView.Veiculo.Mensagem);
-            }
-            else if (ResultView.Veiculo.TipoVeiculo == null)
-            {
-                ResultView.Mensagem = MensagemViewHelper.SetNewMessage(ResultView.Mensagem, "Tipo do Veículo não retornado pelo Serviço do Departamento Estadual de Trânsito", MensagemTipoAvisoEnum.Impeditivo);
+                if (ResultView.Veiculo.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+                {
+                    // ResultView.Mensagem = MensagemViewHelper.SetNewMessages(ResultView.Mensagem, ResultView.Veiculo.Mensagem);
+                }
+                else if (ResultView.Veiculo.TipoVeiculo == null)
+                {
+                    ResultView.Mensagem = MensagemViewHelper.SetNewMessage(ResultView.Mensagem, "Tipo do Veículo não retornado pelo Serviço do Departamento Estadual de Trânsito", MensagemTipoAvisoEnum.Alerta);
+                }
             }
 
             if (ResultView.Mensagem.AvisosImpeditivos.Count + ResultView.Mensagem.Erros.Count > 0)
@@ -1187,7 +1185,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             CalculoFaturamentoParametroModel ParametrosCalculoFaturamento = new()
             {
-                DataHoraInicialParaCalculo = model.DataHoraInicialParaCalculo.HasValue ? model.DataHoraInicialParaCalculo.Value : Grv.DataHoraGuarda.Value,
+                DataHoraInicialParaCalculo = model.DataHoraInicialParaCalculo ?? Grv.DataHoraGuarda.Value,
 
                 DataHoraFinalParaCalculo = model.DataHoraFinalParaCalculo ?? DataHoraPorDeposito,
 
@@ -1203,19 +1201,20 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
                 FaturamentoProdutoId = ResultView.Produto.CodigoProduto,
 
-                GrvId = Grv != null ? Grv.GrvId : 0,
+                GrvId = Grv.GrvId,
 
-                NumeroFormularioGrv = Grv != null ? Grv.NumeroFormularioGrv : string.Empty,
+                NumeroFormularioGrv = Grv.NumeroFormularioGrv,
 
-                TipoVeiculoId = ResultView.Veiculo.TipoVeiculo.IdentificadorTipoVeiculo,
+                TipoVeiculoId = Grv.TipoVeiculoId,
 
                 ClienteDeposito = await _context.ClienteDeposito
                     .Include(x => x.Cliente)
+                    .ThenInclude(x => x.Endereco)
                     .Include(x => x.Deposito)
+                    .ThenInclude(x => x.Endereco)
                     .AsNoTracking()
                     .FirstOrDefaultAsync(x => x.ClienteId == model.IdentificadorCliente && x.DepositoId == model.IdentificadorDeposito)
             };
-
             #endregion Aplicação das Configurações
 
             CalculoDiariasModel CalculoDiarias = new();
@@ -1255,18 +1254,13 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             ResultView.DataHoraGuarda = Grv.DataHoraGuarda;
 
-            if (Grv.Atendimento != null)
-            {
-                ResultView.IdentificadorAtendimento = Grv.Atendimento.AtendimentoId;
-            }
-
             ResultView.DataHoraInicialParaCalculo = CalculoDiarias.DataHoraInicialParaCalculo;
 
             ResultView.DataHoraFinalParaCalculo = CalculoDiarias.DataHoraFinalParaCalculo.Value;
 
             ResultView.QuantidadeDiarias = CalculoDiarias.Diarias;
 
-            ResultView.Mensagem = MensagemViewHelper.SetOk();
+            ResultView.IdentificadorAtendimento = Grv.Atendimento != null ? Grv.Atendimento.AtendimentoId : 0;
 
             ResultView.DataHoraSimulacao = DateTime.Now;
 
@@ -1276,7 +1270,9 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             {
                 Nome = Grv.Cliente.Nome,
 
-                Endereco = Endereco.FormatarEndereco(Grv.Cliente.Endereco, Grv.Cliente.NumeroEndereco, Grv.Cliente.ComplementoEndereco)
+                Endereco = Endereco.FormatarEndereco(ParametrosCalculoFaturamento.ClienteDeposito.Cliente.Endereco,
+                    ParametrosCalculoFaturamento.ClienteDeposito.Cliente.NumeroEndereco,
+                    ParametrosCalculoFaturamento.ClienteDeposito.Cliente.ComplementoEndereco)
             };
 
             ResultView.Deposito = new()
@@ -1285,8 +1281,12 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
                 Telefone = Grv.Deposito.TelefoneMob,
 
-                Endereco = Endereco.FormatarEndereco(Grv.Deposito.Endereco, Grv.Deposito.NumeroEndereco, Grv.Deposito.ComplementoEndereco)
+                Endereco = Endereco.FormatarEndereco(ParametrosCalculoFaturamento.ClienteDeposito.Deposito.Endereco,
+                    ParametrosCalculoFaturamento.ClienteDeposito.Deposito.NumeroEndereco,
+                    ParametrosCalculoFaturamento.ClienteDeposito.Deposito.ComplementoEndereco)
             };
+
+            ResultView.Mensagem = MensagemViewHelper.SetOk();
 
             return ResultView;
         }

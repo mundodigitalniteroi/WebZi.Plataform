@@ -1,5 +1,4 @@
-﻿using WebZi.Plataform.Domain.Models.Atendimento;
-using WebZi.Plataform.Domain.Models.ClienteDeposito;
+﻿using WebZi.Plataform.Domain.Models.ClienteDeposito;
 
 namespace WebZi.Plataform.Domain.Models.Faturamento
 {
@@ -47,11 +46,7 @@ namespace WebZi.Plataform.Domain.Models.Faturamento
 
         public bool FaturamentoAdicional { get; set; }
 
-        // public AtendimentoModel Atendimento { get; set; }
-
         public ClienteDepositoModel ClienteDeposito { get; set; }
-
-        // public FaturamentoModel Faturamento { get; set; }
 
         public List<CalculoFaturamentoDescontoModel> FaturamentoDescontos { get; set; }
 

@@ -6,6 +6,10 @@ namespace WebZi.Plataform.Domain.DTO.Report
     {
         public MensagemDTO Mensagem { get; set; } = new();
 
+        public int IdentificadorProcesso { get; set; }
+
+        public string NumeroProcesso { get; set; }
+
         public string ClienteNome { get; set; }
 
         public string ClienteEndereco { get; set; }
@@ -61,6 +65,8 @@ namespace WebZi.Plataform.Domain.DTO.Report
         public string AtendimentoFormaLiberacaoCpfPlaca { get; set; }
 
         public string LabelAtendimentoFormaLiberacaoCpfPlaca { get; set; }
+
+        public List<string> ListagemLacre { get; set; }
 
         public byte[] Logo { get; set; }
 

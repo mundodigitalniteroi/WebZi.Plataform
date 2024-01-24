@@ -1379,11 +1379,6 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 {
                     erros.Add("Placa inválida");
                 }
-
-                if (!string.IsNullOrWhiteSpace(GrvPesquisa.Chassi) && !GrvPesquisa.Chassi.IsChassi())
-                {
-                    erros.Add("Chassi inválido");
-                }
             }
 
             if (GrvPesquisa.IdentificadorUsuario <= 0)
@@ -1779,7 +1774,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 {
                     erros.Add("Informe o Chassi");
                 }
-                else if (!GrvPersistencia.Chassi.IsChassi())
+                else if (GrvPersistencia.Chassi.Length < 6 || GrvPersistencia.Chassi.Length > 17 || (GrvPersistencia.Chassi.Length == 17 && !GrvPersistencia.Chassi.IsChassi()))
                 {
                     erros.Add("Chassi inválido");
                 }
@@ -1799,7 +1794,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 {
                     erros.Add("Informe o Chassi");
                 }
-                else if (!GrvPersistencia.Chassi.IsChassi())
+                else if (GrvPersistencia.Chassi.Length < 6 || GrvPersistencia.Chassi.Length > 24 || (GrvPersistencia.Chassi.Length == 17 && !GrvPersistencia.Chassi.IsChassi()))
                 {
                     erros.Add("Chassi inválido");
                 }
@@ -1813,9 +1808,12 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 }
                 else
                 {
-                    if (!string.IsNullOrWhiteSpace(GrvPersistencia.Chassi) && !GrvPersistencia.Chassi.IsChassi())
+                    if (!string.IsNullOrWhiteSpace(GrvPersistencia.Chassi))
                     {
-                        erros.Add("Chassi inválido");
+                        if (GrvPersistencia.Chassi.Length < 6 || GrvPersistencia.Chassi.Length > 24 || (GrvPersistencia.Chassi.Length == 17 && !GrvPersistencia.Chassi.IsChassi()))
+                        {
+                            erros.Add("Chassi inválido");
+                        }
                     }
                 }
             }

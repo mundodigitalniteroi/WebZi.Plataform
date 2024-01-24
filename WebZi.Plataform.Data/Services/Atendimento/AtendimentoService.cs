@@ -521,7 +521,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
                 Atendimento.NotaFiscalTelefone = AtendimentoInput.NotaFiscalTelefone.Replace("-", "");
 
-                Atendimento.NotaFiscalEmail = AtendimentoInput.NotaFiscalEmail.ToLower();
+                Atendimento.NotaFiscalEmail = AtendimentoInput.NotaFiscalEmail.ToLowerTrim();
 
                 Atendimento.NotaFiscalInscricaoMunicipal = AtendimentoInput.NotaFiscalInscricaoMunicipal.ToUpperTrim();
             }
@@ -610,13 +610,13 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.ClienteId == Grv.ClienteId && x.DepositoId == Grv.DepositoId);
 
+            ClienteDeposito.Cliente = Grv.Cliente;
+
             // Quando no cadastro do Cliente foi configurado o Tipo de Cobrança, este cadastro é o que será usado para o cadastro da Fatura.
             TipoMeioCobrancaModel TipoMeioCobranca = await _context.TipoMeioCobranca
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.TipoMeioCobrancaId == 
-                    ((ClienteDeposito.Cliente.TipoMeioCobrancaId.HasValue && ClienteDeposito.Cliente.TipoMeioCobrancaId.Value > 0) ? 
-                    ClienteDeposito.Cliente.TipoMeioCobrancaId.Value : 
-                    TipoMeioCobrancaId));
+                    (Grv.Cliente.TipoMeioCobrancaId.HasValue && Grv.Cliente.TipoMeioCobrancaId.Value > 0 ? Grv.Cliente.TipoMeioCobrancaId.Value : TipoMeioCobrancaId));
 
             CalculoFaturamentoParametroModel ParametrosCalculoFaturamento = new()
             {
