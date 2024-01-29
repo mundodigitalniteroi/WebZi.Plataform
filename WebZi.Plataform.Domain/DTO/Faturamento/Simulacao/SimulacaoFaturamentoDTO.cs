@@ -1,6 +1,4 @@
-﻿using WebZi.Plataform.Domain.DTO.Sistema;
-
-namespace WebZi.Plataform.Domain.DTO.Faturamento
+﻿namespace WebZi.Plataform.Domain.DTO.Faturamento.Simulacao
 {
     public class SimulacaoFaturamentoDTO
     {
@@ -26,6 +24,6 @@ namespace WebZi.Plataform.Domain.DTO.Faturamento
 
         public string FlagPermissaoDataRetroativaFaturamento { get; set; }
 
-        public List<SimulacaoFaturamentoComposicaoDTO> ListagemFaturamentoServico { get; set; }
+        public List<SimulacaoFaturamentoComposicaoDTO> ListagemServico { get; set; }
     }
 }

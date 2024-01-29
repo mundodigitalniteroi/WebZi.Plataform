@@ -7,6 +7,8 @@ using WebZi.Plataform.Domain.DTO.Deposito;
 using WebZi.Plataform.Domain.DTO.Documento;
 using WebZi.Plataform.Domain.DTO.Empresa;
 using WebZi.Plataform.Domain.DTO.Faturamento;
+using WebZi.Plataform.Domain.DTO.Faturamento.Cadastro;
+using WebZi.Plataform.Domain.DTO.Faturamento.Simulacao;
 using WebZi.Plataform.Domain.DTO.GRV;
 using WebZi.Plataform.Domain.DTO.GRV.Pesquisa;
 using WebZi.Plataform.Domain.DTO.Localizacao;
@@ -127,12 +129,23 @@ namespace WebZi.Plataform.Data.Services
 
             CreateMap<FaturamentoModel, SimulacaoFaturamentoDTO>();
 
+            CreateMap<FaturamentoModel, FaturamentoCadastroDTO>()
+                .ForMember(dest => dest.IdentificadorFaturamento, from => from.MapFrom(src => src.FaturamentoId))
+                .ForMember(dest => dest.IdentificadorTipoMeioCobranca, from => from.MapFrom(src => src.TipoMeioCobrancaId));
+
             CreateMap<FaturamentoComposicaoModel, SimulacaoFaturamentoComposicaoDTO>()
                 .ForMember(dest => dest.IdentificadorFaturamentoServicoTipoVeiculo, from => from.MapFrom(src => src.FaturamentoServicoTipoVeiculoId))
                 .ForMember(dest => dest.TipoServico, from => from.MapFrom(src => src.TipoComposicao))
                 .ForMember(dest => dest.QuantidadeServico, from => from.MapFrom(src => src.QuantidadeComposicao))
                 .ForMember(dest => dest.ValorTipoServico, from => from.MapFrom(src => src.ValorTipoComposicao));
-            
+
+            CreateMap<FaturamentoComposicaoModel, FaturamentoCadastroComposicaoDTO>()
+                .ForMember(dest => dest.IdentificadorServico, from => from.MapFrom(src => src.FaturamentoComposicaoId))
+                .ForMember(dest => dest.IdentificadorFaturamentoServicoTipoVeiculo, from => from.MapFrom(src => src.FaturamentoServicoTipoVeiculoId))
+                .ForMember(dest => dest.TipoServico, from => from.MapFrom(src => src.TipoComposicao))
+                .ForMember(dest => dest.QuantidadeServico, from => from.MapFrom(src => src.QuantidadeComposicao))
+                .ForMember(dest => dest.ValorTipoServico, from => from.MapFrom(src => src.ValorTipoComposicao));
+
             CreateMap<FaturamentoProdutoModel, FaturamentoProdutoDTO>()
                 .ForMember(dest => dest.CodigoProduto, from => from.MapFrom(src => src.FaturamentoProdutoId));
 

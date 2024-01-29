@@ -4,8 +4,8 @@ using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Faturamento;
 using WebZi.Plataform.Data.Services.Report;
 using WebZi.Plataform.Data.Services.Sistema;
-using WebZi.Plataform.Domain.DTO.Faturamento;
 using WebZi.Plataform.Domain.DTO.Faturamento.Servico;
+using WebZi.Plataform.Domain.DTO.Faturamento.Simulacao;
 using WebZi.Plataform.Domain.DTO.Report;
 using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.ViewModel.Faturamento;
@@ -174,6 +174,8 @@ namespace WebZi.Plataform.API.Controllers
                 ResultView = await _provider
                     .GetService<FaturamentoService>()
                     .SimularAsync(Parametros);
+
+                ResultView.DataHoraSimulacao = DateTime.Now;
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }

@@ -1,7 +1,7 @@
 ﻿using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.DTO.WebServices.DetranRio;
 
-namespace WebZi.Plataform.Domain.DTO.Faturamento
+namespace WebZi.Plataform.Domain.DTO.Faturamento.Simulacao
 {
     public class SimulacaoDTO
     {

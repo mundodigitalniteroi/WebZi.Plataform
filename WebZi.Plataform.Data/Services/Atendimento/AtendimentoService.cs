@@ -14,6 +14,8 @@ using WebZi.Plataform.Data.Services.Leilao;
 using WebZi.Plataform.Data.Services.Sistema;
 using WebZi.Plataform.Data.Services.WebServices;
 using WebZi.Plataform.Domain.DTO.Atendimento;
+using WebZi.Plataform.Domain.DTO.Faturamento.Cadastro;
+using WebZi.Plataform.Domain.DTO.Faturamento.Simulacao;
 using WebZi.Plataform.Domain.DTO.Generic;
 using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.Enums;
@@ -24,6 +26,7 @@ using WebZi.Plataform.Domain.Models.ClienteDeposito;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.GRV;
 using WebZi.Plataform.Domain.Models.Pessoa.Documento;
+using WebZi.Plataform.Domain.Models.Sistema;
 using WebZi.Plataform.Domain.Services.GRV;
 using WebZi.Plataform.Domain.Services.Usuario;
 using WebZi.Plataform.Domain.ViewModel.Atendimento;
@@ -529,7 +532,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             CalculoFaturamentoParametroModel ParametrosCalculoFaturamento = await ConfigParametrosCalculoFaturamentoAsync(Grv, AtendimentoInput.IdentificadorTipoMeioCobranca, AtendimentoInput.IdentificadorUsuario, DataHoraPorDeposito);
 
-            AtendimentoCadastroDTO AtendimentoCadastroResultView = new();
+            AtendimentoCadastroDTO ResultView = new();
 
             FaturamentoModel Faturamento = new();
 
@@ -543,7 +546,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
                     _context.SaveChanges();
 
-                    Faturamento = new FaturamentoService(_context, _mapper, _httpClientFactory)
+                    Faturamento = new FaturamentoService(_context)
                         .Faturar(ParametrosCalculoFaturamento, out CalculoDiarias);
 
                     CreateFotoResponsavel(Atendimento.AtendimentoId, AtendimentoInput);
@@ -558,26 +561,49 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
                     transaction.Commit();
 
-                    AtendimentoCadastroResultView.IdentificadorAtendimento = Atendimento.AtendimentoId;
+                    ResultView.IdentificadorAtendimento = Atendimento.AtendimentoId;
                 }
                 catch (Exception ex)
                 {
                     transaction.Rollback();
 
-                    AtendimentoCadastroResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+                    ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
 
-                    return AtendimentoCadastroResultView;
+                    return ResultView;
                 }
+            }
+
+            List<TabelaGenericaModel> ListagemTipoCobranca = await new TabelaGenericaService(_context)
+                .ListAsync("FAT_TIPO_COBRANCA");
+
+            ResultView.Faturamento = _mapper.Map<FaturamentoCadastroDTO>(Faturamento);
+
+            ResultView.Faturamento.ListagemServico = _mapper.Map<List<FaturamentoCadastroComposicaoDTO>>(Faturamento.ListagemFaturamentoComposicao);
+
+            FaturamentoServicoTipoVeiculoModel FaturamentoServicoTipoVeiculo = new();
+
+            foreach (var item in ResultView.Faturamento.ListagemServico)
+            {
+                FaturamentoServicoTipoVeiculo = _context.FaturamentoServicoTipoVeiculo
+                    .Include(x => x.FaturamentoServicoAssociado)
+                    .AsNoTracking()
+                    .FirstOrDefault(x => x.FaturamentoServicoTipoVeiculoId == item.IdentificadorFaturamentoServicoTipoVeiculo);
+
+                item.DescricaoTipoServico = ListagemTipoCobranca.Where(x => x.ValorCadastro == item.TipoServico).FirstOrDefault().Descricao;
+
+                item.NomeServico = FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.Descricao;
+
+                item.DataVigenciaInicial = FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.DataVigenciaInicial;
+
+                item.DataVigenciaFinal = FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.DataVigenciaFinal;
             }
 
             // TODO:
             // GerarFormaPagamento(ParametrosCalculoFaturamento);
 
-            AtendimentoCadastroResultView.IdentificadorAtendimento = Atendimento.AtendimentoId;
+            ResultView.Mensagem = MensagemViewHelper.SetCreateSuccess();
 
-            AtendimentoCadastroResultView.Mensagem = MensagemViewHelper.SetCreateSuccess();
-
-            return AtendimentoCadastroResultView;
+            return ResultView;
         }
 
         private void CreateFotoResponsavel(int AtendimentoId, AtendimentoParameters AtendimentoInput)
@@ -606,14 +632,8 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
         private async Task<CalculoFaturamentoParametroModel> ConfigParametrosCalculoFaturamentoAsync(GrvModel Grv, int TipoMeioCobrancaId, int UsuarioCadastroId, DateTime DataHoraPorDeposito)
         {
-            ClienteDepositoModel ClienteDeposito = await _context.ClienteDeposito
-                .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.ClienteId == Grv.ClienteId && x.DepositoId == Grv.DepositoId);
-
-            ClienteDeposito.Cliente = Grv.Cliente;
-
             // Quando no cadastro do Cliente foi configurado o Tipo de Cobrança, este cadastro é o que será usado para o cadastro da Fatura.
-            TipoMeioCobrancaModel TipoMeioCobranca = await _context.TipoMeioCobranca
+            var TipoMeioCobranca = await _context.TipoMeioCobranca
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.TipoMeioCobrancaId == 
                     (Grv.Cliente.TipoMeioCobrancaId.HasValue && Grv.Cliente.TipoMeioCobrancaId.Value > 0 ? Grv.Cliente.TipoMeioCobrancaId.Value : TipoMeioCobrancaId));
@@ -640,8 +660,6 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
                 TipoVeiculoId = Grv.TipoVeiculoId,
 
-                ClienteDeposito = ClienteDeposito,
-
                 UsuarioCadastroId = UsuarioCadastroId,
 
                 // Esta funcionalidade altera o GRV com Status de Leilão para Status de Atendimento
@@ -649,7 +667,15 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 StatusOperacaoLeilaoId = new[] { "1", "2", "4" }
                     .Contains(Grv.StatusOperacaoId) ? Grv.StatusOperacaoId : string.Empty,
 
-                TipoMeioCobrancaId = TipoMeioCobranca.TipoMeioCobrancaId
+                TipoMeioCobrancaId = TipoMeioCobranca.TipoMeioCobrancaId,
+
+                ClienteDeposito = await _context.ClienteDeposito
+                    .Include(x => x.Cliente)
+                    .ThenInclude(x => x.Endereco)
+                    .Include(x => x.Deposito)
+                    .ThenInclude(x => x.Endereco)
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(x => x.ClienteId == Grv.ClienteId && x.DepositoId == Grv.DepositoId)
             };
 
             return ParametrosCalculoFaturamento;

@@ -2,7 +2,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using System.Data;
-using System.Diagnostics;
 using WebZi.Plataform.CrossCutting.Date;
 using WebZi.Plataform.CrossCutting.Number;
 using WebZi.Plataform.CrossCutting.Strings;
@@ -17,11 +16,11 @@ using WebZi.Plataform.Data.Services.Sistema;
 using WebZi.Plataform.Data.Services.WebServices;
 using WebZi.Plataform.Domain.DTO.Faturamento;
 using WebZi.Plataform.Domain.DTO.Faturamento.Servico;
+using WebZi.Plataform.Domain.DTO.Faturamento.Simulacao;
 using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Atendimento;
 using WebZi.Plataform.Domain.Models.Banco;
-using WebZi.Plataform.Domain.Models.Condutor;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.GRV;
 using WebZi.Plataform.Domain.Models.Sistema;
@@ -1139,6 +1138,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             {
                 ResultView.Mensagem = MensagemViewHelper.SetNewMessage(ResultView.Mensagem, MensagemPadraoEnum.NaoEncontradoGrv, MensagemTipoAvisoEnum.Impeditivo);
 
+                ResultView.Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.NotFound;
+
                 return ResultView;
             }
 
@@ -1219,18 +1220,18 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             CalculoDiariasModel CalculoDiarias = new();
 
+            List<TabelaGenericaModel> ListagemTipoCobranca = await new TabelaGenericaService(_context)
+                .ListAsync("FAT_TIPO_COBRANCA");
+
             FaturamentoModel Faturamento = Faturar(ParametrosCalculoFaturamento, out CalculoDiarias);
 
             ResultView.Faturamento = _mapper.Map<SimulacaoFaturamentoDTO>(Faturamento);
 
-            ResultView.Faturamento.ListagemFaturamentoServico = _mapper.Map<List<SimulacaoFaturamentoComposicaoDTO>>(Faturamento.ListagemFaturamentoComposicao);
+            ResultView.Faturamento.ListagemServico = _mapper.Map<List<SimulacaoFaturamentoComposicaoDTO>>(Faturamento.ListagemFaturamentoComposicao);
 
             FaturamentoServicoTipoVeiculoModel FaturamentoServicoTipoVeiculo = new();
 
-            List<TabelaGenericaModel> ListagemTipoCobranca = await new TabelaGenericaService(_context)
-                .ListAsync("FAT_TIPO_COBRANCA");
-
-            foreach (var item in ResultView.Faturamento.ListagemFaturamentoServico)
+            foreach (var item in ResultView.Faturamento.ListagemServico)
             {
                 FaturamentoServicoTipoVeiculo = _context.FaturamentoServicoTipoVeiculo
                     .Include(x => x.FaturamentoServicoAssociado)
@@ -1262,13 +1263,11 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             ResultView.IdentificadorAtendimento = Grv.Atendimento != null ? Grv.Atendimento.AtendimentoId : 0;
 
-            ResultView.DataHoraSimulacao = DateTime.Now;
-
             EnderecoService Endereco = new();
 
             ResultView.Cliente = new()
             {
-                Nome = Grv.Cliente.Nome,
+                Nome = ParametrosCalculoFaturamento.ClienteDeposito.Cliente.Nome,
 
                 Endereco = Endereco.FormatarEndereco(ParametrosCalculoFaturamento.ClienteDeposito.Cliente.Endereco,
                     ParametrosCalculoFaturamento.ClienteDeposito.Cliente.NumeroEndereco,
@@ -1277,9 +1276,9 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             ResultView.Deposito = new()
             {
-                Nome = Grv.Deposito.Nome,
+                Nome = ParametrosCalculoFaturamento.ClienteDeposito.Deposito.Nome,
 
-                Telefone = Grv.Deposito.TelefoneMob,
+                Telefone = ParametrosCalculoFaturamento.ClienteDeposito.Deposito.TelefoneMob,
 
                 Endereco = Endereco.FormatarEndereco(ParametrosCalculoFaturamento.ClienteDeposito.Deposito.Endereco,
                     ParametrosCalculoFaturamento.ClienteDeposito.Deposito.NumeroEndereco,

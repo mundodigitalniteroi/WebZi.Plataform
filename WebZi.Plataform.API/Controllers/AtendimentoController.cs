@@ -40,7 +40,7 @@ namespace WebZi.Plataform.API.Controllers
 
                 if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
                 {
-                    return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView.Mensagem);
+                    return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
                 }
             }
             catch (Exception ex)
@@ -56,7 +56,7 @@ namespace WebZi.Plataform.API.Controllers
                     .GetService<AtendimentoService>()
                     .CreateAtendimentoAsync(Atendimento);
 
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView.Mensagem);
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
             catch (Exception ex)
             {
