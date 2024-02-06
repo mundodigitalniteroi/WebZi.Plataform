@@ -150,7 +150,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
 
             ResultView.GrvEstacionamentoNumeroVaga = !GuiaPagamentoReboqueEstadia.EstacionamentoNumeroVaga.IsNullOrWhiteSpace() ? GuiaPagamentoReboqueEstadia.EstacionamentoNumeroVaga : "Não informado";
 
-            ResultView.GrvNumeroChave = GuiaPagamentoReboqueEstadia.NumeroChave.IsNullOrWhiteSpace() ? GuiaPagamentoReboqueEstadia.NumeroChave : "Não informado";
+            ResultView.GrvNumeroChave = !GuiaPagamentoReboqueEstadia.NumeroChave.IsNullOrWhiteSpace() ? GuiaPagamentoReboqueEstadia.NumeroChave : "Não informado";
 
             ViewUsuarioModel Usuario = await _context.ViewUsuario
                 .FirstOrDefaultAsync(x => x.UsuarioId == UsuarioId);

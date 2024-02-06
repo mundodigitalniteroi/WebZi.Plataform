@@ -4,6 +4,7 @@ using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Faturamento;
 using WebZi.Plataform.Data.Services.Report;
 using WebZi.Plataform.Data.Services.Sistema;
+using WebZi.Plataform.Domain.DTO.Faturamento;
 using WebZi.Plataform.Domain.DTO.Faturamento.Servico;
 using WebZi.Plataform.Domain.DTO.Faturamento.Simulacao;
 using WebZi.Plataform.Domain.DTO.Report;
@@ -68,6 +69,60 @@ namespace WebZi.Plataform.API.Controllers
                     .GetGuiaPagamentoReboqueEstadiaAsync(IdentificadorFaturamento, IdentificadorUsuario);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
+
+        [HttpGet("ListarPorIdentificadorAtendimento")]
+        // TODO: [Authorize]
+        public async Task<ActionResult<FaturamentoListDTO>> ListarPorIdentificadorAtendimento(int IdentificadorAtendimento, int IdentificadorUsuario, bool SelecionarFaturasCanceladas)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            FaturamentoListDTO ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<FaturamentoService>()
+                    .ListByAtendimentoIdAsync(IdentificadorAtendimento, IdentificadorUsuario, SelecionarFaturasCanceladas);
+
+                return StatusCode((int)HtmlStatusCodeEnum.Ok, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
+
+        [HttpGet("ListarPorIdentificadorProcesso")]
+        // TODO: [Authorize]
+        public async Task<ActionResult<FaturamentoListDTO>> ListarPorIdentificadorProcesso(int IdentificadorProcesso, int IdentificadorUsuario, bool SelecionarFaturasCanceladas)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            FaturamentoListDTO ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<FaturamentoService>()
+                    .ListByGrvIdAsync(IdentificadorProcesso, IdentificadorUsuario, SelecionarFaturasCanceladas);
+
+                return StatusCode((int)HtmlStatusCodeEnum.Ok, ResultView);
             }
             catch (Exception ex)
             {

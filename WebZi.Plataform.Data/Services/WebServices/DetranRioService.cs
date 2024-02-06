@@ -126,19 +126,16 @@ namespace WebZi.Plataform.Data.Services.WebServices
                     Chassi = DetranRioVeiculoBD.Chassi;
                 }
             }
+            else
+            {
+                return await SetValuesToViewModelAsync(DetranRioVeiculoBD);
+            }
 
             DetranRioVeiculoModel DetranRioVeiculoWS = new();
 
             try
             {
-                if (DetranRioVeiculoBD == null || DetranRioVeiculoBD.DataCadastro != DateTime.Now.Date)
-                {
-                    DetranRioVeiculoWS = await GetFromDetranAsync(Placa + Chassi, "ROOT");
-                }
-                else
-                {
-                    DetranRioVeiculoWS = null;
-                }
+                DetranRioVeiculoWS = await GetFromDetranAsync(Placa + Chassi, "ROOT");
             }
             catch (ArgumentException aex)
             {

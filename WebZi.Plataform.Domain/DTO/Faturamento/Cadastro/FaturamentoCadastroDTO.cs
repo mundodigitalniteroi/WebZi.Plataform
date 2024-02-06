@@ -34,6 +34,8 @@
 
         public DateTime DataCadastro { get; set; }
 
+        public string Status { get; set; } = "N";
+
         public string FlagUsarHoraDiaria { get; set; }
 
         public string FlagLimitacaoJudicial { get; set; }

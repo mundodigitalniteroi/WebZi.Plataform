@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using System;
 using System.Data;
 using WebZi.Plataform.CrossCutting.Date;
 using WebZi.Plataform.CrossCutting.Number;
@@ -15,6 +16,7 @@ using WebZi.Plataform.Data.Services.Localizacao;
 using WebZi.Plataform.Data.Services.Sistema;
 using WebZi.Plataform.Data.Services.WebServices;
 using WebZi.Plataform.Domain.DTO.Faturamento;
+using WebZi.Plataform.Domain.DTO.Faturamento.Cadastro;
 using WebZi.Plataform.Domain.DTO.Faturamento.Servico;
 using WebZi.Plataform.Domain.DTO.Faturamento.Simulacao;
 using WebZi.Plataform.Domain.DTO.Sistema;
@@ -333,7 +335,6 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     .AsNoTracking()
                     .FirstOrDefault(x => x.GrvId == ParametrosCalculoFaturamento.GrvId);
             }
-
             #endregion Selecionar o Atendimento
 
             #region Selecionar os Serviços cadastrados no GRV
@@ -902,6 +903,124 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             return ResultView;
         }
 
+        public async Task<FaturamentoListDTO> ListByAtendimentoIdAsync(int AtendimentoId, int UsuarioId, bool SelecionarFaturasCanceladas)
+        {
+            List<string> erros = new();
+
+            if (AtendimentoId <= 0)
+            {
+                erros.Add(MensagemPadraoEnum.IdentificadorAtendimentoInvalido);
+            }
+
+            FaturamentoListDTO ResultView = new();
+
+            if (erros.Count > 0)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest(erros);
+
+                return ResultView;
+            }
+
+            AtendimentoModel Atendimento = await _context.Atendimento
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.AtendimentoId == AtendimentoId);
+
+            if (Atendimento == null)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound("Este Processo não possui Atendimento");
+
+                return ResultView;
+            }
+
+            return await ListByGrvIdAsync(Atendimento.GrvId, UsuarioId, SelecionarFaturasCanceladas);
+        }
+
+        public async Task<FaturamentoListDTO> ListByGrvIdAsync(int GrvId, int UsuarioId, bool SelecionarFaturasCanceladas)
+        {
+            FaturamentoListDTO ResultView = new()
+            {
+                Mensagem = new GrvService(_context)
+                    .ValidateInputGrv(GrvId, UsuarioId)
+            };
+
+            if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+            {
+                return ResultView;
+            }
+
+            GrvModel Grv = await _context.Grv
+                .Include(x => x.Atendimento)
+                .ThenInclude(x => x.ListagemFaturamento)
+                .ThenInclude(x => x.ListagemFaturamentoComposicao)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.GrvId == GrvId);
+
+            if (Grv == null)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound(MensagemPadraoEnum.NaoEncontradoGrv);
+
+                return ResultView;
+            }
+            else if (Grv.Atendimento == null)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound("Este Processo não possui Atendimento");
+
+                return ResultView;
+            }
+            else if (Grv.Atendimento.ListagemFaturamento == null)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound("Este Processo não possui Faturamento");
+
+                return ResultView;
+            }
+
+            List<TabelaGenericaModel> ListagemTipoCobranca = await new TabelaGenericaService(_context)
+                .ListAsync("FAT_TIPO_COBRANCA");
+
+            ResultView.IdentificadorProcesso = Grv.GrvId;
+
+            ResultView.IdentificadorAtendimento = Grv.Atendimento.AtendimentoId;
+
+            if (SelecionarFaturasCanceladas)
+            {
+                ResultView.ListagemFaturamento = _mapper
+                    .Map<List<FaturamentoCadastroDTO>>(Grv.Atendimento.ListagemFaturamento
+                    .OrderBy(x => x.DataCadastro));
+            }
+            else
+            {
+                ResultView.ListagemFaturamento = _mapper
+                    .Map<List<FaturamentoCadastroDTO>>(Grv.Atendimento.ListagemFaturamento
+                    .Where(x => x.Status != "C")
+                    .OrderBy(x => x.DataCadastro));
+            }
+
+            FaturamentoServicoTipoVeiculoModel FaturamentoServicoTipoVeiculo = new();
+
+            foreach (var Faturamento in ResultView.ListagemFaturamento)
+            {
+                foreach (var Servico in Faturamento.ListagemServico)
+                {
+                    FaturamentoServicoTipoVeiculo = _context.FaturamentoServicoTipoVeiculo
+                        .Include(x => x.FaturamentoServicoAssociado)
+                        .AsNoTracking()
+                        .FirstOrDefault(x => x.FaturamentoServicoTipoVeiculoId == Servico.IdentificadorFaturamentoServicoTipoVeiculo);
+
+                    Servico.DescricaoTipoServico = ListagemTipoCobranca.Where(x => x.ValorCadastro == Servico.TipoServico).FirstOrDefault().Descricao;
+
+                    Servico.NomeServico = FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.Descricao;
+
+                    Servico.DataVigenciaInicial = FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.DataVigenciaInicial;
+
+                    Servico.DataVigenciaFinal = FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.DataVigenciaFinal;
+                }
+            }
+
+            ResultView.Mensagem = MensagemViewHelper.SetFound(Grv.Atendimento.ListagemFaturamento.Count);
+
+            return ResultView;
+        }
+
         public async Task<ServicoAssociadoTipoVeiculoListDTO> ListServicoAssociadoTipoVeiculoAsync(int GrvId, int UsuarioId)
         {
             ServicoAssociadoTipoVeiculoListDTO ResultView = new();
@@ -1143,6 +1262,14 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 return ResultView;
             }
 
+            ResultView.Mensagem = new GrvService(_context)
+                .ValidateInputGrv(Grv.GrvId, model.IdentificadorUsuario);
+
+            if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+            {
+                return ResultView;
+            }
+
             if (new[] { "E", "3", "7" }.Contains(Grv.StatusOperacaoId))
             {
                 ResultView.Mensagem = MensagemViewHelper.SetBadRequest($"O Status atual deste Processo não permite a execução da Simulação. " +
@@ -1231,20 +1358,20 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             FaturamentoServicoTipoVeiculoModel FaturamentoServicoTipoVeiculo = new();
 
-            foreach (var item in ResultView.Faturamento.ListagemServico)
+            foreach (var Servico in ResultView.Faturamento.ListagemServico)
             {
                 FaturamentoServicoTipoVeiculo = _context.FaturamentoServicoTipoVeiculo
                     .Include(x => x.FaturamentoServicoAssociado)
                     .AsNoTracking()
-                    .FirstOrDefault(x => x.FaturamentoServicoTipoVeiculoId == item.IdentificadorFaturamentoServicoTipoVeiculo);
+                    .FirstOrDefault(x => x.FaturamentoServicoTipoVeiculoId == Servico.IdentificadorFaturamentoServicoTipoVeiculo);
 
-                item.DescricaoTipoServico = ListagemTipoCobranca.Where(x => x.ValorCadastro == item.TipoServico).FirstOrDefault().Descricao;
+                Servico.DescricaoTipoServico = ListagemTipoCobranca.Where(x => x.ValorCadastro == Servico.TipoServico).FirstOrDefault().Descricao;
 
-                item.NomeServico = FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.Descricao;
+                Servico.NomeServico = FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.Descricao;
 
-                item.DataVigenciaInicial = FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.DataVigenciaInicial;
+                Servico.DataVigenciaInicial = FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.DataVigenciaInicial;
 
-                item.DataVigenciaFinal = FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.DataVigenciaFinal;
+                Servico.DataVigenciaFinal = FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.DataVigenciaFinal;
             }
 
             ResultView.IdentificadorProcesso = Grv.GrvId;

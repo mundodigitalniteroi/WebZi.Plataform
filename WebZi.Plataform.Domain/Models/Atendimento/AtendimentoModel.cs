@@ -136,6 +136,6 @@ namespace WebZi.Plataform.Domain.Models.Atendimento
 
         //public virtual ICollection<AtendimentoSaidaReparo> AtendimentoSaidaReparos { get; set; }
 
-        public virtual List<FaturamentoModel> Faturamentos { get; set; } = new List<FaturamentoModel>();
+        public virtual List<FaturamentoModel> ListagemFaturamento { get; set; } = new List<FaturamentoModel>();
     }
 }

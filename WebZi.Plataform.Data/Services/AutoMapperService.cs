@@ -131,7 +131,8 @@ namespace WebZi.Plataform.Data.Services
 
             CreateMap<FaturamentoModel, FaturamentoCadastroDTO>()
                 .ForMember(dest => dest.IdentificadorFaturamento, from => from.MapFrom(src => src.FaturamentoId))
-                .ForMember(dest => dest.IdentificadorTipoMeioCobranca, from => from.MapFrom(src => src.TipoMeioCobrancaId));
+                .ForMember(dest => dest.IdentificadorTipoMeioCobranca, from => from.MapFrom(src => src.TipoMeioCobrancaId))
+                .ForMember(dest => dest.ListagemServico, from => from.MapFrom(src => src.ListagemFaturamentoComposicao));
 
             CreateMap<FaturamentoComposicaoModel, SimulacaoFaturamentoComposicaoDTO>()
                 .ForMember(dest => dest.IdentificadorFaturamentoServicoTipoVeiculo, from => from.MapFrom(src => src.FaturamentoServicoTipoVeiculoId))
