@@ -8,8 +8,10 @@ using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Sistema;
 using WebZi.Plataform.Data.WsBoleto;
+using WebZi.Plataform.Domain.DTO.Banco;
 using WebZi.Plataform.Domain.DTO.Generic;
 using WebZi.Plataform.Domain.Enums;
+using WebZi.Plataform.Domain.Models.Banco;
 using WebZi.Plataform.Domain.Models.Bucket;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.Sistema;
@@ -32,19 +34,19 @@ namespace WebZi.Plataform.Data.Services.WebServices
             _httpClientFactory = httpClientFactory;
         }
 
-        public ImageListDTO GetBoletoNaoPago(int FaturamentoId, int UsuarioId)
+        public BoletoOriginalListDTO GetBoletoNaoPago(int FaturamentoId, int UsuarioId)
         {
             return GetBoleto(FaturamentoId, UsuarioId, "N");
         }
 
-        public ImageListDTO GetBoletoNaoCancelado(int FaturamentoId, int UsuarioId)
+        public BoletoOriginalListDTO GetBoletoNaoCancelado(int FaturamentoId, int UsuarioId)
         {
             return GetBoleto(FaturamentoId, UsuarioId);
         }
 
-        private ImageListDTO GetBoleto(int FaturamentoId, int UsuarioId, string StatusBoleto = "")
+        private BoletoOriginalListDTO GetBoleto(int FaturamentoId, int UsuarioId, string StatusBoleto = "")
         {
-            ImageListDTO ResultView = new();
+            BoletoOriginalListDTO ResultView = new();
 
             if (FaturamentoId <= 0)
             {
@@ -115,22 +117,31 @@ namespace WebZi.Plataform.Data.Services.WebServices
             }
             else if (Faturamento.ListagemBoleto?.Count == 0)
             {
-                ResultView.Mensagem = MensagemViewHelper.SetNotFound("Boleto foi cancelado ou inexistente");
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound("Boleto não encontrado");
 
                 return ResultView;
             }
 
+            BoletoModel Boleto = Faturamento.ListagemBoleto
+                .OrderByDescending(x => x.DataEmissao)
+                .FirstOrDefault();
+
             BucketArquivoModel BucketArquivo = _context.BucketArquivo
                 .Include(x => x.BucketNomeTabelaOrigem)
                 .AsNoTracking()
-                .FirstOrDefault(x => x.BucketNomeTabelaOrigem.Codigo == BucketNomeTabelaOrigemEnum.Boleto);
+                .FirstOrDefault(x => x.BucketNomeTabelaOrigem.Codigo == BucketNomeTabelaOrigemEnum.Boleto &&
+                                          x.TabelaOrigemId == Boleto.FaturamentoBoletoId);
 
             if (BucketArquivo != null)
             {
                 ResultView.Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.Ok;
 
-                ResultView.Listagem.Add(new ImageDTO
+                ResultView.Listagem.Add(new BoletoOriginalDTO
                 {
+                    Identificador = Boleto.BoletoId,
+
+                    LinhaDigitavel = Boleto.Linha,
+
                     Imagem = new HttpClientFactoryService(_httpClientFactory)
                     .DownloadFile(BucketArquivo.Url)
                 });
@@ -143,14 +154,21 @@ namespace WebZi.Plataform.Data.Services.WebServices
                     .Include(x => x.FaturamentoBoleto)
                     .OrderByDescending(x => x.FaturamentoBoletoId)
                     .AsNoTracking()
-                    .FirstOrDefault(x => x.FaturamentoBoleto.FaturamentoId == Faturamento.ListagemBoleto.FirstOrDefault().FaturamentoBoletoId
-                                 && x.FaturamentoBoleto.Status != "C");
+                    .FirstOrDefault(x => x.FaturamentoBoleto.FaturamentoId == FaturamentoId &&
+                                              x.FaturamentoBoleto.Status != "C");
 
                 if (FaturamentoBoletoImagem != null)
                 {
                     ResultView.Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.Ok;
 
-                    ResultView.Listagem.Add(new ImageDTO { Imagem = FaturamentoBoletoImagem.Imagem });
+                    ResultView.Listagem.Add(new BoletoOriginalDTO
+                    {
+                        Identificador = Boleto.BoletoId,
+
+                        LinhaDigitavel = Boleto.Linha,
+
+                        Imagem = FaturamentoBoletoImagem.Imagem
+                    });
 
                     return ResultView;
                 }
@@ -163,9 +181,9 @@ namespace WebZi.Plataform.Data.Services.WebServices
             }
         }
 
-        public ImageListDTO Create(int FaturamentoId, int UsuarioId)
+        public BoletoOriginalListDTO Create(int FaturamentoId, int UsuarioId)
         {
-            ImageListDTO ResultView = new();
+            BoletoOriginalListDTO ResultView = new();
 
             if (FaturamentoId <= 0)
             {
@@ -337,33 +355,33 @@ namespace WebZi.Plataform.Data.Services.WebServices
             #endregion Execução do WebService de geração do Boleto
 
             #region Cadastro do Boleto e da Imagem
+            BoletoModel Boleto = new()
+            {
+                FaturamentoId = Faturamento.FaturamentoId,
+
+                BoletoId = BoletoGerado.BoletoId,
+
+                UsuarioCadastroId = UsuarioId,
+
+                SequenciaEmissao = 1,
+
+                Linha = !string.IsNullOrWhiteSpace(BoletoGerado.Linha) ? BoletoGerado.Linha : "LINHA NÃO RETORNADA",
+
+                Valor = Faturamento.ValorFaturado,
+
+                DataEmissao = DateTime.Now
+            };
+
             using (IDbContextTransaction transaction = _context.Database.BeginTransaction())
             {
                 try
                 {
-                    BoletoModel FaturamentoBoleto = new()
-                    {
-                        FaturamentoId = Faturamento.FaturamentoId,
-
-                        BoletoId = BoletoGerado.BoletoId,
-
-                        UsuarioCadastroId = UsuarioId,
-
-                        SequenciaEmissao = 1,
-
-                        Linha = !string.IsNullOrWhiteSpace(BoletoGerado.Linha) ? BoletoGerado.Linha : "LINHA NÃO RETORNADA",
-
-                        Valor = Faturamento.ValorFaturado,
-
-                        DataEmissao = DateTime.Now
-                    };
-
-                    _context.FaturamentoBoleto.Add(FaturamentoBoleto);
+                    _context.FaturamentoBoleto.Add(Boleto);
 
                     _context.SaveChanges();
 
                     new BucketService(_context, _httpClientFactory)
-                        .SendFile("FATURAMENBOLETO", FaturamentoBoleto.FaturamentoBoletoId, UsuarioId, BoletoGerado.Boleto);
+                        .SendFile("FATURAMENBOLETO", Boleto.FaturamentoBoletoId, UsuarioId, BoletoGerado.Boleto);
 
                     transaction.Commit();
                 }
@@ -376,7 +394,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
             }
             #endregion Cadastro do Boleto e da Imagem
 
-            ResultView.Listagem.Add(new ImageDTO { Imagem = BoletoGerado.Boleto });
+            ResultView.Listagem.Add(new BoletoOriginalDTO { Identificador = linhaId, LinhaDigitavel = Boleto.Linha, Imagem = BoletoGerado.Boleto });
 
             ResultView.Mensagem = MensagemViewHelper.SetOk("Boleto gerado com sucesso");
 

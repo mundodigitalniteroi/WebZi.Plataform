@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
-using System;
 using System.Data;
 using WebZi.Plataform.CrossCutting.Date;
 using WebZi.Plataform.CrossCutting.Number;
@@ -27,7 +26,6 @@ using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.GRV;
 using WebZi.Plataform.Domain.Models.Sistema;
 using WebZi.Plataform.Domain.Services.GRV;
-using WebZi.Plataform.Domain.Services.Usuario;
 using WebZi.Plataform.Domain.ViewModel.Faturamento;
 using WebZi.Plataform.Domain.Views.Faturamento;
 using WebZi.Plataform.Domain.Views.Localizacao;
@@ -297,7 +295,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                    StringHelper.AddCharToLeft(Sequencia.ToString(), '0', 3);
         }
 
-        private void DeleteTipoMeioCobrancaAtual(int FaturamentoId, TipoMeioCobrancaModel TipoMeioCobrancaAtual)
+        private async void DeleteTipoMeioCobrancaAtual(int FaturamentoId, TipoMeioCobrancaModel TipoMeioCobrancaAtual)
         {
             if (TipoMeioCobrancaAtual.Alias == TipoMeioCobrancaAliasEnum.Boleto ||
                 TipoMeioCobrancaAtual.Alias == TipoMeioCobrancaAliasEnum.BoletoEspecial)
@@ -307,15 +305,15 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             }
             else if (TipoMeioCobrancaAtual.Alias == TipoMeioCobrancaAliasEnum.PixEstatico)
             {
-                _context.PixEstatico
+                await _context.PixEstatico
                     .Where(x => x.FaturamentoId == FaturamentoId)
-                    .Delete();
+                    .DeleteAsync();
             }
             else if (TipoMeioCobrancaAtual.Alias == TipoMeioCobrancaAliasEnum.PixDinamico)
             {
-                _context.PixDinamico
+                await _context.PixDinamico
                     .Where(x => x.FaturamentoId == FaturamentoId)
-                    .Delete();
+                    .DeleteAsync();
             }
         }
 
@@ -1417,7 +1415,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             return ResultView;
         }
 
-        public MensagemDTO UpdateFormaPagamento(int FaturamentoId, byte TipoMeioCobrancaId, int UsuarioId)
+        public async Task<MensagemDTO> UpdateFormaPagamentoAsync(int FaturamentoId, byte TipoMeioCobrancaId, int UsuarioId)
         {
             MensagemDTO ResultView = new();
 
@@ -1430,12 +1428,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             if (TipoMeioCobrancaId <= 0)
             {
-                erros.Add(MensagemPadraoEnum.IdentificadorFormaPagamentoInvalido);
-            }
-
-            if (UsuarioId <= 0)
-            {
-                erros.Add(MensagemPadraoEnum.IdentificadorUsuarioInvalido);
+                erros.Add(MensagemPadraoEnum.IdentificadorTipoMeioCobrancaInvalido);
             }
 
             if (erros.Count > 0)
@@ -1443,18 +1436,13 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 return MensagemViewHelper.SetBadRequest(erros);
             }
 
-            if (!new UsuarioService(_context).IsUserActive(UsuarioId))
-            {
-                return MensagemViewHelper.SetUnauthorized();
-            }
-
-            FaturamentoModel Faturamento = _context.Faturamento
+            FaturamentoModel Faturamento = await _context.Faturamento
                 .Include(x => x.TipoMeioCobranca)
                 .Include(x => x.Atendimento)
                 .ThenInclude(x => x.Grv)
                 .ThenInclude(x => x.Cliente)
                 .AsNoTracking()
-                .FirstOrDefault(x => x.FaturamentoId == FaturamentoId);
+                .FirstOrDefaultAsync(x => x.FaturamentoId == FaturamentoId);
 
             if (Faturamento == null)
             {
@@ -1470,53 +1458,62 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             }
             else if (Faturamento.TipoMeioCobrancaId == TipoMeioCobrancaId)
             {
-                return MensagemViewHelper.SetBadRequest("Forma de Pagamento já selecionado");
+                return MensagemViewHelper.SetBadRequest("Forma de Pagamento já selecionada");
             }
 
-            TipoMeioCobrancaModel TipoMeioCobranca = _context.TipoMeioCobranca
+            ResultView = new GrvService(_context)
+                .ValidateInputGrv(Faturamento.Atendimento.Grv.GrvId, UsuarioId);
+
+            if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+            {
+                return ResultView;
+            }
+
+            TipoMeioCobrancaModel TipoMeioCobranca = await _context.TipoMeioCobranca
                 .AsNoTracking()
-                .FirstOrDefault(x => x.TipoMeioCobrancaId == TipoMeioCobrancaId);
+                .FirstOrDefaultAsync(x => x.TipoMeioCobrancaId == TipoMeioCobrancaId);
 
             if (TipoMeioCobranca == null)
             {
                 return MensagemViewHelper.SetBadRequest($"Forma de Pagamento inexistente: {TipoMeioCobrancaId}");
             }
+            else if (TipoMeioCobranca.FlagAtivo == "N")
+            {
+                return MensagemViewHelper.SetBadRequest($"Essa Forma de Pagamento está desativada");
+            }
             else if (TipoMeioCobranca.Alias == TipoMeioCobrancaAliasEnum.PixEstatico &&
                      Faturamento.Atendimento.Grv.Cliente.FlagPossuiPixEstatico == "N")
             {
-                return MensagemViewHelper.SetBadRequest("Este Cliente não está configurado para emitir a Forma de Pagamento PIX Estático");
+                return MensagemViewHelper.SetBadRequest("Este Cliente não está configurado para emitir PIX Estático");
             }
             else if (TipoMeioCobranca.Alias == TipoMeioCobrancaAliasEnum.PixDinamico &&
                      Faturamento.Atendimento.Grv.Cliente.FlagPossuiPixDinamico == "N")
             {
-                return MensagemViewHelper.SetBadRequest("Este Cliente não está configurado para emitir a Forma de Pagamento PIX Dinâmico");
+                return MensagemViewHelper.SetBadRequest("Este Cliente não está configurado para emitir PIX Dinâmico");
             }
 
-            FaturamentoModel FaturamentoUpdate = _context.Faturamento
-                .FirstOrDefault(x => x.FaturamentoId == FaturamentoId);
-
-            FaturamentoUpdate.TipoMeioCobrancaId = TipoMeioCobrancaId;
-
-            using IDbContextTransaction transaction = _context.Database.BeginTransaction();
+            using IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync();
 
             try
             {
                 DeleteTipoMeioCobrancaAtual(FaturamentoId, Faturamento.TipoMeioCobranca);
 
-                _context.Faturamento.Update(FaturamentoUpdate);
+                await _context.Faturamento
+                    .Where(x => x.FaturamentoId == FaturamentoId)
+                    .UpdateAsync(x => new FaturamentoModel() { TipoMeioCobrancaId = TipoMeioCobrancaId });
 
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
 
-                transaction.Commit();
+                await transaction.CommitAsync();
             }
             catch (Exception ex)
             {
-                transaction.Rollback();
+                await transaction.RollbackAsync();
 
                 return MensagemViewHelper.SetInternalServerError("Ocorreu um erro ao alterar a Forma de Pagamento", ex);
             }
 
-            return MensagemViewHelper.SetOk("Forma de Pagamento alterado com sucesso");
+            return MensagemViewHelper.SetOk("Forma de Pagamento alterada com sucesso");
         }
     }
 }

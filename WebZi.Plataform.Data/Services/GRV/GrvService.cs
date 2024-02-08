@@ -99,7 +99,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
             BucketArquivoModel BucketArquivo = await _context.BucketArquivo
                 .Include(x => x.BucketNomeTabelaOrigem)
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.TabelaOrigemId == GrvId && x.BucketNomeTabelaOrigem.Codigo == "GRVASSINAAGENTE");
+                .FirstOrDefaultAsync(x => x.BucketNomeTabelaOrigem.Codigo == BucketNomeTabelaOrigemEnum.AssinaturaAgente &&
+                                          x.TabelaOrigemId == GrvId);
 
             if (BucketArquivo != null)
             {
@@ -136,7 +137,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
             BucketArquivoModel BucketArquivo = await _context.BucketArquivo
                 .Include(x => x.BucketNomeTabelaOrigem)
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.TabelaOrigemId == GrvId && x.BucketNomeTabelaOrigem.Codigo == "GRVASSINACONDUT");
+                .FirstOrDefaultAsync(x => x.BucketNomeTabelaOrigem.Codigo == BucketNomeTabelaOrigemEnum.AssinaturaCondutor &&
+                                          x.TabelaOrigemId == GrvId);
 
             if (BucketArquivo != null)
             {
@@ -144,7 +146,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             }
 
             new BucketService(_context, _httpClientFactory)
-                .SendFile("GRVASSINACONDUT", GrvId, UsuarioId, Imagem);
+                .SendFile(BucketNomeTabelaOrigemEnum.AssinaturaCondutor, GrvId, UsuarioId, Imagem);
 
             return MensagemViewHelper.SetCreateSuccess();
         }
@@ -584,7 +586,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 .Include(x => x.BucketNomeTabelaOrigem)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.TabelaOrigemId == GrvId
-                                       && x.BucketNomeTabelaOrigem.Codigo == "GRVASSINAAGENTE");
+                                       && x.BucketNomeTabelaOrigem.Codigo == BucketNomeTabelaOrigemEnum.AssinaturaAgente);
 
             if (BucketArquivo == null)
             {
@@ -617,7 +619,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 .Include(x => x.BucketNomeTabelaOrigem)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.TabelaOrigemId == GrvId
-                                       && x.BucketNomeTabelaOrigem.Codigo == "GRVASSINACONDUTOR");
+                                       && x.BucketNomeTabelaOrigem.Codigo == BucketNomeTabelaOrigemEnum.AssinaturaCondutor);
 
             if (BucketArquivo == null)
             {
@@ -655,7 +657,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 .Include(x => x.BucketNomeTabelaOrigem)
                 .Where(x => x.TabelaOrigemId != GrvId
                          && ListagemTabelaOrigemId.Contains(x.RepositorioArquivoId)
-                         && x.BucketNomeTabelaOrigem.Codigo == "GRVFOTOSVEICCAD")
+                         && x.BucketNomeTabelaOrigem.Codigo == BucketNomeTabelaOrigemEnum.FotoVeiculoGRV)
                 .AsNoTracking()
                 .ToListAsync();
 
@@ -675,7 +677,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             }
 
             new BucketService(_context, _httpClientFactory)
-                .DeleteFiles("GRVFOTOSVEICCAD", ListagemTabelaOrigemId);
+                .DeleteFiles(BucketNomeTabelaOrigemEnum.FotoVeiculoGRV, ListagemTabelaOrigemId);
 
             return MensagemViewHelper.SetFound(BucketArquivos.Count, "Foto(s) excluída(s) com sucesso");
         }
@@ -1012,7 +1014,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 .Include(x => x.BucketNomeTabelaOrigem)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.TabelaOrigemId == GrvId
-                                       && x.BucketNomeTabelaOrigem.Codigo == "GRVASSINAAGENTE");
+                                       && x.BucketNomeTabelaOrigem.Codigo == BucketNomeTabelaOrigemEnum.AssinaturaAgente);
 
             if (BucketArquivo == null)
             {
@@ -1022,7 +1024,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             }
 
             return await new BucketService(_context, _httpClientFactory)
-                .DownloadFileAsync("GRVASSINAAGENTE", GrvId);
+                .DownloadFileAsync(BucketNomeTabelaOrigemEnum.AssinaturaAgente, GrvId);
         }
 
         public async Task<ImageListDTO> GetAssinaturaCondutorAsync(int GrvId, int UsuarioId)
@@ -1041,7 +1043,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 .Include(x => x.BucketNomeTabelaOrigem)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.TabelaOrigemId == GrvId
-                                       && x.BucketNomeTabelaOrigem.Codigo == "GRVASSINACONDUT");
+                                       && x.BucketNomeTabelaOrigem.Codigo == BucketNomeTabelaOrigemEnum.AssinaturaCondutor);
 
             if (BucketArquivo == null)
             {
@@ -1051,7 +1053,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             }
 
             return await new BucketService(_context, _httpClientFactory)
-                .DownloadFileAsync("GRVASSINACONDUT", GrvId);
+                .DownloadFileAsync(BucketNomeTabelaOrigemEnum.AssinaturaCondutor, GrvId);
         }
 
         public async Task<StatusOperacaoListDTO> GetStatusOperacaoByIdAsync(string StatusOperacaoId)
@@ -1544,7 +1546,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (UsuarioId <= 0)
             {
-                erros.Add("Primeiro é necessário informar o Identificador do Usuário");
+                erros.Add(MensagemPadraoEnum.IdentificadorUsuarioInvalido);
             }
 
             if (erros.Count > 0)

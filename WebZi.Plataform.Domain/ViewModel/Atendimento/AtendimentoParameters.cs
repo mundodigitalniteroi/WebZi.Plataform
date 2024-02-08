@@ -20,7 +20,7 @@ namespace WebZi.Plataform.Domain.ViewModel.Atendimento
 
         public string ResponsavelDocumento { get; set; }
 
-        public string ResponsavelCnh { get; set; }
+        public string ResponsavelCNH { get; set; }
 
         public string ResponsavelEndereco { get; set; }
 
@@ -102,6 +102,6 @@ namespace WebZi.Plataform.Domain.ViewModel.Atendimento
 
         public string NotaFiscalInscricaoMunicipal { get; set; }
 
-        public DateTime? DataHoraInicioAtendimento { get; set; }
+        public DateTime DataHoraInicioAtendimento { get; set; }
     }
 }

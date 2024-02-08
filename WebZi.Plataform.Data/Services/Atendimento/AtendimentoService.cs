@@ -124,11 +124,11 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 ResultView.AvisosImpeditivos.Add($"CPF do Responsável inválido: {AtendimentoCadastro.ResponsavelDocumento}");
             }
 
-            if (!string.IsNullOrWhiteSpace(AtendimentoCadastro.ResponsavelCnh))
+            if (!string.IsNullOrWhiteSpace(AtendimentoCadastro.ResponsavelCNH))
             {
-                if (!DocumentHelper.IsCNH(AtendimentoCadastro.ResponsavelCnh))
+                if (!DocumentHelper.IsCNH(AtendimentoCadastro.ResponsavelCNH))
                 {
-                    ResultView.AvisosImpeditivos.Add($"CNH do Responsável inválido: {AtendimentoCadastro.ResponsavelCnh}");
+                    ResultView.AvisosImpeditivos.Add($"CNH do Responsável inválido: {AtendimentoCadastro.ResponsavelCNH}");
                 }
             }
             #endregion Dados do Responsável
@@ -443,19 +443,15 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
                 UsuarioCadastroId = AtendimentoInput.IdentificadorUsuario,
 
-                DataHoraInicioAtendimento = AtendimentoInput.DataHoraInicioAtendimento ?? DataHoraPorDeposito,
+                DataHoraInicioAtendimento = AtendimentoInput.DataHoraInicioAtendimento,
 
                 DataCadastro = DataHoraPorDeposito,
-
-                DataImpressao = DataHoraPorDeposito,
-
-                TotalImpressoes = 1,
 
                 ResponsavelNome = AtendimentoInput.ResponsavelNome.ToUpperTrim(),
 
                 ResponsavelDocumento = AtendimentoInput.ResponsavelDocumento.Replace(".", "").Replace("/", "").Replace("-", ""),
 
-                ResponsavelCnh = AtendimentoInput.ResponsavelCnh,
+                ResponsavelCnh = AtendimentoInput.ResponsavelCNH,
 
                 ResponsavelEndereco = AtendimentoInput.ResponsavelEndereco.ToUpperTrim(),
 
@@ -792,7 +788,8 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             BucketArquivoModel BucketArquivo = _context.BucketArquivo
                 .Include(x => x.BucketNomeTabelaOrigem)
-                .Where(x => x.BucketNomeTabelaOrigem.Codigo == BucketNomeTabelaOrigemEnum.AtendimentoFotoResponsavel)
+                .Where(x => x.BucketNomeTabelaOrigem.Codigo == BucketNomeTabelaOrigemEnum.AtendimentoFotoResponsavel &&
+                            x.TabelaOrigemId == AtendimentoId)
                 .AsNoTracking()
                 .FirstOrDefault();
 

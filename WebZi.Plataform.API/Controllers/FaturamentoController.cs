@@ -26,7 +26,7 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("AlterarFormaPagamento")]
         // TODO: [Authorize]
-        public ActionResult<MensagemDTO> AlterarFormaPagamento(int IdentificadorFaturamento, byte IdentificadorNovaFormaPagamento, int IdentificadorUsuario)
+        public async Task<ActionResult<MensagemDTO>> AlterarFormaPagamento(int IdentificadorFaturamento, byte IdentificadorNovaFormaPagamento, int IdentificadorUsuario)
         {
             if (!ModelState.IsValid)
             {
@@ -37,9 +37,9 @@ namespace WebZi.Plataform.API.Controllers
 
             try
             {
-                ResultView = _provider
+                ResultView = await _provider
                     .GetService<FaturamentoService>()
-                    .UpdateFormaPagamento(IdentificadorFaturamento, IdentificadorNovaFormaPagamento, IdentificadorUsuario);
+                    .UpdateFormaPagamentoAsync(IdentificadorFaturamento, IdentificadorNovaFormaPagamento, IdentificadorUsuario);
 
                 return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
             }

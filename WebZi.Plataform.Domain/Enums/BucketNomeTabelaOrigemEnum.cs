@@ -2,6 +2,8 @@
 {
     public static class BucketNomeTabelaOrigemEnum
     {
+        public static readonly string AssinaturaAgente = "GRVASSINAAGENTE";
+        public static readonly string AssinaturaCondutor = "GRVASSINACONDUT";
         public static readonly string AtendimentoFotoResponsavel = "ATENDIMFOTORESP";
         public static readonly string LogoCliente = "CADLOGOCLIENTE";
         public static readonly string Boleto = "FATURAMENBOLETO";

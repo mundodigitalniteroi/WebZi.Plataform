@@ -32,7 +32,7 @@
 
         public static readonly string IdentificadorFaturamentoInvalido = "Identificador do Faturamento inválido";
 
-        public static readonly string IdentificadorFormaPagamentoInvalido = "Identificador da Forma de Pagamento inválido";
+        public static readonly string IdentificadorTipoMeioCobrancaInvalido = "Identificador da Forma de Pagamento inválido";
 
         public static readonly string IdentificadorGrvInvalido = "Identificador do Processo inválido";
 

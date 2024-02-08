@@ -106,6 +106,8 @@ namespace WebZi.Plataform.Data.Database
 
         public DbSet<BancoModel> Banco { get; set; }
 
+        public DbSet<BoletoOriginalModel> BoletoOriginal { get; set; }
+
         public DbSet<PixEstaticoModel> PixEstatico { get; set; }
 
         public DbSet<PixDinamicoModel> PixDinamico { get; set; }

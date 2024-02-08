@@ -22,18 +22,18 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("GerarBoleto")]
         // TODO: [Authorize]
-        public ActionResult<ImageListDTO> GerarBoleto(int IdentificadorFaturamento, int IdentificadorUsuario)
+        public ActionResult<BoletoOriginalListDTO> GerarBoleto(int IdentificadorFaturamento, int IdentificadorUsuario)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            ImageListDTO ResultView = new();
+            BoletoOriginalListDTO ResultView = new();
 
             try
             {
-                ResultView = _provider
+                ResultView =  _provider
                     .GetService<BoletoService>()
                     .Create(IdentificadorFaturamento, IdentificadorUsuario);
 
@@ -157,14 +157,14 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("SelecionarBoleto")]
         // TODO: [Authorize]
-        public ActionResult<ImageListDTO> SelecionarBoleto(int IdentificadorFaturamento, int IdentificadorUsuario)
+        public ActionResult<BoletoOriginalListDTO> SelecionarBoleto(int IdentificadorFaturamento, int IdentificadorUsuario)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            ImageListDTO ResultView = new();
+            BoletoOriginalListDTO ResultView = new();
 
             try
             {

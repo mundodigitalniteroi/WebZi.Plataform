@@ -16,6 +16,7 @@ using WebZi.Plataform.Data.Services.WebServices;
 using WebZi.Plataform.Domain.DTO.Generic;
 using WebZi.Plataform.Domain.DTO.GGV;
 using WebZi.Plataform.Domain.DTO.Sistema;
+using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Bucket;
 using WebZi.Plataform.Domain.Models.Condutor;
 using WebZi.Plataform.Domain.Models.Faturamento;
@@ -359,7 +360,7 @@ namespace WebZi.Plataform.Data.Services.GGV
                 }
 
                 new BucketService(_context, _httpClientFactory)
-                    .SendFiles("GGVFOTOSVEICCAD",
+                    .SendFiles(BucketNomeTabelaOrigemEnum.FotoVeiculoGGV,
                         GgvPersistencia.IdentificadorProcesso,
                         GgvPersistencia.IdentificadorUsuario,
                         Files);
@@ -406,7 +407,7 @@ namespace WebZi.Plataform.Data.Services.GGV
             }
 
             new BucketService(_context, _httpClientFactory)
-                .SendFiles("GGVFOTOSVEICCAD", Fotos.IdentificadorProcesso, Fotos.IdentificadorUsuario, Files);
+                .SendFiles(BucketNomeTabelaOrigemEnum.FotoVeiculoGGV, Fotos.IdentificadorProcesso, Fotos.IdentificadorUsuario, Files);
 
             return MensagemViewHelper.SetCreateSuccess(Fotos.ListagemFotos.Count);
         }
@@ -436,7 +437,7 @@ namespace WebZi.Plataform.Data.Services.GGV
                 .Include(x => x.BucketNomeTabelaOrigem)
                 .Where(x => x.TabelaOrigemId != GrvId
                          && ListagemTabelaOrigemId.Contains(x.RepositorioArquivoId)
-                         && x.BucketNomeTabelaOrigem.Codigo == "GGVFOTOSVEICCAD")
+                         && x.BucketNomeTabelaOrigem.Codigo == BucketNomeTabelaOrigemEnum.FotoVeiculoGGV)
                 .AsNoTracking()
                 .ToListAsync();
 
@@ -456,7 +457,7 @@ namespace WebZi.Plataform.Data.Services.GGV
             }
 
             new BucketService(_context, _httpClientFactory)
-                .DeleteFiles("GGVFOTOSVEICCAD", ListagemTabelaOrigemId);
+                .DeleteFiles(BucketNomeTabelaOrigemEnum.FotoVeiculoGGV, ListagemTabelaOrigemId);
 
             return MensagemViewHelper.SetDeleteSuccess(BucketArquivos.Count, "Foto(s) excluída(s) com sucesso");
         }
@@ -512,7 +513,7 @@ namespace WebZi.Plataform.Data.Services.GGV
             }
 
             return await new BucketService(_context, _httpClientFactory)
-                .DownloadFileAsync("GGVFOTOSVEICCAD", GrvId);
+                .DownloadFileAsync(BucketNomeTabelaOrigemEnum.FotoVeiculoGGV, GrvId);
         }
 
         public async Task<MensagemDTO> ValidarInformacoesPersistenciaAsync(GgvParameters GgvPersistencia)

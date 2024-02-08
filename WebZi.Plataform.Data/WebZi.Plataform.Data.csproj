@@ -33,7 +33,6 @@
 
   <ItemGroup>
     <Folder Include="Mappings\GGV\" />
-    <Folder Include="Mappings\Nfe\" />
     <Folder Include="Services\Nfe\" />
     <Folder Include="Services\Pessoa\Documento\" />
   </ItemGroup>
