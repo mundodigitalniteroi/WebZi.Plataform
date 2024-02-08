@@ -9,7 +9,7 @@ namespace WebZi.Plataform.Data.Mappings.Sistema
         public void Configure(EntityTypeBuilder<ConfiguracaoModel> builder)
         {
             builder
-                .ToTable("tb_dep_configuracoes", "dbo")
+                .ToTable("tb_dep_configuracoes", "dbo", tb => tb.HasTrigger("tr_log_upd_configuracoes"))
                 .HasKey(x => x.ConfiguracaoId);
 
             builder.Property(e => e.ConfiguracaoId)

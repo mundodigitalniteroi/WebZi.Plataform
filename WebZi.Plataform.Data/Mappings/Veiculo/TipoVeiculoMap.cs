@@ -9,7 +9,7 @@ namespace WebZi.Plataform.Data.Mappings.GRV
         public void Configure(EntityTypeBuilder<TipoVeiculoModel> builder)
         {
             builder
-                .ToTable("tb_dep_tipo_veiculos", "dbo")
+                .ToTable("tb_dep_tipo_veiculos", "dbo", tb => tb.HasTrigger("tr_log_upd_tipo_veiculos"))
                 .HasKey(x => x.TipoVeiculoId);
 
             builder.Property(x => x.TipoVeiculoId)

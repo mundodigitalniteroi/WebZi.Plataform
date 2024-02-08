@@ -9,7 +9,7 @@ namespace WebZi.Plataform.Data.Mappings.Deposito
         public void Configure(EntityTypeBuilder<DepositoModel> builder)
         {
             builder
-                .ToTable("tb_dep_depositos", "dbo")
+                .ToTable("tb_dep_depositos", "dbo", tb => tb.HasTrigger("tr_log_upd_depositos"))
                 .HasKey(x => x.DepositoId);
 
             builder.Property(e => e.DepositoId)

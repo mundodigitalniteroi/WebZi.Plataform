@@ -9,7 +9,7 @@ namespace WebZi.Plataform.Data.Mappings.Usuario
         public void Configure(EntityTypeBuilder<UsuarioModel> builder)
         {
             builder
-                .ToTable("tb_dep_usuarios", "dbo")
+                .ToTable("tb_dep_usuarios", "dbo", tb => tb.HasTrigger("tr_log_upd_usuarios"))
                 .HasKey(x => x.UsuarioId);
 
             builder.Property(e => e.UsuarioId)

@@ -9,7 +9,11 @@ namespace WebZi.Plataform.Data.Mappings.Faturamento
         public void Configure(EntityTypeBuilder<FaturamentoModel> builder)
         {
             builder
-                .ToTable("tb_dep_faturamento", "dbo")
+                .ToTable("tb_dep_faturamento", "dbo", tb =>
+                {
+                    tb.HasTrigger("tr_log_upd_faturamento");
+                    tb.HasTrigger("tr_del_faturamento");
+                })
                 .HasKey(x => x.FaturamentoId);
 
             builder.Property(e => e.FaturamentoId)
