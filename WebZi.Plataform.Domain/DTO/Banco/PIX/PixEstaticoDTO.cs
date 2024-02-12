@@ -2,7 +2,7 @@
 
 namespace WebZi.Plataform.Domain.DTO.Banco.PIX
 {
-    public class PixEstaticoGeradoDTO
+    public class PixEstaticoDTO
     {
         public MensagemDTO Mensagem { get; set; } = new();
 

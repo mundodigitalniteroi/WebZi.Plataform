@@ -2,10 +2,14 @@
 
 namespace WebZi.Plataform.Domain.DTO.Banco
 {
-    public class BoletoOriginalListDTO
+    public class BoletoDTO
     {
         public MensagemDTO Mensagem { get; set; } = new MensagemDTO();
 
-        public List<BoletoOriginalDTO> Listagem { get; set; } = new();
+        public int Identificador { get; set; }
+
+        public string LinhaDigitavel { get; set; }
+
+        public byte[] Imagem { get; set; }
     }
 }

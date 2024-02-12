@@ -19,9 +19,9 @@ namespace WebZi.Plataform.Data.Services.Banco.PIX
             _context = context;
         }
 
-        public PixEstaticoGeradoDTO Create(int FaturamentoId, int UsuarioId)
+        public PixEstaticoDTO Create(int FaturamentoId, int UsuarioId)
         {
-            PixEstaticoGeradoDTO ResultView = new();
+            PixEstaticoDTO ResultView = new();
 
             if (FaturamentoId <= 0)
             {

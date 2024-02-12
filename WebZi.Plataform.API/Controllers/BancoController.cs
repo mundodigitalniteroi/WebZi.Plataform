@@ -22,14 +22,14 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("GerarBoleto")]
         // TODO: [Authorize]
-        public ActionResult<BoletoOriginalListDTO> GerarBoleto(int IdentificadorFaturamento, int IdentificadorUsuario)
+        public ActionResult<BoletoDTO> GerarBoleto(int IdentificadorFaturamento, int IdentificadorUsuario)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            BoletoOriginalListDTO ResultView = new();
+            BoletoDTO ResultView = new();
 
             try
             {
@@ -49,14 +49,14 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("GerarPixDinamico")]
         // TODO: [Authorize]
-        public ActionResult<PixEstaticoGeradoDTO> GerarPixDinamico(int IdentificadorFaturamento, int IdentificadorUsuario)
+        public ActionResult<PixEstaticoDTO> GerarPixDinamico(int IdentificadorFaturamento, int IdentificadorUsuario)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            PixEstaticoGeradoDTO ResultView = new();
+            PixEstaticoDTO ResultView = new();
 
             try
             {
@@ -76,14 +76,14 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("GerarPixEstatico")]
         // TODO: [Authorize]
-        public ActionResult<PixEstaticoGeradoDTO> GerarPixEstatico(int IdentificadorFaturamento, int IdentificadorUsuario)
+        public ActionResult<PixEstaticoDTO> GerarPixEstatico(int IdentificadorFaturamento, int IdentificadorUsuario)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            PixEstaticoGeradoDTO ResultView = new();
+            PixEstaticoDTO ResultView = new();
 
             try
             {
@@ -157,14 +157,14 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("SelecionarBoleto")]
         // TODO: [Authorize]
-        public ActionResult<BoletoOriginalListDTO> SelecionarBoleto(int IdentificadorFaturamento, int IdentificadorUsuario)
+        public ActionResult<BoletoDTO> SelecionarBoleto(int IdentificadorFaturamento, int IdentificadorUsuario)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            BoletoOriginalListDTO ResultView = new();
+            BoletoDTO ResultView = new();
 
             try
             {

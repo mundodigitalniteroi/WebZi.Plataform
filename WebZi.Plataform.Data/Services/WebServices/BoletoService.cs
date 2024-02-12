@@ -34,19 +34,19 @@ namespace WebZi.Plataform.Data.Services.WebServices
             _httpClientFactory = httpClientFactory;
         }
 
-        public BoletoOriginalListDTO GetBoletoNaoPago(int FaturamentoId, int UsuarioId)
+        public BoletoDTO GetBoletoNaoPago(int FaturamentoId, int UsuarioId)
         {
             return GetBoleto(FaturamentoId, UsuarioId, "N");
         }
 
-        public BoletoOriginalListDTO GetBoletoNaoCancelado(int FaturamentoId, int UsuarioId)
+        public BoletoDTO GetBoletoNaoCancelado(int FaturamentoId, int UsuarioId)
         {
             return GetBoleto(FaturamentoId, UsuarioId);
         }
 
-        private BoletoOriginalListDTO GetBoleto(int FaturamentoId, int UsuarioId, string StatusBoleto = "")
+        private BoletoDTO GetBoleto(int FaturamentoId, int UsuarioId, string StatusBoleto = "")
         {
-            BoletoOriginalListDTO ResultView = new();
+            BoletoDTO ResultView = new();
 
             if (FaturamentoId <= 0)
             {
@@ -136,15 +136,12 @@ namespace WebZi.Plataform.Data.Services.WebServices
             {
                 ResultView.Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.Ok;
 
-                ResultView.Listagem.Add(new BoletoOriginalDTO
-                {
-                    Identificador = Boleto.BoletoId,
+                ResultView.Identificador = Boleto.BoletoId;
 
-                    LinhaDigitavel = Boleto.Linha,
+                ResultView.LinhaDigitavel = Boleto.Linha;
 
-                    Imagem = new HttpClientFactoryService(_httpClientFactory)
-                    .DownloadFile(BucketArquivo.Url)
-                });
+                ResultView.Imagem = new HttpClientFactoryService(_httpClientFactory)
+                    .DownloadFile(BucketArquivo.Url);
 
                 return ResultView;
             }
@@ -161,14 +158,11 @@ namespace WebZi.Plataform.Data.Services.WebServices
                 {
                     ResultView.Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.Ok;
 
-                    ResultView.Listagem.Add(new BoletoOriginalDTO
-                    {
-                        Identificador = Boleto.BoletoId,
+                    ResultView.Identificador = Boleto.BoletoId;
 
-                        LinhaDigitavel = Boleto.Linha,
+                    ResultView.LinhaDigitavel = Boleto.Linha;
 
-                        Imagem = FaturamentoBoletoImagem.Imagem
-                    });
+                    ResultView.Imagem = FaturamentoBoletoImagem.Imagem;
 
                     return ResultView;
                 }
@@ -181,9 +175,9 @@ namespace WebZi.Plataform.Data.Services.WebServices
             }
         }
 
-        public BoletoOriginalListDTO Create(int FaturamentoId, int UsuarioId)
+        public BoletoDTO Create(int FaturamentoId, int UsuarioId)
         {
-            BoletoOriginalListDTO ResultView = new();
+            BoletoDTO ResultView = new();
 
             if (FaturamentoId <= 0)
             {
@@ -394,7 +388,11 @@ namespace WebZi.Plataform.Data.Services.WebServices
             }
             #endregion Cadastro do Boleto e da Imagem
 
-            ResultView.Listagem.Add(new BoletoOriginalDTO { Identificador = linhaId, LinhaDigitavel = Boleto.Linha, Imagem = BoletoGerado.Boleto });
+            ResultView.Identificador = linhaId;
+
+            ResultView.LinhaDigitavel = Boleto.Linha;
+
+            ResultView.Imagem = BoletoGerado.Boleto;
 
             ResultView.Mensagem = MensagemViewHelper.SetOk("Boleto gerado com sucesso");
 
