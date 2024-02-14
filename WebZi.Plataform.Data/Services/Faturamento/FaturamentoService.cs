@@ -1237,6 +1237,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     .Include(x => x.FaturamentoProduto)
                     .Include(x => x.TipoVeiculo)
                     .Include(x => x.Atendimento)
+                    .Include(x => x.StatusOperacao)
                     .AsNoTracking()
                     .FirstOrDefaultAsync(x => x.GrvId == model.IdentificadorProcesso);
             }
@@ -1246,6 +1247,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     .Include(x => x.FaturamentoProduto)
                     .Include(x => x.TipoVeiculo)
                     .Include(x => x.Atendimento)
+                    .Include(x => x.StatusOperacao)
                     .AsNoTracking()
                     .FirstOrDefaultAsync(x => !model.Placa.IsNullOrWhiteSpace() ? x.Placa == model.Placa : true
                                            && !model.Chassi.IsNullOrWhiteSpace() ? x.Chassi == model.Chassi : true);

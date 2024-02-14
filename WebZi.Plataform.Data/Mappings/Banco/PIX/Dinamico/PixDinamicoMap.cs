@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using WebZi.Plataform.Domain.Models.Banco.PIX.Dinamico;
+using WebZi.Plataform.Domain.Models.Banco.PIX.Dinamico.Persistencia;
 
 namespace WebZi.Plataform.Data.Mappings.Banco.PIX.Dinamico
 {
@@ -71,10 +71,11 @@ namespace WebZi.Plataform.Data.Mappings.Banco.PIX.Dinamico
                 .HasMaxLength(10)
                 .IsUnicode(false);
 
-            builder.Property(e => e.TxId)
+            builder.Property(e => e.TransactionId)
                 .IsRequired()
-                .HasMaxLength(32)
-                .IsUnicode(false);
+                .HasMaxLength(32)   
+                .IsUnicode(false)
+                .HasColumnName("TxId");
 
             builder.Property(e => e.ValorOriginal)
                 .HasColumnType("smallmoney");

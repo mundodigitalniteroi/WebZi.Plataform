@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using WebZi.Plataform.Domain.Models.Banco.PIX.Dinamico;
+using WebZi.Plataform.Domain.Models.Banco.PIX.Dinamico.Persistencia;
 
 namespace WebZi.Plataform.Data.Mappings.Banco.PIX.Dinamico
 {

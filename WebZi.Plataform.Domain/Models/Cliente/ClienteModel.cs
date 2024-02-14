@@ -1,5 +1,5 @@
 ﻿using WebZi.Plataform.Domain.Models.Banco;
-using WebZi.Plataform.Domain.Models.Banco.PIX.Dinamico;
+using WebZi.Plataform.Domain.Models.Banco.PIX.Dinamico.Persistencia;
 using WebZi.Plataform.Domain.Models.ClienteDeposito;
 using WebZi.Plataform.Domain.Models.Empresa;
 using WebZi.Plataform.Domain.Models.Faturamento;

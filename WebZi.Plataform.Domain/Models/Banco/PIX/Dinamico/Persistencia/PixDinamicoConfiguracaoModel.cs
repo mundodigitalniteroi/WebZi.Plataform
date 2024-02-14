@@ -1,6 +1,6 @@
 ﻿using WebZi.Plataform.Domain.Models.Cliente;
 
-namespace WebZi.Plataform.Domain.Models.Banco.PIX.Dinamico
+namespace WebZi.Plataform.Domain.Models.Banco.PIX.Dinamico.Persistencia
 {
     public class PixDinamicoConfiguracaoModel
     {

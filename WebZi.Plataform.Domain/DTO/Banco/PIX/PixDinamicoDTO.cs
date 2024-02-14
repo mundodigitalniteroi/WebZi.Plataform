@@ -1,16 +1,16 @@
-﻿using WebZi.Plataform.Domain.Models.Faturamento;
+﻿using WebZi.Plataform.Domain.DTO.Sistema;
 
-namespace WebZi.Plataform.Domain.Models.Banco.PIX.Dinamico
+namespace WebZi.Plataform.Domain.DTO.Banco.PIX
 {
-    public class PixDinamicoModel
+    public class PixDinamicoDTO
     {
-        public int PixDinamicoId { get; set; }
+        public MensagemDTO Mensagem { get; set; } = new();
 
-        public byte PixDinamicoTipoStatusGeracaoId { get; set; }
+        public int IdentificadorPixDinamico { get; set; }
 
-        public int FaturamentoId { get; set; }
+        public byte IdentificadorPixDinamicoTipoStatusGeracao { get; set; }
 
-        public string TxId { get; set; }
+        public string TransactionId { get; set; }
 
         public int? Revisao { get; set; }
 
@@ -51,13 +51,5 @@ namespace WebZi.Plataform.Domain.Models.Banco.PIX.Dinamico
         public string PagadorCnpj { get; set; }
 
         public DateTime DataCadastro { get; set; }
-
-        public DateTime? DataAlteracao { get; set; }
-
-        public virtual FaturamentoModel Faturamento { get; set; }
-
-        public virtual PixDinamicoTipoStatusGeracaoModel PixDinamicoTipoStatusGeracao { get; set; }
-
-        public virtual ICollection<PixDinamicoConsultaModel> PixDinamicoConsultas { get; set; }
     }
 }

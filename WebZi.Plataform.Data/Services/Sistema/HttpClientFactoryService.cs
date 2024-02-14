@@ -54,6 +54,11 @@ namespace WebZi.Plataform.Data.Services.Sistema
 
             using HttpResponseMessage result = await client.PostAsync(url, stringContent);
 
+            if (!result.IsSuccessStatusCode)
+            {
+                throw new Exception(((int)result.StatusCode).ToString());
+            }
+
             string json = await result.Content.ReadAsStringAsync();
 
             return JsonConvert.DeserializeObject<T>(json);

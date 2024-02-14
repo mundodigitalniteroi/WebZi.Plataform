@@ -1,4 +1,4 @@
-﻿namespace WebZi.Plataform.Domain.Models.Banco.PIX.Work
+﻿namespace WebZi.Plataform.Domain.Models.Banco.PIX.Estatico
 {
     public class PixEstaticoRetornoModel
     {

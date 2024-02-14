@@ -6,8 +6,8 @@ using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Sistema;
 using WebZi.Plataform.Domain.DTO.Banco.PIX;
 using WebZi.Plataform.Domain.Enums;
-using WebZi.Plataform.Domain.Models.Banco.PIX;
-using WebZi.Plataform.Domain.Models.Banco.PIX.Work;
+using WebZi.Plataform.Domain.Models.Banco.PIX.Base;
+using WebZi.Plataform.Domain.Models.Banco.PIX.Estatico;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.Sistema;
 using WebZi.Plataform.Domain.Services.GRV;
@@ -43,9 +43,8 @@ namespace WebZi.Plataform.Data.Services.Banco.PIX
                 .ThenInclude(x => x.Grv)
                 .ThenInclude(x => x.Cliente)
                 .ThenInclude(x => x.Endereco)
-                .Where(x => x.FaturamentoId == FaturamentoId)
                 .AsNoTracking()
-                .FirstOrDefault();
+                .FirstOrDefault(x => x.FaturamentoId == FaturamentoId);
 
             if (Faturamento != null)
             {
@@ -59,6 +58,13 @@ namespace WebZi.Plataform.Data.Services.Banco.PIX
             else
             {
                 ResultView.Mensagem = MensagemViewHelper.SetNotFound(MensagemPadraoEnum.NaoEncontradoFaturamento);
+
+                return ResultView;
+            }
+
+            if (Faturamento.Atendimento.Grv.Cliente.FlagPossuiPixEstatico == "N")
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("A Forma de Pagamento PIX Estático não está configurada para este Cliente");
 
                 return ResultView;
             }
@@ -98,18 +104,18 @@ namespace WebZi.Plataform.Data.Services.Banco.PIX
                 .AsNoTracking()
                 .FirstOrDefault();
 
-            PixEstaticoEnvioModel PixEstaticoEnvio = new()
+            PixBaseModel PixBaseEnvio = new()
             {
                 Chave = Faturamento.Atendimento.Grv.Cliente.PixChave,
 
                 SolicitacaoPagador = Faturamento.Atendimento.Grv.NumeroFormularioGrv,
 
-                Valor = new PixEstaticoEnvioValorModel()
+                Valor = new PixBaseValorModel()
                 {
                     Original = Math.Round(Faturamento.ValorFaturado, 2).ToString().Replace(",", ".")
                 },
 
-                Merchant = new PixEstaticoEnvioMerchantModel()
+                Merchant = new PixBaseMerchantModel()
                 {
                     Name = StringHelper.Normalize(Faturamento.Atendimento.Grv.Cliente.Nome.ToUpper().Trim()),
 
@@ -128,7 +134,7 @@ namespace WebZi.Plataform.Data.Services.Banco.PIX
                             Configuracao.PixUrl,
                             Configuracao.PixUsername,
                             Configuracao.PixPassword,
-                            PixEstaticoEnvio);
+                            PixBaseEnvio);
 
                     break;
                 }
@@ -144,15 +150,15 @@ namespace WebZi.Plataform.Data.Services.Banco.PIX
             {
                 FaturamentoId = FaturamentoId,
 
-                Chave = PixEstaticoEnvio.Chave,
+                Chave = PixBaseEnvio.Chave,
 
-                SolicitacaoPagador = PixEstaticoEnvio.SolicitacaoPagador,
+                SolicitacaoPagador = PixBaseEnvio.SolicitacaoPagador,
 
-                Valor = Convert.ToDecimal(PixEstaticoEnvio.Valor.Original.Replace(",", ".")),
+                Valor = Convert.ToDecimal(PixBaseEnvio.Valor.Original.Replace(",", ".")),
 
-                MerchantName = PixEstaticoEnvio.Merchant.Name,
+                MerchantName = PixBaseEnvio.Merchant.Name,
 
-                MerchantCity = PixEstaticoEnvio.Merchant.City,
+                MerchantCity = PixBaseEnvio.Merchant.City,
 
                 QRString = PixEstaticoRetorno.QrString,
 

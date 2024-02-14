@@ -1,4 +1,4 @@
-﻿namespace WebZi.Plataform.Domain.Models.Banco.PIX.Dinamico
+﻿namespace WebZi.Plataform.Domain.Models.Banco.PIX.Dinamico.Persistencia
 {
     public class PixDinamicoConsultaModel
     {
@@ -12,8 +12,8 @@
 
         public DateTime DataCadastro { get; set; }
 
-        public virtual PixDinamicoModel PIXDinamico { get; set; }
+        public virtual PixDinamicoModel PixDinamico { get; set; }
 
-        public virtual PixDinamicoTipoStatusGeracaoModel PIXDinamicoTipoStatusGeracao { get; set; }
+        public virtual PixDinamicoTipoStatusGeracaoModel PixDinamicoTipoStatusGeracao { get; set; }
     }
 }

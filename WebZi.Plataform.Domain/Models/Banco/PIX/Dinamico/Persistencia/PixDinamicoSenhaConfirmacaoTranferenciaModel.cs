@@ -1,7 +1,7 @@
 ﻿using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.Usuario;
 
-namespace WebZi.Plataform.Domain.Models.Banco.PIX.Dinamico
+namespace WebZi.Plataform.Domain.Models.Banco.PIX.Dinamico.Persistencia
 {
     public class PixDinamicoSenhaConfirmacaoTranferenciaModel
     {

@@ -2,6 +2,7 @@
 using WebZi.Plataform.CrossCutting.Strings;
 using WebZi.Plataform.Domain.DTO.Atendimento;
 using WebZi.Plataform.Domain.DTO.Banco;
+using WebZi.Plataform.Domain.DTO.Banco.PIX;
 using WebZi.Plataform.Domain.DTO.Cliente;
 using WebZi.Plataform.Domain.DTO.Deposito;
 using WebZi.Plataform.Domain.DTO.Documento;
@@ -21,6 +22,7 @@ using WebZi.Plataform.Domain.DTO.Vistoria;
 using WebZi.Plataform.Domain.DTO.WebServices.DetranRio;
 using WebZi.Plataform.Domain.Models.Atendimento;
 using WebZi.Plataform.Domain.Models.Banco;
+using WebZi.Plataform.Domain.Models.Banco.PIX.Dinamico.Persistencia;
 using WebZi.Plataform.Domain.Models.Cliente;
 using WebZi.Plataform.Domain.Models.Condutor;
 using WebZi.Plataform.Domain.Models.Deposito;
@@ -180,6 +182,10 @@ namespace WebZi.Plataform.Data.Services
             CreateMap<OrgaoEmissorModel, OrgaoEmissorDTO>()
                 .ForMember(dest => dest.IdentificadorOrgaoEmissor, from => from.MapFrom(src => src.OrgaoEmissorId))
                 .ForMember(dest => dest.Nome, from => from.MapFrom(src => src.Descricao));
+
+            CreateMap<PixDinamicoModel, PixDinamicoDTO>()
+                .ForMember(dest => dest.IdentificadorPixDinamico, from => from.MapFrom(src => src.PixDinamicoId))
+                .ForMember(dest => dest.IdentificadorPixDinamicoTipoStatusGeracao, from => from.MapFrom(src => src.PixDinamicoTipoStatusGeracaoId));
 
             CreateMap<QualificacaoResponsavelModel, QualificacaoResponsavelDTO>()
                 .ForMember(dest => dest.IdentificadorQualificacaoResponsavel, from => from.MapFrom(src => src.QualificacaoResponsavelId));

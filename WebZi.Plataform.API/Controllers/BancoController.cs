@@ -49,20 +49,20 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("GerarPixDinamico")]
         // TODO: [Authorize]
-        public ActionResult<PixEstaticoDTO> GerarPixDinamico(int IdentificadorFaturamento, int IdentificadorUsuario)
+        public async Task<ActionResult<PixDinamicoDTO>> GerarPixDinamico(int IdentificadorFaturamento, int IdentificadorUsuario)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            PixEstaticoDTO ResultView = new();
+            PixDinamicoDTO ResultView = new();
 
             try
             {
-                ResultView = _provider
+                ResultView = await _provider
                     .GetService<PixDinamicoService>()
-                    .Create(IdentificadorFaturamento, IdentificadorUsuario);
+                    .CreateAsync(IdentificadorFaturamento, IdentificadorUsuario);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }

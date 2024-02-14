@@ -1,7 +1,7 @@
 ﻿using WebZi.Plataform.Domain.Models.Atendimento;
 using WebZi.Plataform.Domain.Models.Banco;
-using WebZi.Plataform.Domain.Models.Banco.PIX;
-using WebZi.Plataform.Domain.Models.Banco.PIX.Dinamico;
+using WebZi.Plataform.Domain.Models.Banco.PIX.Dinamico.Persistencia;
+using WebZi.Plataform.Domain.Models.Banco.PIX.Estatico;
 using WebZi.Plataform.Domain.Models.Usuario;
 using WebZi.Plataform.Domain.Models.WebServices.Boleto;
 

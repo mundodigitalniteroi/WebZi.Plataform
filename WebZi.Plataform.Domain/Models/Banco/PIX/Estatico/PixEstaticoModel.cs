@@ -1,6 +1,6 @@
 ﻿using WebZi.Plataform.Domain.Models.Faturamento;
 
-namespace WebZi.Plataform.Domain.Models.Banco.PIX
+namespace WebZi.Plataform.Domain.Models.Banco.PIX.Estatico
 {
     public class PixEstaticoModel
     {
