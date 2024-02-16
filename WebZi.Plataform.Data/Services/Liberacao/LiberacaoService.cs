@@ -213,6 +213,8 @@ namespace WebZi.Plataform.Data.Services.Liberacao
 
             Console.WriteLine(CryptographyHelper.DecryptString(key, encrypted));
 
+            ResultView.QRCodeString = encrypted;
+
             ResultView.QRCode = QRCodeHelper.CreateImageAsByteArray(encrypted, "PNG");
 
             if (Grv.ListagemLacre?.Count > 0)
@@ -220,14 +222,6 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                 ResultView.ListagemLacre = new();
 
                 ResultView.ListagemLacre.AddRange(Grv.ListagemLacre.Select(x => x.Lacre).ToList());
-            }
-
-            ImageListDTO FotoResponsavel = await new AtendimentoService(_context, _httpClientFactory)
-                .GetFotoResponsavelAsync(Grv.Atendimento.AtendimentoId, UsuarioId);
-
-            if (FotoResponsavel != null && FotoResponsavel.Listagem?.Count > 0)
-            {
-                ResultView.FotoResponsavel = FotoResponsavel.Listagem.FirstOrDefault().Imagem;
             }
 
             ResultView.Mensagem = MensagemViewHelper.SetOk(ResultView.Mensagem, "Documento gerado com sucesso");
@@ -282,6 +276,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
             }
 
             GrvModel Grv = await _context.Grv
+                .Include(x => x.TipoVeiculo)
                 .Include(x => x.StatusOperacao)
                 .Include(x => x.Cliente)
                 .Include(x => x.Deposito)
@@ -366,6 +361,8 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                 Chassi = Grv.Chassi,
 
                 Renavam = Grv.Renavam,
+
+                TipoVeiculo = Grv.TipoVeiculo.Descricao,
 
                 MarcaModelo = Grv.MarcaModelo.MarcaModelo,
 

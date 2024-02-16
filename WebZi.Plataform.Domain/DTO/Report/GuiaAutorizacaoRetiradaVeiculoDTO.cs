@@ -70,10 +70,10 @@ namespace WebZi.Plataform.Domain.DTO.Report
 
         public List<string> ListagemLacre { get; set; }
 
+        public string QRCodeString { get; set; }
+
         public byte[] Logo { get; set; }
 
         public byte[] QRCode { get; set; }
-
-        public byte[] FotoResponsavel { get; set; }
     }
 }

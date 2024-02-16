@@ -24,6 +24,8 @@ namespace WebZi.Plataform.Domain.DTO.Report
 
         public string Renavam { get; set; }
 
+        public string TipoVeiculo { get; set; }
+
         public string MarcaModelo { get; set; }
 
         public string Cor { get; set; }
