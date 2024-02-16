@@ -40,6 +40,12 @@ namespace WebZi.Plataform.Data.Services.Atendimento
         private readonly IMapper _mapper;
         private readonly IHttpClientFactory _httpClientFactory;
 
+        public AtendimentoService(AppDbContext context, IHttpClientFactory httpClientFactory)
+        {
+            _context = context;
+            _httpClientFactory = httpClientFactory;
+        }
+
         public AtendimentoService(AppDbContext context, IMapper mapper, IHttpClientFactory httpClientFactory)
         {
             _context = context;
@@ -756,7 +762,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             return ResultView;
         }
 
-        public async Task<ImageListDTO> GetResponsavelFotoAsync(int AtendimentoId, int UsuarioId)
+        public async Task<ImageListDTO> GetFotoResponsavelAsync(int AtendimentoId, int UsuarioId)
         {
             ImageListDTO ResultView = new();
 
@@ -798,7 +804,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 ResultView.Listagem.Add(new ImageDTO
                 {
                     Imagem = new HttpClientFactoryService(_httpClientFactory)
-                    .DownloadFile(BucketArquivo.Url)
+                        .DownloadFile(BucketArquivo.Url)
                 });
 
                 ResultView.Mensagem = MensagemViewHelper.SetFound();

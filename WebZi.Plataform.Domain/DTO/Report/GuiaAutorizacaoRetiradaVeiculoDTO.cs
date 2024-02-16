@@ -30,6 +30,8 @@ namespace WebZi.Plataform.Domain.DTO.Report
 
         public string DadosAutorizadaRetiradaVeiculoEm { get; set; }
 
+        public string VeiculoTipo { get; set; }
+
         public string VeiculoMarcaModelo { get; set; }
 
         public string VeiculoPlaca { get; set; }
@@ -71,5 +73,7 @@ namespace WebZi.Plataform.Domain.DTO.Report
         public byte[] Logo { get; set; }
 
         public byte[] QRCode { get; set; }
+
+        public byte[] FotoResponsavel { get; set; }
     }
 }

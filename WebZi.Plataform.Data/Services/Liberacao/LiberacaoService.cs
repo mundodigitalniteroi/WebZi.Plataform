@@ -57,14 +57,16 @@ namespace WebZi.Plataform.Data.Services.Liberacao
             }
 
             GrvModel Grv = await _context.Grv
+                .Include(x => x.TipoVeiculo)
                 .Include(x => x.StatusOperacao)
                 .Include(x => x.Cliente)
+                .Include(x => x.Atendimento)
                 .Include(x => x.Liberacao)
                 .Include(x => x.ListagemLacre)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.GrvId == GrvId);
 
-            if (Grv.StatusOperacaoId is not "R" and not "T" and not "E")
+            if (Grv.StatusOperacaoId is not "R" and not "T" and not "E" and not "U")
             {
                 ResultView.Mensagem = MensagemViewHelper
                     .SetBadRequest($"O Status atual deste Processo não permite a geração do Documento. Status atual: {Grv.StatusOperacao.Descricao}");
@@ -127,6 +129,8 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                 GuiaPagamentoReboqueEstadia.QuantidadeEstadias.ToString() + " dias";
 
             ResultView.DadosAutorizadaRetiradaVeiculoEm = GuiaPagamentoReboqueEstadia.FaturamentoDataVencimento.Left(10);
+
+            ResultView.VeiculoTipo = Grv.TipoVeiculo.Descricao;
 
             ResultView.VeiculoMarcaModelo = GuiaPagamentoReboqueEstadia.MarcaModelo;
 
@@ -216,6 +220,14 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                 ResultView.ListagemLacre = new();
 
                 ResultView.ListagemLacre.AddRange(Grv.ListagemLacre.Select(x => x.Lacre).ToList());
+            }
+
+            ImageListDTO FotoResponsavel = await new AtendimentoService(_context, _httpClientFactory)
+                .GetFotoResponsavelAsync(Grv.Atendimento.AtendimentoId, UsuarioId);
+
+            if (FotoResponsavel != null && FotoResponsavel.Listagem?.Count > 0)
+            {
+                ResultView.FotoResponsavel = FotoResponsavel.Listagem.FirstOrDefault().Imagem;
             }
 
             ResultView.Mensagem = MensagemViewHelper.SetOk(ResultView.Mensagem, "Documento gerado com sucesso");
@@ -409,7 +421,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
             }
 
             ImageListDTO FotoResponsavel = await new AtendimentoService(_context, _mapper, _httpClientFactory)
-                .GetResponsavelFotoAsync(Grv.Atendimento.AtendimentoId, UsuarioId);
+                .GetFotoResponsavelAsync(Grv.Atendimento.AtendimentoId, UsuarioId);
 
             if (FotoResponsavel.Listagem?.Count > 0)
             {

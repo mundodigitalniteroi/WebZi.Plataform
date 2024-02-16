@@ -81,7 +81,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<AtendimentoService>()
-                    .GetResponsavelFotoAsync(IdentificadorAtendimento, IdentificadorUsuario);
+                    .GetFotoResponsavelAsync(IdentificadorAtendimento, IdentificadorUsuario);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
