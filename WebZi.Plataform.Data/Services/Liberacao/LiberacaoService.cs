@@ -207,6 +207,8 @@ namespace WebZi.Plataform.Data.Services.Liberacao
 
             string decrypted = CryptographyHelper.DecryptString(key, encrypted);
 
+            Console.WriteLine(CryptographyHelper.DecryptString(key, encrypted));
+
             ResultView.QRCode = QRCodeHelper.CreateImageAsByteArray(encrypted, "PNG");
 
             if (Grv.ListagemLacre?.Count > 0)
@@ -227,7 +229,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
 
             if (input.IsNullOrWhiteSpace())
             {
-                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Parâmetro inválido");
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("QRCode não informado");
 
                 return ResultView;
             }
@@ -242,7 +244,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
             }
             catch (Exception)
             {
-                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Parâmetro inválido");
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("QRCode inválido");
 
                 return ResultView;
             }

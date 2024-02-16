@@ -47,6 +47,8 @@ class Program
 
         //Debugger.Break();
 
+        var aux = CreateSecret();
+
         List<string> strings = new()
         {
             "e",
@@ -92,7 +94,7 @@ class Program
         Console.WriteLine(message);
     }
 
-    static void CreateSecret()
+    static string CreateSecret()
     {
         byte[] textoAsBytes = Encoding.ASCII.GetBytes("AliCE_PAiS#no%MAraViLHas12345678");
 
@@ -103,5 +105,7 @@ class Program
         string encrypted = CryptographyHelper.EncryptString(key, "TESTE");
 
         string decrypted = CryptographyHelper.DecryptString(key, encrypted);
+
+        return decrypted;
     }
 }
