@@ -36,7 +36,7 @@ namespace WebZi.Plataform.Domain.DTO.Report
 
         public string LocalizacaoChaveClaviculario { get; set; }
 
-        public DateTime DataAutorizacaoRetirada { get; set; }
+        public DateTime DataHoraAutorizacaoRetirada { get; set; }
 
         public string UsuarioResponsavelAtendimento { get; set; }
 
@@ -44,17 +44,11 @@ namespace WebZi.Plataform.Domain.DTO.Report
 
         public string DocumentoPessoaResponsavelLiberacao { get; set; }
 
-        public List<string> ListagemLacre { get; set; } = new();
-
-
         public string ResponsavelNome { get; set; }
 
         public string ResponsavelCPF { get; set; }
 
         public string ResponsavelCNH { get; set; }
-
-        public byte[] FotoResponsavel { get; set; }
-
 
         public string FormaLiberacao { get; set; }
 
@@ -63,5 +57,9 @@ namespace WebZi.Plataform.Domain.DTO.Report
         public string FormaLiberacaoCPF { get; set; }
 
         public string FormaLiberacaoPlaca { get; set; }
+
+        public List<string> ListagemLacre { get; set; }
+
+        public byte[] FotoResponsavel { get; set; }
     }
 }

@@ -374,7 +374,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
 
                 LocalizacaoChaveClaviculario = Grv.NumeroChave,
 
-                DataAutorizacaoRetirada = DateTime.Now,
+                DataHoraAutorizacaoRetirada = DateTime.Now,
 
                 UsuarioResponsavelAtendimento = await _context.Usuario
                     .Where(x => x.UsuarioId == Grv.Atendimento.UsuarioCadastroId)
@@ -382,7 +382,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                     .AsNoTracking()
                     .FirstOrDefaultAsync(),
 
-                PessoaResponsavelLiberacao = Grv.Atendimento.ResponsavelNome,
+                PessoaResponsavelLiberacao = Grv.Atendimento.ResponsavelNome.Trim(),
 
                 DocumentoPessoaResponsavelLiberacao = Grv.Atendimento.ResponsavelDocumento.Length == 11 ?
                     DocumentHelper.FormatCPF(Grv.Atendimento.ResponsavelDocumento) :
@@ -394,8 +394,6 @@ namespace WebZi.Plataform.Data.Services.Liberacao
 
                 ResponsavelCNH = Grv.Atendimento.ResponsavelCnh,
 
-                FormaLiberacao = Grv.Atendimento.FormaLiberacao.Equals("C") ? "Condutor Habilitado" : "Reboque",
-
                 FormaLiberacaoCNH = Grv.Atendimento.FormaLiberacaoCNH,
 
                 FormaLiberacaoCPF = Grv.Atendimento.FormaLiberacaoCPF,
@@ -405,16 +403,30 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                 Mensagem = MensagemViewHelper.SetOk()
             };
 
+            if (Grv.Atendimento.FormaLiberacao != null)
+            {
+                if (Grv.Atendimento.FormaLiberacao.Equals("C"))
+                {
+                    ResultView.FormaLiberacao = "Condutor Habilitado";
+                }
+                else
+                {
+                    ResultView.FormaLiberacao = "Reboque";
+                }
+            }
+            else
+            {
+                ResultView.FormaLiberacao = "Especial";
+            }
+
             if (Grv.ListagemLacre?.Count > 0)
             {
-                Grv.ListagemLacre = Grv.ListagemLacre
-                    .OrderBy(x => x.Lacre)
-                    .ToList();
+                ResultView.ListagemLacre = new();
 
-                foreach (LacreModel item in Grv.ListagemLacre)
-                {
-                    ResultView.ListagemLacre.Add(item.Lacre);
-                }
+                ResultView.ListagemLacre.AddRange(Grv.ListagemLacre
+                    .Select(x => x.Lacre)
+                    .OrderBy(x => x)
+                    .ToList());
             }
 
             ImageListDTO FotoResponsavel = await new AtendimentoService(_context, _mapper, _httpClientFactory)
