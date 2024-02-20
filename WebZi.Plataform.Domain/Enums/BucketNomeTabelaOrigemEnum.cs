@@ -10,5 +10,7 @@
         public static readonly string FotoVeiculoGGV = "GGVFOTOSVEICCAD";
         public static readonly string FotoVeiculoGRV = "GRVFOTOSVEICCAD";
         public static readonly string NFE = "NFEIMGPREFEITUR";
+        public static readonly string EntregaFotoResponsavel = "FOTORESPENTREGA";
+        public static readonly string DocumentoCondutor = "GRV_DOCCONDUTOR";
     }
 }

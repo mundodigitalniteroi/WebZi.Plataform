@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using WebZi.Plataform.CrossCutting.Configuration;
 using WebZi.Plataform.CrossCutting.Date;
 using WebZi.Plataform.CrossCutting.Documents;
@@ -12,16 +13,23 @@ using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Atendimento;
 using WebZi.Plataform.Data.Services.Cliente;
+using WebZi.Plataform.Data.Services.Deposito;
 using WebZi.Plataform.Data.Services.Faturamento;
 using WebZi.Plataform.Data.Services.Localizacao;
 using WebZi.Plataform.Data.Services.Report;
+using WebZi.Plataform.Data.Services.WebServices;
 using WebZi.Plataform.Domain.DTO.Generic;
 using WebZi.Plataform.Domain.DTO.Report;
+using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.Enums;
+using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.GRV;
+using WebZi.Plataform.Domain.Models.Liberacao;
 using WebZi.Plataform.Domain.Models.Localizacao;
 using WebZi.Plataform.Domain.Services.GRV;
+using WebZi.Plataform.Domain.ViewModel.Liberacao;
 using WebZi.Plataform.Domain.Views.Usuario;
+using Z.EntityFramework.Plus;
 
 namespace WebZi.Plataform.Data.Services.Liberacao
 {
@@ -34,6 +42,12 @@ namespace WebZi.Plataform.Data.Services.Liberacao
         public LiberacaoService(AppDbContext context)
         {
             _context = context;
+        }
+
+        public LiberacaoService(AppDbContext context, IHttpClientFactory httpClientFactory)
+        {
+            _context = context;
+            _httpClientFactory = httpClientFactory;
         }
 
         public LiberacaoService(AppDbContext context, IMapper mapper, IHttpClientFactory httpClientFactory)
@@ -440,6 +454,95 @@ namespace WebZi.Plataform.Data.Services.Liberacao
             }
 
             return ResultView;
+        }
+
+        public async Task<MensagemDTO> EntregaSimplificadaAsync(EntregaSimplificadaParameters Parameters)
+        {
+            MensagemDTO ResultView = new GrvService(_context)
+                .ValidateInputGrv(Parameters.IdentificadorProcesso, Parameters.IdentificadorUsuario);
+
+            if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+            {
+                return ResultView;
+            }
+
+            GrvModel Grv = await _context.Grv
+                .Include(x => x.StatusOperacao)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.GrvId == Parameters.IdentificadorProcesso);
+
+            if (Grv.StatusOperacao.StatusOperacaoId != "T")
+            {
+                return MensagemViewHelper.SetBadRequest($"O Status atual deste Processo não permite o cadastro da Entrega. " +
+                    $"Descrição do Status atual: {Grv.StatusOperacao.Descricao.ToUpper()}");
+            }
+
+            List<FaturamentoModel> Faturamentos = await _context.Faturamento
+                .Include(x => x.Atendimento)
+                .Where(x => x.Atendimento.GrvId == Parameters.IdentificadorProcesso && x.Status != "C")
+                .AsNoTracking()
+                .ToListAsync();
+
+            if (Faturamentos == null)
+            {
+                return MensagemViewHelper.SetNotFound(MensagemPadraoEnum.NaoEncontradoFaturamento);
+            }
+
+            if (Faturamentos.Exists(x => x.Status == "N"))
+            {
+                return MensagemViewHelper.SetBadRequest($"Este Processo possui uma Fatura não paga");
+            }
+
+            DateTime DataHoraPorDeposito = new DepositoService(_context)
+                .GetDataHoraPorDeposito(Grv.DepositoId);
+
+            FaturamentoModel UltimoFaturamento = Faturamentos
+                .OrderByDescending(x => x.DataCadastro)
+                .FirstOrDefault();
+
+            if (UltimoFaturamento.DataPrazoRetiradaVeiculo.Value.Date < DataHoraPorDeposito.Date)
+            {
+                return MensagemViewHelper.SetBadRequest($"O prazo para a Entrega do veículo está vencida ({UltimoFaturamento.DataPrazoRetiradaVeiculo.Value.Date:dd/MM/yyyy}), a Entrega não poderá ser realizada");
+            }
+
+            LiberacaoModel Liberacao = new()
+            {
+                TipoLiberacaoId = 1,
+
+                UsuarioCadastroId = Parameters.IdentificadorUsuario
+            };
+
+            using (IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync())
+            {
+                try
+                {
+                    await _context.Liberacao.AddAsync(Liberacao);
+
+                    await _context.SaveChangesAsync();
+
+                    await _context.Grv
+                        .Where(x => x.GrvId == Parameters.IdentificadorProcesso)
+                        .UpdateAsync(x => new GrvModel() { LiberacaoId = Liberacao.LiberacaoId, StatusOperacaoId = "E", UsuarioAlteracaoId = Parameters.IdentificadorUsuario });
+
+                    if (Parameters.ResponsavelFoto != null)
+                    {
+                        new BucketService(_context, _httpClientFactory)
+                            .SendFile(BucketNomeTabelaOrigemEnum.EntregaFotoResponsavel, Liberacao.LiberacaoId, Parameters.IdentificadorUsuario, Parameters.ResponsavelFoto);
+                    }
+
+                    await _context.SaveChangesAsync();
+
+                    await transaction.CommitAsync();
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+
+                    return MensagemViewHelper.SetInternalServerError(ex);
+                }
+            }
+
+            return MensagemViewHelper.SetCreateSuccess();
         }
     }
 }

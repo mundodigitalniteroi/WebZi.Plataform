@@ -2,6 +2,8 @@
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Liberacao;
 using WebZi.Plataform.Domain.DTO.Report;
+using WebZi.Plataform.Domain.DTO.Sistema;
+using WebZi.Plataform.Domain.ViewModel.Liberacao;
 
 namespace WebZi.Plataform.API.Controllers
 {
@@ -14,6 +16,34 @@ namespace WebZi.Plataform.API.Controllers
         public LiberacaoController(IServiceProvider provider)
         {
             _provider = provider;
+        }
+
+        [HttpPost("EntregaSimplificada")]
+        // TODO: [Authorize]
+        [IgnoreAntiforgeryToken]
+        public async Task<ActionResult<MensagemDTO>> EntregaSimplificada([FromBody] EntregaSimplificadaParameters Parameters)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            MensagemDTO ResultView;
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<LiberacaoService>()
+                    .EntregaSimplificadaAsync(Parameters);
+
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView = MensagemViewHelper.SetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
         }
 
         [HttpGet("GuiaAutorizacaoRetiradaVeiculo")]

@@ -613,7 +613,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             if (AtendimentoInput.ResponsavelFoto != null)
             {
                 new BucketService(_context, _httpClientFactory)
-                    .SendFile("ATENDIMFOTORESP", AtendimentoId, AtendimentoInput.IdentificadorUsuario, AtendimentoInput.ResponsavelFoto);
+                    .SendFile(BucketNomeTabelaOrigemEnum.AtendimentoFotoResponsavel, AtendimentoId, AtendimentoInput.IdentificadorUsuario, AtendimentoInput.ResponsavelFoto);
             }
         }
 

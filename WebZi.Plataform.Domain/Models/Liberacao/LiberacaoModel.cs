@@ -7,7 +7,7 @@ namespace WebZi.Plataform.Domain.Models.Liberacao
     {
         public int LiberacaoId { get; set; }
 
-        public byte TipoLiberacaoId { get; set; }
+        public byte TipoLiberacaoId { get; set; } = 1; // 1: NORMAL; 3: LEILÃO
 
         public int UsuarioCadastroId { get; set; }
 

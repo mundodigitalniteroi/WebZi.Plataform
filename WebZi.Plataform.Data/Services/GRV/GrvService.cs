@@ -803,15 +803,15 @@ namespace WebZi.Plataform.Domain.Services.GRV
             }
 
             new BucketService(_context, _httpClientFactory)
-                .DeleteFiles("GRVFOTOSVEICCAD", GrvId);
+                .DeleteFiles(BucketNomeTabelaOrigemEnum.FotoVeiculoGRV, GrvId);
 
             new BucketService(_context, _httpClientFactory)
-                .DeleteFiles("GGVFOTOSVEICCAD", GrvId);
+                .DeleteFiles(BucketNomeTabelaOrigemEnum.FotoVeiculoGGV, GrvId);
 
             if (Grv.ListagemCondutorDocumento?.Count > 0)
             {
                 new BucketService(_context, _httpClientFactory)
-                    .DeleteFiles("GRV_DOCCONDUTOR", Grv.ListagemCondutorDocumento
+                    .DeleteFiles(BucketNomeTabelaOrigemEnum.DocumentoCondutor, Grv.ListagemCondutorDocumento
                     .Select(x => x.CondutorDocumentoId)
                     .ToList());
             }
@@ -819,7 +819,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             if (Grv.Atendimento != null)
             {
                 new BucketService(_context, _httpClientFactory)
-                    .DeleteFiles("ATENDIMFOTORESP", Grv.Atendimento.AtendimentoId);
+                    .DeleteFiles(BucketNomeTabelaOrigemEnum.AtendimentoFotoResponsavel, Grv.Atendimento.AtendimentoId);
 
                 if (Faturamentos?.Count > 0)
                 {
@@ -830,7 +830,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                             foreach (BoletoModel FaturamentoBoleto in Faturamento.ListagemBoleto)
                             {
                                 new BucketService(_context, _httpClientFactory)
-                                    .DeleteFiles("FATURAMENBOLETO", FaturamentoBoleto.FaturamentoBoletoId);
+                                    .DeleteFiles(BucketNomeTabelaOrigemEnum.Boleto, FaturamentoBoleto.FaturamentoBoletoId);
                             }
                         }
                     }
