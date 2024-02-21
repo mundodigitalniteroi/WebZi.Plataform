@@ -9,9 +9,7 @@ using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Sistema;
 using WebZi.Plataform.Data.WsBoleto;
 using WebZi.Plataform.Domain.DTO.Banco;
-using WebZi.Plataform.Domain.DTO.Generic;
 using WebZi.Plataform.Domain.Enums;
-using WebZi.Plataform.Domain.Models.Banco;
 using WebZi.Plataform.Domain.Models.Bucket;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.Sistema;
@@ -375,7 +373,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
                     _context.SaveChanges();
 
                     new BucketService(_context, _httpClientFactory)
-                        .SendFile("FATURAMENBOLETO", Boleto.FaturamentoBoletoId, UsuarioId, BoletoGerado.Boleto);
+                        .SendFile(BucketNomeTabelaOrigemEnum.Boleto, Boleto.FaturamentoBoletoId, UsuarioId, BoletoGerado.Boleto);
 
                     transaction.Commit();
                 }

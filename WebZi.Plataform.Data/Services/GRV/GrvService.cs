@@ -108,7 +108,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             }
 
             new BucketService(_context, _httpClientFactory)
-                .SendFile("GRVASSINAAGENTE", GrvId, UsuarioId, Imagem);
+                .SendFile(BucketNomeTabelaOrigemEnum.AssinaturaAgente, GrvId, UsuarioId, Imagem);
 
             return MensagemViewHelper.SetCreateSuccess();
         }
@@ -384,19 +384,19 @@ namespace WebZi.Plataform.Domain.Services.GRV
             if (GrvPersistencia.ListagemFoto?.Count > 0)
             {
                 new BucketService(_context, _httpClientFactory)
-                    .SendFiles("GRVFOTOSVEICCAD", Grv.GrvId, Grv.UsuarioCadastroId, GrvPersistencia.ListagemFoto);
+                    .SendFiles(BucketNomeTabelaOrigemEnum.FotoVeiculoGRV, Grv.GrvId, Grv.UsuarioCadastroId, GrvPersistencia.ListagemFoto);
             }
 
             if (GrvPersistencia.ImagemAssinaturaAgente != null)
             {
                 new BucketService(_context, _httpClientFactory)
-                    .SendFile("GRVASSINAAGENTE", Grv.GrvId, Grv.UsuarioCadastroId, GrvPersistencia.ImagemAssinaturaAgente);
+                    .SendFile(BucketNomeTabelaOrigemEnum.AssinaturaAgente, Grv.GrvId, Grv.UsuarioCadastroId, GrvPersistencia.ImagemAssinaturaAgente);
             }
 
             if (GrvPersistencia.ImagemAssinaturaCondutor != null)
             {
                 new BucketService(_context, _httpClientFactory)
-                    .SendFile("GRVASSINACONDUT", Grv.GrvId, Grv.UsuarioCadastroId, GrvPersistencia.ImagemAssinaturaAgente);
+                    .SendFile(BucketNomeTabelaOrigemEnum.AssinaturaCondutor, Grv.GrvId, Grv.UsuarioCadastroId, GrvPersistencia.ImagemAssinaturaAgente);
             }
 
             ResultView.Mensagem = MensagemViewHelper.SetCreateSuccess();

@@ -15,7 +15,6 @@ using WebZi.Plataform.Data.Services.Sistema;
 using WebZi.Plataform.Data.Services.WebServices;
 using WebZi.Plataform.Domain.DTO.Atendimento;
 using WebZi.Plataform.Domain.DTO.Faturamento.Cadastro;
-using WebZi.Plataform.Domain.DTO.Faturamento.Simulacao;
 using WebZi.Plataform.Domain.DTO.Generic;
 using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.Enums;
@@ -637,7 +636,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             // Quando no cadastro do Cliente foi configurado o Tipo de Cobrança, este cadastro é o que será usado para o cadastro da Fatura.
             var TipoMeioCobranca = await _context.TipoMeioCobranca
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.TipoMeioCobrancaId == 
+                .FirstOrDefaultAsync(x => x.TipoMeioCobrancaId ==
                     (Grv.Cliente.TipoMeioCobrancaId.HasValue && Grv.Cliente.TipoMeioCobrancaId.Value > 0 ? Grv.Cliente.TipoMeioCobrancaId.Value : TipoMeioCobrancaId));
 
             CalculoFaturamentoParametroModel ParametrosCalculoFaturamento = new()

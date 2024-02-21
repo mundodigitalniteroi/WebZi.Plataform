@@ -73,7 +73,7 @@ namespace WebZi.Plataform.Data.Mappings.Banco.PIX.Dinamico
 
             builder.Property(e => e.TransactionId)
                 .IsRequired()
-                .HasMaxLength(32)   
+                .HasMaxLength(32)
                 .IsUnicode(false)
                 .HasColumnName("TxId");
 

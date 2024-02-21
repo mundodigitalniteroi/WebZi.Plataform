@@ -53,6 +53,16 @@ namespace WebZi.Plataform.CrossCutting.Strings
             return !input.IsNull() ? RegexNormalize().Replace(input.Normalize(NormalizationForm.FormD), string.Empty) : input;
         }
 
+        public static string RemoveAfter(this string input, char find)
+        {
+            if (input.IsNullOrWhiteSpace() || find == '\0')
+            {
+                return input;
+            }
+
+            return input.IndexOf(find) > 0 ? input.Substring(0, input.IndexOf(find)) : input;
+        }
+
         public static string RemoveLineBreaks(this string input, string replaceWith = " ")
         {
             return !input.IsNull() ? input

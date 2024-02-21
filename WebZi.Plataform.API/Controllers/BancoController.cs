@@ -5,7 +5,6 @@ using WebZi.Plataform.Data.Services.Banco.PIX;
 using WebZi.Plataform.Data.Services.WebServices;
 using WebZi.Plataform.Domain.DTO.Banco;
 using WebZi.Plataform.Domain.DTO.Banco.PIX;
-using WebZi.Plataform.Domain.DTO.Generic;
 
 namespace WebZi.Plataform.API.Controllers
 {
@@ -33,7 +32,7 @@ namespace WebZi.Plataform.API.Controllers
 
             try
             {
-                ResultView =  _provider
+                ResultView = _provider
                     .GetService<BoletoService>()
                     .Create(IdentificadorFaturamento, IdentificadorUsuario);
 
