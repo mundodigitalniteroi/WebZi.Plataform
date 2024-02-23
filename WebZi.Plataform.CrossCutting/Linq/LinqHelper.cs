@@ -71,7 +71,7 @@ namespace WebZi.Plataform.CrossCutting.Linq
 
                 if ((Flags & LinqListFlags.ToEmptyIfNull) == LinqListFlags.ToEmptyIfNull)
                 {
-                    list = (list as List<string>).ConvertAll(x => x.ToEmptyIfNull()).ToList() as List<T>;
+                    list = (list as List<string>).ConvertAll(x => x.ToStringIfNull()).ToList() as List<T>;
                 }
                 else if ((Flags & LinqListFlags.ToNullIfWhiteSpace) == LinqListFlags.ToNullIfWhiteSpace)
                 {

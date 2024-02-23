@@ -84,7 +84,7 @@ namespace WebZi.Plataform.Domain.Services.Usuario
                 }
                 else
                 {
-                    ResultView.Mensagem = MensagemViewHelper.SetNotFound(MensagemPadraoEnum.NaoEncontradoUsuario);
+                    ResultView.Mensagem = MensagemViewHelper.SetNotFound("Usuário ou senha inválidos");
 
                     return ResultView;
                 }

@@ -116,11 +116,6 @@ namespace WebZi.Plataform.CrossCutting.Strings
             return input.Left(1).ToLower() + CultureInfo.CurrentCulture.TextInfo.ToTitleCase(input)[1..];
         }
 
-        public static string ToEmptyIfNull(this string input)
-        {
-            return input == null ? string.Empty : input;
-        }
-
         public static string ToLowerTrim(this string input)
         {
             return !input.IsNull() ? input.ToLower().Trim() : input;
