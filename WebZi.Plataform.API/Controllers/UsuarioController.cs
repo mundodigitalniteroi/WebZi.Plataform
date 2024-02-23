@@ -74,6 +74,7 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpPost("Login")]
         [AllowAnonymous]
+        [IgnoreAntiforgeryToken]
         public async Task<ActionResult<UsuarioDTO>> Login([FromBody] UsuarioLoginParameters Login)
         {
             if (!ModelState.IsValid)

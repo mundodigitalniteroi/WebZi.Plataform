@@ -227,7 +227,8 @@ namespace WebZi.Plataform.Data.Services
                 .ForMember(dest => dest.FlagAtivo, from => from.MapFrom(src => src.ReboquistaFlagAtivo));
 
             CreateMap<UsuarioModel, UsuarioDTO>()
-                .ForMember(dest => dest.IdentificadorUsuario, from => from.MapFrom(src => src.UsuarioId));
+                .ForMember(dest => dest.IdentificadorUsuario, from => from.MapFrom(src => src.UsuarioId))
+                .ForMember(dest => dest.Login, from => from.MapFrom(src => src.Login));
 
             CreateMap<VistoriaSituacaoChassiModel, VistoriaSituacaoChassiDTO>()
                 .ForMember(dest => dest.IdentificadorSituacaoChassi, from => from.MapFrom(src => src.VistoriaSituacaoChassiId));

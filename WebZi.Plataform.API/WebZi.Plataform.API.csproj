@@ -4,6 +4,7 @@
     <TargetFramework>net7.0</TargetFramework>
     <Nullable>disable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <SatelliteResourceLanguages>pt-BR</SatelliteResourceLanguages>
   </PropertyGroup>
 
   <ItemGroup>

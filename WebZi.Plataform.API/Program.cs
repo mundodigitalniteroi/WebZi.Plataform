@@ -6,6 +6,8 @@ using System.Text.Json.Serialization;
 using WebZi.Plataform.Data.Services;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
 
 ConfigureServices(builder);
 
