@@ -1420,6 +1420,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 .Include(x => x.Cliente)
                 .Include(x => x.Deposito)
                 .Include(x => x.StatusOperacao)
+                .Include(x => x.MarcaModelo)
                 .Include(x => x.UsuarioClienteDepositoGrv)
                 .Where(x => x.UsuarioClienteDepositoGrv.UsuarioId == GrvPesquisa.IdentificadorUsuario &&
                              GrvPesquisa.ListagemCodigoProduto.Contains(x.FaturamentoProdutoId) &&
@@ -1458,6 +1459,10 @@ namespace WebZi.Plataform.Domain.Services.GRV
                     Placa = Grv.Placa,
 
                     Chassi = Grv.Chassi,
+
+                    Renavam = Grv.Renavam,
+
+                    MarcaModelo = Grv.MarcaModelo.MarcaModelo,
 
                     StatusOperacao = Grv.StatusOperacao.Descricao,
 

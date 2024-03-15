@@ -10,6 +10,10 @@
 
         public string Chassi { get; set; }
 
+        public string Renavam { get; set; }
+
+        public string MarcaModelo { get; set; }
+
         public string StatusOperacaoId { get; set; }
 
         public string StatusOperacao { get; set; }
