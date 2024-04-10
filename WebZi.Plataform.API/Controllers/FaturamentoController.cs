@@ -241,5 +241,32 @@ namespace WebZi.Plataform.API.Controllers
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
         }
+
+        [HttpGet("Consultar")]
+        [IgnoreAntiforgeryToken]
+        public async Task<ActionResult<FaturamentoConsultaDTO>> Consultar(int identificadorFaturamento)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            FaturamentoConsultaDTO ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<FaturamentoService>()
+                    .ConsultarFaturamentoAsync(identificadorFaturamento);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
     }
 }

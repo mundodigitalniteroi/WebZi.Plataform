@@ -299,6 +299,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                 .Include(x => x.Cor)
                 .Include(x => x.ListagemLacre)
                 .Include(x => x.Atendimento)
+                .Include(x => x.Liberacao)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.GrvId == splitted[0].ToInt());
 

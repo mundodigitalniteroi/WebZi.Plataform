@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using WebZi.Plataform.Data.Services.Atendimento;
+using WebZi.Plataform.Data.Services.Faturamento;
+using WebZi.Plataform.Domain.DTO.Faturamento;
 using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.ViewModel.Pagamento;
 
@@ -41,6 +43,34 @@ namespace WebZi.Plataform.API.Controllers
                 mensagem.HtmlStatusCode = CrossCutting.Web.HtmlStatusCodeEnum.BadRequest;
 
                 return BadRequest(mensagem);
+            }
+        }
+
+        [HttpPost("ConfirmarPagamento")]
+        // TODO: [Authorize]
+        [IgnoreAntiforgeryToken]
+        public async Task<ActionResult<FaturamentoDTO>> ConfirmarPagamento([FromBody] PagamentoParameters model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            FaturamentoDTO faturamento = await _provider
+                .GetService<FaturamentoService>()
+                .ConfirmarPagamentoAsync(model.IdentificadorFaturamento, model.IdentificadorUsuario);
+
+            if (faturamento.Mensagem.Erros.Count == 0)
+            {
+                faturamento.Mensagem.HtmlStatusCode = CrossCutting.Web.HtmlStatusCodeEnum.Ok;
+
+                return Ok(faturamento);
+            }
+            else
+            {
+                faturamento.Mensagem.HtmlStatusCode = CrossCutting.Web.HtmlStatusCodeEnum.BadRequest;
+
+                return BadRequest(faturamento);
             }
         }
     }

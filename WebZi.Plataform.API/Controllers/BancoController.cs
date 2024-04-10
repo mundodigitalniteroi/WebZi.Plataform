@@ -73,6 +73,33 @@ namespace WebZi.Plataform.API.Controllers
             }
         }
 
+        [HttpGet("ConsultarPixDinamico")]
+        // TODO: [Authorize]
+        public async Task<ActionResult<PixDinamicoDTO>> ConsultarPixDinamico(int IdentificadorFaturamento, int IdentificadorUsuario)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            PixDinamicoDTO ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<PixDinamicoService>()
+                    .ConsultaAsync(IdentificadorFaturamento, IdentificadorUsuario);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
+
         [HttpGet("GerarPixEstatico")]
         // TODO: [Authorize]
         public ActionResult<PixEstaticoDTO> GerarPixEstatico(int IdentificadorFaturamento, int IdentificadorUsuario)

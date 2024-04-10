@@ -9,11 +9,13 @@ using WebZi.Plataform.CrossCutting.Veiculo;
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
+using WebZi.Plataform.Data.Services.Banco.PIX;
 using WebZi.Plataform.Data.Services.ClienteDeposito;
 using WebZi.Plataform.Data.Services.Deposito;
 using WebZi.Plataform.Data.Services.Localizacao;
 using WebZi.Plataform.Data.Services.Sistema;
 using WebZi.Plataform.Data.Services.WebServices;
+using WebZi.Plataform.Domain.DTO.Banco.PIX;
 using WebZi.Plataform.Domain.DTO.Faturamento;
 using WebZi.Plataform.Domain.DTO.Faturamento.Cadastro;
 using WebZi.Plataform.Domain.DTO.Faturamento.Servico;
@@ -1517,5 +1519,237 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             return MensagemViewHelper.SetOk("Forma de Pagamento alterada com sucesso");
         }
+
+        public async Task<FaturamentoDTO> ConfirmarPagamentoAsync(int faturamentoId, int usuarioId)
+        {
+            FaturamentoDTO ResultView = new();
+
+            List<string> erros = new();
+
+            if (faturamentoId <= 0)
+            {
+                erros.Add(MensagemPadraoEnum.IdentificadorFaturamentoInvalido);
+            }
+
+
+            if (erros.Count > 0)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest(erros);
+                return ResultView;
+            }
+
+            FaturamentoModel Faturamento = await _context.Faturamento
+                .Include(x => x.TipoMeioCobranca)
+                .Include(x => x.Atendimento)
+                .ThenInclude(x => x.Grv)
+                .ThenInclude(x => x.Cliente)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.FaturamentoId == faturamentoId);
+
+            if (Faturamento == null)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound(MensagemPadraoEnum.NaoEncontradoFaturamento);
+                return ResultView;
+            }
+            else if (Faturamento.Status == "C")
+            {
+                ResultView.Faturamento = _mapper.Map<FaturamentoCadastroDTO>(Faturamento);
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Esse Faturamento foi cancelado");
+                return ResultView;
+            }
+            else if (Faturamento.Status == "P")
+            {
+                ResultView.Faturamento = _mapper.Map<FaturamentoCadastroDTO>(Faturamento);
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Esse Faturamento já foi pago");
+                return ResultView;
+            }
+
+            ResultView.Faturamento = _mapper.Map<FaturamentoCadastroDTO>(Faturamento);
+
+            ResultView.IdentificadorProcesso = Faturamento.Atendimento.Grv.GrvId;
+
+            ResultView.IdentificadorAtendimento = Faturamento.Atendimento.Grv.Atendimento.AtendimentoId;
+
+            if (Faturamento.Atendimento.Grv.StatusOperacaoId == "L") // L = AGUARDANDO PAGAMENTO
+            {
+                PixDinamicoDTO pixDinamico = new();
+                try
+                {
+                    TipoMeioCobrancaModel TipoMeioCobranca = await _context.TipoMeioCobranca
+                        .FirstOrDefaultAsync(x => x.TipoMeioCobrancaId == Faturamento.TipoMeioCobrancaId);
+
+                    // Se o Tipo de Cobrança for PIX Dinâmico
+                    if (TipoMeioCobranca.Alias.Equals("PIXDIN"))
+                    {
+                        pixDinamico = await new PixDinamicoService(_context, _mapper, _httpClientFactory)
+                            .ConsultaAsync(faturamentoId, usuarioId);
+
+                        if(pixDinamico.IdentificadorPixDinamicoTipoStatusGeracao != 2)
+                        {
+                            ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Pix ainda não confirmado");
+                            return ResultView;
+                        }
+                    }
+                    else
+                    {
+                        //TODO: Tratar outras formas de pagamento
+                        ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Faturamento não foi feito em pix");
+                        return ResultView;
+
+                    }
+
+                    //Atualização do faturamento
+                    await _context.Faturamento
+                       .Where(x => x.FaturamentoId == faturamentoId)
+                       .UpdateAsync(x => new FaturamentoModel()
+                       {
+                           Status = "P",
+                           UsuarioAlteracaoId = usuarioId,
+                           DataPrazoRetiradaVeiculo = DateTime.Now.AddDays(1),
+                           ValorPagamento = Faturamento.ValorFaturado,
+                           DataPagamento = DateTime.Now
+                       });
+
+                    //Atualização da Forma Liberação
+                    await _context.Atendimento
+                        .Where(x => x.AtendimentoId == Faturamento.AtendimentoId)
+                        .UpdateAsync(x => new AtendimentoModel()
+                        {
+                            FormaLiberacaoNome = Faturamento.Atendimento.ResponsavelNome,
+                            FormaLiberacaoCNH = Faturamento.Atendimento.ResponsavelCnh,
+                            FormaLiberacaoCPF = Faturamento.Atendimento.ResponsavelDocumento,
+                            FormaLiberacao = "C",
+                            UsuarioAlteracaoId = usuarioId,
+                            FlagPagamentoFinanciado = "N"
+                        });
+
+                    await _context.Grv
+                        .Where(x => x.GrvId == Faturamento.Atendimento.GrvId)
+                        .UpdateAsync(x => new GrvModel()
+                        {
+                            StatusOperacaoId = "T",
+                            DataAlteracao = DateTime.Now,
+                            UsuarioAlteracaoId = usuarioId
+                        });
+
+                    await _context.SaveChangesAsync();
+                }
+                catch (Exception ex)
+                {
+                    ResultView.Mensagem = MensagemViewHelper.SetBadRequest(ex.Message);
+                    return ResultView;
+                }
+            }
+
+            return ResultView;
+        }
+
+        public async Task<FaturamentoConsultaDTO> ConsultarFaturamentoAsync(int identificadorFaturamento)
+        {
+            #region Validações dos parâmetros
+            List<string> erros = new();
+
+            if (identificadorFaturamento <= 0)
+            {
+                erros.Add(MensagemPadraoEnum.IdentificadorFaturamentoInvalido);
+            }
+
+            FaturamentoConsultaDTO ResultView = new();
+
+            if (erros.Count > 0)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest(erros);
+
+                return ResultView;
+            }
+            #endregion Validações dos parâmetros
+
+            List<TabelaGenericaModel> ListagemTipoCobranca = await new TabelaGenericaService(_context)
+                .ListAsync("FAT_TIPO_COBRANCA");
+
+            FaturamentoModel Faturamento = await _context.Faturamento
+                .Include(x => x.TipoMeioCobranca)
+                .Include(x => x.ListagemFaturamentoComposicao)
+                .Include(x => x.Atendimento)
+                .ThenInclude(x => x.Grv)
+                .ThenInclude(x => x.Cliente)
+                .ThenInclude(x => x.Endereco)
+                 .Include(x => x.Atendimento)
+                .ThenInclude(x => x.Grv)
+                .ThenInclude(x => x.Deposito)
+                .ThenInclude(x => x.Endereco)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.FaturamentoId == identificadorFaturamento);
+
+            ResultView.Faturamento = _mapper.Map<SimulacaoFaturamentoDTO>(Faturamento);
+
+            ResultView.Faturamento.ListagemServico = _mapper.Map<List<SimulacaoFaturamentoComposicaoDTO>>(Faturamento.ListagemFaturamentoComposicao);
+
+            FaturamentoServicoTipoVeiculoModel FaturamentoServicoTipoVeiculo = new();
+
+            foreach (var Servico in ResultView.Faturamento.ListagemServico)
+            {
+                FaturamentoServicoTipoVeiculo = _context.FaturamentoServicoTipoVeiculo
+                    .Include(x => x.FaturamentoServicoAssociado)
+                    .AsNoTracking()
+                    .FirstOrDefault(x => x.FaturamentoServicoTipoVeiculoId == Servico.IdentificadorFaturamentoServicoTipoVeiculo);
+
+                Servico.DescricaoTipoServico = ListagemTipoCobranca.Where(x => x.ValorCadastro == Servico.TipoServico).FirstOrDefault().Descricao;
+
+                Servico.NomeServico = FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.Descricao;
+
+                Servico.DataVigenciaInicial = FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.DataVigenciaInicial;
+
+                Servico.DataVigenciaFinal = FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.DataVigenciaFinal;
+            }
+
+            ResultView.IdentificadorProcesso = Faturamento.Atendimento.Grv.GrvId;
+
+            ResultView.NumeroProcesso = Faturamento.Atendimento.Grv.NumeroFormularioGrv;
+
+            ResultView.DataHoraRemocao = Faturamento.Atendimento.Grv.DataHoraRemocao;
+
+            ResultView.DataHoraGuarda = Faturamento.Atendimento.Grv.DataHoraGuarda;
+
+            ResultView.IdentificadorAtendimento = Faturamento.AtendimentoId;
+
+            ResultView.Status = Faturamento.Status;
+
+            ResultView.TipoMeioCobrancaId = Faturamento.TipoMeioCobrancaId;
+
+            EnderecoService Endereco = new();
+
+            ResultView.Cliente = new()
+            {
+                Nome = Faturamento.Atendimento.Grv.Cliente.Nome,
+
+                Endereco = Endereco.FormatarEndereco(Faturamento.Atendimento.Grv.Cliente.Endereco,
+                    Faturamento.Atendimento.Grv.Cliente.NumeroEndereco,
+                    Faturamento.Atendimento.Grv.Cliente.ComplementoEndereco)
+            };
+
+            ResultView.Deposito = new()
+            {
+                Nome = Faturamento.Atendimento.Grv.Deposito.Nome,
+
+                Telefone = Faturamento.Atendimento.Grv.Deposito.TelefoneMob,
+
+                Endereco = Endereco.FormatarEndereco(Faturamento.Atendimento.Grv.Deposito.Endereco,
+                    Faturamento.Atendimento.Grv.Deposito.NumeroEndereco,
+                    Faturamento.Atendimento.Grv.Deposito.ComplementoEndereco)
+            };
+
+            if (!Faturamento.Atendimento.Grv.Placa.IsNullOrWhiteSpace() || !Faturamento.Atendimento.Grv.Chassi.IsNullOrWhiteSpace())
+            {
+                DetranRioService DetranRioService = new(_context, _mapper);
+                ResultView.Veiculo = Faturamento.Atendimento.Grv.Placa.IsPlaca() ? await DetranRioService.GetViewByPlacaAsync(Faturamento.Atendimento.Grv.Placa) : await DetranRioService.GetViewByChassiAsync(Faturamento.Atendimento.Grv.Chassi);
+            }
+
+            ResultView.Mensagem = MensagemViewHelper.SetOk();
+
+            return ResultView;
+        }
+
+
     }
 }
