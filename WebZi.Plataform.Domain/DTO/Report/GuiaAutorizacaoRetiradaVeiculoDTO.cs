@@ -43,6 +43,10 @@ namespace WebZi.Plataform.Domain.DTO.Report
         public string VeiculoCor { get; set; }
 
         public string TextoApresentacao { get; set; }
+        
+        public string TextoDeclaracaoRetirada1 { get; set; }
+
+        public string TextoDeclaracaoRetirada2 { get; set; }
 
         public string ProprietarioProcurador { get; set; }
 

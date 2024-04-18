@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using System.Globalization;
 using WebZi.Plataform.CrossCutting.Configuration;
 using WebZi.Plataform.CrossCutting.Date;
 using WebZi.Plataform.CrossCutting.Documents;
@@ -159,6 +160,13 @@ namespace WebZi.Plataform.Data.Services.Liberacao
             ResultView.TextoApresentacao = "Este documento deverá ser apresentado no Depósito de Veículos localizado no endereço " +
                 GuiaPagamentoReboqueEstadia.DepositoEndereco + ", até a data: " +
                 GuiaPagamentoReboqueEstadia.PrazoRetiradaVeiculo.Left(10) + ", para que a retirada do veículo seja autorizada. A não apresentação até a data informada acarretará na cobrança de estadias adicionais.";
+
+            ResultView.TextoDeclaracaoRetirada1 = $@"Eu {GuiaPagamentoReboqueEstadia.AtendimentoResponsavelNome}, portador do CPF {GuiaPagamentoReboqueEstadia.AtendimentoResponsavelDocumento}, declaro que no dia {DateTime.Now.ToString("dd 'de' MMMM 'de' yyyy", CultureInfo.GetCultureInfo("pt-BR"))}, " +
+                $"recebi do depósito {GuiaPagamentoReboqueEstadia.DepositoNome} o veículo de placa {VeiculoHelper.FormatPlaca(GuiaPagamentoReboqueEstadia.Placa)}, Marca/Modelo {GuiaPagamentoReboqueEstadia.MarcaModelo}, Cor {GuiaPagamentoReboqueEstadia.Cor}, recolhido às {GuiaPagamentoReboqueEstadia.DataHoraGuarda.Right(5)} do dia {GuiaPagamentoReboqueEstadia.DataHoraGuarda.Left(10)}, " +
+                $"no endereco {GuiaPagamentoReboqueEstadia.DepositoEndereco}";
+
+            ResultView.TextoDeclaracaoRetirada2 = $@"Declaro também que o veículo se encontrava nas mesmas condições, quando foi removido e ainda lacrado, " +
+                                    "conforme numeração abaixo descrita, sendo estes lacres conferidos na minha presença, nada havendo para reclamar agora ou no futuro.";
 
             ResultView.ProprietarioProcurador = "Proprietário/Procurador: " + GuiaPagamentoReboqueEstadia.AtendimentoResponsavelNome;
 
