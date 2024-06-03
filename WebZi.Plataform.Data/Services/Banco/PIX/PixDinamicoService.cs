@@ -130,7 +130,7 @@ namespace WebZi.Plataform.Data.Services.Banco.PIX
 
                 Valor = new()
                 {
-                    Original = "1.00" //Math.Round(Faturamento.ValorFaturado, 2).ToString().Replace(",", ".")
+                    Original = Math.Round(Faturamento.ValorFaturado, 2).ToString().Replace(",", ".")
                 },
 
                 Merchant = new()
@@ -202,7 +202,7 @@ namespace WebZi.Plataform.Data.Services.Banco.PIX
 
                 InfoAdicionais = PixDinamicoRetorno.InfoAdicionais,
 
-                ValorOriginal = 1, //PixDinamicoRetorno.Valor.Original,
+                ValorOriginal = PixDinamicoRetorno.Valor.Original,
 
                 Json = JsonHelper.Serialize(PixDinamicoRetorno)
             };

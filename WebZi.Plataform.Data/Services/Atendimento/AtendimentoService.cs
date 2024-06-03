@@ -498,7 +498,17 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
                 ProprietarioDDD = AtendimentoInput.ProprietarioDDD,
 
-                ProprietarioTelefone = AtendimentoInput.ProprietarioTelefone.Replace("-", "")
+                ProprietarioTelefone = AtendimentoInput.ProprietarioTelefone.Replace("-", ""),
+
+                FormaLiberacao = AtendimentoInput.FormaLiberacao.ToUpperTrim(),
+
+                FormaLiberacaoCNH = AtendimentoInput.FormaLiberacaoCNH,
+
+                FormaLiberacaoCPF = AtendimentoInput.FormaLiberacaoCPF.Replace(".", "").Replace("/", "").Replace("-", ""),
+
+                FormaLiberacaoNome = AtendimentoInput.FormaLiberacaoNome.ToUpperTrim(),
+
+                FormaLiberacaoPlaca = AtendimentoInput.FormaLiberacaoPlaca.Replace("-", "").ToUpperTrim(),                
             };
 
             if (Grv.Cliente.FlagEmissaoNotaFiscal == "S")
