@@ -74,102 +74,109 @@ namespace WebZi.Plataform.Data.Services.WebServices
 
         private async Task<DetranRioVeiculoDTO> GetViewByIdPlacaOrChassyAsync(int DetranVeiculoId, string PlacaChassi)
         {
-            DetranRioVeiculoDTO ResultView = new();
-
-            string Placa = string.Empty;
-
-            string Chassi = string.Empty;
-
-            if (DetranVeiculoId <= 0)
-            {
-                if (PlacaChassi.IsPlaca())
-                {
-                    Placa = PlacaChassi;
-                }
-                else
-                {
-                    Chassi = PlacaChassi;
-                }
-            }
-
-            DetranRioVeiculoModel DetranRioVeiculoBD;
-
-            if (DetranVeiculoId <= 0)
-            {
-                await DeleteDuplicatedAsync(Placa, Chassi);
-            }
-
-            DetranRioVeiculoBD = await _context.DetranRioVeiculo
-                .Include(x => x.Cor)
-                .Include(x => x.MarcaModelo)
-                .Include(x => x.ListagemDetranRioVeiculoRestricao)
-                .ThenInclude(x => x.DetranRioVeiculoOrigemRestricao)
-                .AsNoTracking()
-                .OrderByDescending(x => x.DetranVeiculoId)
-                .FirstOrDefaultAsync(x => DetranVeiculoId > 0 ? x.DetranVeiculoId == DetranVeiculoId : !Placa.IsNullOrWhiteSpace() ? x.Placa == Placa : x.Chassi == Chassi);
-
-            if (DetranVeiculoId > 0)
-            {
-                if (DetranRioVeiculoBD == null)
-                {
-                    ResultView.Mensagem = MensagemViewHelper.SetNotFound();
-
-                    return ResultView;
-                }
-
-                if (!DetranRioVeiculoBD.Placa.IsNullOrWhiteSpace())
-                {
-                    Placa = DetranRioVeiculoBD.Placa;
-                }
-                else
-                {
-                    Chassi = DetranRioVeiculoBD.Chassi;
-                }
-            }
-            else
-            {
-                return await SetValuesToViewModelAsync(DetranRioVeiculoBD);
-            }
-
-            DetranRioVeiculoModel DetranRioVeiculoWS = new();
-
             try
             {
-                DetranRioVeiculoWS = await GetFromDetranAsync(Placa + Chassi, "ROOT");
-            }
-            catch (ArgumentException aex)
-            {
-                ResultView.Mensagem = MensagemViewHelper.SetBadRequest(aex.Message);
+                DetranRioVeiculoDTO ResultView = new();
 
-                return ResultView;
-            }
-            catch (Exception ex)
-            {
-                if (DetranRioVeiculoBD != null)
+                string Placa = string.Empty;
+
+                string Chassi = string.Empty;
+
+                if (DetranVeiculoId <= 0)
+                {
+                    if (PlacaChassi.IsPlaca())
+                    {
+                        Placa = PlacaChassi;
+                    }
+                    else
+                    {
+                        Chassi = PlacaChassi;
+                    }
+                }
+
+                DetranRioVeiculoModel DetranRioVeiculoBD;
+
+                if (DetranVeiculoId <= 0)
+                {
+                    await DeleteDuplicatedAsync(Placa, Chassi);
+                }
+
+                DetranRioVeiculoBD = await _context.DetranRioVeiculo
+                    .Include(x => x.Cor)
+                    .Include(x => x.MarcaModelo)
+                    .Include(x => x.ListagemDetranRioVeiculoRestricao)
+                    .ThenInclude(x => x.DetranRioVeiculoOrigemRestricao)
+                    .AsNoTracking()
+                    .OrderByDescending(x => x.DetranVeiculoId)
+                    .FirstOrDefaultAsync(x => DetranVeiculoId > 0 ? x.DetranVeiculoId == DetranVeiculoId : !Placa.IsNullOrWhiteSpace() ? x.Placa == Placa : x.Chassi == Chassi);
+
+                if (DetranVeiculoId > 0)
+                {
+                    if (DetranRioVeiculoBD == null)
+                    {
+                        ResultView.Mensagem = MensagemViewHelper.SetNotFound();
+
+                        return ResultView;
+                    }
+
+                    if (!DetranRioVeiculoBD.Placa.IsNullOrWhiteSpace())
+                    {
+                        Placa = DetranRioVeiculoBD.Placa;
+                    }
+                    else
+                    {
+                        Chassi = DetranRioVeiculoBD.Chassi;
+                    }
+                }
+                else
                 {
                     return await SetValuesToViewModelAsync(DetranRioVeiculoBD);
                 }
 
-                ResultView.Mensagem = MensagemViewHelper.SetServiceUnavailable("O Serviço do Departamento Estadual de Trânsito está inoperante ou indisponível", ex);
+                DetranRioVeiculoModel DetranRioVeiculoWS = new();
 
-                return ResultView;
+                try
+                {
+                    DetranRioVeiculoWS = await GetFromDetranAsync(Placa + Chassi, "ROOT");
+                }
+                catch (ArgumentException aex)
+                {
+                    ResultView.Mensagem = MensagemViewHelper.SetBadRequest(aex.Message);
+
+                    return ResultView;
+                }
+                catch (Exception ex)
+                {
+                    if (DetranRioVeiculoBD != null)
+                    {
+                        return await SetValuesToViewModelAsync(DetranRioVeiculoBD);
+                    }
+
+                    ResultView.Mensagem = MensagemViewHelper.SetServiceUnavailable("O Serviço do Departamento Estadual de Trânsito está inoperante ou indisponível", ex);
+
+                    return ResultView;
+                }
+
+                DetranRioVeiculoBD = await _context.DetranRioVeiculo
+                    .Include(x => x.Cor)
+                    .Include(x => x.MarcaModelo)
+                    .Include(x => x.ListagemDetranRioVeiculoRestricao)
+                    .ThenInclude(x => x.DetranRioVeiculoOrigemRestricao)
+                    .AsNoTracking()
+                    .OrderByDescending(x => x.DetranVeiculoId)
+                    .FirstOrDefaultAsync(x => !Placa.IsNullOrWhiteSpace() ? x.Placa == Placa : x.Chassi == Chassi);
+
+                if (DetranRioVeiculoBD.DataCadastro != DateTime.Now.Date && DetranRioVeiculoBD.DataAlteracao != DateTime.Now.Date && DetranRioVeiculoWS != null)
+                {
+                    DetranRioVeiculoBD = await UpdateAsync(DetranRioVeiculoBD, DetranRioVeiculoWS);
+                }
+
+                return await SetValuesToViewModelAsync(DetranRioVeiculoBD);
             }
-
-            DetranRioVeiculoBD = await _context.DetranRioVeiculo
-                .Include(x => x.Cor)
-                .Include(x => x.MarcaModelo)
-                .Include(x => x.ListagemDetranRioVeiculoRestricao)
-                .ThenInclude(x => x.DetranRioVeiculoOrigemRestricao)
-                .AsNoTracking()
-                .OrderByDescending(x => x.DetranVeiculoId)
-                .FirstOrDefaultAsync(x => !Placa.IsNullOrWhiteSpace() ? x.Placa == Placa : x.Chassi == Chassi);
-
-            if (DetranRioVeiculoBD.DataCadastro != DateTime.Now.Date && DetranRioVeiculoBD.DataAlteracao != DateTime.Now.Date && DetranRioVeiculoWS != null)
+            catch(Exception e)
             {
-                DetranRioVeiculoBD = await UpdateAsync(DetranRioVeiculoBD, DetranRioVeiculoWS);
+                throw new Exception(e.Message);
             }
-
-            return await SetValuesToViewModelAsync(DetranRioVeiculoBD);
         }
 
         private async Task<DetranRioVeiculoModel> GetFromDetranAsync(string PlacaChassi, string Operador)

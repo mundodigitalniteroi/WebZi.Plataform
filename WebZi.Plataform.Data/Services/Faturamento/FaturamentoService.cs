@@ -29,6 +29,7 @@ using WebZi.Plataform.Domain.Models.GRV;
 using WebZi.Plataform.Domain.Models.Sistema;
 using WebZi.Plataform.Domain.Services.GRV;
 using WebZi.Plataform.Domain.ViewModel.Faturamento;
+using WebZi.Plataform.Domain.ViewModel.Pagamento;
 using WebZi.Plataform.Domain.Views.Faturamento;
 using WebZi.Plataform.Domain.Views.Localizacao;
 using Z.EntityFramework.Plus;
@@ -1241,6 +1242,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     .Include(x => x.Atendimento)
                     .Include(x => x.StatusOperacao)
                     .AsNoTracking()
+                    .OrderByDescending(x => x.DataHoraRemocao)
                     .FirstOrDefaultAsync(x => x.GrvId == model.IdentificadorProcesso);
             }
             else
@@ -1251,6 +1253,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     .Include(x => x.Atendimento)
                     .Include(x => x.StatusOperacao)
                     .AsNoTracking()
+                    .OrderByDescending(x => x.DataHoraRemocao)
                     .FirstOrDefaultAsync(x => !model.Placa.IsNullOrWhiteSpace() ? x.Placa == model.Placa : true
                                            && !model.Chassi.IsNullOrWhiteSpace() ? x.Chassi == model.Chassi : true);
             }
@@ -1520,7 +1523,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             return MensagemViewHelper.SetOk("Forma de Pagamento alterada com sucesso");
         }
 
-        public async Task<FaturamentoDTO> ConfirmarPagamentoAsync(int faturamentoId, int usuarioId)
+        public async Task<FaturamentoDTO> ConfirmarPagamentoAsync(int faturamentoId, int usuarioId, PagamentoParameterCartao cartao)
         {
             FaturamentoDTO ResultView = new();
 
@@ -1572,7 +1575,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             if (Faturamento.Atendimento.Grv.StatusOperacaoId == "L") // L = AGUARDANDO PAGAMENTO
             {
-                PixDinamicoDTO pixDinamico = new();
+                
                 try
                 {
                     TipoMeioCobrancaModel TipoMeioCobranca = await _context.TipoMeioCobranca
@@ -1581,6 +1584,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     // Se o Tipo de Cobrança for PIX Dinâmico
                     if (TipoMeioCobranca.Alias.Equals("PIXDIN"))
                     {
+                        PixDinamicoDTO pixDinamico = new();
                         pixDinamico = await new PixDinamicoService(_context, _mapper, _httpClientFactory)
                             .ConsultaAsync(faturamentoId, usuarioId);
 
@@ -1590,10 +1594,20 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                             return ResultView;
                         }
                     }
+                    else if(TipoMeioCobranca.Alias.Equals("CCRED"))
+                    {
+                        var faturamentoCartao = await CreateFaturamentoCartao(Faturamento, cartao);
+
+                        if(faturamentoCartao.HtmlStatusCode == HtmlStatusCodeEnum.BadRequest)
+                        {
+                            ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Erro ao efetuar pagamento com cartão");
+                            return ResultView;
+                        }
+                    }
                     else
                     {
                         //TODO: Tratar outras formas de pagamento
-                        ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Faturamento não foi feito em pix");
+                        ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Forma de pagamento não permitida");
                         return ResultView;
 
                     }
@@ -1633,6 +1647,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                         });
 
                     await _context.SaveChangesAsync();
+
+                    ResultView.Faturamento.Status = "P";
                 }
                 catch (Exception ex)
                 {
@@ -1748,6 +1764,40 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             ResultView.Mensagem = MensagemViewHelper.SetOk();
 
             return ResultView;
+        }
+
+        private async Task<MensagemDTO> CreateFaturamentoCartao(FaturamentoModel faturamento, PagamentoParameterCartao cartao)
+        {
+            try
+            {
+                #region Validações dos parâmetros      
+                if (cartao is null)
+                {
+                    return MensagemViewHelper.SetBadRequest("Cartão é obrigatório");
+                }                      
+                #endregion Validações dos parâmetros
+
+                var faturamentoCartao = await _context.FaturamentoCodigoAutorizacaoCartao.FirstOrDefaultAsync(x => x.FaturamentoId == faturamento.FaturamentoId);
+
+                if (faturamentoCartao is null)
+                {
+                    await _context.FaturamentoCodigoAutorizacaoCartao.AddAsync(new FaturamentoCodigoAutorizacaoCartaoModel()
+                    {
+                        CartaoId = cartao.Bandeira,
+                        CodigoAutorizacaoCartao = cartao.CodigoAutorizacao,
+                        NumeroCartao = cartao.NumeroCartao,
+                        FaturamentoId = faturamento.FaturamentoId,
+                        Valor = faturamento.ValorFaturado
+                    });
+                    await _context.SaveChangesAsync();
+                }
+
+                return MensagemViewHelper.SetOk("Faturamento do cartão registrado");
+            }
+            catch(Exception ex)
+            {
+                return MensagemViewHelper.SetBadRequest("Erro ao registrar faturamento do cartão");
+            }
         }
 
 

@@ -6,7 +6,7 @@
 
         public int FaturamentoId { get; set; }
 
-        public byte CartaoId { get; set; }
+        public int CartaoId { get; set; }
 
         public string CodigoAutorizacaoCartao { get; set; }
 

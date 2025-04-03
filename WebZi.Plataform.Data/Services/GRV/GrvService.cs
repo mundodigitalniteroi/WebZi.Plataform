@@ -479,7 +479,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             GrvModel Grv = GetById(Fotos.IdentificadorProcesso);
 
-            if (!new[] { "G", "V", "L", "U", "T", "R", "E", "B", "D", "1", "2", "3", "4" }.Contains(Grv.StatusOperacao.StatusOperacaoId))
+            if (new[] { "C" }.Contains(Grv.StatusOperacao.StatusOperacaoId))
             {
                 return MensagemViewHelper.SetBadRequest($"O Status atual deste Processo não permite o envio de Fotos. Status atual: {Grv.StatusOperacao.Descricao}");
             }

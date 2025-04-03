@@ -143,7 +143,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                 GuiaPagamentoReboqueEstadia.QuantidadeEstadias.ToString() + " dia" :
                 GuiaPagamentoReboqueEstadia.QuantidadeEstadias.ToString() + " dias";
 
-            ResultView.DadosAutorizadaRetiradaVeiculoEm = GuiaPagamentoReboqueEstadia.FaturamentoDataVencimento.Left(10);
+            ResultView.DadosAutorizadaRetiradaVeiculoEm = DateTime.Now.ToString("dd/MM/yyyy"); //GuiaPagamentoReboqueEstadia.FaturamentoDataVencimento.Left(10);
 
             ResultView.VeiculoTipo = Grv.TipoVeiculo.Descricao;
 

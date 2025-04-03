@@ -4,6 +4,8 @@ using WebZi.Plataform.CrossCutting.Configuration;
 using WebZi.Plataform.CrossCutting.Linq;
 using WebZi.Plataform.CrossCutting.Secutity;
 using WebZi.Plataform.Data.Database;
+using WebZi.Plataform.Data.Services.Faturamento;
+using WebZi.Plataform.Domain.ViewModel.Faturamento;
 
 class Program
 {
@@ -12,6 +14,20 @@ class Program
         Console.WriteLine("WebZi Plataform");
 
         AppDbContext _context = new();
+
+
+        var faturamentoService = new FaturamentoService(_context);
+
+        var parametros = new SimulacaoParameters()
+        {
+            CodigoProduto = "DEP",
+            Placa = "KOP1904",
+            IdentificadorUsuario = 1,
+            IdentificadorCliente = 1,
+            IdentificadorDeposito = 1,
+        };
+
+        var result = faturamentoService.SimularAsync(parametros).Result;
 
         //var result = _context.Empresa
         //    .Include(x => x.CEP)
@@ -47,44 +63,44 @@ class Program
 
         //Debugger.Break();
 
-        var aux = CreateSecret();
+        //var aux = CreateSecret();
 
-        List<string> strings = new()
-        {
-            "e",
+        //List<string> strings = new()
+        //{
+        //    "e",
 
-            "B     ",
+        //    "B     ",
 
-            "",
+        //    "",
 
-            " ",
+        //    " ",
 
-            null,
+        //    null,
 
-            null,
+        //    null,
 
-            "a"
-        };
+        //    "a"
+        //};
 
-        List<int> numbers = new()
-        {
-           1
-        };
+        //List<int> numbers = new()
+        //{
+        //   1
+        //};
 
-        bool result = false;
+        //bool result = false;
 
-        result = numbers.ContainsNegativeOrZeroNumbers();
+        //result = numbers.ContainsNegativeOrZeroNumbers();
 
-        result = strings.ContainsDuplicates();
+        //result = strings.ContainsDuplicates();
 
-        List<string> newStrings = LinqHelper.GetList(strings, LinqHelper.LinqListFlags.OrderByDesc | LinqHelper.LinqListFlags.Trim | LinqHelper.LinqListFlags.ToNullIfWhiteSpace);
+        //List<string> newStrings = LinqHelper.GetList(strings, LinqHelper.LinqListFlags.OrderByDesc | LinqHelper.LinqListFlags.Trim | LinqHelper.LinqListFlags.ToNullIfWhiteSpace);
 
-        foreach (string s in newStrings)
-        {
-            WriteLine(s == null ? "null" : s + ".");
-        }
+        //foreach (string s in newStrings)
+        //{
+        //    WriteLine(s == null ? "null" : s + ".");
+        //}
 
-        Debugger.Break();
+        //Debugger.Break();
     }
 
     static void WriteLine(string message)
