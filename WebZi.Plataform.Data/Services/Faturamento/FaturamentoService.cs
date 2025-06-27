@@ -1604,6 +1604,10 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                             return ResultView;
                         }
                     }
+                    else if(TipoMeioCobranca.Alias.Equals("GPER"))
+                    {
+                        //PEMITE PAGAMENTO DIRETO PARA TESTES E APRESENTAÇÕES
+                    }
                     else
                     {
                         //TODO: Tratar outras formas de pagamento
