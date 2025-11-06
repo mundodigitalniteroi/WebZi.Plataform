@@ -379,7 +379,7 @@ namespace WebZi.Plataform.Data.Services.GGV
                 return ResultView;
             }
 
-            if (Fotos.ListagemFotos?.Count == 0)
+            if (Fotos.Fotos?.Count == 0)
             {
                 return MensagemViewHelper.SetBadRequest("Nenhuma imagem enviada para a API");
             }
@@ -391,25 +391,10 @@ namespace WebZi.Plataform.Data.Services.GGV
                 return MensagemViewHelper.SetBadRequest($"O Status atual deste Processo não permite o envio de Fotos. Status atual: {Grv.StatusOperacao.Descricao}");
             }
 
-            List<BucketFileModel> Files = new();
-
-            List<TabelaGenericaModel> ListagemTipoCadastroFoto = await new TabelaGenericaService(_context)
-                .ListAsync("GGV_TIPO_CADASTRO_FOTO");
-
-            foreach (FotoTipoCadastroParameters item in Fotos.ListagemFotos)
-            {
-                string TipoCadastro = ListagemTipoCadastroFoto
-                    .Where(x => x.TabelaGenericaId == item.IdentificadorTipoCadastro)
-                    .Select(x => x.ValorCadastro)
-                    .FirstOrDefault();
-
-                Files.Add(new BucketFileModel { TipoCadastro = TipoCadastro, File = item.Foto });
-            }
-
             new BucketService(_context, _httpClientFactory)
-                .SendFiles(BucketNomeTabelaOrigemEnum.FotoVeiculoGGV, Fotos.IdentificadorProcesso, Fotos.IdentificadorUsuario, Files);
+                .SendFiles("GGVFOTOSVEICCAD", Fotos.IdentificadorProcesso, Fotos.IdentificadorUsuario, Fotos.Fotos);
 
-            return MensagemViewHelper.SetCreateSuccess(Fotos.ListagemFotos.Count);
+            return MensagemViewHelper.SetCreateSuccess(Fotos.Fotos.Count);
         }
 
         public async Task<MensagemDTO> DeleteFotosAsync(int GrvId, int UsuarioId, List<int> ListagemTabelaOrigemId)
