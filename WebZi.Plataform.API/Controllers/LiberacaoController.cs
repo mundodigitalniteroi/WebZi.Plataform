@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Liberacao;
 using WebZi.Plataform.Domain.DTO.Report;
@@ -8,6 +9,7 @@ using WebZi.Plataform.Domain.ViewModel.Liberacao;
 namespace WebZi.Plataform.API.Controllers
 {
     [Route("api/[controller]")]
+    [Authorize]
     [ApiController]
     public class LiberacaoController : ControllerBase
     {

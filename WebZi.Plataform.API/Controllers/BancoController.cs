@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Banco;
 using WebZi.Plataform.Data.Services.Banco.PIX;
@@ -9,6 +10,7 @@ using WebZi.Plataform.Domain.DTO.Banco.PIX;
 namespace WebZi.Plataform.API.Controllers
 {
     [Route("api/[controller]")]
+    [Authorize]
     [ApiController]
     public class BancoController : ControllerBase
     {

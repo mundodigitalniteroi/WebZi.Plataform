@@ -1,8 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.ResponseCompression;
 using Newtonsoft.Json;
 using System.IO.Compression;
 using System.Text.Json.Serialization;
+using System.Text;
 using WebZi.Plataform.Data.Services;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
@@ -23,16 +27,64 @@ static void ConfigureServices(WebApplicationBuilder builder)
     // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
     builder.Services
         .AddEndpointsApiExplorer()
-        .AddSwaggerGen();
+        .AddSwaggerGen(options =>
+        {
+            options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+            {
+                Name = "Authorization",
+                Type = SecuritySchemeType.Http,
+                Scheme = "bearer",
+                BearerFormat = "JWT",
+                In = ParameterLocation.Header,
+                Description = "Insira o token JWT no formato: Bearer {token}"
+            });
+            options.AddSecurityRequirement(new OpenApiSecurityRequirement
+            {
+                {
+                    new OpenApiSecurityScheme
+                    {
+                        Reference = new OpenApiReference
+                        {
+                            Type = ReferenceType.SecurityScheme,
+                            Id = "Bearer"
+                        }
+                    },
+                    new List<string>()
+                }
+            });
+        });
 
     builder.Services
         .RegisterDependencies(builder.Configuration);
 
+    var jwtSection = builder.Configuration.GetSection("Jwt");
+    var issuer = jwtSection["Issuer"];
+    var audience = jwtSection["Audience"];
+    var secret = jwtSection["Secret"];
+
     builder.Services
-        .AddMvc(options =>
+        .AddAuthentication(options =>
         {
-            options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        })
+        .AddJwtBearer(options =>
+        {
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret ?? string.Empty)),
+                ValidateIssuer = !string.IsNullOrWhiteSpace(issuer),
+                ValidIssuer = issuer,
+                ValidateAudience = !string.IsNullOrWhiteSpace(audience),
+                ValidAudience = audience,
+                ValidateLifetime = true,
+                ClockSkew = TimeSpan.Zero
+            };
         });
+
+    builder.Services
+        .AddAuthorization();
 
     // https://www.c-sharpcorner.com/article/response-compression-in-asp-net-core/
     // https://balta.io/blog/aspnet-compressao
@@ -87,7 +139,6 @@ static void ConfigureWebApplication(WebApplication app)
 
     app.UseHttpsRedirection();
 
-    // TODO:
     app.UseAuthentication();
 
     app.UseAuthorization();

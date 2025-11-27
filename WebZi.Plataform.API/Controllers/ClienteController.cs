@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Cliente;
 using WebZi.Plataform.Domain.DTO.Cliente;
@@ -7,6 +8,7 @@ using WebZi.Plataform.Domain.DTO.Generic;
 namespace WebZi.Plataform.API.Controllers
 {
     [Route("api/[controller]")]
+    [Authorize]
     [ApiController]
     public class ClienteController : ControllerBase
     {

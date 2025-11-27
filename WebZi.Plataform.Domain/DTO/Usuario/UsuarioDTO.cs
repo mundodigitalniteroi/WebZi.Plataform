@@ -1,5 +1,4 @@
-﻿using System.Reflection.PortableExecutable;
-using WebZi.Plataform.Domain.DTO.Sistema;
+﻿using WebZi.Plataform.Domain.DTO.Sistema;
 
 namespace WebZi.Plataform.Domain.DTO.Usuario
 {
@@ -17,6 +16,6 @@ namespace WebZi.Plataform.Domain.DTO.Usuario
 
         public string FlagAtivo { get; set; }
 
-        public List<UsuarioClienteDepositoDTO> ListagemClienteDepositoAssociado { get; set; } = new();
+        //public List<UsuarioClienteDepositoDTO> ListagemClienteDepositoAssociado { get; set; } = new();
     }
 }

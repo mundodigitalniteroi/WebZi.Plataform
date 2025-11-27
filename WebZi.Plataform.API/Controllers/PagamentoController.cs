@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using WebZi.Plataform.Data.Services.Atendimento;
 using WebZi.Plataform.Data.Services.Faturamento;
 using WebZi.Plataform.Domain.DTO.Faturamento;
@@ -8,6 +9,7 @@ using WebZi.Plataform.Domain.ViewModel.Pagamento;
 namespace WebZi.Plataform.API.Controllers
 {
     [Route("api/[controller]")]
+    [Authorize]
     [ApiController]
     public class PagamentoController : ControllerBase
     {
