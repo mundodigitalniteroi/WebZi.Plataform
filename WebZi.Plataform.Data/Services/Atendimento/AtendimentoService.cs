@@ -26,6 +26,7 @@ using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.GRV;
 using WebZi.Plataform.Domain.Models.Pessoa.Documento;
 using WebZi.Plataform.Domain.Models.Sistema;
+using WebZi.Plataform.Domain.Models.Usuario;
 using WebZi.Plataform.Domain.Services.GRV;
 using WebZi.Plataform.Domain.Services.Usuario;
 using WebZi.Plataform.Domain.ViewModel.Atendimento;
@@ -76,6 +77,10 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.GrvId == AtendimentoCadastro.IdentificadorProcesso);
 
+            UsuarioModel Usuario = await _context.Usuario
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.UsuarioId == AtendimentoCadastro.IdentificadorUsuario);
+
             if (!new[] { "B", "D", "V", "L", "E", "1", "2", "3", "4", "7" }.Contains(Grv.StatusOperacaoId))
             {
                 return MensagemViewHelper.SetBadRequest($"O Status atual deste Processo não permite o cadastro do Atendimento. " +
@@ -85,6 +90,8 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             {
                 return MensagemViewHelper.SetBadRequest($"Este Processo já possui um Atendimento cadastrado. Identificador do Atendimento: {Grv.Atendimento.AtendimentoId}");
             }
+
+            if (Usuario.FlagPermissaoDesconto != "S") return MensagemViewHelper.SetBadRequest($"Este usuario não é permitido o cadastro de Descontos.");
             #endregion Consultas
 
             #region Leilão
@@ -541,7 +548,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             }
             #endregion Dados do Atendimento
 
-            CalculoFaturamentoParametroModel ParametrosCalculoFaturamento = await ConfigParametrosCalculoFaturamentoAsync(Grv, AtendimentoInput.IdentificadorTipoMeioCobranca, AtendimentoInput.IdentificadorUsuario, DataHoraPorDeposito);
+            CalculoFaturamentoParametroModel ParametrosCalculoFaturamento = await ConfigParametrosCalculoFaturamentoAsync(Grv, AtendimentoInput.IdentificadorTipoMeioCobranca, AtendimentoInput.IdentificadorUsuario, DataHoraPorDeposito, AtendimentoInput.Descontos);
 
             AtendimentoCadastroDTO ResultView = new();
 
@@ -641,7 +648,8 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             }
         }
 
-        private async Task<CalculoFaturamentoParametroModel> ConfigParametrosCalculoFaturamentoAsync(GrvModel Grv, int TipoMeioCobrancaId, int UsuarioCadastroId, DateTime DataHoraPorDeposito)
+        private async Task<CalculoFaturamentoParametroModel> ConfigParametrosCalculoFaturamentoAsync(GrvModel Grv, int TipoMeioCobrancaId, 
+            int UsuarioCadastroId, DateTime DataHoraPorDeposito, List<DescontoParameters> descontoParameters)
         {
             // Quando no cadastro do Cliente foi configurado o Tipo de Cobrança, este cadastro é o que será usado para o cadastro da Fatura.
             var TipoMeioCobranca = await _context.TipoMeioCobranca
@@ -686,7 +694,19 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                     .Include(x => x.Deposito)
                     .ThenInclude(x => x.Endereco)
                     .AsNoTracking()
-                    .FirstOrDefaultAsync(x => x.ClienteId == Grv.ClienteId && x.DepositoId == Grv.DepositoId)
+                    .FirstOrDefaultAsync(x => x.ClienteId == Grv.ClienteId && x.DepositoId == Grv.DepositoId),
+
+                FaturamentoDescontos = descontoParameters.Select(x => new CalculoFaturamentoDescontoModel
+                {
+                    FaturamentoServicoTipoVeiculoId = x.FaturamentoServicoTipoVeiculoId,
+                    TipoComposicao = x.TipoComposicao,
+                    FaturamentoTipoComposicaoId = x.FaturamentoTipoComposicaoId,
+                    UsuarioDescontoId = x.UsuarioDescontoId,
+                    TipoDesconto = x.TipoDesconto,
+                    QuantidadeDesconto = x.QuantidadeDesconto,
+                    ValorDesconto = x.ValorDesconto,
+                    ObservacaoDesconto = x.ObservacaoDesconto
+                }).ToList()
             };
 
             return ParametrosCalculoFaturamento;
