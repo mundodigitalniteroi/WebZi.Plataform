@@ -6,6 +6,9 @@ using WebZi.Plataform.Data.Services.Banco.PIX;
 using WebZi.Plataform.Data.Services.WebServices;
 using WebZi.Plataform.Domain.DTO.Banco;
 using WebZi.Plataform.Domain.DTO.Banco.PIX;
+using WebZi.Plataform.CrossCutting.Web;
+using WebZi.Plataform.Domain.DTO.Report;
+using WebZi.Plataform.Data.Services.Report;
 
 namespace WebZi.Plataform.API.Controllers
 {
@@ -50,20 +53,35 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("GerarPixDinamico")]
         // TODO: [Authorize]
-        public async Task<ActionResult<PixDinamicoDTO>> GerarPixDinamico(int IdentificadorFaturamento, int IdentificadorUsuario)
+        public async Task<ActionResult<PixDinamicoCompletoDTO>> GerarPixDinamico(int IdentificadorFaturamento, int IdentificadorUsuario)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            PixDinamicoDTO ResultView = new();
+            PixDinamicoCompletoDTO ResultView = new();
 
             try
             {
-                ResultView = await _provider
+                PixDinamicoDTO pixDinamicoDTO = await _provider
                     .GetService<PixDinamicoService>()
                     .CreateAsync(IdentificadorFaturamento, IdentificadorUsuario);
+
+                if(pixDinamicoDTO.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+                {
+                    ResultView.Mensagem = pixDinamicoDTO.Mensagem;
+                    return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+                }
+
+                GuiaPagamentoReboqueEstadiaDTO guiaPagamentoReboqueEstadiaDTO = await _provider
+                 .GetService<GuiaPagamentoReboqueEstadiaService>()
+                 .GetGuiaPagamentoReboqueEstadiaAsync(IdentificadorFaturamento, IdentificadorUsuario);
+
+                ResultView.PixDinamico = pixDinamicoDTO;
+                ResultView.GuiaPagamentoReboqueEstadia = guiaPagamentoReboqueEstadiaDTO;
+
+                ResultView.Mensagem = pixDinamicoDTO.Mensagem;
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -77,20 +95,35 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("ConsultarPixDinamico")]
         // TODO: [Authorize]
-        public async Task<ActionResult<PixDinamicoDTO>> ConsultarPixDinamico(int IdentificadorFaturamento, int IdentificadorUsuario)
+        public async Task<ActionResult<PixDinamicoCompletoDTO>> ConsultarPixDinamico(int IdentificadorFaturamento, int IdentificadorUsuario)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            PixDinamicoDTO ResultView = new();
+            PixDinamicoCompletoDTO ResultView = new();
 
             try
             {
-                ResultView = await _provider
+                PixDinamicoDTO pixDinamicoDTO = await _provider
                     .GetService<PixDinamicoService>()
-                    .ConsultaAsync(IdentificadorFaturamento, IdentificadorUsuario);
+                    .CreateAsync(IdentificadorFaturamento, IdentificadorUsuario);
+
+                if (pixDinamicoDTO.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+                {
+                    ResultView.Mensagem = pixDinamicoDTO.Mensagem;
+                    return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+                }
+
+                GuiaPagamentoReboqueEstadiaDTO guiaPagamentoReboqueEstadiaDTO = await _provider
+                 .GetService<GuiaPagamentoReboqueEstadiaService>()
+                 .GetGuiaPagamentoReboqueEstadiaAsync(IdentificadorFaturamento, IdentificadorUsuario);
+
+                ResultView.PixDinamico = pixDinamicoDTO;
+                ResultView.GuiaPagamentoReboqueEstadia = guiaPagamentoReboqueEstadiaDTO;
+
+                ResultView.Mensagem = pixDinamicoDTO.Mensagem;
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
