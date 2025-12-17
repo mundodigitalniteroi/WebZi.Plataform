@@ -137,20 +137,31 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("GerarPixEstatico")]
         // TODO: [Authorize]
-        public ActionResult<PixEstaticoDTO> GerarPixEstatico(int IdentificadorFaturamento, int IdentificadorUsuario)
+        public async Task<ActionResult<PixEstaticoCompletoDTO>> GerarPixEstatico(int IdentificadorFaturamento, int IdentificadorUsuario)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            PixEstaticoDTO ResultView = new();
+            PixEstaticoCompletoDTO ResultView = new();
 
             try
             {
-                ResultView = _provider
+                PixEstaticoDTO pixEstatico = _provider
                     .GetService<PixEstaticoService>()
                     .Create(IdentificadorFaturamento, IdentificadorUsuario);
+                if(pixEstatico.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+                {
+                    ResultView.Mensagem = pixEstatico.Mensagem;
+                    return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+                }
+                GuiaPagamentoReboqueEstadiaDTO guiaPagamentoReboqueEstadiaDTO = await _provider
+                .GetService<GuiaPagamentoReboqueEstadiaService>()
+                .GetGuiaPagamentoReboqueEstadiaAsync(IdentificadorFaturamento, IdentificadorUsuario);
+                
+                ResultView.PixEstatico = pixEstatico;
+                ResultView.GuiaPagamentoReboqueEstadia = guiaPagamentoReboqueEstadiaDTO;
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
