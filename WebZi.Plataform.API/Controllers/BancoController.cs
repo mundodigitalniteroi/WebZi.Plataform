@@ -156,12 +156,12 @@ namespace WebZi.Plataform.API.Controllers
                     ResultView.Mensagem = pixEstatico.Mensagem;
                     return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
                 }
-                GuiaPagamentoReboqueEstadiaDTO guiaPagamentoReboqueEstadiaDTO = await _provider
+                GuiaPagamentoReboqueEstadiaDTO guiaPagamentoReboqueEstadia = await _provider
                 .GetService<GuiaPagamentoReboqueEstadiaService>()
                 .GetGuiaPagamentoReboqueEstadiaAsync(IdentificadorFaturamento, IdentificadorUsuario);
                 
                 ResultView.PixEstatico = pixEstatico;
-                ResultView.GuiaPagamentoReboqueEstadia = guiaPagamentoReboqueEstadiaDTO;
+                ResultView.GuiaPagamentoReboqueEstadia = guiaPagamentoReboqueEstadia;
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
