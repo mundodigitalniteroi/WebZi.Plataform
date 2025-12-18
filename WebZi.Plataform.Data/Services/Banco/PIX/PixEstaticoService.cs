@@ -154,7 +154,7 @@ namespace WebZi.Plataform.Data.Services.Banco.PIX
 
                 SolicitacaoPagador = PixBaseEnvio.SolicitacaoPagador,
 
-                Valor = Convert.ToDecimal(PixBaseEnvio.Valor.Original.Replace(",", ".")),
+                Valor = Math.Round(Faturamento.ValorFaturado, 2),
 
                 MerchantName = PixBaseEnvio.Merchant.Name,
 
