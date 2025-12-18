@@ -3,17 +3,22 @@ using Microsoft.EntityFrameworkCore;
 using System.Text;
 using WebZi.Plataform.CrossCutting.Documents;
 using WebZi.Plataform.CrossCutting.Number;
+using WebZi.Plataform.CrossCutting.Secutity;
 using WebZi.Plataform.CrossCutting.Strings;
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
+using WebZi.Plataform.Data.Services.Banco.PIX;
 using WebZi.Plataform.Data.Services.Cliente;
 using WebZi.Plataform.Data.Services.Deposito;
 using WebZi.Plataform.Data.Services.Localizacao;
+using WebZi.Plataform.Domain.DTO.Banco.PIX;
 using WebZi.Plataform.Domain.DTO.Generic;
 using WebZi.Plataform.Domain.DTO.Report;
 using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Atendimento;
+using WebZi.Plataform.Domain.Models.Banco.PIX.Dinamico.Persistencia;
+using WebZi.Plataform.Domain.Models.Banco.PIX.Estatico;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.GRV;
 using WebZi.Plataform.Domain.Models.Usuario;
@@ -290,14 +295,47 @@ namespace WebZi.Plataform.Data.Services.Report
                 return ResultView;
             }
 
+            #region Consulta
             FaturamentoModel Faturamento = await _context.Faturamento
                 .Include(x => x.TipoMeioCobranca)
                 .Include(x => x.ListagemFaturamentoComposicao)
-                .ThenInclude(x => x.FaturamentoServicoTipoVeiculo)
-                .ThenInclude(x => x.FaturamentoServicoAssociado)
-                .ThenInclude(x => x.FaturamentoServicoTipo)
+                    .ThenInclude(x => x.FaturamentoServicoTipoVeiculo)
+                    .ThenInclude(x => x.FaturamentoServicoAssociado)
+                    .ThenInclude(x => x.FaturamentoServicoTipo)
+                .Include(x => x.ListagemPixDinamico)
+                .Include(x => x.ListagemPixEstatico)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.FaturamentoId == FaturamentoId);
+
+            GrvModel Grv = await _context.Grv
+                .Include(x => x.Cliente)
+                .ThenInclude(x => x.Endereco)
+                .Include(x => x.Cliente)
+                .ThenInclude(x => x.AgenciaBancaria)
+                .Include(x => x.Cliente)
+                .ThenInclude(x => x.AgenciaBancaria.Banco)
+                .Include(x => x.Cliente)
+                .ThenInclude(x => x.Empresa)
+                .Include(x => x.Deposito)
+                .ThenInclude(x => x.Endereco)
+                .Include(x => x.Reboque)
+                .Include(x => x.Reboquista)
+                .Include(x => x.MarcaModelo)
+                .Include(x => x.Cor)
+                .Include(x => x.TipoVeiculo)
+                .Include(x => x.Atendimento)
+                .ThenInclude(x => x.QualificacaoResponsavel)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Atendimento.AtendimentoId == Faturamento.AtendimentoId);
+
+            PixDinamicoModel pixDinamico = Faturamento.ListagemPixDinamico
+                ?.OrderByDescending(x => x.DataCadastro)
+                .FirstOrDefault();
+            PixEstaticoModel pixEstatico = Faturamento.ListagemPixEstatico
+                ?.OrderByDescending(x => x.DataCadastro)
+                .FirstOrDefault();
+            #endregion
+
 
             if (Faturamento == null)
             {
@@ -326,26 +364,7 @@ namespace WebZi.Plataform.Data.Services.Report
             //    return ResultView;
             //}
 
-            GrvModel Grv = await _context.Grv
-                .Include(x => x.Cliente)
-                .ThenInclude(x => x.Endereco)
-                .Include(x => x.Cliente)
-                .ThenInclude(x => x.AgenciaBancaria)
-                .Include(x => x.Cliente)
-                .ThenInclude(x => x.AgenciaBancaria.Banco)
-                .Include(x => x.Cliente)
-                .ThenInclude(x => x.Empresa)
-                .Include(x => x.Deposito)
-                .ThenInclude(x => x.Endereco)
-                .Include(x => x.Reboque)
-                .Include(x => x.Reboquista)
-                .Include(x => x.MarcaModelo)
-                .Include(x => x.Cor)
-                .Include(x => x.TipoVeiculo)
-                .Include(x => x.Atendimento)
-                .ThenInclude(x => x.QualificacaoResponsavel)
-                .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.Atendimento.AtendimentoId == Faturamento.AtendimentoId);
+          
 
             if (Grv == null)
             {
@@ -361,7 +380,10 @@ namespace WebZi.Plataform.Data.Services.Report
                 return ResultView;
             }
 
+            
+
             GuiaPagamentoReboqueEstadiaDTO GuiaPagamentoEstadiaReboque = new();
+
 
             // GRV
             GuiaPagamentoEstadiaReboque = FillGrv(GuiaPagamentoEstadiaReboque, Grv);
@@ -394,6 +416,64 @@ namespace WebZi.Plataform.Data.Services.Report
             GuiaPagamentoEstadiaReboque.Logo = Listagem.Listagem
                 .FirstOrDefault()
                 .Imagem;
+
+            if (pixDinamico != null)
+            {
+                GuiaPagamentoEstadiaReboque.PixChave = pixDinamico.Chave;
+                
+                if (!string.IsNullOrWhiteSpace(pixDinamico.QrCode))
+                {
+                    try
+                    {
+                        GuiaPagamentoEstadiaReboque.QrCode = Convert.FromBase64String(pixDinamico.QrCode);
+                    }
+                    catch
+                    {
+                        if (!string.IsNullOrWhiteSpace(pixDinamico.QrString))
+                        {
+                            GuiaPagamentoEstadiaReboque.QrCode = QRCodeHelper.CreateImageAsByteArray(pixDinamico.QrString);
+                        }
+                        else if (!string.IsNullOrWhiteSpace(pixDinamico.Pix))
+                        {
+                            GuiaPagamentoEstadiaReboque.QrCode = QRCodeHelper.CreateImageAsByteArray(pixDinamico.Pix);
+                        }
+                    }
+                }
+                else if (!string.IsNullOrWhiteSpace(pixDinamico.QrString))
+                {
+                    GuiaPagamentoEstadiaReboque.QrCode = QRCodeHelper.CreateImageAsByteArray(pixDinamico.QrString);
+                }
+                else if (!string.IsNullOrWhiteSpace(pixDinamico.Pix))
+                {
+                    GuiaPagamentoEstadiaReboque.QrCode = QRCodeHelper.CreateImageAsByteArray(pixDinamico.Pix);
+                }
+            }
+
+            if (pixEstatico != null)
+            {
+                GuiaPagamentoEstadiaReboque.PixChave = pixEstatico.Chave;
+                
+                if (!string.IsNullOrWhiteSpace(pixEstatico.QRCode))
+                {
+                    try
+                    {
+                        GuiaPagamentoEstadiaReboque.QrCode = Convert.FromBase64String(pixEstatico.QRCode);
+                    }
+                    catch
+                    {
+                        if (!string.IsNullOrWhiteSpace(pixEstatico.QRString))
+                        {
+                            GuiaPagamentoEstadiaReboque.QrCode = QRCodeHelper.CreateImageAsByteArray(pixEstatico.QRString);
+                        }
+                    }
+                }
+                else if (!string.IsNullOrWhiteSpace(pixEstatico.QRString))
+                {
+                    GuiaPagamentoEstadiaReboque.QrCode = QRCodeHelper.CreateImageAsByteArray(pixEstatico.QRString);
+                }
+            }
+
+
 
             GuiaPagamentoEstadiaReboque.Mensagem = MensagemViewHelper.SetOk("Guia de Pagamento de Reboque e Estadia gerado com sucesso");
 
