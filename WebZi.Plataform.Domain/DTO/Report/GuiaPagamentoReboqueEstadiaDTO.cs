@@ -46,6 +46,18 @@ namespace WebZi.Plataform.Domain.DTO.Report
 
         public string AtendimentoResponsavelDocumento { get; set; }
 
+        public string AtendimentoResponsavelEndereco { get; set; }
+
+        public string AtendimentoResponsavelNumero { get; set; }
+
+        public string AtendimentoResponsavelComplemento { get; set; }
+
+        public string AtendimentoResponsavelBairro { get; set; }
+
+        public string AtendimentoResponsavelMunicipio { get; set; }
+
+        public string AtendimentoResponsavelUF { get; set; }
+
         public string AtendimentoFormaLiberacao { get; set; }
 
         public string AtendimentoFormaLiberacaoNome { get; set; }

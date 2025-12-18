@@ -42,6 +42,18 @@ namespace WebZi.Plataform.Data.Services.Report
 
             GuiaPagamentoEstadiaReboque.AtendimentoResponsavelDocumento = DocumentHelper.FormatCPF(Atendimento.ResponsavelDocumento);
 
+            GuiaPagamentoEstadiaReboque.AtendimentoResponsavelEndereco = Atendimento.ResponsavelEndereco;
+
+            GuiaPagamentoEstadiaReboque.AtendimentoResponsavelNumero = Atendimento.ResponsavelNumero;
+
+            GuiaPagamentoEstadiaReboque.AtendimentoResponsavelComplemento = Atendimento.ResponsavelComplemento;
+
+            GuiaPagamentoEstadiaReboque.AtendimentoResponsavelBairro = Atendimento.ResponsavelBairro;
+
+            GuiaPagamentoEstadiaReboque.AtendimentoResponsavelMunicipio = Atendimento.ResponsavelMunicipio;
+
+            GuiaPagamentoEstadiaReboque.AtendimentoResponsavelUF = Atendimento.ResponsavelUF;
+
             GuiaPagamentoEstadiaReboque.AtendimentoFormaLiberacao = Atendimento.FormaLiberacao;
 
             GuiaPagamentoEstadiaReboque.AtendimentoFormaLiberacaoNome = Atendimento.FormaLiberacaoNome;
