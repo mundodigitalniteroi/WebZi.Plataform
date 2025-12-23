@@ -1415,9 +1415,11 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
                 return ResultView;
             }
-
             List<GrvModel> result = await _context.Grv
                 .Include(x => x.Cliente)
+                .Include(x => x.Atendimento)
+                    .ThenInclude(x => x.ListagemFaturamento)
+                    .ThenInclude(x => x.ListagemFaturamentoComposicao)
                 .Include(x => x.Deposito)
                 .Include(x => x.StatusOperacao)
                 .Include(x => x.MarcaModelo)
@@ -1451,7 +1453,9 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 ResultView.Listagem.Add(new()
                 {
                     IdentificadorProcesso = Grv.GrvId,
-
+                    IdentificadorCliente = Grv.ClienteId,
+                    IdentificadorAtendimento = Grv.Atendimento?.AtendimentoId ?? 0,
+                    IdentificadorFaturamento = Grv.Atendimento?.ListagemFaturamento?.FirstOrDefault()?.FaturamentoId ?? 0,
                     StatusOperacaoId = Grv.StatusOperacaoId,
 
                     NumeroProcesso = Grv.NumeroFormularioGrv,

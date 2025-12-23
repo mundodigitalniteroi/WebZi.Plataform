@@ -9,21 +9,25 @@ using WebZi.Plataform.CrossCutting.Veiculo;
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
+using WebZi.Plataform.Data.Services.Atendimento;
 using WebZi.Plataform.Data.Services.Banco.PIX;
 using WebZi.Plataform.Data.Services.ClienteDeposito;
 using WebZi.Plataform.Data.Services.Deposito;
 using WebZi.Plataform.Data.Services.Localizacao;
 using WebZi.Plataform.Data.Services.Sistema;
 using WebZi.Plataform.Data.Services.WebServices;
+using WebZi.Plataform.Domain.DTO.Atendimento;
 using WebZi.Plataform.Domain.DTO.Banco.PIX;
 using WebZi.Plataform.Domain.DTO.Faturamento;
 using WebZi.Plataform.Domain.DTO.Faturamento.Cadastro;
 using WebZi.Plataform.Domain.DTO.Faturamento.Servico;
 using WebZi.Plataform.Domain.DTO.Faturamento.Simulacao;
+using WebZi.Plataform.Domain.DTO.Generic;
 using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Atendimento;
 using WebZi.Plataform.Domain.Models.Banco;
+using WebZi.Plataform.Domain.Models.Bucket;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.GRV;
 using WebZi.Plataform.Domain.Models.Sistema;
@@ -1604,17 +1608,17 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                             return ResultView;
                         }
                     }
-                    else if(TipoMeioCobranca.Alias.Equals("GPER"))
-                    {
-                        //PEMITE PAGAMENTO DIRETO PARA TESTES E APRESENTAÇÕES
-                    }
-                    else
-                    {
-                        //TODO: Tratar outras formas de pagamento
-                        ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Forma de pagamento não permitida");
-                        return ResultView;
+                    //else if(TipoMeioCobranca.Alias.Equals("GPER"))
+                    //{
+                    //    //PEMITE PAGAMENTO DIRETO PARA TESTES E APRESENTAÇÕES
+                    //}
+                    //else
+                    //{
+                    //    //TODO: Tratar outras formas de pagamento
+                    //    ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Forma de pagamento não permitida");
+                    //    return ResultView;
 
-                    }
+                    //}
 
                     //Atualização do faturamento
                     await _context.Faturamento
@@ -1664,7 +1668,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             return ResultView;
         }
 
-        public async Task<FaturamentoConsultaDTO> ConsultarFaturamentoAsync(int identificadorFaturamento)
+        public async Task<FaturamentoConsultaDTO> ConsultarFaturamentoAsync(int identificadorFaturamento, int identificadorUsuario)
         {
             #region Validações dos parâmetros
             List<string> erros = new();
@@ -1691,15 +1695,16 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 .Include(x => x.TipoMeioCobranca)
                 .Include(x => x.ListagemFaturamentoComposicao)
                 .Include(x => x.Atendimento)
-                .ThenInclude(x => x.Grv)
-                .ThenInclude(x => x.Cliente)
-                .ThenInclude(x => x.Endereco)
-                 .Include(x => x.Atendimento)
-                .ThenInclude(x => x.Grv)
-                .ThenInclude(x => x.Deposito)
-                .ThenInclude(x => x.Endereco)
+                    .ThenInclude(x => x.Grv)
+                    .ThenInclude(x => x.Cliente)
+                    .ThenInclude(x => x.Endereco)
+                .Include(x => x.Atendimento)
+                    .ThenInclude(x => x.Grv)
+                    .ThenInclude(x => x.Deposito)
+                    .ThenInclude(x => x.Endereco)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.FaturamentoId == identificadorFaturamento);
+
 
             ResultView.Faturamento = _mapper.Map<SimulacaoFaturamentoDTO>(Faturamento);
 
@@ -1758,7 +1763,16 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     Faturamento.Atendimento.Grv.Deposito.NumeroEndereco,
                     Faturamento.Atendimento.Grv.Deposito.ComplementoEndereco)
             };
+            ResultView.Atendimento = _mapper.Map<AtendimentoDTO>(Faturamento.Atendimento);
 
+            ImageListDTO FotoResponsavel = await new AtendimentoService(_context, _mapper, _httpClientFactory)
+                .GetFotoResponsavelAsync(Faturamento.AtendimentoId, identificadorUsuario);
+
+            if (FotoResponsavel.Listagem?.Count > 0)
+            {
+                ResultView.Atendimento.FotoResponsavel = FotoResponsavel.Listagem
+                    .FirstOrDefault()?.Imagem;
+            }
             if (!Faturamento.Atendimento.Grv.Placa.IsNullOrWhiteSpace() || !Faturamento.Atendimento.Grv.Chassi.IsNullOrWhiteSpace())
             {
                 DetranRioService DetranRioService = new(_context, _mapper);

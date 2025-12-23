@@ -246,7 +246,7 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("Consultar")]
         [IgnoreAntiforgeryToken]
-        public async Task<ActionResult<FaturamentoConsultaDTO>> Consultar(int identificadorFaturamento)
+        public async Task<ActionResult<FaturamentoConsultaDTO>> Consultar(int identificadorFaturamento, int identificadorUsuario)
         {
             if (!ModelState.IsValid)
             {
@@ -259,7 +259,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<FaturamentoService>()
-                    .ConsultarFaturamentoAsync(identificadorFaturamento);
+                    .ConsultarFaturamentoAsync(identificadorFaturamento, identificadorUsuario);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }

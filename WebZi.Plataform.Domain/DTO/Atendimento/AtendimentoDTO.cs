@@ -105,6 +105,7 @@ namespace WebZi.Plataform.Domain.DTO.Atendimento
         public string FlagPagamentoFinanciado { get; set; }
 
         public string FlagAtendimentoWS { get; set; }
+        public byte[] FotoResponsavel { get; set; }
 
         public DateTime? DataHoraInicioAtendimento { get; set; }
 
