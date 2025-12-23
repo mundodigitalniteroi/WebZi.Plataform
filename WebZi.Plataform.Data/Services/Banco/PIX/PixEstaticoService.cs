@@ -1,15 +1,20 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using WebZi.Plataform.CrossCutting.Code;
+using WebZi.Plataform.CrossCutting.Date;
 using WebZi.Plataform.CrossCutting.Strings;
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
+using WebZi.Plataform.Data.Mappings.Banco.PIX.Dinamico;
 using WebZi.Plataform.Data.Services.Sistema;
 using WebZi.Plataform.Domain.DTO.Banco.PIX;
 using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Banco.PIX.Base;
+using WebZi.Plataform.Domain.Models.Banco.PIX.Dinamico.Persistencia;
 using WebZi.Plataform.Domain.Models.Banco.PIX.Estatico;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.Sistema;
+using WebZi.Plataform.Domain.Models.WebServices.DetranAlagoas.ConsultaVeiculoApreensao.Response;
 using WebZi.Plataform.Domain.Services.GRV;
 using Z.EntityFramework.Plus;
 
@@ -165,7 +170,20 @@ namespace WebZi.Plataform.Data.Services.Banco.PIX
                 QRCode = PixEstaticoRetorno.QrCode
             };
 
+            string Senha = CodeHelper.GenerateCode();
+            string SenhaFinanceira = CodeHelper.GenerateCode();
+            PixDinamicoSenhaConfirmacaoTranferenciaModel PixSenha = new()
+            {
+                FaturamentoId = FaturamentoId,
+                UsuarioCadastroId = UsuarioId,
+                Senha = Senha,
+                SenhaFinanceiro = SenhaFinanceira,
+                DataCadastro = DateTime.UtcNow
+            };
+
             _context.PixEstatico.Add(Pix);
+
+            _context.PixDinamicoSenhaConfirmacaoTranferencia.Add(PixSenha);
 
             _context.SaveChanges();
 
@@ -188,6 +206,88 @@ namespace WebZi.Plataform.Data.Services.Banco.PIX
                 QRCode = Pix.QRCode,
 
                 Mensagem = MensagemViewHelper.SetCreateSuccess("PIX Estático gerado com sucesso")
+            };
+        }
+
+        public async Task<SenhaPixEstaticoDTO> SearchPassword(int identificadorFaturamento)
+        {
+            #region Validacao
+            if (identificadorFaturamento <= 0)
+            {
+                return new()
+                {
+                    Mensagem = MensagemViewHelper.SetBadRequest(MensagemPadraoEnum.IdentificadorFaturamentoInvalido)
+                };
+            }
+            #endregion Validacao
+
+            #region Consulta
+            PixDinamicoSenhaConfirmacaoTranferenciaModel ConfirmacaoSenha = await _context.PixDinamicoSenhaConfirmacaoTranferencia
+                .AsNoTracking()
+                .OrderByDescending(x => x.DataCadastro)
+                .FirstOrDefaultAsync(x => x.FaturamentoId == identificadorFaturamento);
+            #endregion Consulta
+
+            if(ConfirmacaoSenha == null)
+            {
+                return new()
+                {
+                    IdentificadorFaturamento = identificadorFaturamento,
+                    Mensagem = MensagemViewHelper.SetNotFound("Senha de confirmação não encontrada para o Faturamento informado")
+                };
+            }
+            return new()
+            {
+                IdentificadorFaturamento = identificadorFaturamento,
+                Senha = ConfirmacaoSenha.Senha,
+                Mensagem = MensagemViewHelper.SetOk()
+            };
+        }
+
+        public async Task<SenhaValidaDTO> ValidatePassword(string senha)
+        {
+            SenhaValidaDTO ResultView = new();
+            #region Validacao
+            if (String.IsNullOrEmpty(senha))
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Senha não pode ser vazia");
+                return ResultView;    
+            }
+            if (senha.Length != 6)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Senha deve conter 6 caracteres");
+                return ResultView;
+            }
+
+            #endregion Validacao
+
+            #region Consulta
+            PixDinamicoSenhaConfirmacaoTranferenciaModel ConfirmacaoSenha = await _context.PixDinamicoSenhaConfirmacaoTranferencia
+                .AsNoTracking()
+                .OrderByDescending(x => x.DataCadastro)
+                .FirstOrDefaultAsync(x => x.SenhaFinanceiro == senha);
+            #endregion Consulta
+
+            if (ConfirmacaoSenha == null)
+            {
+                return new()
+                {
+                    EValida = false,
+                    Mensagem = MensagemViewHelper.SetBadRequest("Senha inválida")
+                };
+            }
+            if(ConfirmacaoSenha.FlagConfirmado == "S")
+            {
+                return new()
+                {
+                    EValida = false,
+                    Mensagem = MensagemViewHelper.SetBadRequest("Senha já foi utilizada")
+                };
+            }
+            return new()
+            {
+                EValida = true,
+                Mensagem = MensagemViewHelper.SetOk()
             };
         }
     }

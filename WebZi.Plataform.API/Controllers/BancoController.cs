@@ -172,6 +172,67 @@ namespace WebZi.Plataform.API.Controllers
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
         }
+        [HttpGet("SenhasConfirmacao")]
+        // TODO: [Authorize]
+        public async Task<ActionResult<SenhaPixEstaticoDTO>> SenhasConfirmacao(int IdentificadorFaturamento)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            SenhaPixEstaticoDTO ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<PixEstaticoService>()
+                    .SearchPassword(IdentificadorFaturamento);
+
+                if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+                {
+                    return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+                }
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
+
+        [HttpPost("ValidarSenha")]
+        // TODO: [Authorize]
+        public async Task<ActionResult<SenhaValidaDTO>> ValidarSenha([FromBody] string senha)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            SenhaValidaDTO ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<PixEstaticoService>()
+                    .ValidatePassword(senha);
+
+                if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+                {
+                    return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+                }
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
 
         [HttpGet("ListarBanco")]
         // TODO: [Authorize]
