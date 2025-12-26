@@ -25,6 +25,9 @@ namespace WebZi.Plataform.Domain.DTO.Faturamento
 
         public DateTime? DataHoraGuarda { get; set; }
 
+        public string StatusOperacaoId { get; set; }
+        public string StatusOperacaoDescricao { get; set; }
+
         public string Status { get; set; }
         public int TipoMeioCobrancaId { get; set; }
 

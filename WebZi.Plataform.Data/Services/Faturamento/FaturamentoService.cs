@@ -1690,10 +1690,13 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             List<TabelaGenericaModel> ListagemTipoCobranca = await new TabelaGenericaService(_context)
                 .ListAsync("FAT_TIPO_COBRANCA");
-
+            #region Consultas
             FaturamentoModel Faturamento = await _context.Faturamento
                 .Include(x => x.TipoMeioCobranca)
                 .Include(x => x.ListagemFaturamentoComposicao)
+                .Include(x => x.Atendimento)
+                    .ThenInclude(x => x.Grv)
+                    .ThenInclude(x => x.StatusOperacao)
                 .Include(x => x.Atendimento)
                     .ThenInclude(x => x.Grv)
                     .ThenInclude(x => x.Cliente)
@@ -1705,6 +1708,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.FaturamentoId == identificadorFaturamento);
 
+            #endregion Consultas
 
             ResultView.Faturamento = _mapper.Map<SimulacaoFaturamentoDTO>(Faturamento);
 
@@ -1738,6 +1742,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             ResultView.IdentificadorAtendimento = Faturamento.AtendimentoId;
 
+            ResultView.StatusOperacaoId = Faturamento.Atendimento.Grv.StatusOperacaoId;
+            ResultView.StatusOperacaoDescricao = Faturamento.Atendimento.Grv.StatusOperacao?.Descricao;
             ResultView.Status = Faturamento.Status;
 
             ResultView.TipoMeioCobrancaId = Faturamento.TipoMeioCobrancaId;
