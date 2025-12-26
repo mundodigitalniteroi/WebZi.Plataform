@@ -178,7 +178,7 @@ namespace WebZi.Plataform.Data.Services.Banco.PIX
                 UsuarioCadastroId = UsuarioId,
                 Senha = Senha,
                 SenhaFinanceiro = SenhaFinanceira,
-                DataCadastro = DateTime.UtcNow
+                DataCadastro = DateTime.Now
             };
 
             _context.PixEstatico.Add(Pix);
@@ -244,9 +244,9 @@ namespace WebZi.Plataform.Data.Services.Banco.PIX
             };
         }
 
-        public async Task<SenhaValidaDTO> ValidatePassword(string senha)
+        public async Task<SenhaValidandoDTO> ValidatePassword(string senha)
         {
-            SenhaValidaDTO ResultView = new();
+            SenhaValidandoDTO ResultView = new();
             #region Validacao
             if (String.IsNullOrEmpty(senha))
             {
@@ -281,9 +281,14 @@ namespace WebZi.Plataform.Data.Services.Banco.PIX
                 return new()
                 {
                     EValida = false,
-                    Mensagem = MensagemViewHelper.SetBadRequest("Senha já foi utilizada")
+                    Mensagem = MensagemViewHelper.SetBadRequest("Já foi confirmado")
                 };
             }
+            //ConfirmacaoSenha.FlagConfirmado = "S";
+            //ConfirmacaoSenha.DataAlteracao = DateTime.Now;
+            //ConfirmacaoSenha.DataHoraAutorizacaoFinanceiro = DateTime.Now;
+            //await _context.SaveChangesAsync();
+
             return new()
             {
                 EValida = true,

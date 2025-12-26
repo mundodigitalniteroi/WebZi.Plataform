@@ -205,14 +205,14 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpPost("ValidarSenha")]
         // TODO: [Authorize]
-        public async Task<ActionResult<SenhaValidaDTO>> ValidarSenha([FromBody] string senha)
+        public async Task<ActionResult<SenhaValidandoDTO>> ValidarSenha([FromBody] string senha)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            SenhaValidaDTO ResultView = new();
+            SenhaValidandoDTO ResultView = new();
 
             try
             {
