@@ -2,7 +2,7 @@
 
 namespace WebZi.Plataform.Domain.DTO.Banco.PIX
 {
-    public class SenhaValidaDTO
+    public class SenhaValidandoDTO
     {
         public MensagemDTO Mensagem { get; set; } = new();
 
