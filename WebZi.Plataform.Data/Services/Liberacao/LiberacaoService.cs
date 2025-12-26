@@ -168,9 +168,9 @@ namespace WebZi.Plataform.Data.Services.Liberacao
             ResultView.TextoDeclaracaoRetirada2 = $@"Declaro também que o veículo se encontrava nas mesmas condições, quando foi removido e ainda lacrado, " +
                                     "conforme numeração abaixo descrita, sendo estes lacres conferidos na minha presença, nada havendo para reclamar agora ou no futuro.";
 
-            ResultView.ProprietarioProcurador = "Proprietário/Procurador: " + GuiaPagamentoReboqueEstadia.AtendimentoResponsavelNome;
+            ResultView.ProprietarioProcurador = GuiaPagamentoReboqueEstadia.AtendimentoResponsavelNome;
 
-            ResultView.ProprietarioCpf = "CPF: " + GuiaPagamentoReboqueEstadia.AtendimentoResponsavelDocumento;
+            ResultView.ProprietarioCpf = GuiaPagamentoReboqueEstadia.AtendimentoResponsavelDocumento;
 
             ResultView.GrvEstacionamentoSetor = !GuiaPagamentoReboqueEstadia.EstacionamentoSetor.IsNullOrWhiteSpace() ? GuiaPagamentoReboqueEstadia.EstacionamentoSetor : "Não informado";
 
@@ -183,7 +183,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
 
             ResultView.UsuarioNome = Usuario.NomeCompleto;
 
-            ResultView.UsuarioMatricula = "Matrícula: " + Usuario.Matricula;
+            ResultView.UsuarioMatricula = Usuario.Matricula;
 
 
             #region FORMA DE LIBERAÇÃO
