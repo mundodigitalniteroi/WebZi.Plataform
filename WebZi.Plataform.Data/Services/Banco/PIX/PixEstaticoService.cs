@@ -266,7 +266,7 @@ namespace WebZi.Plataform.Data.Services.Banco.PIX
 
             #region Consulta
             PixDinamicoSenhaConfirmacaoTranferenciaModel ConfirmacaoSenha = await _context.PixDinamicoSenhaConfirmacaoTranferencia
-                .AsNoTracking()
+                .AsTracking()
                 .OrderByDescending(x => x.DataCadastro)
                 .FirstOrDefaultAsync(x => x.SenhaFinanceiro == senha);
             #endregion Consulta
@@ -287,10 +287,8 @@ namespace WebZi.Plataform.Data.Services.Banco.PIX
                     Mensagem = MensagemViewHelper.SetBadRequest("Já foi confirmado")
                 };
             }
-            //ConfirmacaoSenha.FlagConfirmado = "S";
-            //ConfirmacaoSenha.DataAlteracao = DateTime.Now;
-            //ConfirmacaoSenha.DataHoraAutorizacaoFinanceiro = DateTime.Now;
-            //await _context.SaveChangesAsync();
+            ConfirmacaoSenha.FlagConfirmado = "S";
+            await _context.SaveChangesAsync();
 
             return new()
             {
