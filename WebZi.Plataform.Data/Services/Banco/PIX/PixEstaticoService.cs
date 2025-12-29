@@ -170,20 +170,7 @@ namespace WebZi.Plataform.Data.Services.Banco.PIX
                 QRCode = PixEstaticoRetorno.QrCode
             };
 
-            string Senha = CodeHelper.GenerateCode();
-            string SenhaFinanceira = CodeHelper.GenerateCode();
-            PixDinamicoSenhaConfirmacaoTranferenciaModel PixSenha = new()
-            {
-                FaturamentoId = FaturamentoId,
-                UsuarioCadastroId = UsuarioId,
-                Senha = Senha,
-                SenhaFinanceiro = SenhaFinanceira,
-                DataCadastro = DateTime.Now
-            };
-
             _context.PixEstatico.Add(Pix);
-
-            _context.PixDinamicoSenhaConfirmacaoTranferencia.Add(PixSenha);
 
             _context.SaveChanges();
 
@@ -209,10 +196,10 @@ namespace WebZi.Plataform.Data.Services.Banco.PIX
             };
         }
 
-        public async Task<SenhaPixEstaticoDTO> SearchPassword(int identificadorFaturamento)
+        public async Task<SenhaPixEstaticoDTO> SearchPassword(int FaturamentoId, int UsuarioId)
         {
             #region Validacao
-            if (identificadorFaturamento <= 0)
+            if (FaturamentoId <= 0)
             {
                 return new()
                 {
@@ -223,22 +210,38 @@ namespace WebZi.Plataform.Data.Services.Banco.PIX
 
             #region Consulta
             PixDinamicoSenhaConfirmacaoTranferenciaModel ConfirmacaoSenha = await _context.PixDinamicoSenhaConfirmacaoTranferencia
-                .AsNoTracking()
+                .AsTracking()
                 .OrderByDescending(x => x.DataCadastro)
-                .FirstOrDefaultAsync(x => x.FaturamentoId == identificadorFaturamento);
+                .FirstOrDefaultAsync(x => x.FaturamentoId == FaturamentoId);
             #endregion Consulta
 
             if(ConfirmacaoSenha == null)
             {
+                string Senha = CodeHelper.GenerateCode();
+                string SenhaFinanceira = CodeHelper.GenerateCode();
+                PixDinamicoSenhaConfirmacaoTranferenciaModel PixSenha = new()
+                {
+                    FaturamentoId = FaturamentoId,
+                    UsuarioCadastroId = UsuarioId,
+                    Senha = Senha,
+                    SenhaFinanceiro = SenhaFinanceira,
+                    DataCadastro = DateTime.Now
+                };
+                _context.PixDinamicoSenhaConfirmacaoTranferencia.Add(PixSenha);
+
+                await _context.SaveChangesAsync();
+
                 return new()
                 {
-                    IdentificadorFaturamento = identificadorFaturamento,
-                    Mensagem = MensagemViewHelper.SetNotFound("Senha de confirmação não encontrada para o Faturamento informado")
+                    IdentificadorFaturamento = FaturamentoId,
+                    Senha = Senha,
+                    Mensagem = MensagemViewHelper.SetOk()
                 };
             }
+
             return new()
             {
-                IdentificadorFaturamento = identificadorFaturamento,
+                IdentificadorFaturamento = FaturamentoId,
                 Senha = ConfirmacaoSenha.Senha,
                 Mensagem = MensagemViewHelper.SetOk()
             };

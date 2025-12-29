@@ -174,7 +174,7 @@ namespace WebZi.Plataform.API.Controllers
         }
         [HttpGet("SenhasConfirmacao")]
         // TODO: [Authorize]
-        public async Task<ActionResult<SenhaPixEstaticoDTO>> SenhasConfirmacao(int IdentificadorFaturamento)
+        public async Task<ActionResult<SenhaPixEstaticoDTO>> SenhasConfirmacao(int IdentificadorFaturamento, int IdentificadorUsuario)
         {
             if (!ModelState.IsValid)
             {
@@ -187,7 +187,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<PixEstaticoService>()
-                    .SearchPassword(IdentificadorFaturamento);
+                    .SearchPassword(IdentificadorFaturamento, IdentificadorUsuario);
 
                 if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
                 {
