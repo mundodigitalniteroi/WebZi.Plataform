@@ -302,7 +302,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                    StringHelper.AddCharToLeft(Sequencia.ToString(), '0', 3);
         }
 
-        private async void DeleteTipoMeioCobrancaAtual(int FaturamentoId, TipoMeioCobrancaModel TipoMeioCobrancaAtual)
+        private async Task DeleteTipoMeioCobrancaAtual(int FaturamentoId, TipoMeioCobrancaModel TipoMeioCobrancaAtual)
         {
             if (TipoMeioCobrancaAtual.Alias == TipoMeioCobrancaAliasEnum.Boleto ||
                 TipoMeioCobrancaAtual.Alias == TipoMeioCobrancaAliasEnum.BoletoEspecial)
@@ -318,9 +318,20 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             }
             else if (TipoMeioCobrancaAtual.Alias == TipoMeioCobrancaAliasEnum.PixDinamico)
             {
-                await _context.PixDinamico
+                int? pixDinamicoId = await _context.PixDinamico
                     .Where(x => x.FaturamentoId == FaturamentoId)
-                    .DeleteAsync();
+                    .Select(x => x.PixDinamicoId)
+                    .FirstOrDefaultAsync();
+
+                if (pixDinamicoId.HasValue)
+                {
+                    await _context.PixDinamicoConsulta
+                        .Where(x => x.PixDinamicoId == pixDinamicoId)
+                        .DeleteAsync();
+                    await _context.PixDinamico
+                        .Where(x => x.FaturamentoId == FaturamentoId)
+                        .DeleteAsync();
+                }
             }
         }
 
@@ -1507,7 +1518,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             try
             {
-                DeleteTipoMeioCobrancaAtual(FaturamentoId, Faturamento.TipoMeioCobranca);
+                await DeleteTipoMeioCobrancaAtual(FaturamentoId, Faturamento.TipoMeioCobranca);
 
                 await _context.Faturamento
                     .Where(x => x.FaturamentoId == FaturamentoId)
