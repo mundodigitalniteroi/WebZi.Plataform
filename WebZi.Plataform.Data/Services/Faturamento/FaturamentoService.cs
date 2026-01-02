@@ -97,9 +97,13 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             int quantidadeARemover = FaturamentoQuantidadeAlterada.QuantidadeARemover ?? 0;
 
             if(quantidadeARemover > quantidadeCalculada)
-                quantidadeARemover = quantidadeCalculada;
-            if(quantidadeARemover < 0)
-                quantidadeARemover = 0;
+                throw new ArgumentException(
+                     $"A quantidade a remover ({quantidadeARemover}) não pode ser maior que a quantidade calculada ({quantidadeCalculada})");
+
+            if (quantidadeARemover < 0)
+                throw new ArgumentException(
+                    $"A quantidade a remover não pode ser negativa. Valor informado: {quantidadeARemover}");
+
 
             FaturamentoQuantidadeAlterada.QuantidadeAlterada = -quantidadeARemover;
 
