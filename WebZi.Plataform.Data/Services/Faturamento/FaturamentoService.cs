@@ -93,19 +93,26 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
         private static FaturamentoComposicaoModel AplicarQuantidadeAlterada(FaturamentoComposicaoModel FaturamentoComposicao, CalculoFaturamentoQuantidadeAlteradaModel FaturamentoQuantidadeAlterada, int quantidadeCalculada)
         {
+            int quantidadeAjuste = FaturamentoQuantidadeAlterada.QuantidadeAjuste ?? 0;
 
-            int quantidadeARemover = FaturamentoQuantidadeAlterada.QuantidadeARemover ?? 0;
+            if (quantidadeAjuste < 0)
+            {
+                int quantidadeARemover = Math.Abs(quantidadeAjuste);
+                if (quantidadeARemover > quantidadeCalculada)
+                {
+                    throw new ArgumentException(
+                        $"A quantidade a remover ({quantidadeARemover}) não pode ser maior que a quantidade calculada ({quantidadeCalculada})");
+                }
+            }
 
-            if(quantidadeARemover > quantidadeCalculada)
+            int quantidadeFinal = quantidadeCalculada + quantidadeAjuste;
+            if(quantidadeFinal < 0)
+            {
                 throw new ArgumentException(
-                     $"A quantidade a remover ({quantidadeARemover}) não pode ser maior que a quantidade calculada ({quantidadeCalculada})");
+                    $"A quantidade final ({quantidadeFinal}) não pode ser menor que 0");
+            }
 
-            if (quantidadeARemover < 0)
-                throw new ArgumentException(
-                    $"A quantidade a remover não pode ser negativa. Valor informado: {quantidadeARemover}");
-
-
-            FaturamentoQuantidadeAlterada.QuantidadeAlterada = -quantidadeARemover;
+            FaturamentoQuantidadeAlterada.QuantidadeAlterada = quantidadeAjuste;
 
             FaturamentoComposicao.UsuarioAlteracaoQuantidadeId = FaturamentoQuantidadeAlterada.UsuarioAlteracaoQuantidadeId;
 
@@ -566,8 +573,13 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                                 if (FaturamentoQuantidadeAlterada != null)
                                 {
                                     int quantidadeCalculada = CalculoDiarias.Diarias;
-                                    int quantidadeARemover = FaturamentoQuantidadeAlterada.QuantidadeARemover ?? 0;
-                                    CalculoDiarias.Diarias = quantidadeCalculada - quantidadeARemover;
+                                    int quantidadeAjuste = FaturamentoQuantidadeAlterada.QuantidadeAjuste ?? 0;
+                                    CalculoDiarias.Diarias = quantidadeCalculada + quantidadeAjuste;
+                                    if (CalculoDiarias.Diarias <= 0)
+                                    {
+                                        throw new ArgumentException(
+                                            $"A quantidade final não pode ser zero ou negativa. Quantidade calculada: {quantidadeCalculada}, Ajuste: {quantidadeAjuste}");
+                                    }
                                     FaturamentoComposicao = AplicarQuantidadeAlterada(FaturamentoComposicao, FaturamentoQuantidadeAlterada, quantidadeCalculada);
                                 }
 

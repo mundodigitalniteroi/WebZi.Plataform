@@ -709,14 +709,14 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 }).ToList(),
 
                 FaturamentoQuantidadesAlteradas = descontoParameters
-                .Where(x => x.QuantidadeARemover > 0)
+                .Where(x => x.QuantidadeAjuste != 0)
                 .Select(x => new CalculoFaturamentoQuantidadeAlteradaModel
                 {
                     FaturamentoServicoTipoVeiculoId = x.FaturamentoServicoTipoVeiculoId,
                     TipoComposicao = x.TipoComposicao,
                     FaturamentoTipoComposicaoId = x.FaturamentoTipoComposicaoId,
                     UsuarioAlteracaoQuantidadeId = x.UsuarioDescontoId,
-                    QuantidadeARemover = x.QuantidadeARemover,
+                    QuantidadeAjuste = x.QuantidadeAjuste,
                     QuantidadeAlterada = 0,
                 }).ToList()
             };

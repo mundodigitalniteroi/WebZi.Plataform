@@ -10,7 +10,7 @@
 
         public int UsuarioAlteracaoQuantidadeId { get; set; }
 
-        public int? QuantidadeARemover { get; set; }
+        public int? QuantidadeAjuste { get; set; }
 
         public int QuantidadeAlterada { get; set; }
 

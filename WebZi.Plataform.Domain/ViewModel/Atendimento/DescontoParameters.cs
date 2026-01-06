@@ -12,7 +12,7 @@ namespace WebZi.Plataform.Domain.ViewModel.Atendimento
 
         public int UsuarioDescontoId { get; set; }
 
-        public int QuantidadeARemover { get; set; } = 0;
+        public int QuantidadeAjuste { get; set; } = 0;
 
         public string TipoDesconto { get; set; } // P = Porcentagem, V = Valor
 
