@@ -20,6 +20,7 @@ using WebZi.Plataform.Domain.Models.GRV;
 using WebZi.Plataform.Domain.Models.Leilao;
 using WebZi.Plataform.Domain.Models.Liberacao;
 using WebZi.Plataform.Domain.Models.Localizacao;
+using WebZi.Plataform.Domain.Models.Nfe;
 using WebZi.Plataform.Domain.Models.Pessoa;
 using WebZi.Plataform.Domain.Models.Pessoa.Documento;
 using WebZi.Plataform.Domain.Models.Servico;
@@ -243,7 +244,7 @@ namespace WebZi.Plataform.Data.Database
         public DbSet<FaturamentoCodigoAutorizacaoCartaoModel> FaturamentoCodigoAutorizacaoCartao { get; set; }
 
         public DbSet<FaturamentoComposicaoModel> FaturamentoComposicao { get; set; }
-
+        public DbSet<NfeModel> Nfe { get; set; }
         public DbSet<FaturamentoComposicaoNotaFiscalModel> FaturamentoComposicaoNotaFiscal { get; set; }
 
         public DbSet<FaturamentoCondicaoPagamentoModel> FaturamentoCondicaoPagamento { get; set; }

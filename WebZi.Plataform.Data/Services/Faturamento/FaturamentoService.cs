@@ -30,6 +30,7 @@ using WebZi.Plataform.Domain.Models.Banco;
 using WebZi.Plataform.Domain.Models.Bucket;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.GRV;
+using WebZi.Plataform.Domain.Models.Nfe;
 using WebZi.Plataform.Domain.Models.Sistema;
 using WebZi.Plataform.Domain.Services.GRV;
 using WebZi.Plataform.Domain.ViewModel.Faturamento;
@@ -1750,6 +1751,10 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.FaturamentoId == identificadorFaturamento);
 
+            NfeModel NotaFiscal = await _context.Nfe
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.GrvId == Faturamento.Atendimento.GrvId);
+
             #endregion Consultas
 
             ResultView.Faturamento = _mapper.Map<SimulacaoFaturamentoDTO>(Faturamento);
@@ -1789,6 +1794,11 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             ResultView.Status = Faturamento.Status;
 
             ResultView.TipoMeioCobrancaId = Faturamento.TipoMeioCobrancaId;
+
+            if(Faturamento.Atendimento.Grv.StatusOperacaoId == "E" && NotaFiscal != null)
+            {
+                ResultView.NotaFiscalUrl = NotaFiscal.Url;
+            }
 
             EnderecoService Endereco = new();
 
