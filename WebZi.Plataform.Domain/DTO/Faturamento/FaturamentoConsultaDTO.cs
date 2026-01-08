@@ -32,7 +32,9 @@ namespace WebZi.Plataform.Domain.DTO.Faturamento
         public int TipoMeioCobrancaId { get; set; }
         public string? NotaFiscalUrl { get; set; }
         public AtendimentoDTO Atendimento { get; set; }
+
         public SimulacaoFaturamentoDTO Faturamento { get; set; }
+
         public DetranRioVeiculoDTO Veiculo { get; set; }
     }
 }
