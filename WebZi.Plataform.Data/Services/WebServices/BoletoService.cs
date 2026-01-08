@@ -107,12 +107,12 @@ namespace WebZi.Plataform.Data.Services.WebServices
 
                 return ResultView;
             }
-            else if (Faturamento.Status == "P")
-            {
-                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Esse Faturamento já foi pago");
+            //else if (Faturamento.Status == "P")
+            //{
+            //    ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Esse Faturamento já foi pago");
 
-                return ResultView;
-            }
+            //    return ResultView;
+            //}
             else if (Faturamento.ListagemBoleto?.Count == 0)
             {
                 ResultView.Mensagem = MensagemViewHelper.SetNotFound("Boleto não encontrado");
