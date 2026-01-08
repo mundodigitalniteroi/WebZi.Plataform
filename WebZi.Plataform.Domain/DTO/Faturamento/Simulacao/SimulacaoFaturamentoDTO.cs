@@ -14,6 +14,7 @@
 
         public DateTime DataVencimento { get; set; }
 
+        public DateTime? DataPagamento { get; set; }
         public string FlagUsarHoraDiaria { get; set; }
 
         public string FlagLimitacaoJudicial { get; set; }
