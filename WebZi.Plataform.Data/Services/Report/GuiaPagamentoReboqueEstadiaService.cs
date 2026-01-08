@@ -163,7 +163,25 @@ namespace WebZi.Plataform.Data.Services.Report
 
             return GuiaPagamentoEstadiaReboque;
         }
+        private GuiaPagamentoReboqueEstadiaDTO FillDataHoraPersistida(GuiaPagamentoReboqueEstadiaDTO guiaPagamentoEstadiaReboque, FaturamentoModel faturamento, AtendimentoModel atendimento)
+        {
+            DateTime DataHoraPersistida;
+            if (faturamento.DataEmissaoDocumento.HasValue) DataHoraPersistida = faturamento.DataEmissaoDocumento.Value;
 
+            if(atendimento.DataImpressao.HasValue) DataHoraPersistida = atendimento.DataImpressao.Value;
+
+            else DataHoraPersistida = faturamento.DataCadastro;
+
+            guiaPagamentoEstadiaReboque.DataHoraAtual = DataHoraPersistida.ToString("dd/MM/yyyy HH:mm");
+
+            guiaPagamentoEstadiaReboque.DataAtual = DataHoraPersistida.ToString("dd/MM/yyyy");
+
+            guiaPagamentoEstadiaReboque.HoraAtual = DataHoraPersistida.ToString("HH:mm");
+
+            guiaPagamentoEstadiaReboque.DataHoraAtualDateTime = DataHoraPersistida;
+
+            return guiaPagamentoEstadiaReboque;
+        }
         private GuiaPagamentoReboqueEstadiaDTO FillDeposito(GuiaPagamentoReboqueEstadiaDTO GuiaPagamentoEstadiaReboque, GrvModel Grv)
         {
             GuiaPagamentoEstadiaReboque.DepositoNome = Grv.Deposito.Nome;
@@ -399,6 +417,195 @@ namespace WebZi.Plataform.Data.Services.Report
 
             // DATA/HORA
             GuiaPagamentoEstadiaReboque = FillDataHoraAtual(GuiaPagamentoEstadiaReboque, Grv.Deposito.DepositoId);
+
+            // FATURAMENTO
+            GuiaPagamentoEstadiaReboque = FillFaturamento(GuiaPagamentoEstadiaReboque, Faturamento);
+
+            // COMPOSIÇÃO DO FATURAMENTO
+            GuiaPagamentoEstadiaReboque = FillComposicaoFaturamento(GuiaPagamentoEstadiaReboque, Faturamento);
+
+            // RODAPÉ
+            GuiaPagamentoEstadiaReboque = FillRodape(GuiaPagamentoEstadiaReboque, UsuarioId);
+
+            // LOGOMARCA
+            ImageListDTO Listagem = await new ClienteService(_context, _mapper, _httpClientFactory)
+                .GetLogomarcaAsync(Grv.ClienteId);
+
+            GuiaPagamentoEstadiaReboque.Logo = Listagem.Listagem
+                .FirstOrDefault()
+                .Imagem;
+
+            if (pixDinamico != null)
+            {
+                GuiaPagamentoEstadiaReboque.PixChave = pixDinamico.Chave;
+                
+                if (!string.IsNullOrWhiteSpace(pixDinamico.QrCode))
+                {
+                    try
+                    {
+                        GuiaPagamentoEstadiaReboque.QrCode = Convert.FromBase64String(pixDinamico.QrCode);
+                    }
+                    catch
+                    {
+                        if (!string.IsNullOrWhiteSpace(pixDinamico.QrString))
+                        {
+                            GuiaPagamentoEstadiaReboque.QrCode = QRCodeHelper.CreateImageAsByteArray(pixDinamico.QrString);
+                        }
+                        else if (!string.IsNullOrWhiteSpace(pixDinamico.Pix))
+                        {
+                            GuiaPagamentoEstadiaReboque.QrCode = QRCodeHelper.CreateImageAsByteArray(pixDinamico.Pix);
+                        }
+                    }
+                }
+                else if (!string.IsNullOrWhiteSpace(pixDinamico.QrString))
+                {
+                    GuiaPagamentoEstadiaReboque.QrCode = QRCodeHelper.CreateImageAsByteArray(pixDinamico.QrString);
+                }
+                else if (!string.IsNullOrWhiteSpace(pixDinamico.Pix))
+                {
+                    GuiaPagamentoEstadiaReboque.QrCode = QRCodeHelper.CreateImageAsByteArray(pixDinamico.Pix);
+                }
+            }
+
+            if (pixEstatico != null)
+            {
+                GuiaPagamentoEstadiaReboque.PixChave = pixEstatico.Chave;
+                
+                if (!string.IsNullOrWhiteSpace(pixEstatico.QRCode))
+                {
+                    try
+                    {
+                        GuiaPagamentoEstadiaReboque.QrCode = Convert.FromBase64String(pixEstatico.QRCode);
+                    }
+                    catch
+                    {
+                        if (!string.IsNullOrWhiteSpace(pixEstatico.QRString))
+                        {
+                            GuiaPagamentoEstadiaReboque.QrCode = QRCodeHelper.CreateImageAsByteArray(pixEstatico.QRString);
+                        }
+                    }
+                }
+                else if (!string.IsNullOrWhiteSpace(pixEstatico.QRString))
+                {
+                    GuiaPagamentoEstadiaReboque.QrCode = QRCodeHelper.CreateImageAsByteArray(pixEstatico.QRString);
+                }
+            }
+
+            GuiaPagamentoEstadiaReboque.Mensagem = MensagemViewHelper.SetOk("Guia de Pagamento de Reboque e Estadia gerado com sucesso");
+
+            return GuiaPagamentoEstadiaReboque;
+            }
+
+            public async Task<GuiaPagamentoReboqueEstadiaDTO> ConsultarGuiaPagamentoReboqueEstadiaAsync(int FaturamentoId, int UsuarioId)
+            {
+            GuiaPagamentoReboqueEstadiaDTO ResultView = new();
+
+            if (FaturamentoId <= 0)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest(MensagemPadraoEnum.IdentificadorFaturamentoInvalido);
+
+                return ResultView;
+            }
+
+            #region Consulta
+            FaturamentoModel Faturamento = await _context.Faturamento
+                .Include(x => x.TipoMeioCobranca)
+                .Include(x => x.ListagemFaturamentoComposicao)
+                    .ThenInclude(x => x.FaturamentoServicoTipoVeiculo)
+                    .ThenInclude(x => x.FaturamentoServicoAssociado)
+                    .ThenInclude(x => x.FaturamentoServicoTipo)
+                .Include(x => x.ListagemPixDinamico)
+                .Include(x => x.ListagemPixEstatico)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.FaturamentoId == FaturamentoId);
+
+            GrvModel Grv = await _context.Grv
+                .Include(x => x.Cliente)
+                .ThenInclude(x => x.Endereco)
+                .Include(x => x.Cliente)
+                .ThenInclude(x => x.AgenciaBancaria)
+                .Include(x => x.Cliente)
+                .ThenInclude(x => x.AgenciaBancaria.Banco)
+                .Include(x => x.Cliente)
+                .ThenInclude(x => x.Empresa)
+                .Include(x => x.Deposito)
+                .ThenInclude(x => x.Endereco)
+                .Include(x => x.Reboque)
+                .Include(x => x.Reboquista)
+                .Include(x => x.MarcaModelo)
+                .Include(x => x.Cor)
+                .Include(x => x.TipoVeiculo)
+                .Include(x => x.Atendimento)
+                .ThenInclude(x => x.QualificacaoResponsavel)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Atendimento.AtendimentoId == Faturamento.AtendimentoId);
+
+            PixDinamicoModel pixDinamico = Faturamento.ListagemPixDinamico
+                ?.OrderByDescending(x => x.DataCadastro)
+                .FirstOrDefault();
+            PixEstaticoModel pixEstatico = Faturamento.ListagemPixEstatico
+                ?.OrderByDescending(x => x.DataCadastro)
+                .FirstOrDefault();
+            #endregion
+
+
+            if (Faturamento == null)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound(MensagemPadraoEnum.NaoEncontradoFaturamento);
+
+                return ResultView;
+            }
+            else if (Faturamento.Status == "C")
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Esse Faturamento foi cancelado");
+
+                return ResultView;
+            }
+
+            //else if (Faturamento.TipoMeioCobranca.DocumentoImpressao == null || Faturamento.TipoMeioCobranca.DocumentoImpressao != "GuiaPagamentoEstadiaReboque.rdlc")
+            //{
+            //    ResultView.Mensagem = MensagemViewHelper
+            //        .GetBadRequest($"Esse Faturamento está cadastrado em uma Forma de Pagamento que não está configurada para imprimir a " +
+            //        $"Guia de Pagamento de Reboque e Estadia. Forma de Pagamento atual: {Faturamento.TipoMeioCobranca.Descricao}");
+
+            //    return ResultView;
+            //}
+
+          
+
+            if (Grv == null)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound(MensagemPadraoEnum.NaoEncontradoGrv);
+
+                return ResultView;
+            }
+
+            ResultView.Mensagem = new GrvService(_context).ValidateInputGrv(Grv, UsuarioId);
+
+            if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+            {
+                return ResultView;
+            }
+
+            
+
+            GuiaPagamentoReboqueEstadiaDTO GuiaPagamentoEstadiaReboque = new();
+
+
+            // GRV
+            GuiaPagamentoEstadiaReboque = FillGrv(GuiaPagamentoEstadiaReboque, Grv);
+
+            // ATENDIMENTO
+            GuiaPagamentoEstadiaReboque = FillAtendimento(GuiaPagamentoEstadiaReboque, Grv.Atendimento);
+
+            // CLIENTE
+            GuiaPagamentoEstadiaReboque = FillCliente(GuiaPagamentoEstadiaReboque, Grv);
+
+            // DEPÓSITO
+            GuiaPagamentoEstadiaReboque = FillDeposito(GuiaPagamentoEstadiaReboque, Grv);
+
+            // DATA/HORA
+            GuiaPagamentoEstadiaReboque = FillDataHoraPersistida(GuiaPagamentoEstadiaReboque, Faturamento, Grv.Atendimento);
 
             // FATURAMENTO
             GuiaPagamentoEstadiaReboque = FillFaturamento(GuiaPagamentoEstadiaReboque, Faturamento);

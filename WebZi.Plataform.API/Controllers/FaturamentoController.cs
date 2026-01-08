@@ -79,6 +79,32 @@ namespace WebZi.Plataform.API.Controllers
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
         }
+        [HttpGet("ConsultarGuiaPagamentoReboqueEstadia")]
+        // TODO: [Authorize]
+        public async Task<ActionResult<GuiaPagamentoReboqueEstadiaDTO>> ConsultarGuiaPagamentoReboqueEstadia(int IdentificadorFaturamento, int IdentificadorUsuario)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            GuiaPagamentoReboqueEstadiaDTO ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<GuiaPagamentoReboqueEstadiaService>()
+                    .ConsultarGuiaPagamentoReboqueEstadiaAsync(IdentificadorFaturamento, IdentificadorUsuario);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
 
         [HttpGet("ListarPorIdentificadorAtendimento")]
         // TODO: [Authorize]

@@ -13,6 +13,7 @@
         public DateTime? DataCalculo { get; set; }
 
         public DateTime DataVencimento { get; set; }
+        public DateTime? DataPagamento { get; set; }
 
         public string FlagUsarHoraDiaria { get; set; }
 

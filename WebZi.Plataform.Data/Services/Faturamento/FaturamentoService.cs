@@ -1447,7 +1447,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             ResultView.Cliente = new()
             {
                 Nome = ParametrosCalculoFaturamento.ClienteDeposito.Cliente.Nome,
-
+                Cnpj = ParametrosCalculoFaturamento.ClienteDeposito.Cliente.CNPJ,
                 Endereco = Endereco.FormatarEndereco(ParametrosCalculoFaturamento.ClienteDeposito.Cliente.Endereco,
                     ParametrosCalculoFaturamento.ClienteDeposito.Cliente.NumeroEndereco,
                     ParametrosCalculoFaturamento.ClienteDeposito.Cliente.ComplementoEndereco)
@@ -1794,7 +1794,6 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             ResultView.Status = Faturamento.Status;
 
             ResultView.TipoMeioCobrancaId = Faturamento.TipoMeioCobrancaId;
-
             if(Faturamento.Atendimento.Grv.StatusOperacaoId == "E" && NotaFiscal != null)
             {
                 ResultView.NotaFiscalUrl = NotaFiscal.Url;
@@ -1805,7 +1804,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             ResultView.Cliente = new()
             {
                 Nome = Faturamento.Atendimento.Grv.Cliente.Nome,
-
+                Cnpj = Faturamento.Atendimento.Grv.Cliente.CNPJ,
                 Endereco = Endereco.FormatarEndereco(Faturamento.Atendimento.Grv.Cliente.Endereco,
                     Faturamento.Atendimento.Grv.Cliente.NumeroEndereco,
                     Faturamento.Atendimento.Grv.Cliente.ComplementoEndereco)
