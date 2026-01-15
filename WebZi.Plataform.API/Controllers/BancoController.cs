@@ -118,7 +118,7 @@ namespace WebZi.Plataform.API.Controllers
 
                 GuiaPagamentoReboqueEstadiaDTO guiaPagamentoReboqueEstadiaDTO = await _provider
                  .GetService<GuiaPagamentoReboqueEstadiaService>()
-                 .GetGuiaPagamentoReboqueEstadiaAsync(IdentificadorFaturamento, IdentificadorUsuario);
+                 .ConsultarGuiaPagamentoReboqueEstadiaAsync(IdentificadorFaturamento, IdentificadorUsuario);
 
                 ResultView.PixDinamico = pixDinamicoDTO;
                 ResultView.GuiaPagamentoReboqueEstadia = guiaPagamentoReboqueEstadiaDTO;
@@ -158,7 +158,7 @@ namespace WebZi.Plataform.API.Controllers
                 }
                 GuiaPagamentoReboqueEstadiaDTO guiaPagamentoReboqueEstadia = await _provider
                 .GetService<GuiaPagamentoReboqueEstadiaService>()
-                .GetGuiaPagamentoReboqueEstadiaAsync(IdentificadorFaturamento, IdentificadorUsuario);
+                .ConsultarGuiaPagamentoReboqueEstadiaAsync(IdentificadorFaturamento, IdentificadorUsuario);
                 
                 ResultView.PixEstatico = pixEstatico;
                 ResultView.GuiaPagamentoReboqueEstadia = guiaPagamentoReboqueEstadia;

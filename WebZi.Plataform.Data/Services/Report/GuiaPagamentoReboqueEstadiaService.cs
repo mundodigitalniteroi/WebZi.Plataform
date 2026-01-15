@@ -109,9 +109,14 @@ namespace WebZi.Plataform.Data.Services.Report
         private GuiaPagamentoReboqueEstadiaDTO FillComposicaoFaturamento(GuiaPagamentoReboqueEstadiaDTO GuiaPagamentoEstadiaReboque, FaturamentoModel Faturamento)
         {
             decimal ValorDemaisServicos = 0;
+            decimal ValorTotalDesconto = 0;
 
             foreach (FaturamentoComposicaoModel Composicao in Faturamento.ListagemFaturamentoComposicao)
             {
+                if (Composicao.ValorDesconto.HasValue && Composicao.ValorDesconto.Value > 0)
+                {
+                    ValorTotalDesconto += Composicao.ValorDesconto.Value;
+                }
                 if (Composicao.FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.FaturamentoServicoTipo.OrdemImpressao == 1)
                 {
                     GuiaPagamentoEstadiaReboque.QuantidadeEstadias = (int)Composicao.QuantidadeComposicao;
@@ -119,12 +124,24 @@ namespace WebZi.Plataform.Data.Services.Report
                     GuiaPagamentoEstadiaReboque.PrecoEstadias = NumberHelper.FormatMoney(Composicao.ValorTipoComposicao);
 
                     GuiaPagamentoEstadiaReboque.ValorFaturadoEstadias = NumberHelper.FormatMoney(Composicao.ValorFaturado);
+
+                    if (Composicao.ValorDesconto.HasValue && Composicao.ValorDesconto.Value > 0)
+                    {
+                        GuiaPagamentoEstadiaReboque.TipoDescontoEstadias = Composicao.TipoDesconto ?? string.Empty;
+                        GuiaPagamentoEstadiaReboque.ValorDescontoEstadias = NumberHelper.FormatMoney(Composicao.ValorDesconto.Value);
+                    }
                 }
                 else if (Composicao.FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.FaturamentoServicoTipo.OrdemImpressao == 2)
                 {
                     GuiaPagamentoEstadiaReboque.PrecoReboque = NumberHelper.FormatMoney(Composicao.ValorTipoComposicao);
 
                     GuiaPagamentoEstadiaReboque.ValorFaturadoReboque = NumberHelper.FormatMoney(Composicao.ValorFaturado);
+
+                    if (Composicao.ValorDesconto.HasValue && Composicao.ValorDesconto.Value > 0)
+                    {
+                        GuiaPagamentoEstadiaReboque.TipoDescontoReboque = Composicao.TipoDesconto ?? string.Empty;
+                        GuiaPagamentoEstadiaReboque.ValorDescontoReboque = NumberHelper.FormatMoney(Composicao.ValorDesconto.Value);
+                    }
                 }
                 else if (Composicao.FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.FaturamentoServicoTipo.OrdemImpressao == 3)
                 {
@@ -133,6 +150,12 @@ namespace WebZi.Plataform.Data.Services.Report
                     GuiaPagamentoEstadiaReboque.PrecoQuilometragem = NumberHelper.FormatMoney(Composicao.ValorTipoComposicao);
 
                     GuiaPagamentoEstadiaReboque.ValorFaturadoQuilometragem = NumberHelper.FormatMoney(Composicao.ValorFaturado);
+
+                    if (Composicao.ValorDesconto.HasValue && Composicao.ValorDesconto.Value > 0)
+                    {
+                        GuiaPagamentoEstadiaReboque.TipoDescontoQuilometragem = Composicao.TipoDesconto ?? string.Empty;
+                        GuiaPagamentoEstadiaReboque.ValorDescontoQuilometragem = NumberHelper.FormatMoney(Composicao.ValorDesconto.Value);
+                    }
                 }
                 else
                 {
@@ -144,7 +167,10 @@ namespace WebZi.Plataform.Data.Services.Report
                     GuiaPagamentoEstadiaReboque.ValorDemaisServicos += NumberHelper.FormatMoney(ValorDemaisServicos);
                 }
             }
-
+            if (ValorTotalDesconto > 0)
+            {
+                GuiaPagamentoEstadiaReboque.ValorTotalDesconto = NumberHelper.FormatMoney(ValorTotalDesconto);
+            }
             return GuiaPagamentoEstadiaReboque;
         }
 

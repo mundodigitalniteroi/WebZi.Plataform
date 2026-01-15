@@ -117,6 +117,14 @@ namespace WebZi.Plataform.Domain.DTO.Report
 
         public string ValorDemaisServicos { get; set; }
 
+        public string TipoDescontoEstadias { get; set; }
+        public string ValorDescontoEstadias { get; set; }
+        public string TipoDescontoReboque { get; set; }
+        public string ValorDescontoReboque { get; set; }
+        public string TipoDescontoQuilometragem { get; set; }
+        public string ValorDescontoQuilometragem { get; set; }
+        public string ValorTotalDesconto { get; set; }
+
 
         public string FaturamentoValorPagar { get; set; }
 

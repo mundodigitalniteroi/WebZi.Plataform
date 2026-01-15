@@ -14,12 +14,14 @@
 
         public DateTime? DataVigenciaFinal { get; set; }
 
+        public string TipoDesconto { get; set; }
+
         public decimal? QuantidadeServico { get; set; }
 
         public string TipoLancamento { get; set; }
 
         public decimal ValorTipoServico { get; set; }
-
+        public decimal? ValorDesconto { get; set; }
         public decimal ValorFaturado { get; set; }
     }
 }
