@@ -15,6 +15,8 @@ namespace WebZi.Plataform.Domain.DTO.Faturamento
 
         public SimulacaoProdutoDTO Produto { get; set; }
 
+        public int IdentificadorFaturamento { get; set; }
+
         public int IdentificadorProcesso { get; set; }
 
         public string NumeroProcesso { get; set; }

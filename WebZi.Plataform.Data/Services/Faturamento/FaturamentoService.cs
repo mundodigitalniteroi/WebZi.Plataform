@@ -1778,7 +1778,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
                 Servico.DataVigenciaFinal = FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.DataVigenciaFinal;
             }
-
+            ResultView.IdentificadorFaturamento = Faturamento.FaturamentoId;
             ResultView.IdentificadorProcesso = Faturamento.Atendimento.Grv.GrvId;
 
             ResultView.NumeroProcesso = Faturamento.Atendimento.Grv.NumeroFormularioGrv;
