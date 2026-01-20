@@ -1570,7 +1570,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             return MensagemViewHelper.SetOk("Forma de Pagamento alterada com sucesso");
         }
 
-        public async Task<FaturamentoDTO> ConfirmarPagamentoAsync(int faturamentoId, int usuarioId, PagamentoParameterCartao cartao)
+        public async Task<FaturamentoDTO> ConfirmarPagamentoAsync(int faturamentoId, int usuarioId, List<PagamentoParameterCartao> cartoes)
         {
             FaturamentoDTO ResultView = new();
 
@@ -1643,7 +1643,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     }
                     else if(TipoMeioCobranca.Alias.Equals("CCRED"))
                     {
-                        var faturamentoCartao = await CreateFaturamentoCartao(Faturamento, cartao);
+                        var faturamentoCartao = await CreateFaturamentoCartao(Faturamento, cartoes);
 
                         if(faturamentoCartao.HtmlStatusCode == HtmlStatusCodeEnum.BadRequest)
                         {
@@ -1842,21 +1842,26 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             return ResultView;
         }
 
-        private async Task<MensagemDTO> CreateFaturamentoCartao(FaturamentoModel faturamento, PagamentoParameterCartao cartao)
+        private async Task<MensagemDTO> CreateFaturamentoCartao(FaturamentoModel faturamento, List<PagamentoParameterCartao> cartoes)
         {
             try
             {
                 #region Validações dos parâmetros      
-                if (cartao is null)
+                if (cartoes == null || !cartoes.Any())
                 {
-                    return MensagemViewHelper.SetBadRequest("Cartão é obrigatório");
-                }                      
+                    return MensagemViewHelper.SetBadRequest("Pelo menos um cartão é obrigatório");
+                }
+
+                bool possuiCartoesExistentes = await _context.FaturamentoCodigoAutorizacaoCartao.AnyAsync(x => x.FaturamentoId == faturamento.FaturamentoId);
+
+                if (possuiCartoesExistentes)
+                    return MensagemViewHelper.SetBadRequest("Este faturamento á possui cartôes registrados");
+
                 #endregion Validações dos parâmetros
 
-                var faturamentoCartao = await _context.FaturamentoCodigoAutorizacaoCartao.FirstOrDefaultAsync(x => x.FaturamentoId == faturamento.FaturamentoId);
-
-                if (faturamentoCartao is null)
+                if(cartoes.Count == 1)
                 {
+                    var cartao = cartoes.First();
                     await _context.FaturamentoCodigoAutorizacaoCartao.AddAsync(new FaturamentoCodigoAutorizacaoCartaoModel()
                     {
                         CartaoId = cartao.Bandeira,
@@ -1865,10 +1870,64 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                         FaturamentoId = faturamento.FaturamentoId,
                         Valor = faturamento.ValorFaturado
                     });
-                    await _context.SaveChangesAsync();
+                }
+                else
+                {
+                    var cartoesComValor = cartoes.Where(c => c.Valor.HasValue && c.Valor.Value > 0).ToList();
+                    var cartoesSemValor = cartoes.Where(c => !c.Valor.HasValue && c.Valor.Value <= 0).ToList();
+
+                    decimal valorTotalCartoes = cartoesComValor.Sum(c => c.Valor.Value);
+                    decimal valorRestante = faturamento.ValorFaturado - valorTotalCartoes;
+
+                    if(valorTotalCartoes > faturamento.ValorFaturado)
+                        return MensagemViewHelper.SetBadRequest(
+                            $"O valor total dos cartões ({valorTotalCartoes:C}) excede o valor do faturamento ({faturamento.ValorFaturado:C})");
+
+                    if(cartoesComValor.Count == cartoes.Count && valorTotalCartoes < faturamento.ValorFaturado)
+                        return MensagemViewHelper.SetBadRequest(
+                            $"O valor total dos cartões ({valorTotalCartoes:C}) é menor que o valor do faturamento ({faturamento.ValorFaturado:C})");
+
+                    decimal valorPorCartaoSemValor = 
+                        cartoesSemValor.Any() 
+                        ? Math.Round(valorRestante / cartoesSemValor.Count, 2)
+                        : 0;
+                    if (!cartoesComValor.Any())
+                    {
+                        valorPorCartaoSemValor = Math.Round(faturamento.ValorFaturado / cartoesSemValor.Count, 2);
+                    }
+
+                    var cartoesParaAdicionar = cartoes.Select(cartao => new FaturamentoCodigoAutorizacaoCartaoModel
+                    {
+                        CartaoId = cartao.Bandeira,
+                        CodigoAutorizacaoCartao = cartao.CodigoAutorizacao,
+                        NumeroCartao = cartao.NumeroCartao,
+                        FaturamentoId = faturamento.FaturamentoId,
+                        Valor = cartao.Valor.HasValue && cartao.Valor.Value > 0
+                            ? cartao.Valor.Value
+                            : valorPorCartaoSemValor
+                    }).ToList();
+
+                    if (cartoesParaAdicionar.Any())
+                    {
+                        decimal somaValores = cartoesParaAdicionar.Sum(x => x.Valor);
+                        decimal diferenca = faturamento.ValorFaturado - somaValores;
+
+                        if(Math.Abs(diferenca) > 0.01m)
+                        {
+                            var ultimoCartao = cartoesParaAdicionar.Last();
+                            ultimoCartao.Valor += diferenca;
+                        }
+                    }
+                    await _context.FaturamentoCodigoAutorizacaoCartao.AddRangeAsync(cartoesParaAdicionar);
                 }
 
-                return MensagemViewHelper.SetOk("Faturamento do cartão registrado");
+                await _context.SaveChangesAsync();
+
+                string mensagem = cartoes.Count == 1
+                    ? "Faturamento do cartão registrado com sucesso"
+                    : $"Faturamento de {cartoes.Count} cartões registrados com sucesso";
+
+                return MensagemViewHelper.SetOk(mensagem);
             }
             catch(Exception ex)
             {
