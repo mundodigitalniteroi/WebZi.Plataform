@@ -1635,13 +1635,13 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                         pixDinamico = await new PixDinamicoService(_context, _mapper, _httpClientFactory)
                             .ConsultaAsync(faturamentoId, usuarioId);
 
-                        if(pixDinamico.IdentificadorPixDinamicoTipoStatusGeracao != 2)
+                        if (pixDinamico.IdentificadorPixDinamicoTipoStatusGeracao != 2)
                         {
                             ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Pix ainda não confirmado");
                             return ResultView;
                         }
                     }
-                    else if(TipoMeioCobranca.Alias.Equals("CCRED"))
+                    else if (TipoMeioCobranca.Alias.Equals("CCRED") || TipoMeioCobranca.Alias.Equals("CDEBI"))
                     {
                         var faturamentoCartao = await CreateFaturamentoCartao(Faturamento, cartoes);
 
@@ -1651,29 +1651,29 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                             return ResultView;
                         }
                     }
-                    //else if(TipoMeioCobranca.Alias.Equals("GPER"))
-                    //{
-                    //    //PEMITE PAGAMENTO DIRETO PARA TESTES E APRESENTAÇÕES
-                    //}
-                    //else
-                    //{
-                    //    //TODO: Tratar outras formas de pagamento
-                    //    ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Forma de pagamento não permitida");
-                    //    return ResultView;
+                        //else if(TipoMeioCobranca.Alias.Equals("GPER"))
+                        //{
+                        //    //PEMITE PAGAMENTO DIRETO PARA TESTES E APRESENTAÇÕES
+                        //}
+                        //else
+                        //{
+                        //    //TODO: Tratar outras formas de pagamento
+                        //    ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Forma de pagamento não permitida");
+                        //    return ResultView;
 
-                    //}
+                        //}
 
-                    //Atualização do faturamento
-                    await _context.Faturamento
-                       .Where(x => x.FaturamentoId == faturamentoId)
-                       .UpdateAsync(x => new FaturamentoModel()
-                       {
-                           Status = "P",
-                           UsuarioAlteracaoId = usuarioId,
-                           DataPrazoRetiradaVeiculo = DateTime.Now.AddDays(1),
-                           ValorPagamento = Faturamento.ValorFaturado,
-                           DataPagamento = DateTime.Now
-                       });
+                        //Atualização do faturamento
+                        await _context.Faturamento
+                           .Where(x => x.FaturamentoId == faturamentoId)
+                           .UpdateAsync(x => new FaturamentoModel()
+                           {
+                               Status = "P",
+                               UsuarioAlteracaoId = usuarioId,
+                               DataPrazoRetiradaVeiculo = DateTime.Now.AddDays(1),
+                               ValorPagamento = Faturamento.ValorFaturado,
+                               DataPagamento = DateTime.Now
+                           });
 
                     //Atualização da Forma Liberação
                     await _context.Atendimento
@@ -1857,11 +1857,21 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 if (possuiCartoesExistentes)
                     return MensagemViewHelper.SetBadRequest("Este faturamento á possui cartôes registrados");
 
+                var cartoesDuplicados = cartoes
+                    .GroupBy(x => x.NumeroCartao)
+                    .Where(x => !string.IsNullOrWhiteSpace(x.Key) && x.Count() > 1)
+                    .Select(x => x.Key)
+                    .ToList();
+                if (cartoesDuplicados.Any())
+                    return MensagemViewHelper.SetBadRequest(
+                        $"Existem cartões duplicados com o número: {string.Join(", ", cartoesDuplicados)}");
+
                 #endregion Validações dos parâmetros
 
-                if(cartoes.Count == 1)
+                if (cartoes.Count == 1)
                 {
                     var cartao = cartoes.First();
+
                     await _context.FaturamentoCodigoAutorizacaoCartao.AddAsync(new FaturamentoCodigoAutorizacaoCartaoModel()
                     {
                         CartaoId = cartao.Bandeira,
@@ -1879,7 +1889,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     decimal valorTotalCartoes = cartoesComValor.Sum(c => c.Valor.Value);
                     decimal valorRestante = faturamento.ValorFaturado - valorTotalCartoes;
 
-                    if(valorTotalCartoes > faturamento.ValorFaturado)
+
+                    if (valorTotalCartoes > faturamento.ValorFaturado)
                         return MensagemViewHelper.SetBadRequest(
                             $"O valor total dos cartões ({valorTotalCartoes:C}) excede o valor do faturamento ({faturamento.ValorFaturado:C})");
 
@@ -1887,14 +1898,10 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                         return MensagemViewHelper.SetBadRequest(
                             $"O valor total dos cartões ({valorTotalCartoes:C}) é menor que o valor do faturamento ({faturamento.ValorFaturado:C})");
 
-                    decimal valorPorCartaoSemValor = 
-                        cartoesSemValor.Any() 
-                        ? Math.Round(valorRestante / cartoesSemValor.Count, 2)
-                        : 0;
-                    if (!cartoesComValor.Any())
-                    {
-                        valorPorCartaoSemValor = Math.Round(faturamento.ValorFaturado / cartoesSemValor.Count, 2);
-                    }
+                    if (cartoesSemValor.Any())
+                        return MensagemViewHelper.SetBadRequest(
+                                $"O cartão ({cartoesSemValor.Where(x => x.Valor == 0)} precisa ter um valor )"
+                            );
 
                     var cartoesParaAdicionar = cartoes.Select(cartao => new FaturamentoCodigoAutorizacaoCartaoModel
                     {
@@ -1902,9 +1909,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                         CodigoAutorizacaoCartao = cartao.CodigoAutorizacao,
                         NumeroCartao = cartao.NumeroCartao,
                         FaturamentoId = faturamento.FaturamentoId,
-                        Valor = cartao.Valor.HasValue && cartao.Valor.Value > 0
-                            ? cartao.Valor.Value
-                            : valorPorCartaoSemValor
+                        Valor = cartao.Valor.Value
                     }).ToList();
 
                     if (cartoesParaAdicionar.Any())
@@ -1912,12 +1917,17 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                         decimal somaValores = cartoesParaAdicionar.Sum(x => x.Valor);
                         decimal diferenca = faturamento.ValorFaturado - somaValores;
 
-                        if(Math.Abs(diferenca) > 0.01m)
+                        if (Math.Abs(diferenca) > 0.01m)
                         {
-                            var ultimoCartao = cartoesParaAdicionar.Last();
-                            ultimoCartao.Valor += diferenca;
+                            if (diferenca > 0)
+                                return MensagemViewHelper.SetBadRequest(
+                                    $"O valor total dos cartões ({somaValores:C}) é menor que o valor do faturamento ({faturamento.ValorFaturado:C}). Faltam {diferenca:C}");
+                            else
+                                return MensagemViewHelper.SetBadRequest(
+                                    $"O valor total dos cartões ({somaValores:C}) excede o valor do faturamento ({faturamento.ValorFaturado:C}). Diferença de {Math.Abs(diferenca):C}");
                         }
                     }
+
                     await _context.FaturamentoCodigoAutorizacaoCartao.AddRangeAsync(cartoesParaAdicionar);
                 }
 

@@ -60,7 +60,7 @@ namespace WebZi.Plataform.API.Controllers
 
             FaturamentoDTO faturamento = await _provider
                 .GetService<FaturamentoService>()
-                .ConfirmarPagamentoAsync(model.IdentificadorFaturamento, model.IdentificadorUsuario, model.Cartao);
+                .ConfirmarPagamentoAsync(model.IdentificadorFaturamento, model.IdentificadorUsuario, model.Cartoes);
 
             if (faturamento.Mensagem.Erros.Count == 0)
             {
