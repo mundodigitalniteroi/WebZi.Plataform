@@ -1,14 +1,14 @@
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Banco;
 using WebZi.Plataform.Data.Services.Banco.PIX;
+using WebZi.Plataform.Data.Services.Report;
 using WebZi.Plataform.Data.Services.WebServices;
 using WebZi.Plataform.Domain.DTO.Banco;
 using WebZi.Plataform.Domain.DTO.Banco.PIX;
-using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Domain.DTO.Report;
-using WebZi.Plataform.Data.Services.Report;
 
 namespace WebZi.Plataform.API.Controllers
 {
@@ -68,7 +68,7 @@ namespace WebZi.Plataform.API.Controllers
                     .GetService<PixDinamicoService>()
                     .CreateAsync(IdentificadorFaturamento, IdentificadorUsuario);
 
-                if(pixDinamicoDTO.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+                if (pixDinamicoDTO.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
                 {
                     ResultView.Mensagem = pixDinamicoDTO.Mensagem;
                     return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
@@ -151,7 +151,7 @@ namespace WebZi.Plataform.API.Controllers
                 PixEstaticoDTO pixEstatico = _provider
                     .GetService<PixEstaticoService>()
                     .Create(IdentificadorFaturamento, IdentificadorUsuario);
-                if(pixEstatico.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+                if (pixEstatico.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
                 {
                     ResultView.Mensagem = pixEstatico.Mensagem;
                     return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
@@ -159,11 +159,11 @@ namespace WebZi.Plataform.API.Controllers
                 GuiaPagamentoReboqueEstadiaDTO guiaPagamentoReboqueEstadia = await _provider
                 .GetService<GuiaPagamentoReboqueEstadiaService>()
                 .ConsultarGuiaPagamentoReboqueEstadiaAsync(IdentificadorFaturamento, IdentificadorUsuario);
-                
+
                 ResultView.PixEstatico = pixEstatico;
                 ResultView.GuiaPagamentoReboqueEstadia = guiaPagamentoReboqueEstadia;
 
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+                return StatusCode((int)HtmlStatusCodeEnum.Ok, ResultView);
             }
             catch (Exception ex)
             {
