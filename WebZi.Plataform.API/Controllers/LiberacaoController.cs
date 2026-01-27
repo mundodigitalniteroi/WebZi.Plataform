@@ -5,6 +5,8 @@ using WebZi.Plataform.Data.Services.Liberacao;
 using WebZi.Plataform.Domain.DTO.Report;
 using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.ViewModel.Liberacao;
+using WebZi.Plataform.Domain.ViewModel.Atendimento;
+using WebZi.Plataform.Domain.Models.WebServices.DetranAlagoas.ConsultaVeiculoApreensao.Response;
 
 namespace WebZi.Plataform.API.Controllers
 {
@@ -46,6 +48,30 @@ namespace WebZi.Plataform.API.Controllers
 
                 return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
             }
+        }
+
+        [HttpPost("ValidarUsuario")]
+        public ActionResult<MensagemDTO> ValidarUsuarioLiberacaoEspecial([FromBody]LiberacaoEspecialValidarParameters parameters)
+        {
+            if(!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            MensagemDTO ResultView;
+
+            try
+            {
+                ResultView =  _provider
+                    .GetService<LiberacaoService>()
+                    .ValidarUsuario(parameters);
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+
+            }catch(Exception ex)
+            {
+                ResultView = MensagemViewHelper.SetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+
         }
 
         [HttpGet("GuiaAutorizacaoRetiradaVeiculo")]
