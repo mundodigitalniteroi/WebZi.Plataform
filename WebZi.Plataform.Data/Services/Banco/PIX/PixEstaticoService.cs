@@ -1,11 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using WebZi.Plataform.CrossCutting.Code;
-using WebZi.Plataform.CrossCutting.Date;
 using WebZi.Plataform.CrossCutting.Strings;
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
-using WebZi.Plataform.Data.Mappings.Banco.PIX.Dinamico;
 using WebZi.Plataform.Data.Services.Sistema;
 using WebZi.Plataform.Domain.DTO.Banco.PIX;
 using WebZi.Plataform.Domain.Enums;
@@ -14,7 +12,6 @@ using WebZi.Plataform.Domain.Models.Banco.PIX.Dinamico.Persistencia;
 using WebZi.Plataform.Domain.Models.Banco.PIX.Estatico;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.Sistema;
-using WebZi.Plataform.Domain.Models.WebServices.DetranAlagoas.ConsultaVeiculoApreensao.Response;
 using WebZi.Plataform.Domain.Services.GRV;
 using Z.EntityFramework.Plus;
 
@@ -143,7 +140,7 @@ namespace WebZi.Plataform.Data.Services.Banco.PIX
 
                     break;
                 }
-                catch (Exception ex) when (i == 5)
+                catch (Exception ex)
                 {
                     ResultView.Mensagem = MensagemViewHelper.SetServiceUnavailable(ex);
 
@@ -215,7 +212,7 @@ namespace WebZi.Plataform.Data.Services.Banco.PIX
                 .FirstOrDefaultAsync(x => x.FaturamentoId == FaturamentoId);
             #endregion Consulta
 
-            if(ConfirmacaoSenha == null)
+            if (ConfirmacaoSenha == null)
             {
                 string Senha = CodeHelper.GenerateCode();
                 string SenhaFinanceira = CodeHelper.GenerateCode();
@@ -254,7 +251,7 @@ namespace WebZi.Plataform.Data.Services.Banco.PIX
             if (String.IsNullOrEmpty(senha))
             {
                 ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Senha não pode ser vazia");
-                return ResultView;    
+                return ResultView;
             }
             if (senha.Length != 6)
             {
@@ -279,7 +276,7 @@ namespace WebZi.Plataform.Data.Services.Banco.PIX
                     Mensagem = MensagemViewHelper.SetBadRequest("Senha inválida")
                 };
             }
-            if(ConfirmacaoSenha.FlagConfirmado == "S")
+            if (ConfirmacaoSenha.FlagConfirmado == "S")
             {
                 return new()
                 {
