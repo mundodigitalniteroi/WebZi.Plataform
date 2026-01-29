@@ -1,7 +1,10 @@
 ﻿using AutoMapper;
+using Castle.Components.DictionaryAdapter.Xml;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using System.Threading.Tasks;
 using WebZi.Plataform.CrossCutting.Contacts;
+using WebZi.Plataform.CrossCutting.Date;
 using WebZi.Plataform.CrossCutting.Documents;
 using WebZi.Plataform.CrossCutting.Localizacao;
 using WebZi.Plataform.CrossCutting.Strings;
@@ -24,6 +27,7 @@ using WebZi.Plataform.Domain.Models.Bucket;
 using WebZi.Plataform.Domain.Models.ClienteDeposito;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.GRV;
+using WebZi.Plataform.Domain.Models.Liberacao;
 using WebZi.Plataform.Domain.Models.Pessoa.Documento;
 using WebZi.Plataform.Domain.Models.Sistema;
 using WebZi.Plataform.Domain.Models.Usuario;
@@ -31,6 +35,7 @@ using WebZi.Plataform.Domain.Services.GRV;
 using WebZi.Plataform.Domain.Services.Usuario;
 using WebZi.Plataform.Domain.ViewModel.Atendimento;
 using WebZi.Plataform.Domain.ViewModel.Pagamento;
+using Z.EntityFramework.Plus;
 
 namespace WebZi.Plataform.Data.Services.Atendimento
 {
@@ -566,6 +571,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
                     Faturamento = new FaturamentoService(_context)
                         .Faturar(ParametrosCalculoFaturamento, out CalculoDiarias);
+                    
 
                     CreateFotoResponsavel(Atendimento.AtendimentoId, AtendimentoInput);
 
@@ -577,6 +583,41 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
                     _context.SaveChanges();
 
+                    if (AtendimentoInput.IdentificadorTipoMeioCobranca == 12)
+                    {
+                        CreateLiberacaoEspecial(Faturamento.FaturamentoId, AtendimentoInput.LiberacaoEspecial);
+                        _context.Faturamento
+                            .Where(x => x.FaturamentoId == Faturamento.FaturamentoId)
+                            .Update(x => new FaturamentoModel()
+                            {
+                                Status = "P",
+                                UsuarioAlteracaoId = AtendimentoInput.LiberacaoEspecial.IdUsuarioCadastro,
+                                DataPrazoRetiradaVeiculo = DateTime.Now.AddDays(1),
+                                ValorPagamento = AtendimentoInput.LiberacaoEspecial.Valor,
+                                DataPagamento = DateTime.Now
+                            });
+                        _context.Atendimento
+                            .Where(x => x.AtendimentoId == Faturamento.AtendimentoId)
+                            .Update(x => new AtendimentoModel()
+                            {
+                                FormaLiberacaoNome = Faturamento.Atendimento.ResponsavelNome,
+                                FormaLiberacaoCNH = Faturamento.Atendimento.ResponsavelCnh,
+                                FormaLiberacaoCPF = Faturamento.Atendimento.ResponsavelDocumento,
+                                FormaLiberacao = "C",
+                                UsuarioAlteracaoId = AtendimentoInput.LiberacaoEspecial.IdUsuarioCadastro,
+                                FlagPagamentoFinanciado = "N"
+                            });
+                        _context.Grv
+                            .Where(x => x.GrvId == Faturamento.Atendimento.GrvId)
+                            .Update(x => new GrvModel()
+                            {
+                                StatusOperacaoId = "U",
+                                DataAlteracao = DateTime.Now,
+                                UsuarioAlteracaoId = AtendimentoInput.LiberacaoEspecial.IdUsuarioCadastro
+                            });
+                    }
+
+                    _context.SaveChanges();
                     transaction.Commit();
 
                     ResultView.IdentificadorAtendimento = Atendimento.AtendimentoId;
@@ -624,6 +665,49 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             return ResultView;
         }
 
+        private void CreateLiberacaoEspecial(int idFaturamento, LiberacaoEspecialParameters parameters)
+        {
+            var dataCadastro = CadastrarLiberacao(parameters.IdUsuarioCadastro);
+
+            #region Validação
+            if (parameters.DataEmissaoDocumento < DateTime.Today)
+                    throw new Exception("Data não pode ser menor que hoje");
+            #endregion Validação
+
+            LiberacaoEspecialModel liberacaoEspecial = new()
+            {
+                IdGrv = parameters.IdGrv,
+                IdFaturamento = idFaturamento,
+                IdLiberacaoEspecialTipo = parameters.IdLiberacaoEspecialTipo,
+                IdUsuarioCadastro = parameters.IdUsuarioCadastro,
+                NumeroDocumento = parameters.NumeroDocumento.ToUpper(),
+                TipoDocumento = parameters.TipoDocumento.ToUpper(),
+                NumeroProcesso = parameters.NumeroProcesso.ToUpper(),
+                OrgaoEmissor = parameters.OrgaoEmissor.ToUpper(),
+                PortadorNome = parameters.PortadorNome.ToUpper(),
+                PortadorCargo = parameters.PortadorCargo.ToUpper(),
+                PortadorMatricula = parameters.PortadorMatricula.ToUpper(),
+                SignatarioNomeDocumento = parameters.SignatarioNomeDocumento.ToUpper(),
+                SignatarioMatricula = parameters.SignatarioMatricula.ToUpper(),
+                SignatarioTitulo = parameters.SignatarioTitulo.ToUpper(),
+                DataEmissaoDocumento = parameters.DataEmissaoDocumento.Date,
+                DataLiberacao = dataCadastro
+            };
+            _context.LiberacaoEspecial.Add(liberacaoEspecial);
+        }
+        private DateTime CadastrarLiberacao(int idUsuario)
+        {
+            LiberacaoModel liberacao = new()
+            {
+                TipoLiberacaoId = 2,
+                UsuarioCadastroId = idUsuario
+
+            };
+            _context.Liberacao.Add(liberacao);
+            _context.SaveChanges();
+            return liberacao.DataCadastro;
+
+        }
         private void CreateFotoResponsavel(int AtendimentoId, AtendimentoParameters AtendimentoInput)
         {
             if (AtendimentoInput.ResponsavelFoto != null)

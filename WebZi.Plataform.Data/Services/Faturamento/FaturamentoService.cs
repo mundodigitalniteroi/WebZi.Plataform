@@ -23,6 +23,7 @@ using WebZi.Plataform.Domain.DTO.Faturamento.Cadastro;
 using WebZi.Plataform.Domain.DTO.Faturamento.Servico;
 using WebZi.Plataform.Domain.DTO.Faturamento.Simulacao;
 using WebZi.Plataform.Domain.DTO.Generic;
+using WebZi.Plataform.Domain.DTO.Liberacao;
 using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Atendimento;
@@ -30,6 +31,7 @@ using WebZi.Plataform.Domain.Models.Banco;
 using WebZi.Plataform.Domain.Models.Bucket;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.GRV;
+using WebZi.Plataform.Domain.Models.Liberacao;
 using WebZi.Plataform.Domain.Models.Nfe;
 using WebZi.Plataform.Domain.Models.Sistema;
 using WebZi.Plataform.Domain.Services.GRV;
@@ -1620,7 +1622,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             ResultView.IdentificadorAtendimento = Faturamento.Atendimento.Grv.Atendimento.AtendimentoId;
 
-            if (Faturamento.Atendimento.Grv.StatusOperacaoId == "L") // L = AGUARDANDO PAGAMENTO
+            if (Faturamento.Atendimento.Grv.StatusOperacaoId == "L" || Faturamento.Atendimento.Grv.StatusOperacaoId == "U") // L = AGUARDANDO PAGAMENTO || U = AGUARDANDO LIBERAÇÃO ESPECIAL
             {
                 
                 try
@@ -1651,30 +1653,29 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                             return ResultView;
                         }
                     }
-                        //else if(TipoMeioCobranca.Alias.Equals("GPER"))
-                        //{
-                        //    //PEMITE PAGAMENTO DIRETO PARA TESTES E APRESENTAÇÕES
-                        //}
-                        //else
-                        //{
-                        //    //TODO: Tratar outras formas de pagamento
-                        //    ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Forma de pagamento não permitida");
-                        //    return ResultView;
+                    //else if(TipoMeioCobranca.Alias.Equals("GPER"))
+                    //{
+                    //    //PEMITE PAGAMENTO DIRETO PARA TESTES E APRESENTAÇÕES
+                    //}
+                    //else
+                    //{
+                    //    //TODO: Tratar outras formas de pagamento
+                    //    ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Forma de pagamento não permitida");
+                    //    return ResultView;
 
-                        //}
+                    //}
 
-                        //Atualização do faturamento
-                        await _context.Faturamento
-                           .Where(x => x.FaturamentoId == faturamentoId)
-                           .UpdateAsync(x => new FaturamentoModel()
-                           {
-                               Status = "P",
-                               UsuarioAlteracaoId = usuarioId,
-                               DataPrazoRetiradaVeiculo = DateTime.Now.AddDays(1),
-                               ValorPagamento = Faturamento.ValorFaturado,
-                               DataPagamento = DateTime.Now
-                           });
-
+                    //Atualização do faturamento
+                    await _context.Faturamento
+                        .Where(x => x.FaturamentoId == faturamentoId)
+                        .UpdateAsync(x => new FaturamentoModel()
+                        {
+                            Status = "P",
+                            UsuarioAlteracaoId = usuarioId,
+                            DataPrazoRetiradaVeiculo = DateTime.Now.AddDays(1),
+                            ValorPagamento = Faturamento.ValorPagamento,
+                            DataPagamento = DateTime.Now
+                        });
                     //Atualização da Forma Liberação
                     await _context.Atendimento
                         .Where(x => x.AtendimentoId == Faturamento.AtendimentoId)
@@ -1755,11 +1756,20 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.GrvId == Faturamento.Atendimento.GrvId);
 
+            LiberacaoEspecialModel liberacaoEspecial = _context.LiberacaoEspecial
+                .AsNoTracking()
+                .FirstOrDefault(x => x.IdFaturamento == identificadorFaturamento);
+
             #endregion Consultas
 
             ResultView.Faturamento = _mapper.Map<SimulacaoFaturamentoDTO>(Faturamento);
 
             ResultView.Faturamento.ListagemServico = _mapper.Map<List<SimulacaoFaturamentoComposicaoDTO>>(Faturamento.ListagemFaturamentoComposicao);
+            if(liberacaoEspecial != null)
+            {
+                ResultView.LiberacaoEspecial = _mapper.Map<LiberacaoEspecialDTO>(liberacaoEspecial);
+                ResultView.LiberacaoEspecial.Valor = Faturamento.ValorPagamento ?? 0;
+            }
 
             FaturamentoServicoTipoVeiculoModel FaturamentoServicoTipoVeiculo = new();
 

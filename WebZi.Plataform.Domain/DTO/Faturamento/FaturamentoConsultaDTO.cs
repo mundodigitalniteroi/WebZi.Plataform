@@ -1,5 +1,6 @@
 ﻿using WebZi.Plataform.Domain.DTO.Atendimento;
 using WebZi.Plataform.Domain.DTO.Faturamento.Simulacao;
+using WebZi.Plataform.Domain.DTO.Liberacao;
 using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.DTO.WebServices.DetranRio;
 
@@ -36,6 +37,8 @@ namespace WebZi.Plataform.Domain.DTO.Faturamento
         public AtendimentoDTO Atendimento { get; set; }
 
         public SimulacaoFaturamentoDTO Faturamento { get; set; }
+
+        public LiberacaoEspecialDTO? LiberacaoEspecial { get; set; }
 
         public DetranRioVeiculoDTO Veiculo { get; set; }
     }

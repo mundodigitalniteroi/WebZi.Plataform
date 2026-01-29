@@ -302,6 +302,7 @@ namespace WebZi.Plataform.Data.Database
 
         public DbSet<LiberacaoModel> Liberacao { get; set; }
 
+        public DbSet<LiberacaoEspecialModel> LiberacaoEspecial { get; set; }
         public DbSet<TipoCobrancaLegalModel> TipoCobrancaLegal { get; set; }
 
         public DbSet<TipoLiberacaoModel> TipoLiberacao { get; set; }

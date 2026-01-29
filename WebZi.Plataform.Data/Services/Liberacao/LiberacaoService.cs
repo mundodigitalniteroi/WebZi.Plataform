@@ -297,13 +297,13 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                             Perm.AppendLine("EXISTS(");
                                 Perm.AppendLine("SELECT 1");
                                 Perm.AppendLine("FROM dbo.tb_dep_usuarios u");
-                                    Perm.AppendLine("INNER JOIN dbo.tb_dep_sistema_perfil_acesso_usuarios spu");
+                                    Perm.AppendLine("JOIN dbo.tb_dep_sistema_perfil_acesso_usuarios spu");
                                         Perm.AppendLine("ON spu.id_usuario = u.id_usuario");
-                                    Perm.AppendLine("INNER JOIN dbo.tb_dep_sistema_perfil_acesso tdspa");
+                                    Perm.AppendLine("JOIN dbo.tb_dep_sistema_perfil_acesso tdspa");
                                         Perm.AppendLine("ON tdspa.id_perfil_acesso = spu.id_perfil_acesso");
-                                    Perm.AppendLine("INNER JOIN dbo.tb_dep_sistema_perfil_acesso_sub_modulos tdspasm");
+                                    Perm.AppendLine("JOIN dbo.tb_dep_sistema_perfil_acesso_sub_modulos tdspasm");
                                         Perm.AppendLine("ON tdspasm.id_perfil_acesso = tdspa.id_perfil_acesso");
-                                    Perm.AppendLine("INNER JOIN dbo.tb_dep_sistema_sub_modulos tdssm");
+                                    Perm.AppendLine("JOIN dbo.tb_dep_sistema_sub_modulos tdssm");
                                         Perm.AppendLine("ON tdssm.id_sub_modulo = tdspasm.id_sub_modulo");
                                 Perm.AppendLine("WHERE u.id_usuario = @IdUsuario");
                                 Perm.Append("    AND tdspa.id_perfil_acesso = @IdPerfilAcesso");
@@ -574,7 +574,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.GrvId == Parameters.IdentificadorProcesso);
 
-            if (Grv.StatusOperacao.StatusOperacaoId != "T")
+            if (Grv.StatusOperacao.StatusOperacaoId != "T" && Grv.StatusOperacao.StatusOperacaoId != "U")
             {
                 return MensagemViewHelper.SetBadRequest($"O Status atual deste Processo não permite o cadastro da Entrega. " +
                     $"Descrição do Status atual: {Grv.StatusOperacao.Descricao.ToUpper()}");
