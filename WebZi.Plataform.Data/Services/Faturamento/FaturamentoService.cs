@@ -601,7 +601,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                                 FaturamentoComposicao.TipoLancamento = TipoLancamentoFaturamentoEnum.Crédito;
 
                                 ValorFaturado += FaturamentoComposicao.ValorFaturado;
-
+                                
                                 FaturamentoComposicoes.Add(FaturamentoComposicao);
 
                                 if (DiariasCalculadas == 0)
@@ -1622,7 +1622,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             ResultView.IdentificadorAtendimento = Faturamento.Atendimento.Grv.Atendimento.AtendimentoId;
 
-            if (Faturamento.Atendimento.Grv.StatusOperacaoId == "L" || Faturamento.Atendimento.Grv.StatusOperacaoId == "U") // L = AGUARDANDO PAGAMENTO || U = AGUARDANDO LIBERAÇÃO ESPECIAL
+            if (Faturamento.Atendimento.Grv.StatusOperacaoId == "L") // L = AGUARDANDO PAGAMENTO
             {
                 
                 try
@@ -1653,19 +1653,19 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                             return ResultView;
                         }
                     }
-                    //else if(TipoMeioCobranca.Alias.Equals("GPER"))
-                    //{
-                    //    //PEMITE PAGAMENTO DIRETO PARA TESTES E APRESENTAÇÕES
-                    //}
-                    //else
-                    //{
-                    //    //TODO: Tratar outras formas de pagamento
-                    //    ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Forma de pagamento não permitida");
-                    //    return ResultView;
+                        //else if(TipoMeioCobranca.Alias.Equals("GPER"))
+                        //{
+                        //    //PEMITE PAGAMENTO DIRETO PARA TESTES E APRESENTAÇÕES
+                        //}
+                        //else
+                        //{
+                        //    //TODO: Tratar outras formas de pagamento
+                        //    ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Forma de pagamento não permitida");
+                        //    return ResultView;
 
-                    //}
+                        //}
 
-                    //Atualização do faturamento
+                        //Atualização do faturamento
                     await _context.Faturamento
                         .Where(x => x.FaturamentoId == faturamentoId)
                         .UpdateAsync(x => new FaturamentoModel()
@@ -1673,9 +1673,10 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                             Status = "P",
                             UsuarioAlteracaoId = usuarioId,
                             DataPrazoRetiradaVeiculo = DateTime.Now.AddDays(1),
-                            ValorPagamento = Faturamento.ValorPagamento,
+                            ValorPagamento = Faturamento.ValorFaturado,
                             DataPagamento = DateTime.Now
                         });
+
                     //Atualização da Forma Liberação
                     await _context.Atendimento
                         .Where(x => x.AtendimentoId == Faturamento.AtendimentoId)
