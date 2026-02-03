@@ -240,7 +240,7 @@ namespace WebZi.Plataform.Data.Services.Report
                 GuiaPagamentoEstadiaReboque.PrazoRetiradaVeiculo = string.Empty;
             }
 
-            GuiaPagamentoEstadiaReboque.FaturamentoValorPagar = "Realizar depósito identificado “na boca do caixa” no valor de " + NumberHelper.FormatMoney(Faturamento.ValorFaturado);
+            GuiaPagamentoEstadiaReboque.FaturamentoValorPagar = "Realizar depósito identificado “na boca do caixa” no valor de " + NumberHelper.FormatMoney(Faturamento.ValorPagamento ?? 0);
 
             if (Faturamento.FlagPermissaoDataRetroativaFaturamento == "S" && Faturamento.DataRetroativa.HasValue)
             {
