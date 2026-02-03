@@ -3,6 +3,7 @@ namespace WebZi.Plataform.Domain.DTO.Liberacao
 {
     public class LiberacaoEspecialDTO
     {
+        public byte IdLiberacaoEspecialTipo { get; set; }
         public string NumeroDocumento { get; set; }
         public string TipoDocumento { get; set; }
         public string NumeroProcesso { get; set; }
