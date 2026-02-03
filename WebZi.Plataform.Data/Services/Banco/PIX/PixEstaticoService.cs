@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using WebZi.Plataform.CrossCutting.Code;
 using WebZi.Plataform.CrossCutting.Strings;
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
@@ -7,6 +8,7 @@ using WebZi.Plataform.Data.Services.Sistema;
 using WebZi.Plataform.Domain.DTO.Banco.PIX;
 using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Banco.PIX.Base;
+using WebZi.Plataform.Domain.Models.Banco.PIX.Dinamico.Persistencia;
 using WebZi.Plataform.Domain.Models.Banco.PIX.Estatico;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.Sistema;
@@ -138,7 +140,7 @@ namespace WebZi.Plataform.Data.Services.Banco.PIX
 
                     break;
                 }
-                catch (Exception ex) when (i == 5)
+                catch (Exception ex)
                 {
                     ResultView.Mensagem = MensagemViewHelper.SetServiceUnavailable(ex);
 
@@ -154,7 +156,7 @@ namespace WebZi.Plataform.Data.Services.Banco.PIX
 
                 SolicitacaoPagador = PixBaseEnvio.SolicitacaoPagador,
 
-                Valor = Convert.ToDecimal(PixBaseEnvio.Valor.Original.Replace(",", ".")),
+                Valor = Math.Round(Faturamento.ValorFaturado, 2),
 
                 MerchantName = PixBaseEnvio.Merchant.Name,
 
@@ -188,6 +190,107 @@ namespace WebZi.Plataform.Data.Services.Banco.PIX
                 QRCode = Pix.QRCode,
 
                 Mensagem = MensagemViewHelper.SetCreateSuccess("PIX Estático gerado com sucesso")
+            };
+        }
+
+        public async Task<SenhaPixEstaticoDTO> SearchPassword(int FaturamentoId, int UsuarioId)
+        {
+            #region Validacao
+            if (FaturamentoId <= 0)
+            {
+                return new()
+                {
+                    Mensagem = MensagemViewHelper.SetBadRequest(MensagemPadraoEnum.IdentificadorFaturamentoInvalido)
+                };
+            }
+            #endregion Validacao
+
+            #region Consulta
+            PixDinamicoSenhaConfirmacaoTranferenciaModel ConfirmacaoSenha = await _context.PixDinamicoSenhaConfirmacaoTranferencia
+                .AsTracking()
+                .OrderByDescending(x => x.DataCadastro)
+                .FirstOrDefaultAsync(x => x.FaturamentoId == FaturamentoId);
+            #endregion Consulta
+
+            if (ConfirmacaoSenha == null)
+            {
+                string Senha = CodeHelper.GenerateCode();
+                string SenhaFinanceira = CodeHelper.GenerateCode();
+                PixDinamicoSenhaConfirmacaoTranferenciaModel PixSenha = new()
+                {
+                    FaturamentoId = FaturamentoId,
+                    UsuarioCadastroId = UsuarioId,
+                    Senha = Senha,
+                    SenhaFinanceiro = SenhaFinanceira,
+                    DataCadastro = DateTime.Now
+                };
+                _context.PixDinamicoSenhaConfirmacaoTranferencia.Add(PixSenha);
+
+                await _context.SaveChangesAsync();
+
+                return new()
+                {
+                    IdentificadorFaturamento = FaturamentoId,
+                    Senha = Senha,
+                    Mensagem = MensagemViewHelper.SetOk()
+                };
+            }
+
+            return new()
+            {
+                IdentificadorFaturamento = FaturamentoId,
+                Senha = ConfirmacaoSenha.Senha,
+                Mensagem = MensagemViewHelper.SetOk()
+            };
+        }
+
+        public async Task<SenhaValidandoDTO> ValidatePassword(string senha)
+        {
+            SenhaValidandoDTO ResultView = new();
+            #region Validacao
+            if (String.IsNullOrEmpty(senha))
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Senha não pode ser vazia");
+                return ResultView;
+            }
+            if (senha.Length != 6)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Senha deve conter 6 caracteres");
+                return ResultView;
+            }
+
+            #endregion Validacao
+
+            #region Consulta
+            PixDinamicoSenhaConfirmacaoTranferenciaModel ConfirmacaoSenha = await _context.PixDinamicoSenhaConfirmacaoTranferencia
+                .AsTracking()
+                .OrderByDescending(x => x.DataCadastro)
+                .FirstOrDefaultAsync(x => x.SenhaFinanceiro == senha);
+            #endregion Consulta
+
+            if (ConfirmacaoSenha == null)
+            {
+                return new()
+                {
+                    EValida = false,
+                    Mensagem = MensagemViewHelper.SetBadRequest("Senha inválida")
+                };
+            }
+            if (ConfirmacaoSenha.FlagConfirmado == "S")
+            {
+                return new()
+                {
+                    EValida = false,
+                    Mensagem = MensagemViewHelper.SetBadRequest("Já foi confirmado")
+                };
+            }
+            ConfirmacaoSenha.FlagConfirmado = "S";
+            await _context.SaveChangesAsync();
+
+            return new()
+            {
+                EValida = true,
+                Mensagem = MensagemViewHelper.SetOk()
             };
         }
     }

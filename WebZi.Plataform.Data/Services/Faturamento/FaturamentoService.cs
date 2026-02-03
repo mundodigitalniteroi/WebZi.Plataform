@@ -9,23 +9,30 @@ using WebZi.Plataform.CrossCutting.Veiculo;
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
+using WebZi.Plataform.Data.Services.Atendimento;
 using WebZi.Plataform.Data.Services.Banco.PIX;
 using WebZi.Plataform.Data.Services.ClienteDeposito;
 using WebZi.Plataform.Data.Services.Deposito;
 using WebZi.Plataform.Data.Services.Localizacao;
 using WebZi.Plataform.Data.Services.Sistema;
 using WebZi.Plataform.Data.Services.WebServices;
+using WebZi.Plataform.Domain.DTO.Atendimento;
 using WebZi.Plataform.Domain.DTO.Banco.PIX;
 using WebZi.Plataform.Domain.DTO.Faturamento;
 using WebZi.Plataform.Domain.DTO.Faturamento.Cadastro;
 using WebZi.Plataform.Domain.DTO.Faturamento.Servico;
 using WebZi.Plataform.Domain.DTO.Faturamento.Simulacao;
+using WebZi.Plataform.Domain.DTO.Generic;
+using WebZi.Plataform.Domain.DTO.Liberacao;
 using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Atendimento;
 using WebZi.Plataform.Domain.Models.Banco;
+using WebZi.Plataform.Domain.Models.Bucket;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.GRV;
+using WebZi.Plataform.Domain.Models.Liberacao;
+using WebZi.Plataform.Domain.Models.Nfe;
 using WebZi.Plataform.Domain.Models.Sistema;
 using WebZi.Plataform.Domain.Services.GRV;
 using WebZi.Plataform.Domain.ViewModel.Faturamento;
@@ -87,8 +94,29 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             return FaturamentoComposicao;
         }
 
-        private static FaturamentoComposicaoModel AplicarQuantidadeAlterada(FaturamentoComposicaoModel FaturamentoComposicao, CalculoFaturamentoQuantidadeAlteradaModel FaturamentoQuantidadeAlterada)
+        private static FaturamentoComposicaoModel AplicarQuantidadeAlterada(FaturamentoComposicaoModel FaturamentoComposicao, CalculoFaturamentoQuantidadeAlteradaModel FaturamentoQuantidadeAlterada, int quantidadeCalculada)
         {
+            int quantidadeAjuste = FaturamentoQuantidadeAlterada.QuantidadeAjuste ?? 0;
+
+            if (quantidadeAjuste < 0)
+            {
+                int quantidadeARemover = Math.Abs(quantidadeAjuste);
+                if (quantidadeARemover > quantidadeCalculada)
+                {
+                    throw new ArgumentException(
+                        $"A quantidade a remover ({quantidadeARemover}) não pode ser maior que a quantidade calculada ({quantidadeCalculada})");
+                }
+            }
+
+            int quantidadeFinal = quantidadeCalculada + quantidadeAjuste;
+            if(quantidadeFinal < 0)
+            {
+                throw new ArgumentException(
+                    $"A quantidade final ({quantidadeFinal}) não pode ser menor que 0");
+            }
+
+            FaturamentoQuantidadeAlterada.QuantidadeAlterada = quantidadeAjuste;
+
             FaturamentoComposicao.UsuarioAlteracaoQuantidadeId = FaturamentoQuantidadeAlterada.UsuarioAlteracaoQuantidadeId;
 
             FaturamentoComposicao.QuantidadeAlterada = FaturamentoQuantidadeAlterada.QuantidadeAlterada;
@@ -298,7 +326,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                    StringHelper.AddCharToLeft(Sequencia.ToString(), '0', 3);
         }
 
-        private async void DeleteTipoMeioCobrancaAtual(int FaturamentoId, TipoMeioCobrancaModel TipoMeioCobrancaAtual)
+        private async Task DeleteTipoMeioCobrancaAtual(int FaturamentoId, TipoMeioCobrancaModel TipoMeioCobrancaAtual)
         {
             if (TipoMeioCobrancaAtual.Alias == TipoMeioCobrancaAliasEnum.Boleto ||
                 TipoMeioCobrancaAtual.Alias == TipoMeioCobrancaAliasEnum.BoletoEspecial)
@@ -314,9 +342,20 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             }
             else if (TipoMeioCobrancaAtual.Alias == TipoMeioCobrancaAliasEnum.PixDinamico)
             {
-                await _context.PixDinamico
+                int? pixDinamicoId = await _context.PixDinamico
                     .Where(x => x.FaturamentoId == FaturamentoId)
-                    .DeleteAsync();
+                    .Select(x => x.PixDinamicoId)
+                    .FirstOrDefaultAsync();
+
+                if (pixDinamicoId.HasValue)
+                {
+                    await _context.PixDinamicoConsulta
+                        .Where(x => x.PixDinamicoId == pixDinamicoId)
+                        .DeleteAsync();
+                    await _context.PixDinamico
+                        .Where(x => x.FaturamentoId == FaturamentoId)
+                        .DeleteAsync();
+                }
             }
         }
 
@@ -536,9 +575,15 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                                 // Aplicar Quantidade Alterada
                                 if (FaturamentoQuantidadeAlterada != null)
                                 {
-                                    FaturamentoComposicao = AplicarQuantidadeAlterada(FaturamentoComposicao, FaturamentoQuantidadeAlterada);
-
-                                    CalculoDiarias.Diarias += Convert.ToInt32(FaturamentoComposicao.QuantidadeAlterada);
+                                    int quantidadeCalculada = CalculoDiarias.Diarias;
+                                    int quantidadeAjuste = FaturamentoQuantidadeAlterada.QuantidadeAjuste ?? 0;
+                                    CalculoDiarias.Diarias = quantidadeCalculada + quantidadeAjuste;
+                                    if (CalculoDiarias.Diarias <= 0)
+                                    {
+                                        throw new ArgumentException(
+                                            $"A quantidade final não pode ser zero ou negativa. Quantidade calculada: {quantidadeCalculada}, Ajuste: {quantidadeAjuste}");
+                                    }
+                                    FaturamentoComposicao = AplicarQuantidadeAlterada(FaturamentoComposicao, FaturamentoQuantidadeAlterada, quantidadeCalculada);
                                 }
 
                                 FaturamentoComposicao.QuantidadeComposicao = CalculoDiarias.Diarias;
@@ -556,7 +601,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                                 FaturamentoComposicao.TipoLancamento = TipoLancamentoFaturamentoEnum.Crédito;
 
                                 ValorFaturado += FaturamentoComposicao.ValorFaturado;
-
+                                
                                 FaturamentoComposicoes.Add(FaturamentoComposicao);
 
                                 if (DiariasCalculadas == 0)
@@ -578,7 +623,9 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                             // Aplicar Quantidade Alterada
                             if (FaturamentoQuantidadeAlterada != null)
                             {
-                                FaturamentoComposicao = AplicarQuantidadeAlterada(FaturamentoComposicao, FaturamentoQuantidadeAlterada);
+                                int quantidadeCalculada = CalculoDiarias.Diarias;
+
+                                FaturamentoComposicao = AplicarQuantidadeAlterada(FaturamentoComposicao, FaturamentoQuantidadeAlterada, quantidadeCalculada);
 
                                 CalculoDiarias.Diarias += Convert.ToInt32(FaturamentoComposicao.QuantidadeAlterada);
                             }
@@ -601,7 +648,9 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                         // Aplicar Quantidade Alterada
                         if (FaturamentoQuantidadeAlterada != null)
                         {
-                            FaturamentoComposicao = AplicarQuantidadeAlterada(FaturamentoComposicao, FaturamentoQuantidadeAlterada);
+                            int quantidadeCalculada = CalculoDiarias.Diarias;
+
+                            FaturamentoComposicao = AplicarQuantidadeAlterada(FaturamentoComposicao, FaturamentoQuantidadeAlterada, quantidadeCalculada);
 
                             CalculoDiarias.Diarias += Convert.ToInt32(FaturamentoComposicao.QuantidadeAlterada);
                         }
@@ -1503,7 +1552,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             try
             {
-                DeleteTipoMeioCobrancaAtual(FaturamentoId, Faturamento.TipoMeioCobranca);
+                await DeleteTipoMeioCobrancaAtual(FaturamentoId, Faturamento.TipoMeioCobranca);
 
                 await _context.Faturamento
                     .Where(x => x.FaturamentoId == FaturamentoId)
@@ -1523,7 +1572,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             return MensagemViewHelper.SetOk("Forma de Pagamento alterada com sucesso");
         }
 
-        public async Task<FaturamentoDTO> ConfirmarPagamentoAsync(int faturamentoId, int usuarioId, PagamentoParameterCartao cartao)
+        public async Task<FaturamentoDTO> ConfirmarPagamentoAsync(int faturamentoId, int usuarioId, List<PagamentoParameterCartao> cartoes)
         {
             FaturamentoDTO ResultView = new();
 
@@ -1588,15 +1637,15 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                         pixDinamico = await new PixDinamicoService(_context, _mapper, _httpClientFactory)
                             .ConsultaAsync(faturamentoId, usuarioId);
 
-                        if(pixDinamico.IdentificadorPixDinamicoTipoStatusGeracao != 2)
+                        if (pixDinamico.IdentificadorPixDinamicoTipoStatusGeracao != 2)
                         {
                             ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Pix ainda não confirmado");
                             return ResultView;
                         }
                     }
-                    else if(TipoMeioCobranca.Alias.Equals("CCRED"))
+                    else if (TipoMeioCobranca.Alias.Equals("CCRED") || TipoMeioCobranca.Alias.Equals("CDEBI"))
                     {
-                        var faturamentoCartao = await CreateFaturamentoCartao(Faturamento, cartao);
+                        var faturamentoCartao = await CreateFaturamentoCartao(Faturamento, cartoes);
 
                         if(faturamentoCartao.HtmlStatusCode == HtmlStatusCodeEnum.BadRequest)
                         {
@@ -1604,29 +1653,29 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                             return ResultView;
                         }
                     }
-                    else if(TipoMeioCobranca.Alias.Equals("GPER"))
-                    {
-                        //PEMITE PAGAMENTO DIRETO PARA TESTES E APRESENTAÇÕES
-                    }
-                    else
-                    {
-                        //TODO: Tratar outras formas de pagamento
-                        ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Forma de pagamento não permitida");
-                        return ResultView;
+                        //else if(TipoMeioCobranca.Alias.Equals("GPER"))
+                        //{
+                        //    //PEMITE PAGAMENTO DIRETO PARA TESTES E APRESENTAÇÕES
+                        //}
+                        //else
+                        //{
+                        //    //TODO: Tratar outras formas de pagamento
+                        //    ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Forma de pagamento não permitida");
+                        //    return ResultView;
 
-                    }
+                        //}
 
-                    //Atualização do faturamento
+                        //Atualização do faturamento
                     await _context.Faturamento
-                       .Where(x => x.FaturamentoId == faturamentoId)
-                       .UpdateAsync(x => new FaturamentoModel()
-                       {
-                           Status = "P",
-                           UsuarioAlteracaoId = usuarioId,
-                           DataPrazoRetiradaVeiculo = DateTime.Now.AddDays(1),
-                           ValorPagamento = Faturamento.ValorFaturado,
-                           DataPagamento = DateTime.Now
-                       });
+                        .Where(x => x.FaturamentoId == faturamentoId)
+                        .UpdateAsync(x => new FaturamentoModel()
+                        {
+                            Status = "P",
+                            UsuarioAlteracaoId = usuarioId,
+                            DataPrazoRetiradaVeiculo = DateTime.Now.AddDays(1),
+                            ValorPagamento = Faturamento.ValorFaturado,
+                            DataPagamento = DateTime.Now
+                        });
 
                     //Atualização da Forma Liberação
                     await _context.Atendimento
@@ -1664,7 +1713,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             return ResultView;
         }
 
-        public async Task<FaturamentoConsultaDTO> ConsultarFaturamentoAsync(int identificadorFaturamento)
+        public async Task<FaturamentoConsultaDTO> ConsultarFaturamentoAsync(int identificadorFaturamento, int identificadorUsuario)
         {
             #region Validações dos parâmetros
             List<string> erros = new();
@@ -1686,24 +1735,42 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             List<TabelaGenericaModel> ListagemTipoCobranca = await new TabelaGenericaService(_context)
                 .ListAsync("FAT_TIPO_COBRANCA");
-
+            #region Consultas
             FaturamentoModel Faturamento = await _context.Faturamento
                 .Include(x => x.TipoMeioCobranca)
                 .Include(x => x.ListagemFaturamentoComposicao)
                 .Include(x => x.Atendimento)
-                .ThenInclude(x => x.Grv)
-                .ThenInclude(x => x.Cliente)
-                .ThenInclude(x => x.Endereco)
-                 .Include(x => x.Atendimento)
-                .ThenInclude(x => x.Grv)
-                .ThenInclude(x => x.Deposito)
-                .ThenInclude(x => x.Endereco)
+                    .ThenInclude(x => x.Grv)
+                    .ThenInclude(x => x.StatusOperacao)
+                .Include(x => x.Atendimento)
+                    .ThenInclude(x => x.Grv)
+                    .ThenInclude(x => x.Cliente)
+                    .ThenInclude(x => x.Endereco)
+                .Include(x => x.Atendimento)
+                    .ThenInclude(x => x.Grv)
+                    .ThenInclude(x => x.Deposito)
+                    .ThenInclude(x => x.Endereco)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.FaturamentoId == identificadorFaturamento);
+
+            NfeModel NotaFiscal = await _context.Nfe
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.GrvId == Faturamento.Atendimento.GrvId);
+
+            LiberacaoEspecialModel liberacaoEspecial = _context.LiberacaoEspecial
+                .AsNoTracking()
+                .FirstOrDefault(x => x.IdFaturamento == identificadorFaturamento);
+
+            #endregion Consultas
 
             ResultView.Faturamento = _mapper.Map<SimulacaoFaturamentoDTO>(Faturamento);
 
             ResultView.Faturamento.ListagemServico = _mapper.Map<List<SimulacaoFaturamentoComposicaoDTO>>(Faturamento.ListagemFaturamentoComposicao);
+            if(liberacaoEspecial != null)
+            {
+                ResultView.LiberacaoEspecial = _mapper.Map<LiberacaoEspecialDTO>(liberacaoEspecial);
+                ResultView.LiberacaoEspecial.Valor = Faturamento.ValorPagamento ?? 0;
+            }
 
             FaturamentoServicoTipoVeiculoModel FaturamentoServicoTipoVeiculo = new();
 
@@ -1722,7 +1789,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
                 Servico.DataVigenciaFinal = FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.DataVigenciaFinal;
             }
-
+            ResultView.IdentificadorFaturamento = Faturamento.FaturamentoId;
             ResultView.IdentificadorProcesso = Faturamento.Atendimento.Grv.GrvId;
 
             ResultView.NumeroProcesso = Faturamento.Atendimento.Grv.NumeroFormularioGrv;
@@ -1733,9 +1800,16 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             ResultView.IdentificadorAtendimento = Faturamento.AtendimentoId;
 
+            ResultView.StatusOperacaoId = Faturamento.Atendimento.Grv.StatusOperacaoId;
+            ResultView.StatusOperacaoDescricao = Faturamento.Atendimento.Grv.StatusOperacao?.Descricao;
             ResultView.Status = Faturamento.Status;
 
             ResultView.TipoMeioCobrancaId = Faturamento.TipoMeioCobrancaId;
+
+            if(Faturamento.Atendimento.Grv.StatusOperacaoId == "E" && NotaFiscal != null)
+            {
+                ResultView.NotaFiscalUrl = NotaFiscal.Url;
+            }
 
             EnderecoService Endereco = new();
 
@@ -1758,7 +1832,16 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     Faturamento.Atendimento.Grv.Deposito.NumeroEndereco,
                     Faturamento.Atendimento.Grv.Deposito.ComplementoEndereco)
             };
+            ResultView.Atendimento = _mapper.Map<AtendimentoDTO>(Faturamento.Atendimento);
 
+            ImageListDTO FotoResponsavel = await new AtendimentoService(_context, _mapper, _httpClientFactory)
+                .GetFotoResponsavelAsync(Faturamento.AtendimentoId, identificadorUsuario);
+
+            if (FotoResponsavel.Listagem?.Count > 0)
+            {
+                ResultView.Atendimento.FotoResponsavel = FotoResponsavel.Listagem
+                    .FirstOrDefault()?.Imagem;
+            }
             if (!Faturamento.Atendimento.Grv.Placa.IsNullOrWhiteSpace() || !Faturamento.Atendimento.Grv.Chassi.IsNullOrWhiteSpace())
             {
                 DetranRioService DetranRioService = new(_context, _mapper);
@@ -1770,21 +1853,36 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             return ResultView;
         }
 
-        private async Task<MensagemDTO> CreateFaturamentoCartao(FaturamentoModel faturamento, PagamentoParameterCartao cartao)
+        private async Task<MensagemDTO> CreateFaturamentoCartao(FaturamentoModel faturamento, List<PagamentoParameterCartao> cartoes)
         {
             try
             {
                 #region Validações dos parâmetros      
-                if (cartao is null)
+                if (cartoes == null || !cartoes.Any())
                 {
-                    return MensagemViewHelper.SetBadRequest("Cartão é obrigatório");
-                }                      
+                    return MensagemViewHelper.SetBadRequest("Pelo menos um cartão é obrigatório");
+                }
+
+                bool possuiCartoesExistentes = await _context.FaturamentoCodigoAutorizacaoCartao.AnyAsync(x => x.FaturamentoId == faturamento.FaturamentoId);
+
+                if (possuiCartoesExistentes)
+                    return MensagemViewHelper.SetBadRequest("Este faturamento á possui cartôes registrados");
+
+                var cartoesDuplicados = cartoes
+                    .GroupBy(x => x.NumeroCartao)
+                    .Where(x => !string.IsNullOrWhiteSpace(x.Key) && x.Count() > 1)
+                    .Select(x => x.Key)
+                    .ToList();
+                if (cartoesDuplicados.Any())
+                    return MensagemViewHelper.SetBadRequest(
+                        $"Existem cartões duplicados com o número: {string.Join(", ", cartoesDuplicados)}");
+
                 #endregion Validações dos parâmetros
 
-                var faturamentoCartao = await _context.FaturamentoCodigoAutorizacaoCartao.FirstOrDefaultAsync(x => x.FaturamentoId == faturamento.FaturamentoId);
-
-                if (faturamentoCartao is null)
+                if (cartoes.Count == 1)
                 {
+                    var cartao = cartoes.First();
+
                     await _context.FaturamentoCodigoAutorizacaoCartao.AddAsync(new FaturamentoCodigoAutorizacaoCartaoModel()
                     {
                         CartaoId = cartao.Bandeira,
@@ -1793,10 +1891,64 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                         FaturamentoId = faturamento.FaturamentoId,
                         Valor = faturamento.ValorFaturado
                     });
-                    await _context.SaveChangesAsync();
+                }
+                else
+                {
+                    var cartoesComValor = cartoes.Where(c => c.Valor.HasValue && c.Valor.Value > 0).ToList();
+                    var cartoesSemValor = cartoes.Where(c => !c.Valor.HasValue && c.Valor.Value <= 0).ToList();
+
+                    decimal valorTotalCartoes = cartoesComValor.Sum(c => c.Valor.Value);
+                    decimal valorRestante = faturamento.ValorFaturado - valorTotalCartoes;
+
+
+                    if (valorTotalCartoes > faturamento.ValorFaturado)
+                        return MensagemViewHelper.SetBadRequest(
+                            $"O valor total dos cartões ({valorTotalCartoes:C}) excede o valor do faturamento ({faturamento.ValorFaturado:C})");
+
+                    if(cartoesComValor.Count == cartoes.Count && valorTotalCartoes < faturamento.ValorFaturado)
+                        return MensagemViewHelper.SetBadRequest(
+                            $"O valor total dos cartões ({valorTotalCartoes:C}) é menor que o valor do faturamento ({faturamento.ValorFaturado:C})");
+
+                    if (cartoesSemValor.Any())
+                        return MensagemViewHelper.SetBadRequest(
+                                $"O cartão ({cartoesSemValor.Where(x => x.Valor == 0)} precisa ter um valor )"
+                            );
+
+                    var cartoesParaAdicionar = cartoes.Select(cartao => new FaturamentoCodigoAutorizacaoCartaoModel
+                    {
+                        CartaoId = cartao.Bandeira,
+                        CodigoAutorizacaoCartao = cartao.CodigoAutorizacao,
+                        NumeroCartao = cartao.NumeroCartao,
+                        FaturamentoId = faturamento.FaturamentoId,
+                        Valor = cartao.Valor.Value
+                    }).ToList();
+
+                    if (cartoesParaAdicionar.Any())
+                    {
+                        decimal somaValores = cartoesParaAdicionar.Sum(x => x.Valor);
+                        decimal diferenca = faturamento.ValorFaturado - somaValores;
+
+                        if (Math.Abs(diferenca) > 0.01m)
+                        {
+                            if (diferenca > 0)
+                                return MensagemViewHelper.SetBadRequest(
+                                    $"O valor total dos cartões ({somaValores:C}) é menor que o valor do faturamento ({faturamento.ValorFaturado:C}). Faltam {diferenca:C}");
+                            else
+                                return MensagemViewHelper.SetBadRequest(
+                                    $"O valor total dos cartões ({somaValores:C}) excede o valor do faturamento ({faturamento.ValorFaturado:C}). Diferença de {Math.Abs(diferenca):C}");
+                        }
+                    }
+
+                    await _context.FaturamentoCodigoAutorizacaoCartao.AddRangeAsync(cartoesParaAdicionar);
                 }
 
-                return MensagemViewHelper.SetOk("Faturamento do cartão registrado");
+                await _context.SaveChangesAsync();
+
+                string mensagem = cartoes.Count == 1
+                    ? "Faturamento do cartão registrado com sucesso"
+                    : $"Faturamento de {cartoes.Count} cartões registrados com sucesso";
+
+                return MensagemViewHelper.SetOk(mensagem);
             }
             catch(Exception ex)
             {

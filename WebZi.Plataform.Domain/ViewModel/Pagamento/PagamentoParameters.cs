@@ -10,7 +10,7 @@ namespace WebZi.Plataform.Domain.ViewModel.Pagamento
 
         [Required(ErrorMessage = "Propriedade obrigatória")]
         public int IdentificadorUsuario { get; set; }
-        public PagamentoParameterCartao Cartao { get; set; }
+        public List<PagamentoParameterCartao> Cartoes { get; set; }
     }
 
     public class PagamentoParameterCartao
@@ -18,5 +18,6 @@ namespace WebZi.Plataform.Domain.ViewModel.Pagamento
         public int Bandeira { get; set; }
         public string CodigoAutorizacao { get; set; }
         public string NumeroCartao { get; set; }
+        public decimal? Valor { get; set; }
     }
 }

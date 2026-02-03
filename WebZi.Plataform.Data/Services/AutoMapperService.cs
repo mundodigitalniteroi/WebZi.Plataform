@@ -12,6 +12,7 @@ using WebZi.Plataform.Domain.DTO.Faturamento.Cadastro;
 using WebZi.Plataform.Domain.DTO.Faturamento.Simulacao;
 using WebZi.Plataform.Domain.DTO.GRV;
 using WebZi.Plataform.Domain.DTO.GRV.Pesquisa;
+using WebZi.Plataform.Domain.DTO.Liberacao;
 using WebZi.Plataform.Domain.DTO.Localizacao;
 using WebZi.Plataform.Domain.DTO.Pessoa;
 using WebZi.Plataform.Domain.DTO.Servico;
@@ -30,6 +31,7 @@ using WebZi.Plataform.Domain.Models.Documento;
 using WebZi.Plataform.Domain.Models.Empresa;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.GRV;
+using WebZi.Plataform.Domain.Models.Liberacao;
 using WebZi.Plataform.Domain.Models.Pessoa.Documento;
 using WebZi.Plataform.Domain.Models.Servico;
 using WebZi.Plataform.Domain.Models.Sistema;
@@ -140,7 +142,9 @@ namespace WebZi.Plataform.Data.Services
                 .ForMember(dest => dest.IdentificadorFaturamentoServicoTipoVeiculo, from => from.MapFrom(src => src.FaturamentoServicoTipoVeiculoId))
                 .ForMember(dest => dest.TipoServico, from => from.MapFrom(src => src.TipoComposicao))
                 .ForMember(dest => dest.QuantidadeServico, from => from.MapFrom(src => src.QuantidadeComposicao))
-                .ForMember(dest => dest.ValorTipoServico, from => from.MapFrom(src => src.ValorTipoComposicao));
+                .ForMember(dest => dest.ValorTipoServico, from => from.MapFrom(src => src.ValorTipoComposicao))
+                .ForMember(dest => dest.TipoDesconto, from => from.MapFrom(src => src.TipoDesconto))
+                .ForMember(dest => dest.ValorDesconto, from => from.MapFrom(src => src.ValorDesconto));
 
             CreateMap<FaturamentoComposicaoModel, FaturamentoCadastroComposicaoDTO>()
                 .ForMember(dest => dest.IdentificadorServico, from => from.MapFrom(src => src.FaturamentoComposicaoId))
@@ -154,6 +158,8 @@ namespace WebZi.Plataform.Data.Services
 
             CreateMap<FaturamentoProdutoModel, SimulacaoProdutoDTO>()
                 .ForMember(dest => dest.CodigoProduto, from => from.MapFrom(src => src.FaturamentoProdutoId));
+
+            CreateMap<LiberacaoEspecialModel, LiberacaoEspecialDTO>();
 
             CreateMap<GrvModel, GrvDTO>()
                 .ForMember(dest => dest.IdentificadorProcesso, from => from.MapFrom(src => src.GrvId))

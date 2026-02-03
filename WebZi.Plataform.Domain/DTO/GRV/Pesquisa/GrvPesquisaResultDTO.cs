@@ -3,6 +3,9 @@
     public class GrvPesquisaResultDTO
     {
         public int IdentificadorProcesso { get; set; }
+        public int IdentificadorCliente { get; set; }
+        public int IdentificadorAtendimento { get; set; }
+        public int IdentificadorFaturamento { get; set; }
 
         public string NumeroProcesso { get; set; }
 

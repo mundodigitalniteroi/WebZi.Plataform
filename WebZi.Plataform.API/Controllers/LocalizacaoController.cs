@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Localizacao;
 using WebZi.Plataform.Domain.DTO.Localizacao;
@@ -6,6 +7,7 @@ using WebZi.Plataform.Domain.DTO.Localizacao;
 namespace WebZi.Plataform.API.Controllers
 {
     [Route("api/[controller]")]
+    [Authorize]
     [ApiController]
     public class LocalizacaoController : ControllerBase
     {

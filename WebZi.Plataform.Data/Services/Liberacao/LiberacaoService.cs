@@ -1,7 +1,10 @@
 ﻿using AutoMapper;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using System.Data;
 using System.Globalization;
+using System.Text;
 using WebZi.Plataform.CrossCutting.Configuration;
 using WebZi.Plataform.CrossCutting.Date;
 using WebZi.Plataform.CrossCutting.Documents;
@@ -22,12 +25,17 @@ using WebZi.Plataform.Data.Services.WebServices;
 using WebZi.Plataform.Domain.DTO.Generic;
 using WebZi.Plataform.Domain.DTO.Report;
 using WebZi.Plataform.Domain.DTO.Sistema;
+using WebZi.Plataform.Domain.DTO.Usuario;
 using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.GRV;
 using WebZi.Plataform.Domain.Models.Liberacao;
 using WebZi.Plataform.Domain.Models.Localizacao;
+using WebZi.Plataform.Domain.Models.Usuario;
+using WebZi.Plataform.Domain.Models.WebServices.DetranAlagoas.ConsultaVeiculoApreensao.Response;
 using WebZi.Plataform.Domain.Services.GRV;
+using WebZi.Plataform.Domain.Services.Usuario;
+using WebZi.Plataform.Domain.ViewModel.Atendimento;
 using WebZi.Plataform.Domain.ViewModel.Liberacao;
 using WebZi.Plataform.Domain.Views.Usuario;
 using Z.EntityFramework.Plus;
@@ -39,7 +47,6 @@ namespace WebZi.Plataform.Data.Services.Liberacao
         private readonly AppDbContext _context;
         private readonly IMapper _mapper;
         private readonly IHttpClientFactory _httpClientFactory;
-
         public LiberacaoService(AppDbContext context)
         {
             _context = context;
@@ -168,9 +175,9 @@ namespace WebZi.Plataform.Data.Services.Liberacao
             ResultView.TextoDeclaracaoRetirada2 = $@"Declaro também que o veículo se encontrava nas mesmas condições, quando foi removido e ainda lacrado, " +
                                     "conforme numeração abaixo descrita, sendo estes lacres conferidos na minha presença, nada havendo para reclamar agora ou no futuro.";
 
-            ResultView.ProprietarioProcurador = "Proprietário/Procurador: " + GuiaPagamentoReboqueEstadia.AtendimentoResponsavelNome;
+            ResultView.ProprietarioProcurador = GuiaPagamentoReboqueEstadia.AtendimentoResponsavelNome;
 
-            ResultView.ProprietarioCpf = "CPF: " + GuiaPagamentoReboqueEstadia.AtendimentoResponsavelDocumento;
+            ResultView.ProprietarioCpf = GuiaPagamentoReboqueEstadia.AtendimentoResponsavelDocumento;
 
             ResultView.GrvEstacionamentoSetor = !GuiaPagamentoReboqueEstadia.EstacionamentoSetor.IsNullOrWhiteSpace() ? GuiaPagamentoReboqueEstadia.EstacionamentoSetor : "Não informado";
 
@@ -183,7 +190,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
 
             ResultView.UsuarioNome = Usuario.NomeCompleto;
 
-            ResultView.UsuarioMatricula = "Matrícula: " + Usuario.Matricula;
+            ResultView.UsuarioMatricula = Usuario.Matricula;
 
 
             #region FORMA DE LIBERAÇÃO
@@ -250,7 +257,94 @@ namespace WebZi.Plataform.Data.Services.Liberacao
 
             return ResultView;
         }
+        public MensagemDTO ValidarUsuario(LiberacaoEspecialValidarParameters parameters)
+        {
+            #region Parameters
+                StringBuilder Perm = new();
+                StringBuilder Usuario = new();
+                parameters.Login = parameters.Login.ToUpper().Trim();
+                parameters.Password = parameters.Password.ToUpper().Trim();
+                const int IdPerfilAcesso = 24;
+                const int IdSubModulo = 5;
+            #endregion
 
+            #region Consulta
+
+                Usuario.AppendLine("SELECT id_usuario AS Value");
+                Usuario.AppendLine("  FROM dbo.tb_dep_usuarios");
+                Usuario.AppendLine(" WHERE 1 = 1");
+                Usuario.Append("   AND login = @login");
+                Usuario.Append("   AND senha1 = HASHBYTES('MD5', @senha)");
+
+                SqlParameter[] sqlParameterUser = new SqlParameter[]
+                {
+                        new SqlParameter("@login", SqlDbType.VarChar)
+                        {
+                            Value = parameters.Login
+                        },
+
+                        new SqlParameter("@senha", SqlDbType.VarChar)
+                        {
+                            Value = parameters.Password
+                        }
+                };
+                int IdUsuario = _context.Database.SqlQueryRaw<int>(Usuario.ToString(), sqlParameterUser)
+                    .FirstOrDefault();
+
+
+                Perm.AppendLine("SELECT CAST(");
+                        Perm.AppendLine("IIF(");
+                            Perm.AppendLine("EXISTS(");
+                                Perm.AppendLine("SELECT 1");
+                                Perm.AppendLine("FROM dbo.tb_dep_usuarios u");
+                                    Perm.AppendLine("JOIN dbo.tb_dep_sistema_perfil_acesso_usuarios spu");
+                                        Perm.AppendLine("ON spu.id_usuario = u.id_usuario");
+                                    Perm.AppendLine("JOIN dbo.tb_dep_sistema_perfil_acesso tdspa");
+                                        Perm.AppendLine("ON tdspa.id_perfil_acesso = spu.id_perfil_acesso");
+                                    Perm.AppendLine("JOIN dbo.tb_dep_sistema_perfil_acesso_sub_modulos tdspasm");
+                                        Perm.AppendLine("ON tdspasm.id_perfil_acesso = tdspa.id_perfil_acesso");
+                                    Perm.AppendLine("JOIN dbo.tb_dep_sistema_sub_modulos tdssm");
+                                        Perm.AppendLine("ON tdssm.id_sub_modulo = tdspasm.id_sub_modulo");
+                                Perm.AppendLine("WHERE u.id_usuario = @IdUsuario");
+                                Perm.Append("    AND tdspa.id_perfil_acesso = @IdPerfilAcesso");
+                                Perm.Append("    AND tdssm.id_sub_modulo = @IdSubModulo");
+                            Perm.AppendLine("),");
+                            Perm.AppendLine("1, 0");
+                    Perm.AppendLine(") AS bit");
+                Perm.AppendLine(") AS Value");
+
+                SqlParameter[] sqlParameter = new SqlParameter[]
+                {
+                    new SqlParameter("@IdUsuario", SqlDbType.Int)
+                    {
+                        Value = IdUsuario
+                    },
+                    new SqlParameter("@IdPerfilAcesso", SqlDbType.Int)
+                    {
+                        Value = IdPerfilAcesso
+                    },
+                    new SqlParameter("@IdSubModulo", SqlDbType.Int)
+                    {
+                        Value = IdSubModulo
+                    }
+                };
+
+                bool Exists = _context.Database
+                    .SqlQueryRaw<bool>(Perm.ToString(), sqlParameter)
+                    .FirstOrDefault();
+
+            #endregion Consulta
+
+            #region Validação
+                if (IdUsuario == 0)
+                    return MensagemViewHelper.SetNotFound("Usuario não Encontrado");
+                if (!Exists)
+                    return MensagemViewHelper.SetBadRequest("Usuario não possui permissão");
+            #endregion Validação
+
+
+            return MensagemViewHelper.SetOk();
+        }
         public async Task<ValidacaoGuiaAutorizacaoRetiradaVeiculoDTO> ValidarGuiaAutorizacaoRetiradaVeiculoAsync(string input, int UsuarioId)
         {
             ValidacaoGuiaAutorizacaoRetiradaVeiculoDTO ResultView = new();
@@ -480,7 +574,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.GrvId == Parameters.IdentificadorProcesso);
 
-            if (Grv.StatusOperacao.StatusOperacaoId != "T")
+            if (Grv.StatusOperacao.StatusOperacaoId != "T" && Grv.StatusOperacao.StatusOperacaoId != "U")
             {
                 return MensagemViewHelper.SetBadRequest($"O Status atual deste Processo não permite o cadastro da Entrega. " +
                     $"Descrição do Status atual: {Grv.StatusOperacao.Descricao.ToUpper()}");

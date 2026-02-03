@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Faturamento;
@@ -14,6 +15,7 @@ using WebZi.Plataform.Domain.ViewModel.Faturamento;
 namespace WebZi.Plataform.API.Controllers
 {
     [Route("api/[controller]")]
+    [Authorize]
     [ApiController]
     public class FaturamentoController : ControllerBase
     {
@@ -67,6 +69,33 @@ namespace WebZi.Plataform.API.Controllers
                 ResultView = await _provider
                     .GetService<GuiaPagamentoReboqueEstadiaService>()
                     .GetGuiaPagamentoReboqueEstadiaAsync(IdentificadorFaturamento, IdentificadorUsuario);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
+
+        [HttpGet("ConsultarGuiaPagamentoReboqueEstadia")]
+        // TODO: [Authorize]
+        public async Task<ActionResult<GuiaPagamentoReboqueEstadiaDTO>> ConsultarGuiaPagamentoReboqueEstadia(int IdentificadorFaturamento, int IdentificadorUsuario)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            GuiaPagamentoReboqueEstadiaDTO ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<GuiaPagamentoReboqueEstadiaService>()
+                    .ConsultarGuiaPagamentoReboqueEstadiaAsync(IdentificadorFaturamento, IdentificadorUsuario);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -244,7 +273,7 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("Consultar")]
         [IgnoreAntiforgeryToken]
-        public async Task<ActionResult<FaturamentoConsultaDTO>> Consultar(int identificadorFaturamento)
+        public async Task<ActionResult<FaturamentoConsultaDTO>> Consultar(int identificadorFaturamento, int identificadorUsuario)
         {
             if (!ModelState.IsValid)
             {
@@ -257,7 +286,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<FaturamentoService>()
-                    .ConsultarFaturamentoAsync(identificadorFaturamento);
+                    .ConsultarFaturamentoAsync(identificadorFaturamento, identificadorUsuario);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }

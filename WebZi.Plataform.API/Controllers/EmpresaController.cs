@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Empresa;
 using WebZi.Plataform.Domain.DTO.Empresa;
@@ -6,6 +7,7 @@ using WebZi.Plataform.Domain.DTO.Empresa;
 namespace WebZi.Plataform.API.Controllers
 {
     [Route("api/[controller]")]
+    [Authorize]
     [ApiController]
     public class EmpresaController : ControllerBase
     {

@@ -46,6 +46,18 @@ namespace WebZi.Plataform.Domain.DTO.Report
 
         public string AtendimentoResponsavelDocumento { get; set; }
 
+        public string AtendimentoResponsavelEndereco { get; set; }
+
+        public string AtendimentoResponsavelNumero { get; set; }
+
+        public string AtendimentoResponsavelComplemento { get; set; }
+
+        public string AtendimentoResponsavelBairro { get; set; }
+
+        public string AtendimentoResponsavelMunicipio { get; set; }
+
+        public string AtendimentoResponsavelUF { get; set; }
+
         public string AtendimentoFormaLiberacao { get; set; }
 
         public string AtendimentoFormaLiberacaoNome { get; set; }
@@ -104,6 +116,14 @@ namespace WebZi.Plataform.Domain.DTO.Report
         public string ValorFaturadoQuilometragem { get; set; }
 
         public string ValorDemaisServicos { get; set; }
+
+        public string TipoDescontoEstadias { get; set; }
+        public string ValorDescontoEstadias { get; set; }
+        public string TipoDescontoReboque { get; set; }
+        public string ValorDescontoReboque { get; set; }
+        public string TipoDescontoQuilometragem { get; set; }
+        public string ValorDescontoQuilometragem { get; set; }
+        public string ValorTotalDesconto { get; set; }
 
 
         public string FaturamentoValorPagar { get; set; }

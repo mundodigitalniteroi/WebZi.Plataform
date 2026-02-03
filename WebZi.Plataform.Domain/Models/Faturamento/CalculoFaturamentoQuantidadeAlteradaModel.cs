@@ -10,6 +10,8 @@
 
         public int UsuarioAlteracaoQuantidadeId { get; set; }
 
+        public int? QuantidadeAjuste { get; set; }
+
         public int QuantidadeAlterada { get; set; }
 
         public string ObservacaoQuantidadeAlterada { get; set; }

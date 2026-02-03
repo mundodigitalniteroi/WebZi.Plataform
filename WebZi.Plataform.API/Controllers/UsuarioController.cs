@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Domain.DTO.Usuario;
@@ -8,14 +8,17 @@ using WebZi.Plataform.Domain.ViewModel.Usuario;
 namespace WebZi.Plataform.API.Controllers
 {
     [Route("api/[controller]")]
+    [Authorize]
     [ApiController]
     public class UsuarioController : ControllerBase
     {
         private readonly IServiceProvider _provider;
+        private readonly IConfiguration _configuration;
 
-        public UsuarioController(IServiceProvider provider)
+        public UsuarioController(IServiceProvider provider, IConfiguration configuration)
         {
             _provider = provider;
+            _configuration = configuration;
         }
 
         [HttpGet("SelecionarPorIdentificador")]

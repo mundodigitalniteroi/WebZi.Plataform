@@ -1,8 +1,13 @@
 ﻿using AutoMapper;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
 using System.Data;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Text;
+using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Domain.DTO.Usuario;
@@ -15,6 +20,7 @@ namespace WebZi.Plataform.Domain.Services.Usuario
     {
         private readonly AppDbContext _context;
         private readonly IMapper _mapper;
+        private readonly IConfiguration _configuration;
 
         public UsuarioService(AppDbContext context)
         {
@@ -25,6 +31,13 @@ namespace WebZi.Plataform.Domain.Services.Usuario
         {
             _context = context;
             _mapper = mapper;
+        }
+
+        public UsuarioService(AppDbContext context, IMapper mapper, IConfiguration configuration)
+        {
+            _context = context;
+            _mapper = mapper;
+            _configuration = configuration;
         }
 
         private async Task<UsuarioDTO> GetAsync(int UsuarioId, string Username, string Password)
@@ -104,28 +117,28 @@ namespace WebZi.Plataform.Domain.Services.Usuario
 
                 ResultView.Mensagem = MensagemViewHelper.SetFound();
 
-                var ListagemUsuarioClienteDeposito = await _context.ViewUsuarioClienteDeposito
-                    .Where(x => x.UsuarioId == UsuarioId)
-                    .Select(x => new { x.ClienteId, x.DepositoId })
-                    .AsNoTracking()
-                    .ToListAsync();
+                //var ListagemUsuarioClienteDeposito = await _context.ViewUsuarioClienteDeposito
+                //    .Where(x => x.UsuarioId == UsuarioId)
+                //    .Select(x => new { x.ClienteId, x.DepositoId })
+                //    .AsNoTracking()
+                //    .ToListAsync();
 
-                if (ListagemUsuarioClienteDeposito?.Count > 0)
-                {
-                    ListagemUsuarioClienteDeposito = ListagemUsuarioClienteDeposito
-                        .OrderBy(x => x.ClienteId)
-                        .ThenBy(x => x.DepositoId)
-                        .ToList();
+                //if (ListagemUsuarioClienteDeposito?.Count > 0)
+                //{
+                //    ListagemUsuarioClienteDeposito = ListagemUsuarioClienteDeposito
+                //        .OrderBy(x => x.ClienteId)
+                //        .ThenBy(x => x.DepositoId)
+                //        .ToList();
 
-                    foreach (var item in ListagemUsuarioClienteDeposito)
-                    {
-                        ResultView.ListagemClienteDepositoAssociado.Add(new UsuarioClienteDepositoDTO { IdentificadorCliente = item.ClienteId, IdentificadorDeposito = item.DepositoId });
-                    }
-                }
-                else
-                {
-                    ResultView.Mensagem.AvisosInformativos.Add("Atenção. Este Usuário não possui associação com Cliente e Depósito");
-                }
+                //    foreach (var item in ListagemUsuarioClienteDeposito)
+                //    {
+                //        ResultView.ListagemClienteDepositoAssociado.Add(new UsuarioClienteDepositoDTO { IdentificadorCliente = item.ClienteId, IdentificadorDeposito = item.DepositoId });
+                //    }
+                //}
+                //else
+                //{
+                //    ResultView.Mensagem.AvisosInformativos.Add("Atenção. Este Usuário não possui associação com Cliente e Depósito");
+                //}
 
                 return ResultView;
             }
@@ -149,7 +162,14 @@ namespace WebZi.Plataform.Domain.Services.Usuario
 
         public async Task<UsuarioDTO> GetByCredentialsAsync(string Username, string Password)
         {
-            return await GetAsync(0, Username, Password);
+            var result = await GetAsync(0, Username, Password);
+
+            if (result.Mensagem.HtmlStatusCode == HtmlStatusCodeEnum.Ok)
+            {
+                result.Token = GenerateJwtToken(result, Username);
+            }
+
+            return result;
         }
 
         public bool IsUserActive(int UsuarioId)
@@ -177,6 +197,37 @@ namespace WebZi.Plataform.Domain.Services.Usuario
                 .FirstOrDefaultAsync(x => x.UsuarioId == UsuarioId
                                        && x.ClienteId == ClienteId
                                        && x.DepositoId == DepositoId) != null;
+        }
+
+        private string GenerateJwtToken(UsuarioDTO usuario, string username)
+        {
+            var jwtSection = _configuration.GetSection("Jwt");
+            var issuer = jwtSection["Issuer"];
+            var audience = jwtSection["Audience"];
+            var secret = jwtSection["Secret"];
+            int.TryParse(jwtSection["ExpirationMinutes"], out int expirationMinutes);
+            if (expirationMinutes <= 0) expirationMinutes = 60;
+
+            var claims = new List<Claim>
+            {
+                new Claim(JwtRegisteredClaimNames.Sub, usuario.IdentificadorUsuario.ToString()),
+                new Claim(JwtRegisteredClaimNames.UniqueName, username ?? usuario.Login ?? string.Empty),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            };
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret ?? string.Empty));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            var expires = DateTime.UtcNow.AddMinutes(expirationMinutes);
+
+            var token = new JwtSecurityToken(
+                issuer,
+                audience,
+                claims,
+                expires: expires,
+                signingCredentials: creds);
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            return tokenHandler.WriteToken(token);
         }
     }
 }

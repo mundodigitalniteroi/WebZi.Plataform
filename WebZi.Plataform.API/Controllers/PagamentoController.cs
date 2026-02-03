@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using WebZi.Plataform.Data.Services.Atendimento;
 using WebZi.Plataform.Data.Services.Faturamento;
 using WebZi.Plataform.Domain.DTO.Faturamento;
@@ -8,6 +9,7 @@ using WebZi.Plataform.Domain.ViewModel.Pagamento;
 namespace WebZi.Plataform.API.Controllers
 {
     [Route("api/[controller]")]
+    [Authorize]
     [ApiController]
     public class PagamentoController : ControllerBase
     {
@@ -58,7 +60,7 @@ namespace WebZi.Plataform.API.Controllers
 
             FaturamentoDTO faturamento = await _provider
                 .GetService<FaturamentoService>()
-                .ConfirmarPagamentoAsync(model.IdentificadorFaturamento, model.IdentificadorUsuario, model.Cartao);
+                .ConfirmarPagamentoAsync(model.IdentificadorFaturamento, model.IdentificadorUsuario, model.Cartoes);
 
             if (faturamento.Mensagem.Erros.Count == 0)
             {
