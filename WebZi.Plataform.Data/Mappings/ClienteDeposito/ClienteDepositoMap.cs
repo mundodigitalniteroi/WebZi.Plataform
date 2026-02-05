@@ -97,6 +97,11 @@ namespace WebZi.Plataform.Data.Mappings.ClienteDeposito
             builder.Property(e => e.DataAlteracao)
                 .HasColumnType("smalldatetime")
                 .HasColumnName("data_alteracao");
+            builder.Property(e => e.FlagPossuiParcelamento)
+                .HasMaxLength(1)
+                .IsUnicode(false)
+                .IsFixedLength()
+                .HasColumnName("flag_possui_parcelamento");
         }
     }
 }

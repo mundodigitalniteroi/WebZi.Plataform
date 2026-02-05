@@ -1448,6 +1448,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             ResultView.Cliente = new()
             {
+                IdentificadorCliente = ParametrosCalculoFaturamento.ClienteDeposito.ClienteId,
                 Nome = ParametrosCalculoFaturamento.ClienteDeposito.Cliente.Nome,
 
                 Endereco = Endereco.FormatarEndereco(ParametrosCalculoFaturamento.ClienteDeposito.Cliente.Endereco,
@@ -1457,6 +1458,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             ResultView.Deposito = new()
             {
+                IdentificadorDeposito = ParametrosCalculoFaturamento.ClienteDeposito.ClienteDepositoId,
                 Nome = ParametrosCalculoFaturamento.ClienteDeposito.Deposito.Nome,
 
                 Telefone = ParametrosCalculoFaturamento.ClienteDeposito.Deposito.TelefoneMob,
@@ -1815,6 +1817,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             ResultView.Cliente = new()
             {
+                IdentificadorCliente = Faturamento.Atendimento.Grv.Cliente.ClienteId,
                 Nome = Faturamento.Atendimento.Grv.Cliente.Nome,
 
                 Endereco = Endereco.FormatarEndereco(Faturamento.Atendimento.Grv.Cliente.Endereco,
@@ -1824,6 +1827,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             ResultView.Deposito = new()
             {
+                IdentificadorDeposito = Faturamento.Atendimento.Grv.Deposito.DepositoId,
+
                 Nome = Faturamento.Atendimento.Grv.Deposito.Nome,
 
                 Telefone = Faturamento.Atendimento.Grv.Deposito.TelefoneMob,

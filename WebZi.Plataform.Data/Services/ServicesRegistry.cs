@@ -3,6 +3,7 @@ using WebZi.Plataform.Data.Services.Atendimento;
 using WebZi.Plataform.Data.Services.Banco;
 using WebZi.Plataform.Data.Services.Banco.PIX;
 using WebZi.Plataform.Data.Services.Cliente;
+using WebZi.Plataform.Data.Services.ClienteDeposito;
 using WebZi.Plataform.Data.Services.Deposito;
 using WebZi.Plataform.Data.Services.Documento;
 using WebZi.Plataform.Data.Services.Empresa;
@@ -90,7 +91,7 @@ namespace WebZi.Plataform.Data.Services
             services.AddScoped<VeiculoService>();
 
             services.AddScoped<VistoriaService>();
-
+            services.AddScoped<ClienteDepositoService>();
             #region WebServices
             services.AddScoped<DetranAlagoasService>();
 

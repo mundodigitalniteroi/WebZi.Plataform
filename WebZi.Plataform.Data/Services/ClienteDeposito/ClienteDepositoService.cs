@@ -4,6 +4,7 @@ using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Cliente;
 using WebZi.Plataform.Data.Services.Deposito;
+using WebZi.Plataform.Domain.DTO.GRV.Pesquisa;
 using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.Enums;
 
@@ -44,6 +45,40 @@ namespace WebZi.Plataform.Data.Services.ClienteDeposito
             }
 
             return MensagemViewHelper.SetOk();
+        }
+
+        public async Task<ClienteDepositoFlagParcelamentoDTO> GetClienteDepositoFlagParcelamento(int ClienteId, int DepositoId)
+        {
+
+            #region Validações
+                ClienteDepositoFlagParcelamentoDTO ResultView = new();
+                ResultView.Mensagem = MensagemViewHelper.SetNewMessages(ResultView.Mensagem, await new ClienteService(_context)
+                    .ValidateClienteAsync(ClienteId));
+
+                ResultView.Mensagem = MensagemViewHelper.SetNewMessages(ResultView.Mensagem, await new DepositoService(_context)
+                    .ValidateDepositoAsync(DepositoId));
+            #endregion Validações
+            #region Consultas
+            var ClienteDeposito = await _context.
+                ClienteDeposito.
+                AsNoTracking()
+                .FirstOrDefaultAsync(x => x.ClienteId == ClienteId && x.DepositoId == DepositoId);
+            #endregion Consultas
+
+            ClienteDepositoFlagParcelamentoDTO clienteDepositoDTO = new()
+            {
+                IdentificadorCliente = ClienteDeposito.ClienteId,
+                IdentificadorDeposito = ClienteDeposito.DepositoId,
+                FlagAtivo = ClienteDeposito.FlagAtivo,
+                FlagPossuiParcelamento = ClienteDeposito.FlagPossuiParcelamento
+            };
+
+            if(ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest();
+            }
+            ResultView.Mensagem = MensagemViewHelper.SetOk();
+            return clienteDepositoDTO;
         }
     }
 }

@@ -40,6 +40,7 @@ namespace WebZi.Plataform.Domain.Models.ClienteDeposito
         public DateTime? DataAlteracao { get; set; }
 
         public decimal AliquotaIss { get; set; }
+        public char FlagPossuiParcelamento { get; set; }
 
         public virtual ClienteModel Cliente { get; set; }
 

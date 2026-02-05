@@ -21,6 +21,7 @@ using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.DTO.Veiculo;
 using WebZi.Plataform.Domain.DTO.Vistoria;
 using WebZi.Plataform.Domain.Services.GRV;
+using WebZi.Plataform.Data.Services.ClienteDeposito;
 
 namespace WebZi.Plataform.API.Controllers
 {
@@ -707,6 +708,34 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
 
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
+
+        [HttpGet("SelecionarClientesDepositos")]
+        public async Task<ActionResult<ClienteDepositoFlagParcelamentoDTO>> SelecionarClientesDepositos(int idetificadorClienteId, int idetificadorDepositoId)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            ClienteDepositoFlagParcelamentoDTO ResultView = new();
+            try
+            {
+                ResultView = await _provider
+                    .GetService<ClienteDepositoService>()
+                    .GetClienteDepositoFlagParcelamento(idetificadorClienteId, idetificadorDepositoId);
+
+                if(ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+                {
+                    ResultView.Mensagem = ResultView.Mensagem;
+                    return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+                }
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch(Exception ex) { 
+                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
         }
