@@ -95,7 +95,10 @@ namespace WebZi.Plataform.Data.Services
                 .ForMember(dest => dest.IdentificadorCEP, from => from.MapFrom(src => src.CEPId))
                 .ForMember(dest => dest.IdentificadorTipoLogradouro, from => from.MapFrom(src => src.TipoLogradouroId))
                 .ForMember(dest => dest.IdentificadorBairro, from => from.MapFrom(src => src.BairroId))
-                .ForMember(dest => dest.IdentificadorSistemaExterno, from => from.MapFrom(src => src.SistemaExternoId));
+                .ForMember(dest => dest.IdentificadorSistemaExterno, from => from.MapFrom(src => src.SistemaExternoId))
+                .ForMember(dest => dest.Cep, from => from.MapFrom(src => src.Endereco != null ? src.Endereco.CEP : null))
+                .ForMember(dest => dest.UF, from => from.MapFrom(src => src.Endereco != null ? src.Endereco.UF : null))
+                .ForMember(dest => dest.Municipio, from => from.MapFrom(src => src.Endereco != null ? src.Endereco.Municipio : null));
 
             CreateMap<DetranRioVeiculoModel, DetranRioVeiculoDTO>()
                 .ForMember(dest => dest.IdentificadorVeiculo, from => from.MapFrom(src => src.DetranVeiculoId))
@@ -263,7 +266,8 @@ namespace WebZi.Plataform.Data.Services
                 .ForMember(dest => dest.IdentificadorDeposito, from => from.MapFrom(src => src.DepositoId))
                 .ForMember(dest => dest.IdentificadorCliente, from => from.MapFrom(src => src.ClienteId))
                 .ForMember(dest => dest.Nome, from => from.MapFrom(src => src.DepositoNome))
-                .ForMember(dest => dest.FlagAtivo, from => from.MapFrom(src => src.DepositoFlagAtivo));
+                .ForMember(dest => dest.FlagAtivo, from => from.MapFrom(src => src.DepositoFlagAtivo))
+                ;
 
             // ViewModel to Model
             CreateMap<CondutorParameters, CondutorModel>()

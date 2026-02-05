@@ -158,6 +158,7 @@ namespace WebZi.Plataform.Data.Services.Deposito
 
             List<UsuarioDepositoModel> result = await _context.UsuarioDeposito
                 .Include(x => x.Deposito)
+                    .ThenInclude(d => d.Endereco)
                 .Where(x => x.UsuarioId == UsuarioId)
                 .AsNoTracking()
                 .ToListAsync();
