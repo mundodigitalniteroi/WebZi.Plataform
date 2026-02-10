@@ -44,6 +44,7 @@ namespace WebZi.Plataform.Data.Services.Deposito
             }
 
             DepositoModel result = await _context.Deposito
+                .Include(x => x.Endereco)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.DepositoId == DepositoId);
 

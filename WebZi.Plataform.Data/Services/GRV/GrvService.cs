@@ -919,6 +919,15 @@ namespace WebZi.Plataform.Domain.Services.GRV
         {
             return await _context.Grv
                 .Include(x => x.StatusOperacao)
+                .Include(x => x.Deposito)
+                  .ThenInclude(x => x.Endereco)
+                .Include(x => x.Cliente)
+                .Include(x => x.Reboque)
+                .Include(x => x.Reboquista)
+                .Include(x => x.MarcaModelo)
+                .Include(x => x.Cor)
+                .Include(x => x.MotivoApreensao)
+                .Include(x => x.TipoVeiculo)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.GrvId == GrvId);
         }

@@ -1,4 +1,12 @@
-﻿namespace WebZi.Plataform.Domain.DTO.GRV
+﻿using WebZi.Plataform.Domain.DTO.Cliente;
+using WebZi.Plataform.Domain.DTO.Deposito;
+using WebZi.Plataform.Domain.DTO.Servico;
+using WebZi.Plataform.Domain.DTO.Sistema;
+using WebZi.Plataform.Domain.DTO.Veiculo;
+using WebZi.Plataform.Domain.Models.Servico;
+using WebZi.Plataform.Domain.Models.Sistema;
+
+namespace WebZi.Plataform.Domain.DTO.GRV
 {
     public class GrvDTO
     {
@@ -132,5 +140,14 @@
         public string FlagVeiculoNaoOstentaPlaca { get; set; }
 
         public string FlagTransbordo { get; set; }
+        public ReboquistaDTO Reboquista { get; set; }
+        public ReboqueModel Reboque { get; set; }
+
+        public ClienteDTO Cliente { get; set; }
+        public DepositoDTO Deposito { get; set; }
+        public TipoVeiculoDTO TipoVeiculo { get; set; }
+        public MarcaModeloDTO MarcaModelo { get; set; }
+        public MotivoApreensaoDTO MotivoApreensao { get; set; }
+        public CorDTO Cor { get; set; }
     }
 }
