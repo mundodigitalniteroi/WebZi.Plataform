@@ -18,6 +18,7 @@ using WebZi.Plataform.Data.Services.Faturamento;
 using WebZi.Plataform.Data.Services.Localizacao;
 using WebZi.Plataform.Data.Services.Sistema;
 using WebZi.Plataform.Data.Services.WebServices;
+using WebZi.Plataform.Domain.DTO.Deposito;
 using WebZi.Plataform.Domain.DTO.Generic;
 using WebZi.Plataform.Domain.DTO.GRV;
 using WebZi.Plataform.Domain.DTO.GRV.Cadastro;
@@ -928,6 +929,9 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 .Include(x => x.Cor)
                 .Include(x => x.MotivoApreensao)
                 .Include(x => x.TipoVeiculo)
+                .Include(x => x.AutoridadeResponsavel)
+                .Include(x => x.ListagemEnquadramentoInfracao)
+                    .ThenInclude(x => x.EnquadramentoInfracao)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.GrvId == GrvId);
         }
@@ -1127,9 +1131,46 @@ namespace WebZi.Plataform.Domain.Services.GRV
             {
                 ResultView.Listagem = _mapper.Map<List<AutoridadeResponsavelDTO>>(result.AutoridadesResponsaveis
                     .OrderBy(x => x.Divisao)
-                    .ToList());
+                    .ToList()); 
 
                 ResultView.Mensagem = MensagemViewHelper.SetFound(result.AutoridadesResponsaveis.Count);
+            }
+            else
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound();
+            }
+
+            return ResultView;
+        }
+        public async Task<AutoridadeResponsavelListDTO> ListAutoridadeResponsavelPorDepositoAsync(int identificadorDeposito)
+        {
+            AutoridadeResponsavelListDTO ResultView = new();
+
+            DepositoModel deposito = await _context.Deposito
+                                    .Include(x => x.Endereco)
+                                    .AsNoTracking()
+                                    .FirstOrDefaultAsync(x => x.DepositoId == identificadorDeposito);
+            string uf = deposito.Endereco.UF.ToUpperTrim().ToNullIfEmpty();
+
+            List<AutoridadeResponsavelModel> result = await _context.AutoridadeResponsavel
+                .Include(x => x.OrgaoEmissor)
+                .Where(x => x.OrgaoEmissor.UF == uf)
+                .OrderBy(x => x.Divisao)
+                .AsNoTracking()
+                .ToListAsync();
+
+
+            if (result?.Count < 0)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound("Unidade Federativa sem Órgão Emissor cadastrado");
+
+                return ResultView;
+            }
+
+            if (result?.Count > 0)
+            {
+                ResultView.Listagem = _mapper.Map<List<AutoridadeResponsavelDTO>>(result);
+                ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
             }
             else
             {

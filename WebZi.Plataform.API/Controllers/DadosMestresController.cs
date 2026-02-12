@@ -90,6 +90,32 @@ namespace WebZi.Plataform.API.Controllers
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
         }
+        [HttpGet("ListarAutoridadeResponsavelPorDeposito")]
+        // TODO: [Authorize]
+        public async Task<ActionResult<AutoridadeResponsavelListDTO>> ListarAutoridadeResponsavelPorDeposito(int identificadorDeposito)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            AutoridadeResponsavelListDTO ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<GrvService>()
+                    .ListAutoridadeResponsavelPorDepositoAsync(identificadorDeposito);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
 
         [HttpGet("ListarCor")]
         // TODO: [Authorize]
