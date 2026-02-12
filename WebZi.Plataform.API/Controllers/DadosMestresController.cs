@@ -657,6 +657,33 @@ namespace WebZi.Plataform.API.Controllers
             }
         }
 
+        [HttpGet("ListarTipoRegistro")]
+        // TODO: [Authorize]
+        public async Task<ActionResult<TipoRegistroListDTO>> ListarTipoRegistro()
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            TipoRegistroListDTO ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<GrvService>()
+                    .ListTipoRegistroAsync();
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
+
         [HttpGet("SelecionarReboquePorIdentificador")]
         // TODO: [Authorize]
         public async Task<ActionResult<ReboqueListDTO>> SelecionarReboquePorIdentificador(int IdentificadorReboque)

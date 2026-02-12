@@ -269,6 +269,9 @@ namespace WebZi.Plataform.Data.Services
                 .ForMember(dest => dest.Nome, from => from.MapFrom(src => src.DepositoNome))
                 .ForMember(dest => dest.FlagAtivo, from => from.MapFrom(src => src.DepositoFlagAtivo))
                 ;
+            CreateMap<TipoRegistroModel, TipoRegistroDTO>()
+            .ForMember(dest => dest.IdentificadorTipoRegistro,
+                   opt => opt.MapFrom(src => src.IdentificadorTipoRegistro));
 
             // ViewModel to Model
             CreateMap<CondutorParameters, CondutorModel>()

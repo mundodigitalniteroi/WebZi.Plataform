@@ -1225,7 +1225,29 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             return ResultView;
         }
+        public async Task<TipoRegistroListDTO> ListTipoRegistroAsync()
+        {
+            TipoRegistroListDTO ResultView = new();
 
+            List<TipoRegistroModel> result = await _context.TipoRegistro
+                .AsNoTracking()
+                .ToListAsync();
+
+            if (result?.Count > 0)
+            {
+                ResultView.Listagem = _mapper.Map<List<TipoRegistroDTO>>(result
+                    .OrderBy(x => x.Descricao.Trim())
+                    .ToList());
+
+                ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
+            }
+            else
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound();
+            }
+
+            return ResultView;
+        }
         public async Task<ImageListDTO> ListFotoAsync(int GrvId, int UsuarioId)
         {
             ImageListDTO ResultView = new()
