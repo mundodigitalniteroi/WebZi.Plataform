@@ -1,10 +1,12 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using WebZi.Plataform.CrossCutting.Localizacao;
 using WebZi.Plataform.CrossCutting.Strings;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Domain.DTO.Documento;
+using WebZi.Plataform.Domain.Models.Deposito;
 using WebZi.Plataform.Domain.Models.Documento;
 
 namespace WebZi.Plataform.Data.Services.Documento
@@ -39,6 +41,36 @@ namespace WebZi.Plataform.Data.Services.Documento
 
             List<OrgaoEmissorModel> result = await _context.OrgaoEmissor
                 .Where(x => x.UF == UF.ToUpperTrim())
+                .AsNoTracking()
+                .ToListAsync();
+
+            if (result == null)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound("Unidade Federativa sem Órgão Emissor cadastrado");
+
+                return ResultView;
+            }
+
+            if (result?.Count > 0)
+            {
+                ResultView.Listagem = _mapper.Map<List<OrgaoEmissorDTO>>(result
+                    .OrderBy(x => x.Descricao)
+                    .ToList());
+
+                ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
+            }
+            else
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound();
+            }
+
+            return ResultView;
+        }
+        public async Task<OrgaoEmissorListDTO> ListarTodosOsOrgoesEmissoresAsync()
+        {
+            OrgaoEmissorListDTO ResultView = new();
+
+            List<OrgaoEmissorModel> result = await _context.OrgaoEmissor
                 .AsNoTracking()
                 .ToListAsync();
 

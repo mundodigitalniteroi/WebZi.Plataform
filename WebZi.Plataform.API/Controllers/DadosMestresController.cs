@@ -332,6 +332,32 @@ namespace WebZi.Plataform.API.Controllers
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
         }
+        [HttpGet("ListarTodosOsOrgoesEmissores")]
+        // TODO: [Authorize]
+        public async Task<ActionResult<OrgaoEmissorListDTO>> ListarTodosOsOrgoesEmissores()
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            OrgaoEmissorListDTO ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<DocumentoService>()
+                    .ListarTodosOsOrgoesEmissoresAsync();
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
 
         [HttpGet("ListarProduto")]
         // TODO: [Authorize]
