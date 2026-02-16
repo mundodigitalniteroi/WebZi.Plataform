@@ -63,6 +63,32 @@ namespace WebZi.Plataform.API.Controllers
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
         }
+        [HttpGet("ListarTipoRestricao")]
+        // TODO: [Authorize]
+        public async Task<ActionResult<TabelaGenericaListDTO>> ListarTipoRestricao()
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            TabelaGenericaListDTO ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<TabelaGenericaService>()
+                    .ListToViewModelAsync("DETRANRJ_TIPO_RESTRICAO");
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
 
         [HttpGet("ListarAutoridadeResponsavel")]
         // TODO: [Authorize]

@@ -55,7 +55,7 @@ namespace WebZi.Plataform.Domain.ViewModel.GRV.Cadastro
         [MaxLength(100)]
         public string Rfid { get; set; }
 
-        [StringLength(7, MinimumLength = 7)]
+        [StringLength(8, MinimumLength = 8)]
         public string EnderecoLocalizacaoVeiculoCEP { get; set; }
 
         [MaxLength(150)]

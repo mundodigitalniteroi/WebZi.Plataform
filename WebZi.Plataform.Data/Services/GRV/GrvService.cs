@@ -1839,7 +1839,13 @@ namespace WebZi.Plataform.Domain.Services.GRV
             {
                 erros.Add(MensagemPadraoEnum.NumeroProcessoInvalido);
             }
-
+            if(GrvPersistencia.FlagVeiculoNaoOstentaPlaca == "S") 
+            {
+                if (!string.IsNullOrWhiteSpace(GrvPersistencia.Placa) || !string.IsNullOrWhiteSpace(GrvPersistencia.Chassi))
+                {
+                    erros.Add("Ao informar que o Veículo não foi identificado, não se deve informar a Placa nem o Chassi");
+                }
+            }
             if (GrvPersistencia.FlagVeiculoNaoIdentificado == "S")
             {
                 if (!string.IsNullOrWhiteSpace(GrvPersistencia.Placa) || !string.IsNullOrWhiteSpace(GrvPersistencia.Chassi))
