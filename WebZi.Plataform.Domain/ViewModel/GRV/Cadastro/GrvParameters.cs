@@ -29,8 +29,8 @@ namespace WebZi.Plataform.Domain.ViewModel.GRV.Cadastro
         [Required(ErrorMessage = "Propriedade obrigatória")]
         public int IdentificadorUsuario { get; set; }
 
-        [Required(ErrorMessage = "Propriedade obrigatória")]
-        [StringLength(14, MinimumLength = 1)]
+        //[Required(ErrorMessage = "Propriedade obrigatória")]
+        //[StringLength(14, MinimumLength = 0)]
         public string NumeroProcesso { get; set; }
 
         [Required(ErrorMessage = "Propriedade obrigatória")]

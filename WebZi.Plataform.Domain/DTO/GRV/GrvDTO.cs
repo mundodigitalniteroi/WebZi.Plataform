@@ -3,6 +3,7 @@ using WebZi.Plataform.Domain.DTO.Deposito;
 using WebZi.Plataform.Domain.DTO.Servico;
 using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.DTO.Veiculo;
+using WebZi.Plataform.Domain.Models.Condutor;
 using WebZi.Plataform.Domain.Models.GRV;
 using WebZi.Plataform.Domain.Models.Servico;
 using WebZi.Plataform.Domain.Models.Sistema;
@@ -150,6 +151,7 @@ namespace WebZi.Plataform.Domain.DTO.GRV
         public MarcaModeloDTO MarcaModelo { get; set; }
         public MotivoApreensaoDTO MotivoApreensao { get; set; }
         public CorDTO Cor { get; set; }
+        public CondutorDTO Condutor { get; set; }
         public AutoridadeResponsavelDTO AutoridadeResponsavel { get; set; }
         public List<EnquadramentoInfracaoDTO> Infracoes { get; set; }
     }

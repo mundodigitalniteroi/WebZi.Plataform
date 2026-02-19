@@ -178,7 +178,8 @@ namespace WebZi.Plataform.Data.Services
                 .ForMember(dest => dest.IdentificadorStatusOperacao, from => from.MapFrom(src => src.StatusOperacaoId))
                 .ForMember(dest => dest.IdentificadorLiberacao, from => from.MapFrom(src => src.LiberacaoId))
                 .ForMember(dest => dest.CodigoProduto, from => from.MapFrom(src => src.FaturamentoProdutoId))
-                .ForMember(dest => dest.Infracoes, opt => opt.MapFrom(src => src.ListagemEnquadramentoInfracao.Select(li => li.EnquadramentoInfracao)));
+                .ForMember(dest => dest.Infracoes, opt => opt.MapFrom(src => src.ListagemEnquadramentoInfracao.Select(li => li.EnquadramentoInfracao)))
+                .ForMember(dest => dest.Condutor, opt => opt.MapFrom(src => src.Condutor));
 
             CreateMap<LacreModel, LacreDTO>()
                 .ForMember(dest => dest.IdentificadorLacre, from => from.MapFrom(src => src.LacreId));
@@ -273,6 +274,9 @@ namespace WebZi.Plataform.Data.Services
             .ForMember(dest => dest.IdentificadorTipoRegistro,
                    opt => opt.MapFrom(src => src.IdentificadorTipoRegistro));
 
+
+            CreateMap<CondutorModel, CondutorDTO>()
+                .ForMember(dest => dest.Grv, opt => opt.Ignore());
             // ViewModel to Model
             CreateMap<CondutorParameters, CondutorModel>()
                 .ForMember(dest => dest.Email, from => from.MapFrom(s => s.Email.ToLowerTrim()))
