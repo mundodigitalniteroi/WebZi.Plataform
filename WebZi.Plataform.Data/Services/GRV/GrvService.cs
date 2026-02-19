@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using WebZi.Plataform.CrossCutting.Contacts;
@@ -176,7 +177,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
                 UsuarioCadastroId = GrvPersistencia.IdentificadorUsuario,
 
-                NumeroFormularioGrv = GrvPersistencia.NumeroProcesso.Trim(),
+                NumeroFormularioGrv = GrvPersistencia.NumeroProcesso,
 
                 FaturamentoProdutoId = GrvPersistencia.CodigoProduto,
 
@@ -249,6 +250,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 .GetById(GrvPersistencia.Condutor.IdentificadorAssinaturaCondutor);
 
             Grv.Condutor.StatusAssinaturaCondutor = AssinaturaCondutor.ValorCadastro;
+
+            var (numeroFormulario, mensagemNumero) = CreateNumeroProcesso(GrvPersistencia.IdentificadorCliente, GrvPersistencia.NumeroProcesso);
 
             if (!string.IsNullOrWhiteSpace(GrvPersistencia.EnderecoLocalizacaoVeiculoCEP))
             {
@@ -340,9 +343,17 @@ namespace WebZi.Plataform.Domain.Services.GRV
             ResultadoCadastroGrvDTO ResultView = new();
 
             using (IDbContextTransaction transaction = _context.Database.BeginTransaction())
-            {
+                {
                 try
                 {
+                    if (mensagemNumero != null)
+                    {
+                        transaction.Rollback();
+                        ResultView.Mensagem = mensagemNumero;
+                        return ResultView;
+                    }
+                    Grv.NumeroFormularioGrv = numeroFormulario;
+
                     _context.Grv.Add(Grv);
 
                     _context.SaveChanges();
@@ -388,7 +399,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                     .SendFiles(BucketNomeTabelaOrigemEnum.FotoVeiculoGRV, Grv.GrvId, Grv.UsuarioCadastroId, GrvPersistencia.ListagemFoto);
             }
 
-            if (GrvPersistencia.ImagemAssinaturaAgente != null)
+        if (GrvPersistencia.ImagemAssinaturaAgente != null)
             {
                 new BucketService(_context, _httpClientFactory)
                     .SendFile(BucketNomeTabelaOrigemEnum.AssinaturaAgente, Grv.GrvId, Grv.UsuarioCadastroId, GrvPersistencia.ImagemAssinaturaAgente);
@@ -405,6 +416,39 @@ namespace WebZi.Plataform.Domain.Services.GRV
             return ResultView;
         }
 
+        private (string numeroProcesso, MensagemDTO Mensagem) CreateNumeroProcesso(int ClienteId, string NumeroProcesso)
+        {
+            const int maxLength = 14;
+
+            if (!string.IsNullOrWhiteSpace(NumeroProcesso))
+            {
+                string numero = NumeroProcesso.Trim();
+                if (numero.Length > maxLength)
+                    return (null, MensagemViewHelper.SetBadRequest(MensagemPadraoEnum.NumeroProcessoInvalido));
+                if (!NumberHelper.IsNumber(numero) || Convert.ToInt64(numero) <= 0)
+                    return (null, MensagemViewHelper.SetBadRequest(MensagemPadraoEnum.NumeroProcessoInvalido));
+
+                bool exists = _context.Grv.Any(x => x.NumeroFormularioGrv == numero);
+                if (exists)
+                    return (null, MensagemViewHelper.SetBadRequest("Número do processo já utilizado anteriormente."));
+
+                return (numero, null);
+            }
+
+            ClienteModel client = _context.Cliente.AsTracking().FirstOrDefault(x => x.ClienteId == ClienteId);
+            if (client == null)
+                return (null, MensagemViewHelper.SetBadRequest(MensagemPadraoEnum.NaoEncontradoCliente));
+
+            client.NumeroFormularioGrvSequencia += 1;
+            string numeroFormulario = StringHelper.AddCharToLeft(ClienteId.ToString(), '0', 2)
+                + DateTime.Now.Year.ToString().Substring(2)
+                + StringHelper.AddCharToLeft(client.NumeroFormularioGrvSequencia.ToString(), '0', 5);
+
+            if (numeroFormulario.Length > maxLength)
+                return (null, MensagemViewHelper.SetInternalServerError(new InvalidOperationException("Número do formulário excedeu o tamanho máximo.")));
+
+            return (numeroFormulario, null);
+        }
         private void CreateDocumentosCondutor(int GrvId, int UsuarioId, List<CondutorDocumentoParameters> ListagemDocumentoCondutor)
         {
             List<BucketListaCadastroModel> Files = new();
@@ -929,6 +973,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 .Include(x => x.Cor)
                 .Include(x => x.MotivoApreensao)
                 .Include(x => x.TipoVeiculo)
+                .Include(x => x.Condutor)
                 .Include(x => x.AutoridadeResponsavel)
                 .Include(x => x.ListagemEnquadramentoInfracao)
                     .ThenInclude(x => x.EnquadramentoInfracao)
@@ -1831,14 +1876,14 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 erros.Add("Informe o Código de Produto");
             }
 
-            if (string.IsNullOrWhiteSpace(GrvPersistencia.NumeroProcesso))
-            {
-                erros.Add(MensagemPadraoEnum.InformeNumeroProcesso);
-            }
-            else if (!NumberHelper.IsNumber(GrvPersistencia.NumeroProcesso) || Convert.ToInt64(GrvPersistencia.NumeroProcesso) <= 0)
-            {
-                erros.Add(MensagemPadraoEnum.NumeroProcessoInvalido);
-            }
+            //if (string.IsNullOrWhiteSpace(GrvPersistencia.NumeroProcesso))
+            //{
+            //    erros.Add(MensagemPadraoEnum.InformeNumeroProcesso);
+            //}
+            //else if (!NumberHelper.IsNumber(GrvPersistencia.NumeroProcesso) || Convert.ToInt64(GrvPersistencia.NumeroProcesso) <= 0)
+            //{
+            //    erros.Add(MensagemPadraoEnum.NumeroProcessoInvalido);
+            //}
             if(GrvPersistencia.FlagVeiculoNaoOstentaPlaca == "S") 
             {
                 if (!string.IsNullOrWhiteSpace(GrvPersistencia.Placa) || !string.IsNullOrWhiteSpace(GrvPersistencia.Chassi))

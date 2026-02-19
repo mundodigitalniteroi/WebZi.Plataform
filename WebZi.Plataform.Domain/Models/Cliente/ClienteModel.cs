@@ -94,6 +94,7 @@ namespace WebZi.Plataform.Domain.Models.Cliente
         public string PixChave { get; set; }
 
         public string FlagPossuiPixDinamico { get; set; } = "N";
+        public int? NumeroFormularioGrvSequencia { get; set; }
 
         public virtual AgenciaBancariaModel AgenciaBancaria { get; set; }
 
