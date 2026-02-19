@@ -209,7 +209,9 @@ namespace WebZi.Plataform.Data.Mappings.Cliente
             builder.Property(e => e.PixChave)
                 .HasMaxLength(100)
                 .IsUnicode(false);
-
+            builder.Property(x => x.NumeroFormularioGrvSequencia)
+                .IsUnicode(false)
+                .HasColumnName("numero_formulario_grv_sequencia");
             builder.HasOne(d => d.Endereco).WithMany(p => p.Clientes)
                 .HasForeignKey(d => d.CEPId)
                 .OnDelete(DeleteBehavior.NoAction);
