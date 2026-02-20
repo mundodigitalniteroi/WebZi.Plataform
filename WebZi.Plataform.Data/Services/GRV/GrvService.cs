@@ -1913,7 +1913,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                     erros.Add("Chassi inválido");
                 }
             }
-            else
+            else if(GrvPersistencia.FlagVeiculoNaoOstentaPlaca != "S")
             {
                 if (string.IsNullOrWhiteSpace(GrvPersistencia.Placa))
                 {
@@ -2132,22 +2132,25 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 ResultView.AvisosImpeditivos.Add("Tipo do Veículo inexistente");
             }
 
-            ReboquistaModel Reboquista = await _context.Reboquista
-                .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.ReboquistaId == GrvPersistencia.IdentificadorReboquista);
-
-            if (Reboquista == null)
+            if(GrvPersistencia.FlagVeiculoNaoUsouReboque.Equals("N", StringComparison.CurrentCultureIgnoreCase))
             {
-                ResultView.AvisosImpeditivos.Add("Reboquista inexistente");
-            }
+                ReboquistaModel Reboquista = await _context.Reboquista
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(x => x.ReboquistaId == GrvPersistencia.IdentificadorReboquista);
 
-            ReboqueModel Reboque = await _context.Reboque
-                .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.ReboqueId == GrvPersistencia.IdentificadorReboque);
+                if (Reboquista == null)
+                {
+                    ResultView.AvisosImpeditivos.Add("Reboquista inexistente");
+                }
 
-            if (Reboque == null)
-            {
-                ResultView.AvisosImpeditivos.Add("Reboque inexistente");
+                ReboqueModel Reboque = await _context.Reboque
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(x => x.ReboqueId == GrvPersistencia.IdentificadorReboque);
+
+                if (Reboque == null)
+                {
+                    ResultView.AvisosImpeditivos.Add("Reboque inexistente");
+                }
             }
 
             AutoridadeResponsavelModel AutoridadeResponsavel = await _context.AutoridadeResponsavel

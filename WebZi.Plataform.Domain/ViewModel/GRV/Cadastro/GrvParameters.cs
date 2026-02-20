@@ -14,9 +14,9 @@ namespace WebZi.Plataform.Domain.ViewModel.GRV.Cadastro
         [Required(ErrorMessage = "Propriedade obrigatória")]
         public byte IdentificadorTipoVeiculo { get; set; }
 
-        public int IdentificadorReboquista { get; set; }
+        public int? IdentificadorReboquista { get; set; }
 
-        public int IdentificadorReboque { get; set; }
+        public int? IdentificadorReboque { get; set; }
 
         public int IdentificadorAutoridadeResponsavel { get; set; }
 
