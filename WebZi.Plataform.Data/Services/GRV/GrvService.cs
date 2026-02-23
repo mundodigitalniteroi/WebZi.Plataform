@@ -1589,7 +1589,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
                     DataHoraRemocao = Grv.DataHoraRemocao,
 
-                    DataHoraGuarda = Grv.DataHoraGuarda.Value,
+                    DataHoraGuarda = Grv.DataHoraGuarda.GetValueOrDefault(),
 
                     Cliente = Grv.Cliente.Nome,
 
