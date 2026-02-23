@@ -274,6 +274,7 @@ namespace WebZi.Plataform.Data.Services
             .ForMember(dest => dest.IdentificadorTipoRegistro,
                    opt => opt.MapFrom(src => src.IdentificadorTipoRegistro));
 
+            CreateMap<AutoridadesDivisoesModel, AutoridadesDivisoesDTO>();
 
             CreateMap<CondutorModel, CondutorDTO>()
                 .ForMember(dest => dest.Grv, opt => opt.Ignore());

@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using WebZi.Plataform.Data.Services.Atendimento;
+using WebZi.Plataform.Data.Services.AutoridadeDivisoes;
 using WebZi.Plataform.Data.Services.Banco;
 using WebZi.Plataform.Data.Services.Banco.PIX;
 using WebZi.Plataform.Data.Services.Cliente;
@@ -92,6 +93,7 @@ namespace WebZi.Plataform.Data.Services
 
             services.AddScoped<VistoriaService>();
             services.AddScoped<ClienteDepositoService>();
+            services.AddScoped<AutoridadeDivisoesService>();
             #region WebServices
             services.AddScoped<DetranAlagoasService>();
 

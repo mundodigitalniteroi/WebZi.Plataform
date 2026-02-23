@@ -22,6 +22,8 @@ using WebZi.Plataform.Domain.DTO.Veiculo;
 using WebZi.Plataform.Domain.DTO.Vistoria;
 using WebZi.Plataform.Domain.Services.GRV;
 using WebZi.Plataform.Data.Services.ClienteDeposito;
+using WebZi.Plataform.Data.Services;
+using WebZi.Plataform.Data.Services.AutoridadeDivisoes;
 
 namespace WebZi.Plataform.API.Controllers
 {
@@ -841,6 +843,33 @@ namespace WebZi.Plataform.API.Controllers
             }
             catch(Exception ex) { 
                 ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
+
+        [HttpGet("ListarAutoridadesDivisoes")]
+        // TODO: [Authorize]
+        public async Task<ActionResult<AutoridadesDivisoesListDTO>> ListarAutoridadesDivisoes()
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            AutoridadesDivisoesListDTO ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<AutoridadeDivisoesService>()
+                    .ListAutoridadeDivisoesAsync();
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
         }

@@ -145,7 +145,7 @@ namespace WebZi.Plataform.Data.Database
         public DbSet<ClienteDepositoTipoVeiculoModel> ClienteDepositoTipoVeiculo { get; set; }
 
         public DbSet<ClienteRegraModel> ClienteRegra { get; set; }
-
+        public DbSet<AutoridadesDivisoesModel> AutoridadesDivisoes { get; set; }
         public DbSet<ClienteRegraTipoModel> ClienteRegraTipo { get; set; }
 
         public DbSet<CondutorModel> Condutor { get; set; }
