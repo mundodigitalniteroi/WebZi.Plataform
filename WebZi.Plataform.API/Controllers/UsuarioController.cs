@@ -74,6 +74,32 @@ namespace WebZi.Plataform.API.Controllers
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
         }
+        [HttpGet("SelecionarPorLoginOuUsername")]
+        // TODO: [Authorize]
+        public async Task<ActionResult<UsuarioPorNomeOuLoginListDTO>> SelecionarPorLoginOuUsername(string Login, string Username)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            UsuarioPorNomeOuLoginListDTO ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<UsuarioService>()
+                    .GetByUsernameOrLogin(Login, Username);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
 
         [HttpPost("Login")]
         [AllowAnonymous]

@@ -40,21 +40,21 @@ namespace WebZi.Plataform.Domain.Services.Usuario
             _configuration = configuration;
         }
 
-        private async Task<UsuarioDTO> GetAsync(int UsuarioId, string Username, string Password)
+        private async Task<UsuarioDTO> GetAsync(int UsuarioId, string Login, string Password)
         {
             UsuarioDTO ResultView = new();
 
-            Username = Username.ToUpper().Trim();
+            Login = Login.ToUpper().Trim();
 
             Password = Password.ToUpper().Trim();
 
-            if (UsuarioId <= 0 && string.IsNullOrWhiteSpace(Username))
+            if (UsuarioId <= 0 && string.IsNullOrWhiteSpace(Login))
             {
                 ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Informe o Identificador do Usuário ou o Login");
 
                 return ResultView;
             }
-            else if (string.IsNullOrWhiteSpace(Username) && !string.IsNullOrWhiteSpace(Password))
+            else if (string.IsNullOrWhiteSpace(Login) && !string.IsNullOrWhiteSpace(Password))
             {
                 ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Ao informar a Senha do Usuário, é preciso informar o Login");
 
@@ -79,7 +79,7 @@ namespace WebZi.Plataform.Domain.Services.Usuario
                 {
                     new SqlParameter("@login", SqlDbType.VarChar)
                     {
-                        Value = Username
+                        Value = Login
                     },
 
                     new SqlParameter("@senha", SqlDbType.VarChar)
@@ -105,7 +105,7 @@ namespace WebZi.Plataform.Domain.Services.Usuario
 
             UsuarioModel result = await _context.Usuario
                 .Where(x => (UsuarioId > 0 ? x.UsuarioId == UsuarioId : true) &&
-                             !string.IsNullOrWhiteSpace(Username) ? x.Login == Username : true)
+                             !string.IsNullOrWhiteSpace(Login) ? x.Login == Login : true)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
 
@@ -150,6 +150,38 @@ namespace WebZi.Plataform.Domain.Services.Usuario
             }
         }
 
+        public async Task<UsuarioPorNomeOuLoginListDTO> GetByUsernameOrLogin(string login, string username)
+        {
+            UsuarioPorNomeOuLoginListDTO result = new();
+
+            if (string.IsNullOrWhiteSpace(login) && string.IsNullOrWhiteSpace(username))
+            {
+                result.Mensagem = MensagemViewHelper
+                    .SetBadRequest("Informe o Login ou o Username");
+                return result;
+            }
+
+            login = login?.ToUpper().Trim();
+            username = username?.ToUpper().Trim();
+
+
+            var usuarios = await _context.Usuario
+                .Include(p => p.Pessoa)
+                .AsNoTracking()
+                .Where(x => 
+                      (!string.IsNullOrWhiteSpace(login) && x.Login == login) ||
+                      (!string.IsNullOrWhiteSpace(username) && x.Pessoa.Nome == username))
+                .ToListAsync();
+
+            if(usuarios is null || usuarios.Count <= 0)
+            {
+                result.Mensagem = MensagemViewHelper.SetNotFound("Nenhum usuário encontrado");
+                return result;
+            }
+            result.Listagem = _mapper.Map<List<UsuarioPorNomeOuLoginDTO>>(usuarios);
+            result.Mensagem = MensagemViewHelper.SetFound(usuarios.Count);
+            return result;
+        }
         public async Task<UsuarioDTO> GetByIdAsync(int UsuarioId)
         {
             return await GetAsync(UsuarioId, string.Empty, string.Empty);

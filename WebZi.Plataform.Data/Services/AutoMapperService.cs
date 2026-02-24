@@ -240,6 +240,12 @@ namespace WebZi.Plataform.Data.Services
             CreateMap<UsuarioModel, UsuarioDTO>()
                 .ForMember(dest => dest.IdentificadorUsuario, from => from.MapFrom(src => src.UsuarioId))
                 .ForMember(dest => dest.Login, from => from.MapFrom(src => src.Login));
+            CreateMap<UsuarioModel, UsuarioPorNomeOuLoginDTO>()
+                .ForMember(dest => dest.IdentificadorUsuario, from => from.MapFrom(src => src.UsuarioId))
+                .ForMember(dest => dest.Login, from => from.MapFrom(src => src.Login))
+                .ForMember(dest => dest.Nome, from => from.MapFrom(src => src.Pessoa.Nome))
+                .ForMember(dest => dest.DataUltimoAcesso, from => from.MapFrom(src => src.DataUltimoAcesso))
+                .ForMember(dest => dest.FlagAtivo, from => from.MapFrom(src => src.FlagAtivo));
 
             CreateMap<VistoriaSituacaoChassiModel, VistoriaSituacaoChassiDTO>()
                 .ForMember(dest => dest.IdentificadorSituacaoChassi, from => from.MapFrom(src => src.VistoriaSituacaoChassiId));
