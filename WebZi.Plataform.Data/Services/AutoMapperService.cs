@@ -31,6 +31,7 @@ using WebZi.Plataform.Domain.Models.Documento;
 using WebZi.Plataform.Domain.Models.Empresa;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.GRV;
+using WebZi.Plataform.Domain.Models.GRV.DRFA;
 using WebZi.Plataform.Domain.Models.Liberacao;
 using WebZi.Plataform.Domain.Models.Pessoa.Documento;
 using WebZi.Plataform.Domain.Models.Servico;
@@ -280,7 +281,7 @@ namespace WebZi.Plataform.Data.Services
             .ForMember(dest => dest.IdentificadorTipoRegistro,
                    opt => opt.MapFrom(src => src.IdentificadorTipoRegistro));
 
-            CreateMap<AutoridadesDivisoesModel, AutoridadesDivisoesDTO>();
+            CreateMap<AutoridadeDivisaoModel, AutoridadesDivisoesDTO>();
 
             CreateMap<CondutorModel, CondutorDTO>()
                 .ForMember(dest => dest.Grv, opt => opt.Ignore());

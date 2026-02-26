@@ -15,6 +15,7 @@ using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Cliente;
 using WebZi.Plataform.Data.Services.Deposito;
+using WebZi.Plataform.Data.Services.DRFA;
 using WebZi.Plataform.Data.Services.Faturamento;
 using WebZi.Plataform.Data.Services.Localizacao;
 using WebZi.Plataform.Data.Services.Sistema;
@@ -153,7 +154,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             return MensagemViewHelper.SetCreateSuccess();
         }
 
-        public ResultadoCadastroGrvDTO CreateGrv(GrvParameters GrvPersistencia)
+        public async Task<ResultadoCadastroGrvDTO> CreateGrv(GrvParameters GrvPersistencia)
         {
             GrvModel Grv = new()
             {
@@ -251,7 +252,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             Grv.Condutor.StatusAssinaturaCondutor = AssinaturaCondutor.ValorCadastro;
 
-            var (numeroFormulario, mensagemNumero) = CreateNumeroProcesso(GrvPersistencia.IdentificadorCliente, GrvPersistencia.NumeroProcesso);
+            var (numeroFormulario, mensagem) = CreateNumeroProcesso(GrvPersistencia.IdentificadorCliente, GrvPersistencia.NumeroProcesso);
 
             if (!string.IsNullOrWhiteSpace(GrvPersistencia.EnderecoLocalizacaoVeiculoCEP))
             {
@@ -343,13 +344,13 @@ namespace WebZi.Plataform.Domain.Services.GRV
             ResultadoCadastroGrvDTO ResultView = new();
 
             using (IDbContextTransaction transaction = _context.Database.BeginTransaction())
-                {
+            {
                 try
                 {
-                    if (mensagemNumero != null)
+                    if (mensagem != null)
                     {
                         transaction.Rollback();
-                        ResultView.Mensagem = mensagemNumero;
+                        ResultView.Mensagem = mensagem;
                         return ResultView;
                     }
                     Grv.NumeroFormularioGrv = numeroFormulario;
@@ -357,6 +358,19 @@ namespace WebZi.Plataform.Domain.Services.GRV
                     _context.Grv.Add(Grv);
 
                     _context.SaveChanges();
+
+                    if (GrvPersistencia.IdentificadorMotivoApreensao == 4)
+                    {
+                        var result = await _provider
+                            .GetService<DRFAService>()
+                            .CreateDRFAGrv(Grv.GrvId, GrvPersistencia);
+                        if (result.Erros?.Count > 0)
+                        {
+                            transaction.Rollback();
+                            ResultView.Mensagem = result;
+                            return ResultView;
+                        }
+                    }
 
                     if (ClienteDeposito.Cliente.FlagClientePossuiCodigoIdentificacao == "S")
                     {
@@ -398,8 +412,17 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 new BucketService(_context, _httpClientFactory)
                     .SendFiles(BucketNomeTabelaOrigemEnum.FotoVeiculoGRV, Grv.GrvId, Grv.UsuarioCadastroId, GrvPersistencia.ListagemFoto);
             }
-
-        if (GrvPersistencia.ImagemAssinaturaAgente != null)
+            if (GrvPersistencia.DRFA?.ArquivoDoRegistroDoRouboFurto is not null)
+            {
+                new BucketService(_context, _httpClientFactory)
+                    .SendFile(BucketNomeTabelaOrigemEnum.DRFAArquivoDeRouboFurto, Grv.GrvId, Grv.UsuarioCadastroId, GrvPersistencia.DRFA?.ArquivoDoRegistroDoRouboFurto);
+            }
+            if (GrvPersistencia.DRFA.RegistroRecuperacao?.ArquivoDeRecuperacao is not null)
+            {
+                new BucketService(_context, _httpClientFactory)
+                    .SendFile(BucketNomeTabelaOrigemEnum.DRFAArquivoRegistroRecuperacao, Grv.GrvId, Grv.UsuarioCadastroId, GrvPersistencia.DRFA.RegistroRecuperacao.ArquivoDeRecuperacao);
+            }
+            if (GrvPersistencia.ImagemAssinaturaAgente != null)
             {
                 new BucketService(_context, _httpClientFactory)
                     .SendFile(BucketNomeTabelaOrigemEnum.AssinaturaAgente, Grv.GrvId, Grv.UsuarioCadastroId, GrvPersistencia.ImagemAssinaturaAgente);
@@ -1815,7 +1838,18 @@ namespace WebZi.Plataform.Domain.Services.GRV
             {
                 erros.Add(MensagemPadraoEnum.IdentificadorTipoVeiculoInvalido);
             }
-
+            if(GrvPersistencia.IdentificadorMotivoApreensao == 4 && GrvPersistencia.DRFA is null)
+            {
+                erros.Add("Quando o motivo da apreensão for ‘Inquérito Policial’, o preenchimento do DRFA é obrigatório.");
+            }
+            if(GrvPersistencia.DRFA.FlagRegistroRecuperacao == 'S' && GrvPersistencia.DRFA.RegistroRecuperacao is null)
+            {
+                erros.Add("Quando o Registro de Recuperação for 'Sim', o preenchimento do Registro de Recuperação é obrigatório.");
+            }
+            if (GrvPersistencia.DRFA.FlagAgendamento == 'S' && GrvPersistencia.DRFA.AgendamentorRetirada is null)
+            {
+                erros.Add("Quando o Agedamento de Recuperção for 'Sim', o preenchimento do Agendamento Recuperação é obrigatório.");
+            }
             if (GrvPersistencia.FlagVeiculoNaoUsouReboque == "N")
             {
                 if (GrvPersistencia.IdentificadorReboquista <= 0)
