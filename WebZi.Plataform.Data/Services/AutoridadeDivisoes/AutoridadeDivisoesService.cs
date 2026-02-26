@@ -27,7 +27,7 @@ namespace WebZi.Plataform.Data.Services.AutoridadeDivisoes
 
             AutoridadesDivisoesListDTO ResultView = new();
             #region Consulta
-                List<AutoridadesDivisoesModel> results = await _context.AutoridadesDivisoes.AsNoTracking().ToListAsync();
+                List<AutoridadeDivisaoModel> results = await _context.AutoridadesDivisoes.AsNoTracking().ToListAsync();
             #endregion
 
             if (results?.Count() > 0)
