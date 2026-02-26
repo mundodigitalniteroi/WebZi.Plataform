@@ -59,7 +59,7 @@ namespace WebZi.Plataform.API.Controllers
 
             try
             {
-                ResultView = _provider
+                ResultView = await _provider
                     .GetService<GrvService>()
                     .CreateGrv(Grv);
 
