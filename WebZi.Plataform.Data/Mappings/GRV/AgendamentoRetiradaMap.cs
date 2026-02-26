@@ -13,14 +13,16 @@ namespace WebZi.Plataform.Data.Mappings.GRV
                  .HasKey(x => x.GrvDRFAAgendamentoRetiradaId);
 
             builder.Property(e => e.GrvDRFAAgendamentoRetiradaId)
-                .HasColumnName("id_grv_drfa_agendamento_retirada")
+            .HasColumnName("id_grv_drfa_agendamento_retirada")
                 .ValueGeneratedOnAdd();
 
-            builder.Property(e => e.GrvDRFAId)
-                .HasColumnName("id_grv_drfa");
+            builder.Property(e => e.DRFAId)
+                .HasColumnName("id_grv_drfa")
+                .IsRequired();
 
             builder.Property(e => e.UsuarioRegistroAgendamentoId)
-                .HasColumnName("id_usuario_registro_agendamento");
+                .HasColumnName("id_usuario_registro_agendamento")
+                .IsRequired();
 
             builder.Property(e => e.NomeResponsavelAgendamento)
                 .HasColumnName("nome_responsavel_agendamento")
@@ -38,6 +40,11 @@ namespace WebZi.Plataform.Data.Mappings.GRV
             builder.Property(e => e.DataAgendamento)
                 .HasColumnName("data_agendamento")
                 .HasColumnType("smalldatetime")
+                .IsRequired();
+
+            builder.HasOne(e => e.DRFA)
+                .WithMany()
+                .HasForeignKey(e => e.DRFAId)
                 .IsRequired();
         }
     }

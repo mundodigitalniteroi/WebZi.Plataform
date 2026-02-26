@@ -5,7 +5,7 @@ namespace WebZi.Plataform.Domain.Models.GRV.DRFA
     public class AgendamentoRetiradaModel
     {
         public int GrvDRFAAgendamentoRetiradaId { get; set; }
-        public int GrvDRFAId { get; set; }
+        public int DRFAId { get; set; }
         public int UsuarioRegistroAgendamentoId { get; set; }
         public string NomeResponsavelAgendamento { get; set; }
         public string CpfResponsavelAgendamento { get; set; }

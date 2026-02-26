@@ -1838,18 +1838,6 @@ namespace WebZi.Plataform.Domain.Services.GRV
             {
                 erros.Add(MensagemPadraoEnum.IdentificadorTipoVeiculoInvalido);
             }
-            if(GrvPersistencia.IdentificadorMotivoApreensao == 4 && GrvPersistencia.DRFA is null)
-            {
-                erros.Add("Quando o motivo da apreensão for ‘Inquérito Policial’, o preenchimento do DRFA é obrigatório.");
-            }
-            if(GrvPersistencia.DRFA.FlagRegistroRecuperacao == 'S' && GrvPersistencia.DRFA.RegistroRecuperacao is null)
-            {
-                erros.Add("Quando o Registro de Recuperação for 'Sim', o preenchimento do Registro de Recuperação é obrigatório.");
-            }
-            if (GrvPersistencia.DRFA.FlagAgendamento == 'S' && GrvPersistencia.DRFA.AgendamentorRetirada is null)
-            {
-                erros.Add("Quando o Agedamento de Recuperção for 'Sim', o preenchimento do Agendamento Recuperação é obrigatório.");
-            }
             if (GrvPersistencia.FlagVeiculoNaoUsouReboque == "N")
             {
                 if (GrvPersistencia.IdentificadorReboquista <= 0)

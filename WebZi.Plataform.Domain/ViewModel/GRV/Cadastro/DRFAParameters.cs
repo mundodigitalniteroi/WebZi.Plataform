@@ -51,6 +51,6 @@ namespace WebZi.Plataform.Domain.ViewModel.GRV.Cadastro
 
         public RegistroRecuperacaoParameters? RegistroRecuperacao { get; set; }
 
-        public AgendamentoRetiradaParameters? AgendamentorRetirada { get; set; }
+        public AgendamentoRetiradaParameters? AgendamentoRetirada { get; set; }
     }
 }

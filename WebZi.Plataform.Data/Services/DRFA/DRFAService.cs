@@ -10,6 +10,7 @@ using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.GRV.DRFA;
 using WebZi.Plataform.Domain.Models.WebServices.DetranAlagoas.ConsultaVeiculoApreensao.Response;
 using WebZi.Plataform.Domain.ViewModel.GRV.Cadastro;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace WebZi.Plataform.Data.Services.DRFA
 {
@@ -76,13 +77,13 @@ namespace WebZi.Plataform.Data.Services.DRFA
                 }
                 if (drfa.FlagAgendamento == 'S')
                 {
-                    if (drfa.AgendamentorRetirada == null)
+                    if (drfa.AgendamentoRetirada == null)
                     {
                         ResultView = MensagemViewHelper.SetBadRequest("Preencha os dados de Agendamento de Retirada.");
                         return ResultView;
                     }
 
-                    var agendamentoRecuperacao = CreateAgendamentoRecuperacao(result.GrvDrfaId, drfa.AgendamentorRetirada);
+                    var agendamentoRecuperacao = CreateAgendamentoRecuperacao(result.GrvDrfaId, drfa.AgendamentoRetirada);
 
                     if (agendamentoRecuperacao?.Erros != null && agendamentoRecuperacao.Erros.Count > 0)
                     {
@@ -130,7 +131,7 @@ namespace WebZi.Plataform.Data.Services.DRFA
             {
                 AgendamentoRetiradaModel result = new()
                 {
-                    GrvDRFAId = DRFAId,
+                    DRFAId = DRFAId,
                     UsuarioRegistroAgendamentoId = parameters.UsuarioId,
                     NomeResponsavelAgendamento = parameters.NomeResponsavel.ToNullIfEmpty(),
                     CpfResponsavelAgendamento = parameters.CPF.Trim().ToNullIfEmpty(),
