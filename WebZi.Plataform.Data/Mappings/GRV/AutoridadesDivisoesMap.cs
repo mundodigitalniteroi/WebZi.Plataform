@@ -4,9 +4,9 @@ using WebZi.Plataform.Domain.Models.GRV;
 
 namespace WebZi.Plataform.Data.Mappings.GRV
 {
-    public class AutoridadesDivisoesMap : IEntityTypeConfiguration<AutoridadesDivisoesModel>
+    public class AutoridadesDivisoesMap : IEntityTypeConfiguration<AutoridadeDivisaoModel>
     {
-        public void Configure(EntityTypeBuilder<AutoridadesDivisoesModel> builder)
+        public void Configure(EntityTypeBuilder<AutoridadeDivisaoModel> builder)
         {
             builder.ToTable("tb_glo_doc_autoridades_divisoes", "dbo")
                 .HasKey(x => x.AutoridadeDivisaoId);

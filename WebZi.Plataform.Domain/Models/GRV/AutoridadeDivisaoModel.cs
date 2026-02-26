@@ -1,6 +1,6 @@
 ﻿namespace WebZi.Plataform.Domain.Models.GRV
 {
-    public class AutoridadesDivisoesModel
+    public class AutoridadeDivisaoModel
     {
         public byte AutoridadeDivisaoId { get; set; }
 

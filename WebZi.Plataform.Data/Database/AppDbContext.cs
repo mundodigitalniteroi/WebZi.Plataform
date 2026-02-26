@@ -17,6 +17,7 @@ using WebZi.Plataform.Domain.Models.Empresa;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.Governo;
 using WebZi.Plataform.Domain.Models.GRV;
+using WebZi.Plataform.Domain.Models.GRV.DRFA;
 using WebZi.Plataform.Domain.Models.Leilao;
 using WebZi.Plataform.Domain.Models.Liberacao;
 using WebZi.Plataform.Domain.Models.Localizacao;
@@ -145,7 +146,7 @@ namespace WebZi.Plataform.Data.Database
         public DbSet<ClienteDepositoTipoVeiculoModel> ClienteDepositoTipoVeiculo { get; set; }
 
         public DbSet<ClienteRegraModel> ClienteRegra { get; set; }
-        public DbSet<AutoridadesDivisoesModel> AutoridadesDivisoes { get; set; }
+        public DbSet<AutoridadeDivisaoModel> AutoridadesDivisoes { get; set; }
         public DbSet<ClienteRegraTipoModel> ClienteRegraTipo { get; set; }
 
         public DbSet<CondutorModel> Condutor { get; set; }
@@ -209,6 +210,11 @@ namespace WebZi.Plataform.Data.Database
         public DbSet<UsuarioPermissaoModel> UsuarioPermissao { get; set; }
 
         public DbSet<WebServiceUrlModel> WebServiceUrl { get; set; }
+
+        public DbSet<DRFAModel> DRFA { get; set; }
+        public DbSet<AgendamentoRetiradaModel> DRFAAgendamentoRetirada { get; set; }
+        public DbSet<RegistroRecuperacaoModel> DRFAArquivoRegistro { get; set; }
+
         #endregion Depósito Público
 
         #region Endereço
