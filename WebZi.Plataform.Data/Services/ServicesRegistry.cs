@@ -7,6 +7,7 @@ using WebZi.Plataform.Data.Services.Cliente;
 using WebZi.Plataform.Data.Services.ClienteDeposito;
 using WebZi.Plataform.Data.Services.Deposito;
 using WebZi.Plataform.Data.Services.Documento;
+using WebZi.Plataform.Data.Services.DRFA;
 using WebZi.Plataform.Data.Services.Empresa;
 using WebZi.Plataform.Data.Services.Faturamento;
 using WebZi.Plataform.Data.Services.GGV;
@@ -94,6 +95,7 @@ namespace WebZi.Plataform.Data.Services
             services.AddScoped<VistoriaService>();
             services.AddScoped<ClienteDepositoService>();
             services.AddScoped<AutoridadeDivisoesService>();
+            services.AddScoped<DRFAService>();
             #region WebServices
             services.AddScoped<DetranAlagoasService>();
 
