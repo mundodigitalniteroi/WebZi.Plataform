@@ -12,6 +12,8 @@ using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.Services.GRV;
 using WebZi.Plataform.Domain.ViewModel.GRV.Cadastro;
 using WebZi.Plataform.Domain.ViewModel.GRV.Pesquisa;
+using WebZi.Plataform.Domain.DTO.DRFA;
+using WebZi.Plataform.Data.Services.DRFA;
 
 namespace WebZi.Plataform.API.Controllers
 {

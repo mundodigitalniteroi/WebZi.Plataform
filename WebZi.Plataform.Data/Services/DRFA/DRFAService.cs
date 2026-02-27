@@ -1,11 +1,14 @@
-﻿using AutoMapper;
+using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Formats.Asn1;
 using WebZi.Plataform.CrossCutting.Strings;
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
+using WebZi.Plataform.Domain.DTO.DRFA;
 using WebZi.Plataform.Domain.DTO.Sistema;
+using WebZi.Plataform.Domain.DTO.Usuario;
 using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.GRV.DRFA;
 using WebZi.Plataform.Domain.Models.WebServices.DetranAlagoas.ConsultaVeiculoApreensao.Response;
@@ -146,6 +149,73 @@ namespace WebZi.Plataform.Data.Services.DRFA
                 ResultView = MensagemViewHelper.SetInternalServerError("Ocorreu um erro ao criar o agendamento de retirada.", ex);
                 return ResultView;
             }
+        }
+
+        public async Task<DRFADTO> GetDRFAAsync(int processoId)
+        {
+            DRFADTO ResultView = new();
+
+            DRFAModel drfa = await _context.DRFA
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.GrvId == processoId);
+            if (drfa == null)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound("DRFA não encontrado para o processo informado.");
+                return ResultView;
+            }
+            ResultView = _mapper.Map<DRFADTO>(drfa);
+
+            if (drfa.FlagRegistroRecuperacao == 'S')
+            {
+                RegistroRecuperacaoModel registro = await _context.DRFAArquivoRegistro
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(r => r.DRFAId == drfa.GrvDrfaId);
+
+                if (registro != null)
+                {
+                    ResultView.RegistroRecuperacao = new RegistroRecuperacaoDTO
+                    {
+                        IdentificadorRegistroRecuperacao = registro.GrvDRFARegistroRecuperacaoId,
+                        IdentificadorDRFA = registro.DRFAId,
+                        IdentificadorAutoridadeDivisao = registro.AutoridadeDivisaoId,
+                        NumeroRegistroRecuperacao = registro.NumeroRegistroRecuperacao,
+                        MatriculaAgente = registro.MatriculaAgente,
+                        NomeAgente = registro.NomeAgente,
+                        DataRegistroRecuperacao = registro.DataRegistroRecuperacao.ToString("yyyy-MM-dd HH:mm:ss")
+                    };
+                }
+            }
+
+            if (drfa.FlagRegistroAgendado == 'S')
+            {
+                AgendamentoRetiradaModel agendamento = await _context.DRFAAgendamentoRetirada
+                    .AsNoTracking()
+                    .Include(a => a.UsuarioRegistroAgendamento)
+                    .FirstOrDefaultAsync(a => a.DRFAId == drfa.GrvDrfaId);
+
+                if (agendamento != null)
+                {
+                    ResultView.AgendamentoRetirada = new AgendamentoRetiradaDTO
+                    {
+                        IdentificadorAgendamentoRetirada = agendamento.GrvDRFAAgendamentoRetiradaId,
+                        IdentificadorDRFA = agendamento.DRFAId,
+                        IdentificadorUsuarioRegistroAgendamento = agendamento.UsuarioRegistroAgendamentoId,
+                        NomeResponsavelAgendamento = agendamento.NomeResponsavelAgendamento,
+                        CpfResponsavelAgendamento = agendamento.CpfResponsavelAgendamento,
+                        DataRegistroAgendamento = agendamento.DataRegistroAgendamento.ToString("yyyy-MM-dd HH:mm:ss"),
+                        DataAgendamento = agendamento.DataAgendamento.ToString("yyyy-MM-dd HH:mm:ss"),
+                        UsuarioRegistroAgendamento = agendamento.UsuarioRegistroAgendamento == null
+                            ? null
+                            : new UsuarioDTO
+                            {
+                                IdentificadorUsuario = agendamento.UsuarioRegistroAgendamento.UsuarioId,
+                                Nome = agendamento.UsuarioRegistroAgendamento.Login
+                            }
+                    };
+                }
+            }
+
+            return ResultView;
         }
     }
 }

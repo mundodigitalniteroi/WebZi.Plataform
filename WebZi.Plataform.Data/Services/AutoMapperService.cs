@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using WebZi.Plataform.CrossCutting.Strings;
 using WebZi.Plataform.Domain.DTO.Atendimento;
 using WebZi.Plataform.Domain.DTO.Banco;
@@ -6,6 +6,7 @@ using WebZi.Plataform.Domain.DTO.Banco.PIX;
 using WebZi.Plataform.Domain.DTO.Cliente;
 using WebZi.Plataform.Domain.DTO.Deposito;
 using WebZi.Plataform.Domain.DTO.Documento;
+using WebZi.Plataform.Domain.DTO.DRFA;
 using WebZi.Plataform.Domain.DTO.Empresa;
 using WebZi.Plataform.Domain.DTO.Faturamento;
 using WebZi.Plataform.Domain.DTO.Faturamento.Cadastro;
@@ -150,6 +151,29 @@ namespace WebZi.Plataform.Data.Services
                 .ForMember(dest => dest.TipoDesconto, from => from.MapFrom(src => src.TipoDesconto))
                 .ForMember(dest => dest.ValorDesconto, from => from.MapFrom(src => src.ValorDesconto));
 
+            CreateMap<DRFAModel, DRFADTO>()
+                .ForMember(dest => dest.IdentificadorDRFA, opt => opt.MapFrom(src => src.GrvDrfaId))
+                .ForMember(dest => dest.IdentificadorProcesso, opt => opt.MapFrom(src => src.GrvId))
+                .ForMember(dest => dest.IndentificadorTipoRegistro, opt => opt.MapFrom(src => src.TipoRegistroId))
+                .ForMember(dest => dest.IdentificadorOrgaoEmissor, opt => opt.MapFrom(src => src.OrgaoEmissorId))
+                .ForMember(dest => dest.IdentificadorAutoridadeDivisao, opt => opt.MapFrom(src => src.AutoridadeDivisaoId))
+                .ForMember(dest => dest.IdentificadorUsuarioCadastrado, opt => opt.MapFrom(src => src.UsuarioCadastroId))
+                .ForMember(dest => dest.IdentificadorUsuarioAlteracao, opt => opt.MapFrom(src => src.UsuarioAlteracaoId ?? 0))
+                .ForMember(dest => dest.AutoridadeDivisaoComplemento, opt => opt.MapFrom(src => src.AutoridadeDivisaoComplemento))
+                .ForMember(dest => dest.NumeroRegistroRouboFurto, opt => opt.MapFrom(src => src.NumeroRegistroRouboFurto))
+                .ForMember(dest => dest.MatriculaAgente, opt => opt.MapFrom(src => src.RegistroRouboFurtoMatriculaAgente))
+                .ForMember(dest => dest.NomeAgente, opt => opt.MapFrom(src => src.RegistroRouboFurtoNomeAgente))
+                .ForMember(dest => dest.LocalRemocaoEnderecoCompleto, opt => opt.MapFrom(src => src.LocalRemocaoEnderecoCompleto))
+                .ForMember(dest => dest.LocalRemocaoReferencia, opt => opt.MapFrom(src => src.LocalRemocaoReferencia))
+                .ForMember(dest => dest.LocalRemocaoLatitude, opt => opt.MapFrom(src => src.LocalRemocaoLatitude))
+                .ForMember(dest => dest.LocalRemocaoLongitude, opt => opt.MapFrom(src => src.LocalRemocaoLongitude))
+                .ForMember(dest => dest.DataCadastro, opt => opt.MapFrom(src => src.DataCadastro.ToString("yyyy-MM-dd HH:mm:ss")))
+                .ForMember(dest => dest.DataAlteracao, opt => opt.MapFrom(src => src.DataAlteracao.HasValue ? src.DataAlteracao.Value.ToString("yyyy-MM-dd HH:mm:ss") : null))
+                .ForMember(dest => dest.FlagRegistroRecuperacao, opt => opt.MapFrom(src => src.FlagRegistroRecuperacao))
+                .ForMember(dest => dest.FlagRegistroAgendamento, opt => opt.MapFrom(src => src.FlagRegistroAgendado))
+                // Objetos filhos serão preenchidos manualmente na service
+                .ForMember(dest => dest.RegistroRecuperacao, opt => opt.Ignore())
+                .ForMember(dest => dest.AgendamentoRetirada, opt => opt.Ignore());
             CreateMap<FaturamentoComposicaoModel, FaturamentoCadastroComposicaoDTO>()
                 .ForMember(dest => dest.IdentificadorServico, from => from.MapFrom(src => src.FaturamentoComposicaoId))
                 .ForMember(dest => dest.IdentificadorFaturamentoServicoTipoVeiculo, from => from.MapFrom(src => src.FaturamentoServicoTipoVeiculoId))

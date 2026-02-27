@@ -4,7 +4,7 @@
     {
         public int GrvDRFARegistroRecuperacaoId { get; set; }
         public int DRFAId { get; set; }
-        public int AutoridadeDivisaoId{ get; set; }
+        public byte AutoridadeDivisaoId{ get; set; }
         public string NumeroRegistroRecuperacao { get; set; }
         public string MatriculaAgente { get; set; }
         public string NomeAgente { get; set; }

@@ -8,7 +8,7 @@ namespace WebZi.Plataform.Domain.ViewModel.GRV.Cadastro
         public int GrvDRFAId { get; set; }
 
         [Required(ErrorMessage = "Informe a Divisão da Autoridade para o registro de recuperação.")]
-        public int DivisaoId { get; set; }
+        public byte DivisaoId { get; set; }
 
 
         [MaxLength(15, ErrorMessage = "Número do Registro não pode ultrapassar 35 caracteres.")]
