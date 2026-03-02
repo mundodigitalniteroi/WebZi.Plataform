@@ -417,7 +417,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 new BucketService(_context, _httpClientFactory)
                     .SendFile(BucketNomeTabelaOrigemEnum.DRFAArquivoDeRouboFurto, Grv.GrvId, Grv.UsuarioCadastroId, GrvPersistencia.DRFA?.ArquivoDoRegistroDoRouboFurto);
             }
-            if (GrvPersistencia.DRFA.RegistroRecuperacao?.ArquivoDeRecuperacao is not null)
+            if (GrvPersistencia.DRFA?.RegistroRecuperacao?.ArquivoDeRecuperacao is not null)
             {
                 new BucketService(_context, _httpClientFactory)
                     .SendFile(BucketNomeTabelaOrigemEnum.DRFAArquivoRegistroRecuperacao, Grv.GrvId, Grv.UsuarioCadastroId, GrvPersistencia.DRFA.RegistroRecuperacao.ArquivoDeRecuperacao);
