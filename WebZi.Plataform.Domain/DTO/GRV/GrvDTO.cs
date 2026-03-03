@@ -143,7 +143,7 @@ namespace WebZi.Plataform.Domain.DTO.GRV
 
         public string FlagTransbordo { get; set; }
         public ReboquistaDTO Reboquista { get; set; }
-        public ReboqueModel Reboque { get; set; }
+        public ReboqueDTO Reboque { get; set; }
 
         public ClienteDTO Cliente { get; set; }
         public DepositoDTO Deposito { get; set; }
@@ -154,5 +154,6 @@ namespace WebZi.Plataform.Domain.DTO.GRV
         public CondutorDTO Condutor { get; set; }
         public AutoridadeResponsavelDTO AutoridadeResponsavel { get; set; }
         public List<EnquadramentoInfracaoDTO> Infracoes { get; set; }
+        public List<EquipamentoOpcionalDTO> EquipamentoOpcional { get; set; }
     }
 }

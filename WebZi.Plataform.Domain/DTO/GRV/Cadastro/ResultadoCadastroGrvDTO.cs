@@ -7,5 +7,6 @@ namespace WebZi.Plataform.Domain.DTO.GRV.Cadastro
         public MensagemDTO Mensagem { get; set; } = new();
 
         public int IdentificadorProcesso { get; set; }
+        public string NumeroFormularioProcesso { get; set; }
     }
 }

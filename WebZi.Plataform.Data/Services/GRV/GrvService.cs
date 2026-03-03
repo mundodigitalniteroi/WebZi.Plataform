@@ -389,6 +389,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                     }
 
                     ResultView.IdentificadorProcesso = Grv.GrvId;
+                    ResultView.NumeroFormularioProcesso = Grv.NumeroFormularioGrv;
 
                     transaction.Commit();
                 }
@@ -1000,6 +1001,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 .Include(x => x.AutoridadeResponsavel)
                 .Include(x => x.ListagemEnquadramentoInfracao)
                     .ThenInclude(x => x.EnquadramentoInfracao)
+                .Include(x => x.ListagemCondutorEquipamentoOpcional)
+                    .ThenInclude(x => x.EquipamentoOpcional)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.GrvId == GrvId);
         }
