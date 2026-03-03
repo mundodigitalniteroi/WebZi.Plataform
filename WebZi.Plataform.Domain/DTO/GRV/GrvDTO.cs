@@ -55,7 +55,7 @@ namespace WebZi.Plataform.Domain.DTO.GRV
         public string Rfid { get; set; }
 
         public int? IdentificadorEnderecoLocalizacaoVeiculoCEP { get; set; }
-
+        public string EnderecoLocalizacaoVeiculoCEP { get; set; }
         public string EnderecoLocalizacaoVeiculoLogradouro { get; set; }
 
         public string EnderecoLocalizacaoVeiculoNumero { get; set; }

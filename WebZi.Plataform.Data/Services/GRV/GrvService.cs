@@ -1035,8 +1035,14 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 return ResultView;
             }
 
-            ResultView.Listagem.Add(_mapper.Map<GrvDTO>(Grv));
+            var grvDTO = _mapper.Map<GrvDTO>(Grv);
+            if (Grv.EnderecoLocalizacaoVeiculoCEPId.HasValue)
+            {
+                var cep = await _context.CEP.AsNoTracking().FirstOrDefaultAsync(c => c.CEPId == Grv.EnderecoLocalizacaoVeiculoCEPId);
+                grvDTO.EnderecoLocalizacaoVeiculoCEP = cep?.CEP;
+            }
 
+            ResultView.Listagem.Add(grvDTO);
             ResultView.Mensagem = MensagemViewHelper.SetFound();
 
             return ResultView;
