@@ -199,6 +199,29 @@ namespace WebZi.Plataform.Data.Services
                     opt => opt.MapFrom(src => src.ItemObrigatorio))
                 .ForMember(dest => dest.Status,
                     opt => opt.MapFrom(src => src.Status));
+            CreateMap<CondutorEquipamentoOpcionalModel, CondutorEquipamentoOpcionalDTO>()
+                .ForMember(dest => dest.GrvId,
+                    opt => opt.MapFrom(src => src.GrvId))
+                .ForMember(dest => dest.EquipamentoOpcionalId,
+                    opt => opt.MapFrom(src => src.EquipamentoOpcionalId))
+                .ForMember(dest => dest.UsuarioCadastroId,
+                    opt => opt.MapFrom(src => src.UsuarioCadastroId))
+                .ForMember(dest => dest.UsuarioAlteracaoId,
+                    opt => opt.MapFrom(src => src.UsuarioAlteracaoId))
+                .ForMember(dest => dest.CodigoAvaria,
+                    opt => opt.MapFrom(src => src.CodigoAvaria))
+                .ForMember(dest => dest.FlagEquipamentoAvariado,
+                    opt => opt.MapFrom(src => src.FlagEquipamentoAvariado))
+                .ForMember(dest => dest.DataCadastro,
+                    opt => opt.MapFrom(src => src.DataCadastro))
+                .ForMember(dest => dest.DataAtualizacao,
+                    opt => opt.MapFrom(src => src.DataAtualizacao))
+                .ForMember(dest => dest.FlagPossuiEquipamento,
+                    opt => opt.MapFrom(src => src.FlagPossuiEquipamento))
+                .ForMember(dest => dest.EquipamentoOpcional,
+                    opt => opt.MapFrom(src => src.EquipamentoOpcional))
+                .ForMember(dest => dest.ListagemCondutorEquipamentoOpcionalNaoConformidade,
+                    opt => opt.MapFrom(src => src.ListagemCondutorEquipamentoOpcionalNaoConformidade));
             CreateMap<GrvModel, GrvDTO>()
                 .ForMember(dest => dest.IdentificadorProcesso, from => from.MapFrom(src => src.GrvId))
                 .ForMember(dest => dest.IdentificadorCliente, from => from.MapFrom(src => src.ClienteId))
@@ -216,7 +239,7 @@ namespace WebZi.Plataform.Data.Services
                 .ForMember(dest => dest.CodigoProduto, from => from.MapFrom(src => src.FaturamentoProdutoId))
                 .ForMember(dest => dest.Infracoes, opt => opt.MapFrom(src => src.ListagemEnquadramentoInfracao.Select(li => li.EnquadramentoInfracao)))
                 .ForMember(dest => dest.Condutor, opt => opt.MapFrom(src => src.Condutor))
-                .ForMember(dest => dest.EquipamentoOpcional, opt => opt.MapFrom(src => src.ListagemCondutorEquipamentoOpcional.Select(li => li.EquipamentoOpcional)));
+                .ForMember(dest => dest.EquipamentoOpcional, opt => opt.MapFrom(src => src.ListagemCondutorEquipamentoOpcional));
 
             CreateMap<LacreModel, LacreDTO>()
                 .ForMember(dest => dest.IdentificadorLacre, from => from.MapFrom(src => src.LacreId));
