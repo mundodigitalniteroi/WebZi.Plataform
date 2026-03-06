@@ -154,7 +154,7 @@ namespace WebZi.Plataform.Data.Services
             CreateMap<DRFAModel, DRFADTO>()
                 .ForMember(dest => dest.IdentificadorDRFA, opt => opt.MapFrom(src => src.GrvDrfaId))
                 .ForMember(dest => dest.IdentificadorProcesso, opt => opt.MapFrom(src => src.GrvId))
-                .ForMember(dest => dest.IndentificadorTipoRegistro, opt => opt.MapFrom(src => src.TipoRegistroId))
+                .ForMember(dest => dest.IdentificadorTipoRegistro, opt => opt.MapFrom(src => src.TipoRegistroId))
                 .ForMember(dest => dest.IdentificadorOrgaoEmissor, opt => opt.MapFrom(src => src.OrgaoEmissorId))
                 .ForMember(dest => dest.IdentificadorAutoridadeDivisao, opt => opt.MapFrom(src => src.AutoridadeDivisaoId))
                 .ForMember(dest => dest.IdentificadorUsuarioCadastrado, opt => opt.MapFrom(src => src.UsuarioCadastroId))

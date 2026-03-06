@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -154,6 +154,264 @@ namespace WebZi.Plataform.Domain.Services.GRV
             return MensagemViewHelper.SetCreateSuccess();
         }
 
+        public async Task<MensagemDTO> UpdateGrv(GrvAtualizarParameters GrvPersistencia)
+        {
+            MensagemDTO ResultView = new();
+
+            #region Consulta
+            var grv = await _context.Grv
+                .Include(x => x.UsuarioClienteDepositoGrv)
+                .Include(x => x.Condutor)
+                .Include(x => x.ListagemEnquadramentoInfracao)
+                .Include(x => x.ListagemLacre)
+                .Include(x => x.ListagemCondutorEquipamentoOpcional)
+                .AsTracking()
+                .FirstOrDefaultAsync(x => x.GrvId == GrvPersistencia.IdentificadorGrv);
+            #endregion Consulta
+
+            if (grv == null)
+            {
+                ResultView = MensagemViewHelper.SetBadRequest("Grv não existe");
+                return ResultView;
+            }
+
+            grv.ClienteId = GrvPersistencia.IdentificadorCliente;
+            grv.DepositoId = GrvPersistencia.IdentificadorDeposito;
+            grv.TipoVeiculoId = GrvPersistencia.IdentificadorTipoVeiculo;
+            grv.ReboquistaId = GrvPersistencia.IdentificadorReboquista;
+            grv.ReboqueId = GrvPersistencia.IdentificadorReboque;
+            grv.AutoridadeResponsavelId = GrvPersistencia.IdentificadorAutoridadeResponsavel;
+            grv.CorId = GrvPersistencia.IdentificadorCor;
+            grv.MarcaModeloId = GrvPersistencia.IdentificadorMarcaModelo;
+            grv.MotivoApreensaoId = GrvPersistencia.IdentificadorMotivoApreensao;
+            grv.NumeroFormularioGrv = GrvPersistencia.NumeroProcesso;
+            grv.FaturamentoProdutoId = GrvPersistencia.CodigoProduto;
+            grv.MatriculaAutoridadeResponsavel = GrvPersistencia.MatriculaAutoridadeResponsavel.ToUpperTrim().ToNullIfEmpty();
+            grv.NomeAutoridadeResponsavel = GrvPersistencia.NomeAutoridadeResponsavel.ToUpperTrim().ToNullIfEmpty();
+            grv.Placa = GrvPersistencia.Placa.ToUpperTrim().ToNullIfEmpty();
+            grv.Chassi = GrvPersistencia.Chassi.ToUpperTrim().ToNullIfEmpty();
+            grv.Renavam = GrvPersistencia.Renavam.ToUpperTrim().ToNullIfEmpty();
+            grv.Rfid = GrvPersistencia.Rfid.ToUpperTrim().ToNullIfEmpty();
+            grv.EnderecoLocalizacaoVeiculoLogradouro = GrvPersistencia.EnderecoLocalizacaoVeiculoLogradouro.ToUpperTrim().ToNullIfEmpty();
+            grv.EnderecoLocalizacaoVeiculoNumero = GrvPersistencia.EnderecoLocalizacaoVeiculoNumero.ToUpperTrim().ToNullIfEmpty();
+            grv.EnderecoLocalizacaoVeiculoComplemento = GrvPersistencia.EnderecoLocalizacaoVeiculoComplemento.ToUpperTrim().ToNullIfEmpty();
+            grv.EnderecoLocalizacaoVeiculoBairro = GrvPersistencia.EnderecoLocalizacaoVeiculoBairro.ToUpperTrim().ToNullIfEmpty();
+            grv.EnderecoLocalizacaoVeiculoMunicipio = GrvPersistencia.EnderecoLocalizacaoVeiculoMunicipio.ToUpperTrim().ToNullIfEmpty();
+            grv.EnderecoLocalizacaoVeiculoUF = GrvPersistencia.EnderecoLocalizacaoVeiculoUF.ToUpperTrim().ToNullIfEmpty();
+            grv.EnderecoLocalizacaoVeiculoReferencia = GrvPersistencia.EnderecoLocalizacaoVeiculoReferencia.ToUpperTrim().ToNullIfEmpty();
+            grv.EnderecoLocalizacaoVeiculoPontoReferencia = GrvPersistencia.EnderecoLocalizacaoVeiculoPontoReferencia.ToUpperTrim().ToNullIfEmpty();
+            grv.NumeroChave = GrvPersistencia.NumeroChave.ToUpperTrim().ToNullIfEmpty();
+            grv.EstacionamentoSetor = GrvPersistencia.EstacionamentoSetor.ToUpperTrim().ToNullIfEmpty();
+            grv.EstacionamentoNumeroVaga = GrvPersistencia.EstacionamentoNumeroVaga.ToUpperTrim().ToNullIfEmpty();
+            grv.Latitude = GrvPersistencia.Latitude.ToUpperTrim().ToNullIfEmpty();
+            grv.Longitude = GrvPersistencia.Longitude.ToUpperTrim().ToNullIfEmpty();
+            grv.VeiculoUF = GrvPersistencia.VeiculoUF.ToUpperTrim().ToNullIfEmpty();
+            grv.DataHoraRemocao = GrvPersistencia.DataHoraRemocao;
+            grv.LatitudeAcautelamento = GrvPersistencia.LatitudeAcautelamento.ToUpperTrim().ToNullIfEmpty();
+            grv.LongitudeAcautelamento = GrvPersistencia.LongitudeAcautelamento.ToUpperTrim().ToNullIfEmpty();
+            grv.FlagComboio = GrvPersistencia.FlagVeiculoNaoUsouReboque;
+            grv.FlagVeiculoNaoIdentificado = GrvPersistencia.FlagVeiculoNaoIdentificado;
+            grv.FlagVeiculoSemRegistro = GrvPersistencia.FlagVeiculoSemRegistro;
+            grv.FlagVeiculoRoubadoFurtado = GrvPersistencia.FlagVeiculoRoubadoFurtado;
+            grv.FlagEstadoLacre = GrvPersistencia.FlagEstadoLacre;
+            grv.FlagVeiculoNaoOstentaPlaca = GrvPersistencia.FlagVeiculoNaoOstentaPlaca;
+
+            grv.UsuarioAlteracaoId = GrvPersistencia.IdentificadorUsuario;
+            grv.DataAlteracao = DateTime.UtcNow;
+
+            grv.Condutor = _mapper.Map<CondutorModel>(GrvPersistencia.Condutor);
+            grv.Condutor.Email = grv.Condutor.Email
+                .ToLowerTrim()
+                .ToNullIfEmpty();
+
+            TabelaGenericaModel AssinaturaCondutor = new TabelaGenericaService(_context)
+                .GetById(GrvPersistencia.Condutor.IdentificadorAssinaturaCondutor);
+
+            grv.Condutor.StatusAssinaturaCondutor = AssinaturaCondutor.ValorCadastro;
+
+            if (!string.IsNullOrWhiteSpace(GrvPersistencia.EnderecoLocalizacaoVeiculoCEP))
+            {
+                EnderecoDTO Endereco = new EnderecoService(_context, _mapper)
+                    .GetByCEP(GrvPersistencia.EnderecoLocalizacaoVeiculoCEP
+                    .Replace("-", ""));
+
+                if (Endereco != null)
+                {
+                    grv.EnderecoLocalizacaoVeiculoCEPId = Endereco.IdentificadorCEP;
+
+                    grv.EnderecoLocalizacaoVeiculoLogradouro = Endereco.Logradouro;
+
+                    grv.EnderecoLocalizacaoVeiculoBairro = Endereco.Bairro;
+
+                    grv.EnderecoLocalizacaoVeiculoMunicipio = Endereco.MunicipioPtbr;
+
+                    grv.EnderecoLocalizacaoVeiculoUF = Endereco.UF;
+                }
+            }
+
+            if (GrvPersistencia.ListagemEnquadramentoInfracao?.Count > 0)
+            {
+                GrvPersistencia.ListagemEnquadramentoInfracao = GrvPersistencia.ListagemEnquadramentoInfracao
+                    .OrderBy(x => x.NumeroInfracao)
+                    .ToList();
+
+                GrvPersistencia.ListagemEnquadramentoInfracao
+                    .ForEach(x => x.NumeroInfracao = x.NumeroInfracao.ToUpperTrim().ToNullIfEmpty());
+
+                grv.ListagemEnquadramentoInfracao = _mapper
+                    .Map<List<EnquadramentoInfracaoGrvModel>>(GrvPersistencia.ListagemEnquadramentoInfracao);
+            }
+
+            if (GrvPersistencia.ListagemLacre?.Count > 0)
+            {
+                GrvPersistencia.ListagemLacre = GrvPersistencia.ListagemLacre
+                    .ConvertAll(x => x.ToUpperTrim().ToNullIfEmpty())
+                    .OrderBy(x => x)
+                    .ToList();
+
+                grv.ListagemLacre = new List<LacreModel>();
+
+                foreach (string item in GrvPersistencia.ListagemLacre)
+                {
+                    grv.ListagemLacre.Add(new LacreModel { UsuarioCadastroId = GrvPersistencia.IdentificadorUsuario, Lacre = item });
+                }
+            }
+
+            if (GrvPersistencia.ListagemEquipamentoOpcional?.Count > 0)
+            {
+                grv.ListagemCondutorEquipamentoOpcional = new List<CondutorEquipamentoOpcionalModel>();
+
+                CondutorEquipamentoOpcionalModel CondutorEquipamentoOpcional = new();
+
+                foreach (EquipamentoOpcionalParameters item in GrvPersistencia.ListagemEquipamentoOpcional)
+                {
+                    CondutorEquipamentoOpcional = new()
+                    {
+                        EquipamentoOpcionalId = item.IdentificadorEquipamentoOpcional,
+
+                        FlagPossuiEquipamento = item.FlagPossuiEquipamento,
+
+                        UsuarioCadastroId = GrvPersistencia.IdentificadorUsuario
+                    };
+
+                    if (item.FlagPossuiEquipamento == "S")
+                    {
+                        CondutorEquipamentoOpcional.FlagEquipamentoAvariado = item.FlagEquipamentoAvariado;
+
+                        CondutorEquipamentoOpcional.CodigoAvaria = item.IdentificadorTipoAvaria;
+                    }
+
+                    grv.ListagemCondutorEquipamentoOpcional.Add(CondutorEquipamentoOpcional);
+                }
+            }
+
+            ClienteDepositoModel ClienteDeposito = _context.ClienteDeposito
+                .Include(x => x.Cliente)
+                .AsNoTracking()
+                .FirstOrDefault(x => x.ClienteId == GrvPersistencia.IdentificadorCliente
+                                  && x.DepositoId == GrvPersistencia.IdentificadorDeposito);
+
+            if (ClienteDeposito.FlagCadastrarGrvComStatusOperacaoBloqueado == "S")
+            {
+                grv.StatusOperacaoId = "B";
+            }
+
+
+            using (IDbContextTransaction transaction = _context.Database.BeginTransaction())
+            {
+                try
+                {
+
+                    _context.SetUserContextInfo(GrvPersistencia.IdentificadorUsuario);
+
+                    if (GrvPersistencia.IdentificadorMotivoApreensao == 4)
+                    {
+                        var result = _provider
+                            .GetService<DRFAService>()
+                            .UpdateDRFAGrv(GrvPersistencia);
+                        if (result.Erros?.Count > 0)
+                        {
+                            transaction.Rollback();
+                            ResultView = result;
+                            return ResultView;
+                        }
+                    }
+
+                    if (ClienteDeposito.Cliente.FlagClientePossuiCodigoIdentificacao == "S")
+                    {
+                        var clienteCodigoIdentificacao = await _context.ClienteCodigoIdentificacao
+                            .FirstOrDefaultAsync(x => x.GrvId == grv.GrvId);
+
+                        if (clienteCodigoIdentificacao == null)
+                        {
+                            clienteCodigoIdentificacao = new ClienteCodigoIdentificacaoModel
+                            {
+                                GrvId = grv.GrvId,
+                                UsuarioCadastroId = GrvPersistencia.IdentificadorUsuario,
+                                CodigoIdentificacao = GrvPersistencia.CodigoIdentificacaoCliente,
+                                DataCadastro = DateTime.Now
+                            };
+                            _context.ClienteCodigoIdentificacao.Add(clienteCodigoIdentificacao);
+                        }
+                        else
+                        {
+                            clienteCodigoIdentificacao.CodigoIdentificacao = GrvPersistencia.CodigoIdentificacaoCliente;
+                            clienteCodigoIdentificacao.UsuarioAlteracaoId = GrvPersistencia.IdentificadorUsuario;
+                            clienteCodigoIdentificacao.DataAlteracao = DateTime.Now;
+                            _context.ClienteCodigoIdentificacao.Update(clienteCodigoIdentificacao);
+                        }
+                    }
+
+                    _context.Grv.Update(grv);
+
+                    _context.SaveChanges();
+                    transaction.Commit();
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+
+                    ResultView = MensagemViewHelper.SetInternalServerError(ex);
+
+                    return ResultView;
+                }
+            }
+
+            if (GrvPersistencia.ListagemDocumentoCondutor?.Count > 0)
+            {
+                CreateDocumentosCondutor(grv.GrvId, grv.UsuarioCadastroId, GrvPersistencia.ListagemDocumentoCondutor);
+            }
+
+            if (GrvPersistencia.ListagemFoto?.Count > 0)
+            {
+                new BucketService(_context, _httpClientFactory)
+                    .SendFiles(BucketNomeTabelaOrigemEnum.FotoVeiculoGRV, grv.GrvId, grv.UsuarioCadastroId, GrvPersistencia.ListagemFoto);
+            }
+            if (GrvPersistencia.DRFA?.ArquivoDoRegistroDoRouboFurto is not null)
+            {
+                new BucketService(_context, _httpClientFactory)
+                    .SendFile(BucketNomeTabelaOrigemEnum.DRFAArquivoDeRouboFurto, grv.GrvId, grv.UsuarioCadastroId, GrvPersistencia.DRFA?.ArquivoDoRegistroDoRouboFurto);
+            }
+            if (GrvPersistencia.DRFA?.RegistroRecuperacao?.ArquivoDeRecuperacao is not null)
+            {
+                new BucketService(_context, _httpClientFactory)
+                    .SendFile(BucketNomeTabelaOrigemEnum.DRFAArquivoRegistroRecuperacao, grv.GrvId, grv.UsuarioCadastroId, GrvPersistencia.DRFA.RegistroRecuperacao.ArquivoDeRecuperacao);
+            }
+            if (GrvPersistencia.ImagemAssinaturaAgente != null)
+            {
+                new BucketService(_context, _httpClientFactory)
+                    .SendFile(BucketNomeTabelaOrigemEnum.AssinaturaAgente, grv.GrvId, grv.UsuarioCadastroId, GrvPersistencia.ImagemAssinaturaAgente);
+            }
+
+            if (GrvPersistencia.ImagemAssinaturaCondutor != null)
+            {
+                new BucketService(_context, _httpClientFactory)
+                    .SendFile(BucketNomeTabelaOrigemEnum.AssinaturaCondutor, grv.GrvId, grv.UsuarioCadastroId, GrvPersistencia.ImagemAssinaturaAgente);
+            }
+
+            ResultView = MensagemViewHelper.SetUpdateSuccess();
+            return ResultView;
+        }
         public async Task<ResultadoCadastroGrvDTO> CreateGrv(GrvParameters GrvPersistencia)
         {
             GrvModel Grv = new()
@@ -345,6 +603,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             using (IDbContextTransaction transaction = _context.Database.BeginTransaction())
             {
+
+                _context.SetUserContextInfo(GrvPersistencia.IdentificadorUsuario);
                 try
                 {
                     if (mensagem != null)
@@ -777,7 +1037,40 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             return await DeleteGrvAsync(Grv.GrvId, Usuario.IdentificadorUsuario);
         }
+        public async Task<MensagemDTO> DeleteInfracaoAsync(int grvId, int infracaoId) 
+        {
+            if (grvId <= 0)
+                return MensagemViewHelper.SetBadRequest(MensagemPadraoEnum.IdentificadorGrvInvalido);
+            if (infracaoId <= 0)
+                return MensagemViewHelper.SetBadRequest("Identificador da infração inválido.");
+            EnquadramentoInfracaoGrvModel infracao = await _context.EnquadramentoInfracaoGrv
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.EnquadramentoInfracaoId == infracaoId && x.GrvId == grvId);
+            if (infracao == null)
+                return MensagemViewHelper.SetBadRequest("Infração não encontrada ou não pertence a este processo.");
+            GrvModel grv = await GetByIdAsync(grvId);
+            if (grv == null)
+                return MensagemViewHelper.SetNotFound(MensagemPadraoEnum.NaoEncontradoGrv);
 
+            if (!new[] { "E", "G", "L", "R", "T", "U", "V" }.Contains(grv.StatusOperacaoId))
+                return MensagemViewHelper.SetBadRequest($"O status atual deste processo não permite a exclusão de infração. Status atual: {grv.StatusOperacao?.Descricao}");
+
+            using (IDbContextTransaction transaction = _context.Database.BeginTransaction())
+            {
+                try
+                {
+                    _context.EnquadramentoInfracaoGrv.Remove(infracao);
+                    await _context.SaveChangesAsync();
+                    transaction.Commit();
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+                    return MensagemViewHelper.SetInternalServerError(ex);
+                }
+            }
+            return MensagemViewHelper.SetDeleteSuccess(1, "Infração excluída com sucesso.");
+        }
         public async Task<MensagemDTO> DeleteGrvAsync(int GrvId, string Login, string Senha)
         {
             UsuarioDTO Usuario = await new UsuarioService(_context, _mapper)
@@ -2413,5 +2706,6 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             return ResultView;
         }
+
     }
 }

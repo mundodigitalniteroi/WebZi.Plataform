@@ -1,9 +1,12 @@
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using NuGet.Protocol.Plugins;
 using System.ComponentModel.DataAnnotations;
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Helper;
+using WebZi.Plataform.Data.Services.DRFA;
 using WebZi.Plataform.Domain.DTO.Bucket;
+using WebZi.Plataform.Domain.DTO.DRFA;
 using WebZi.Plataform.Domain.DTO.Generic;
 using WebZi.Plataform.Domain.DTO.GRV;
 using WebZi.Plataform.Domain.DTO.GRV.Cadastro;
@@ -12,8 +15,6 @@ using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.Services.GRV;
 using WebZi.Plataform.Domain.ViewModel.GRV.Cadastro;
 using WebZi.Plataform.Domain.ViewModel.GRV.Pesquisa;
-using WebZi.Plataform.Domain.DTO.DRFA;
-using WebZi.Plataform.Data.Services.DRFA;
 
 namespace WebZi.Plataform.API.Controllers
 {
@@ -75,6 +76,39 @@ namespace WebZi.Plataform.API.Controllers
                 ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+
+            return ResultView;
+        }
+
+        [HttpPut("Atualizar")]
+        // TODO: [Authorize]
+        [IgnoreAntiforgeryToken]
+        public async Task<ActionResult<MensagemDTO>> Atualizar([FromBody] GrvAtualizarParameters Grv)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            MensagemDTO ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<GrvService>()
+                    .UpdateGrv(Grv);
+
+                if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+                {
+                    return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+                }
+            }
+            catch (Exception ex)
+            {
+                ResultView = MensagemViewHelper.SetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
             }
 
             return ResultView;
@@ -301,7 +335,31 @@ namespace WebZi.Plataform.API.Controllers
                 return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
             }
         }
+        [HttpDelete("ExcluirInfracoes")]
+        public async Task<ActionResult<MensagemDTO>> ExcluirInfracoes(int IdentificadorProcesso, int IdentifacadorInfracao) 
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
 
+            MensagemDTO ResultView;
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<GrvService>()
+                    .DeleteInfracaoAsync(IdentificadorProcesso, IdentifacadorInfracao);
+
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView = MensagemViewHelper.SetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+        }
         [HttpDelete("ExcluirGrv")]
         // TODO: [Authorize]
         [IgnoreAntiforgeryToken]
