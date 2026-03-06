@@ -46,5 +46,29 @@ namespace WebZi.Plataform.API.Controllers
             }
         }
 
+        [HttpGet("ListaArquivos")]
+        public async Task<ActionResult<ListArquivosDRFADTO>> ListaArquivos(int IdentificadorProcesso, int IdentificadorUsuario)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            ListArquivosDRFADTO ResultView = new();
+            try
+            {
+                ResultView = await _provider
+                    .GetService<DRFAService>()
+                    .GetArquivos(IdentificadorProcesso, IdentificadorUsuario);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
+
     }
 }

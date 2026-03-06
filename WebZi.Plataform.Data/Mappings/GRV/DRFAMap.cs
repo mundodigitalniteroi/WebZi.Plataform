@@ -9,7 +9,7 @@ namespace WebZi.Plataform.Data.Mappings.GRV
         public void Configure(EntityTypeBuilder<DRFAModel> builder)
         {
             builder
-                .ToTable("tb_dep_grv_drfa", "dbo")
+            .ToTable("tb_dep_grv_drfa", "dbo", tb => tb.HasTrigger("tb_log_grv_drfa"))
                 .HasKey(x => x.GrvDrfaId);
 
             builder.Property(e => e.GrvDrfaId)

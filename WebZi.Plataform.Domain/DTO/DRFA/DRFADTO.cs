@@ -9,8 +9,8 @@ namespace WebZi.Plataform.Domain.DTO.DRFA
         public MensagemDTO Mensagem { get; set; } = new ();
         public int IdentificadorDRFA { get; set; }
         public int IdentificadorProcesso { get; set; }
-        public byte IndentificadorTipoRegistro { get; set; }
-        public int IdentificadorOrgaoEmissor { get; set; }
+        public byte IdentificadorTipoRegistro { get; set; }
+        public short IdentificadorOrgaoEmissor { get; set; }
         public byte IdentificadorAutoridadeDivisao { get; set; }
         public int IdentificadorUsuarioCadastrado { get; set; }
         public int IdentificadorUsuarioAlteracao { get; set; }
@@ -22,6 +22,7 @@ namespace WebZi.Plataform.Domain.DTO.DRFA
         public string LocalRemocaoReferencia { get; set; }
         public string LocalRemocaoLatitude { get; set; }
         public string LocalRemocaoLongitude { get; set; }
+        public string EstadoGeralVeiculo { get; set; }
         public string DataCadastro { get; set; }
         public string DataAlteracao { get; set; }
         public char FlagRegistroRecuperacao { get; set; }

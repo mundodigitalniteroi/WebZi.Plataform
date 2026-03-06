@@ -9,15 +9,15 @@ namespace WebZi.Plataform.Data.Mappings.GRV
         public void Configure(EntityTypeBuilder<AgendamentoRetiradaModel> builder)
         {
             builder
-                 .ToTable("tb_dep_grv_drfa_agendamento_retirada", "dbo")
+                 .ToTable("tb_dep_grv_drfa_agendamento_retirada", "dbo", tb => tb.HasTrigger("tb_log_grv_drfa_agendamento_retirada"))
                  .HasKey(x => x.GrvDRFAAgendamentoRetiradaId);
 
             builder.Property(e => e.GrvDRFAAgendamentoRetiradaId)
-            .HasColumnName("id_grv_drfa_agendamento_retirada")
+                .HasColumnName("id_grv_drfa_agendamento_retirada")
                 .ValueGeneratedOnAdd();
 
             builder.Property(e => e.DRFAId)
-                .HasColumnName("id_grv_drfa")
+                .HasColumnName("id_grv_drfa")   
                 .IsRequired();
 
             builder.Property(e => e.UsuarioRegistroAgendamentoId)

@@ -9,7 +9,7 @@ namespace WebZi.Plataform.Data.Mappings.GRV
         public void Configure(EntityTypeBuilder<RegistroRecuperacaoModel> builder)
         {
             builder
-                .ToTable("tb_dep_grv_drfa_registro_recuperacao", "dbo")
+                .ToTable("tb_dep_grv_drfa_registro_recuperacao", "dbo", tb => tb.HasTrigger("tb_log_grv_drfa_registro_recuperacao"))
                 .HasKey(x => x.GrvDRFARegistroRecuperacaoId);
 
             builder.Property(e => e.GrvDRFARegistroRecuperacaoId)
