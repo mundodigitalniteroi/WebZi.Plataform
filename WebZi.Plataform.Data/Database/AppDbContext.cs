@@ -213,7 +213,7 @@ namespace WebZi.Plataform.Data.Database
 
         public DbSet<DRFAModel> DRFA { get; set; }
         public DbSet<AgendamentoRetiradaModel> DRFAAgendamentoRetirada { get; set; }
-        public DbSet<RegistroRecuperacaoModel> DRFAArquivoRegistro { get; set; }
+        public DbSet<RegistroRecuperacaoModel> DRFARegistroRecuperacao { get; set; }
 
         #endregion Depósito Público
 
