@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using WebZi.Plataform.Domain.DTO.WebServices.DetranRio;
 using WebZi.Plataform.Domain.ViewModel.GGV;
 
 namespace WebZi.Plataform.Domain.ViewModel.GRV.Cadastro

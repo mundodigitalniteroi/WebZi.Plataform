@@ -240,7 +240,8 @@ namespace WebZi.Plataform.Data.Services
                 .ForMember(dest => dest.CodigoProduto, from => from.MapFrom(src => src.FaturamentoProdutoId))
                 .ForMember(dest => dest.Infracoes, opt => opt.MapFrom(src => src.ListagemEnquadramentoInfracao.Select(li => li.EnquadramentoInfracao)))
                 .ForMember(dest => dest.Condutor, opt => opt.MapFrom(src => src.Condutor))
-                .ForMember(dest => dest.EquipamentoOpcional, opt => opt.MapFrom(src => src.ListagemCondutorEquipamentoOpcional));
+                .ForMember(dest => dest.EquipamentoOpcional, opt => opt.MapFrom(src => src.ListagemCondutorEquipamentoOpcional))
+                .ForMember(dest => dest.ListagemLacres, opt => opt.MapFrom(src => src.ListagemLacre));
 
             CreateMap<LacreModel, LacreDTO>()
                 .ForMember(dest => dest.IdentificadorLacre, from => from.MapFrom(src => src.LacreId));

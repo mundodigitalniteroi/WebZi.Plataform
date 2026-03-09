@@ -155,5 +155,6 @@ namespace WebZi.Plataform.Domain.DTO.GRV
         public AutoridadeResponsavelDTO AutoridadeResponsavel { get; set; }
         public List<EnquadramentoInfracaoDTO> Infracoes { get; set; }
         public List<CondutorEquipamentoOpcionalDTO> EquipamentoOpcional { get; set; }
+        public List<LacreDTO> ListagemLacres { get; set; }
     }
 }
