@@ -692,7 +692,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             if (GrvPersistencia.ImagemAssinaturaCondutor != null)
             {
                 new BucketService(_context, _httpClientFactory)
-                    .SendFile(BucketNomeTabelaOrigemEnum.AssinaturaCondutor, Grv.GrvId, Grv.UsuarioCadastroId, GrvPersistencia.ImagemAssinaturaAgente);
+                    .SendFile(BucketNomeTabelaOrigemEnum.AssinaturaCondutor, Grv.GrvId, Grv.UsuarioCadastroId, GrvPersistencia.ImagemAssinaturaCondutor);
             }
 
             ResultView.Mensagem = MensagemViewHelper.SetCreateSuccess();
@@ -1296,6 +1296,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                     .ThenInclude(x => x.EnquadramentoInfracao)
                 .Include(x => x.ListagemCondutorEquipamentoOpcional)
                     .ThenInclude(x => x.EquipamentoOpcional)
+                .Include(x => x.ListagemLacre)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.GrvId == GrvId);
         }
