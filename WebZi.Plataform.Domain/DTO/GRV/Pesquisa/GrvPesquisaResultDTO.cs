@@ -4,6 +4,7 @@
     {
         public int IdentificadorProcesso { get; set; }
         public int IdentificadorCliente { get; set; }
+        public int IdentificadorDeposito { get; set; }
         public int IdentificadorAtendimento { get; set; }
         public int IdentificadorFaturamento { get; set; }
 

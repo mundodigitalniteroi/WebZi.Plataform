@@ -1897,6 +1897,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 {
                     IdentificadorProcesso = Grv.GrvId,
                     IdentificadorCliente = Grv.ClienteId,
+                    IdentificadorDeposito = Grv.DepositoId,
                     IdentificadorAtendimento = Grv.Atendimento?.AtendimentoId ?? 0,
                     IdentificadorFaturamento = Grv.Atendimento?.ListagemFaturamento?.FirstOrDefault()?.FaturamentoId ?? 0,
                     StatusOperacaoId = Grv.StatusOperacaoId,
