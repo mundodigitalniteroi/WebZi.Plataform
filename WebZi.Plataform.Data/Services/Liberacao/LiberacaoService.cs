@@ -569,6 +569,14 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                 return ResultView;
             }
 
+            TipoLiberacaoModel TipoLiberacao = await _context
+                .TipoLiberacao
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.TipoLiberacaoId == Parameters.IdentificadorTipoLiberacao);
+
+            if(Parameters.IdentificadorTipoLiberacao <= 0)
+                return MensagemViewHelper.SetBadRequest("Precisa ter um tipo de liberação");
+
             GrvModel Grv = await _context.Grv
                 .Include(x => x.StatusOperacao)
                 .AsNoTracking()
@@ -610,10 +618,11 @@ namespace WebZi.Plataform.Data.Services.Liberacao
 
             LiberacaoModel Liberacao = new()
             {
-                TipoLiberacaoId = 1,
+                TipoLiberacaoId = Parameters.IdentificadorTipoLiberacao,
 
                 UsuarioCadastroId = Parameters.IdentificadorUsuario
             };
+
 
             using (IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync())
             {
@@ -622,6 +631,15 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                     await _context.Liberacao.AddAsync(Liberacao);
 
                     await _context.SaveChangesAsync();
+
+                    if (Parameters.IdentificadorTipoLiberacao == 2)
+                    {
+                        
+                        await _context.LiberacaoEspecial
+                            .Where(x => x.IdGrv == Parameters.IdentificadorProcesso)
+                            .UpdateAsync(x => new LiberacaoEspecialModel() { DataLiberacao = Liberacao.DataCadastro });
+                    }
+
 
                     await _context.Grv
                         .Where(x => x.GrvId == Parameters.IdentificadorProcesso)

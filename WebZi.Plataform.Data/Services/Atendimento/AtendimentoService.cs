@@ -667,8 +667,6 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
         private void CreateLiberacaoEspecial(int idFaturamento, LiberacaoEspecialParameters parameters)
         {
-            var dataCadastro = CadastrarLiberacao(parameters.IdUsuarioCadastro);
-
             #region Validação
             if (parameters.DataEmissaoDocumento < DateTime.Today)
                     throw new Exception("Data não pode ser menor que hoje");
@@ -691,22 +689,9 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 SignatarioMatricula = parameters.SignatarioMatricula.ToUpper(),
                 SignatarioTitulo = parameters.SignatarioTitulo.ToUpper(),
                 DataEmissaoDocumento = parameters.DataEmissaoDocumento.Date,
-                DataLiberacao = dataCadastro
+                DataLiberacao = DateTime.Now
             };
             _context.LiberacaoEspecial.Add(liberacaoEspecial);
-        }
-        private DateTime CadastrarLiberacao(int idUsuario)
-        {
-            LiberacaoModel liberacao = new()
-            {
-                TipoLiberacaoId = 2,
-                UsuarioCadastroId = idUsuario
-
-            };
-            _context.Liberacao.Add(liberacao);
-            _context.SaveChanges();
-            return liberacao.DataCadastro;
-
         }
         private void CreateFotoResponsavel(int AtendimentoId, AtendimentoParameters AtendimentoInput)
         {
