@@ -90,7 +90,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
                         Chassi = PlacaChassi;
                 }
 
-                DetranRioVeiculoModel DetranRioVeiculoBD;
+                DetranRioVeiculoModel? DetranRioVeiculoBD;
 
                 if (DetranVeiculoId <= 0)
                 {
@@ -143,7 +143,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
                         .OrderByDescending(x => x.DetranVeiculoId)
                         .FirstOrDefaultAsync(x => !Placa.IsNullOrWhiteSpace() ? x.Placa == Placa : x.Chassi == Chassi);
 
-                    if (DetranRioVeiculoBD.DataCadastro != DateTime.Now.Date && DetranRioVeiculoBD.DataAlteracao != DateTime.Now.Date && DetranRioVeiculoWS != null)
+                    if (DetranRioVeiculoWS != null && DetranRioVeiculoBD?.DataCadastro != DateTime.Now.Date && DetranRioVeiculoBD?.DataAlteracao != DateTime.Now.Date)
                     {
                         DetranRioVeiculoBD = await UpdateAsync(DetranRioVeiculoBD, DetranRioVeiculoWS);
                     }
