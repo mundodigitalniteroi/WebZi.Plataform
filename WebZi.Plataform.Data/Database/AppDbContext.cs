@@ -128,6 +128,7 @@ namespace WebZi.Plataform.Data.Database
 
         #region Depósito Público
         public DbSet<AtendimentoModel> Atendimento { get; set; }
+        public DbSet<AtendimentoSaidaParaReparoModel> SaidaReparo { get; set; }
 
         public DbSet<AtendimentoFotoResponsavelModel> AtendimentoFotoResponsavel { get; set; }
 

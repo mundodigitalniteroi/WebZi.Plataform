@@ -1752,6 +1752,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     .ThenInclude(x => x.Grv)
                     .ThenInclude(x => x.Deposito)
                     .ThenInclude(x => x.Endereco)
+                .Include(x => x.Atendimento)
+                    .ThenInclude(x => x.SaidaParaReparo)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.FaturamentoId == identificadorFaturamento);
 
@@ -1773,7 +1775,6 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 ResultView.LiberacaoEspecial = _mapper.Map<LiberacaoEspecialDTO>(liberacaoEspecial);
                 ResultView.LiberacaoEspecial.Valor = Faturamento.ValorPagamento ?? 0;
             }
-
             FaturamentoServicoTipoVeiculoModel FaturamentoServicoTipoVeiculo = new();
 
             foreach (var Servico in ResultView.Faturamento.ListagemServico)
@@ -1852,6 +1853,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 DetranRioService DetranRioService = new(_context, _mapper);
                 ResultView.Veiculo = Faturamento.Atendimento.Grv.Placa.IsPlaca() ? await DetranRioService.GetViewByPlacaAsync(Faturamento.Atendimento.Grv.Placa) : await DetranRioService.GetViewByChassiAsync(Faturamento.Atendimento.Grv.Chassi);
             }
+            ResultView.Atendimento.SaidaParaReparo = _mapper.Map<AtendimentoSaidaParaReparoDTO>(Faturamento.Atendimento.SaidaParaReparo);
 
             ResultView.Mensagem = MensagemViewHelper.SetOk();
 

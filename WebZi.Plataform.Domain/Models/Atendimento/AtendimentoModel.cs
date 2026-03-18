@@ -132,6 +132,7 @@ namespace WebZi.Plataform.Domain.Models.Atendimento
 
         public virtual UsuarioModel UsuarioAlteracao { get; set; }
 
+        public AtendimentoSaidaParaReparoModel SaidaParaReparo { get; set; }
         public virtual AtendimentoFotoResponsavelModel AtendimentoFotoResponsavel { get; set; }
 
         //public virtual ICollection<AtendimentoSaidaReparo> AtendimentoSaidaReparos { get; set; }

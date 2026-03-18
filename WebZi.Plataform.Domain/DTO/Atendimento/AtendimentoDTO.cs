@@ -112,5 +112,6 @@ namespace WebZi.Plataform.Domain.DTO.Atendimento
         public DateTime DataCadastro { get; set; }
 
         public DateTime? DataAlteracao { get; set; }
+        public AtendimentoSaidaParaReparoDTO SaidaParaReparo { get; set; }
     }
 }

@@ -123,7 +123,11 @@ namespace WebZi.Plataform.Data.Services.Liberacao
 
                 return ResultView;
             }
+            var prazo = GuiaPagamentoReboqueEstadia.PrazoRetiradaVeiculo;
 
+            var prazoFormatado = !string.IsNullOrEmpty(prazo) && prazo.Length >= 10
+                ? prazo.Substring(0, 10)
+                : prazo ?? "";
             ResultView.IdentificadorProcesso = Grv.GrvId;
 
             ResultView.NumeroProcesso = Grv.NumeroFormularioGrv;
@@ -166,7 +170,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
 
             ResultView.TextoApresentacao = "Este documento deverá ser apresentado no Depósito de Veículos localizado no endereço " +
                 GuiaPagamentoReboqueEstadia.DepositoEndereco + ", até a data: " +
-                GuiaPagamentoReboqueEstadia.PrazoRetiradaVeiculo.Left(10) + ", para que a retirada do veículo seja autorizada. A não apresentação até a data informada acarretará na cobrança de estadias adicionais.";
+                prazoFormatado + ", para que a retirada do veículo seja autorizada. A não apresentação até a data informada acarretará na cobrança de estadias adicionais.";
 
             ResultView.TextoDeclaracaoRetirada1 = $@"Eu {GuiaPagamentoReboqueEstadia.AtendimentoResponsavelNome}, portador do CPF {GuiaPagamentoReboqueEstadia.AtendimentoResponsavelDocumento}, declaro que no dia {DateTime.Now.ToString("dd 'de' MMMM 'de' yyyy", CultureInfo.GetCultureInfo("pt-BR"))}, " +
                 $"recebi do depósito {GuiaPagamentoReboqueEstadia.DepositoNome} o veículo de placa {VeiculoHelper.FormatPlaca(GuiaPagamentoReboqueEstadia.Placa)}, Marca/Modelo {GuiaPagamentoReboqueEstadia.MarcaModelo}, Cor {GuiaPagamentoReboqueEstadia.Cor}, recolhido às {GuiaPagamentoReboqueEstadia.DataHoraGuarda.Right(5)} do dia {GuiaPagamentoReboqueEstadia.DataHoraGuarda.Left(10)}, " +
@@ -582,7 +586,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.GrvId == Parameters.IdentificadorProcesso);
 
-            if (Grv.StatusOperacao.StatusOperacaoId != "T" && Grv.StatusOperacao.StatusOperacaoId != "U")
+            if (Grv.StatusOperacao.StatusOperacaoId != "T" && Grv.StatusOperacao.StatusOperacaoId != "U" && Grv.StatusOperacao.StatusOperacaoId != "R")
             {
                 return MensagemViewHelper.SetBadRequest($"O Status atual deste Processo não permite o cadastro da Entrega. " +
                     $"Descrição do Status atual: {Grv.StatusOperacao.Descricao.ToUpper()}");
@@ -634,13 +638,29 @@ namespace WebZi.Plataform.Data.Services.Liberacao
 
                     if (Parameters.IdentificadorTipoLiberacao == 2)
                     {
-                        
+
                         await _context.LiberacaoEspecial
                             .Where(x => x.IdGrv == Parameters.IdentificadorProcesso)
                             .UpdateAsync(x => new LiberacaoEspecialModel() { DataLiberacao = Liberacao.DataCadastro });
                     }
 
-
+                    if (Grv.StatusOperacaoId.Equals("R"))
+                    {
+                        if(Parameters.IdentificadorSaidaReparo == null)
+                        {
+                            ResultView = MensagemViewHelper.SetBadRequest("Propriedade obrigatória");
+                            await transaction.RollbackAsync();
+                            return ResultView;
+                        }
+                        await _context.SaidaReparo
+                            .AsTracking()
+                            .Where(x => x.Id == Parameters.IdentificadorSaidaReparo)
+                            .UpdateAsync(x => new Domain.Models.Atendimento.AtendimentoSaidaParaReparoModel
+                            {
+                                DataRetorno = DateTime.Now,
+                                IdUsuario = Parameters.IdentificadorUsuario
+                            });
+                    }
                     await _context.Grv
                         .Where(x => x.GrvId == Parameters.IdentificadorProcesso)
                         .UpdateAsync(x => new GrvModel() { LiberacaoId = Liberacao.LiberacaoId, StatusOperacaoId = "E", UsuarioAlteracaoId = Parameters.IdentificadorUsuario });

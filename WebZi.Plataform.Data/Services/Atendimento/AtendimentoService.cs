@@ -425,8 +425,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 return MensagemViewHelper.SetNotFound(MensagemPadraoEnum.NaoEncontradoGrv);
             }
 
-            // TODO: Verificar o Status para confirmação do Pagamento
-            if (grv.StatusOperacao.StatusOperacaoId != "V" && grv.StatusOperacao.StatusOperacaoId != "1")
+            if (grv.StatusOperacao.StatusOperacaoId != "L")
             {
                 mensagem.AvisosImpeditivos.Add($"Status do Processo não está apto para o cadastro do Atendimento: {grv.StatusOperacao.Descricao.ToUpperTrim()}");
 
@@ -838,6 +837,127 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             return ResultView;
         }
 
+        public async Task<MensagemDTO> CreateSaidaReparo(SaidaParaReparoParameters parameters)
+        {
+            MensagemDTO ResultView = new GrvService(_context).ValidateInputGrv(parameters.IdentificadorProcesso, parameters.IdentificadorUsuario);
+
+            if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+            {
+                return ResultView;
+            }
+            #region Consultar
+            bool atendimento = await _context.Atendimento
+                .AsNoTracking()
+                .AnyAsync(x => x.AtendimentoId == parameters.IdentificadorAtendimento);
+            bool exists = await _context.SaidaReparo
+                            .AsNoTracking()
+                            .AnyAsync(x => x.AtendimentoId == parameters.IdentificadorAtendimento);
+
+            #endregion
+            if (!atendimento)
+            {
+                ResultView = MensagemViewHelper.SetNotFound("Atendimento não identificado");
+                return ResultView;
+            }
+            if(exists)
+            {
+                ResultView = MensagemViewHelper.SetBadRequest("Já está cadastrado");
+                return ResultView;
+            }
+
+            if (parameters.DataSaida > parameters.DataPrevisaoRetorno)
+            {
+                ResultView = MensagemViewHelper.SetBadRequest("A Data da Saída não pode ser maior do que a Data da Previão de Retorno");
+                return ResultView;
+            }
+
+            AtendimentoSaidaParaReparoModel saidaReparo = new()
+            {
+                AtendimentoId = parameters.IdentificadorAtendimento,
+                DataSaida = parameters.DataSaida,
+                DataPrevisaoRetorno = parameters.DataPrevisaoRetorno,
+                MotivoSaida = parameters.MotivoSaida
+            };
+
+
+            using (IDbContextTransaction _transaction = await _context.Database.BeginTransactionAsync())
+            {
+                try
+                {
+
+                    await _context.SaidaReparo.AddAsync(saidaReparo);
+                    
+                    _context.Grv
+                        .Where(x => x.GrvId == parameters.IdentificadorProcesso)
+                        .Update(x => new GrvModel()
+                        {
+                            StatusOperacaoId = "R",
+                            DataAlteracao = DateTime.Now,
+                            UsuarioAlteracaoId = parameters.IdentificadorUsuario
+                        });
+
+                    await _context.SaveChangesAsync();
+                    await _transaction.CommitAsync();
+                }
+                catch (Exception ex)
+                {
+                    _transaction.Rollback();
+                    ResultView = MensagemViewHelper.SetInternalServerError(ex);
+                    return ResultView;
+                }
+            }
+            return ResultView;
+        }
+        public async Task<MensagemDTO> UpdateSaidaReparo(SaidaParaReparoUpdateParameters parameters)
+        {
+            MensagemDTO ResultView = new();
+            #region Consultar
+            bool atendimento = await _context.Atendimento
+                .AsNoTracking()
+                .AnyAsync(x => x.AtendimentoId == parameters.IdentificadorAtendimento);
+            var saidaReparo = await _context.SaidaReparo
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Id == parameters.IdentificadorSaidaParaReparo);
+            #endregion
+            if (!atendimento)
+            {
+                ResultView = MensagemViewHelper.SetNotFound("Atendimento não identificado");
+                return ResultView;
+            }
+            if (saidaReparo is null)
+            {
+                ResultView = MensagemViewHelper.SetNotFound("Saida para reparo não encontrado");
+                return ResultView;
+            }
+
+            if(saidaReparo.DataSaida > parameters.DataPrevisaoRetorno)
+            {
+                ResultView = MensagemViewHelper.SetBadRequest("A data prevista de retorno não pode ser anterior à data de saída.");
+                return ResultView;
+            }
+
+            using (IDbContextTransaction _transaction = await _context.Database.BeginTransactionAsync())
+            {
+                try
+                {
+                    _context.SaidaReparo
+                        .Where(x => x.Id == parameters.IdentificadorSaidaParaReparo)
+                        .Update(x => new AtendimentoSaidaParaReparoModel()
+                        {
+                            DataPrevisaoRetorno = parameters.DataPrevisaoRetorno,
+                        });
+                    await _context.SaveChangesAsync();
+                    await _transaction.CommitAsync();
+                }
+                catch (Exception ex)
+                {
+                    _transaction.Rollback();
+                    ResultView = MensagemViewHelper.SetInternalServerError(ex);
+                    return ResultView;
+                }
+            }
+            return ResultView;
+        }
         public async Task<AtendimentoDTO> GetByProcessoAsync(string NumeroProcesso, string CodigoProduto, int ClienteId, int DepositoId, int UsuarioId)
         {
             AtendimentoDTO ResultView = new()
