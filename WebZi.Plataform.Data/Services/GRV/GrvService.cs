@@ -1833,7 +1833,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (!GrvPesquisa.DataInicialRemocao.HasValue)
             {
-                GrvPesquisa.DataInicialRemocao = DateTime.Now.AddDays(-180);
+                var baseDate = GrvPesquisa.DataFinalRemocao ?? DateTime.Now;
+                GrvPesquisa.DataInicialRemocao = baseDate.AddDays(-180);
             }
 
             if (!GrvPesquisa.DataFinalRemocao.HasValue)
@@ -2241,20 +2242,20 @@ namespace WebZi.Plataform.Domain.Services.GRV
             }
             else if(GrvPersistencia.FlagVeiculoNaoOstentaPlaca != "S")
             {
-                if (string.IsNullOrWhiteSpace(GrvPersistencia.Placa))
-                {
-                    erros.Add("Informe a Placa");
-                }
-                else if (!GrvPersistencia.Placa.IsPlaca())
+                //if (string.IsNullOrWhiteSpace(GrvPersistencia.Placa))
+                //{
+                //    erros.Add("Informe a Placa");
+                //}
+                if (!GrvPersistencia.Placa.IsPlaca())
                 {
                     erros.Add("Placa inválida");
                 }
 
-                if (string.IsNullOrWhiteSpace(GrvPersistencia.Chassi))
-                {
-                    erros.Add("Informe o Chassi");
-                }
-                else if (GrvPersistencia.Chassi.Length < 6 || GrvPersistencia.Chassi.Length > 24 || (GrvPersistencia.Chassi.Length == 17 && !GrvPersistencia.Chassi.IsChassi()))
+                //if (string.IsNullOrWhiteSpace(GrvPersistencia.Chassi))
+                //{
+                //    erros.Add("Informe o Chassi");
+                //}
+                 if (GrvPersistencia.Chassi.Length < 6 || GrvPersistencia.Chassi.Length > 24 || (GrvPersistencia.Chassi.Length == 17 && !GrvPersistencia.Chassi.IsChassi()))
                 {
                     erros.Add("Chassi inválido");
                 }
