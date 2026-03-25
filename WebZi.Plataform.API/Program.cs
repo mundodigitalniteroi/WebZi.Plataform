@@ -8,6 +8,7 @@ using System.IO.Compression;
 using System.Text.Json.Serialization;
 using System.Text;
 using WebZi.Plataform.Data.Services;
+using WebZi.Plataform.Domain.Options;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 builder.Logging.ClearProviders();
@@ -62,6 +63,8 @@ static void ConfigureServices(WebApplicationBuilder builder)
     var audience = jwtSection["Audience"];
     var secret = jwtSection["Secret"];
 
+    IConfiguration config = builder.Configuration;
+    builder.Services.Configure<WSNfseOptions>(config.GetSection("WSNFSE"));
     builder.Services
         .AddAuthentication(options =>
         {

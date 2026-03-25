@@ -22,6 +22,7 @@ using WebZi.Plataform.Domain.DTO.Usuario;
 using WebZi.Plataform.Domain.DTO.Veiculo;
 using WebZi.Plataform.Domain.DTO.Vistoria;
 using WebZi.Plataform.Domain.DTO.WebServices.DetranRio;
+using WebZi.Plataform.Domain.DTO.WebServices.Nfse;
 using WebZi.Plataform.Domain.Models.Atendimento;
 using WebZi.Plataform.Domain.Models.Banco;
 using WebZi.Plataform.Domain.Models.Banco.PIX.Dinamico.Persistencia;
@@ -34,6 +35,7 @@ using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.GRV;
 using WebZi.Plataform.Domain.Models.GRV.DRFA;
 using WebZi.Plataform.Domain.Models.Liberacao;
+using WebZi.Plataform.Domain.Models.Nfe;
 using WebZi.Plataform.Domain.Models.Pessoa.Documento;
 using WebZi.Plataform.Domain.Models.Servico;
 using WebZi.Plataform.Domain.Models.Sistema;
@@ -135,6 +137,13 @@ namespace WebZi.Plataform.Data.Services
                 .ForMember(dest => dest.IdentificadorCNAE, from => from.MapFrom(src => src.CnaeId))
                 .ForMember(dest => dest.IdentificadorCNAEListaServico, from => from.MapFrom(src => src.CnaeListaServicoId));
 
+            CreateMap<NfeModel, NfeDTO>();
+            CreateMap<NfeDTO, WSNfseGerarNotaFiscalDTO>()
+                .ForMember(dest => dest.CnpjPrestador, from => from.MapFrom(src => src.Cnpj))
+                .ForMember(dest => dest.Ref, from => from.MapFrom(src => src.Referencia))
+                .ForMember(dest => dest.NumeroRps, from => from.MapFrom(src => src.NumeroRps))
+                .ForMember(dest => dest.SerieRps, from => from.MapFrom(src => src.SerieRps))
+                .ForMember(dest => dest.Status, from => from.MapFrom(src => src.Status));
             CreateMap<EnquadramentoInfracaoModel, EnquadramentoInfracaoDTO>()
                 .ForMember(dest => dest.IdentificadorEnquadramentoInfracao, from => from.MapFrom(src => src.EnquadramentoInfracaoId))
                 .ForMember(dest => dest.FlagAtivo, from => from.MapFrom(src => src.Status));

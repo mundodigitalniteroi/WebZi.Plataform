@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore.Storage;
 using System.Data;
 using System.Globalization;
 using System.Text;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using WebZi.Plataform.CrossCutting.Configuration;
 using WebZi.Plataform.CrossCutting.Date;
 using WebZi.Plataform.CrossCutting.Documents;
@@ -33,6 +35,7 @@ using WebZi.Plataform.Domain.Models.Liberacao;
 using WebZi.Plataform.Domain.Models.Localizacao;
 using WebZi.Plataform.Domain.Models.Usuario;
 using WebZi.Plataform.Domain.Models.WebServices.DetranAlagoas.ConsultaVeiculoApreensao.Response;
+using WebZi.Plataform.Domain.Options;
 using WebZi.Plataform.Domain.Services.GRV;
 using WebZi.Plataform.Domain.Services.Usuario;
 using WebZi.Plataform.Domain.ViewModel.Atendimento;
@@ -47,6 +50,8 @@ namespace WebZi.Plataform.Data.Services.Liberacao
         private readonly AppDbContext _context;
         private readonly IMapper _mapper;
         private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IServiceProvider _provider;
+
         public LiberacaoService(AppDbContext context)
         {
             _context = context;
@@ -63,6 +68,13 @@ namespace WebZi.Plataform.Data.Services.Liberacao
             _context = context;
             _mapper = mapper;
             _httpClientFactory = httpClientFactory;
+        }
+        public LiberacaoService(AppDbContext context, IMapper mapper, IHttpClientFactory httpClientFactory, IServiceProvider provider)
+        {
+            _context = context;
+            _mapper = mapper;
+            _httpClientFactory = httpClientFactory;
+            _provider = provider;
         }
 
         public async Task<GuiaAutorizacaoRetiradaVeiculoDTO> CreateGuiaAutorizacaoRetiradaVeiculoAsync(int GrvId, int UsuarioId)
@@ -680,6 +692,145 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                     await transaction.RollbackAsync();
 
                     return MensagemViewHelper.SetInternalServerError(ex);
+                }
+            }
+
+            return MensagemViewHelper.SetCreateSuccess();
+        }
+        public async Task<MensagemDTO> EntregaAsync(EntregaSimplificadaParameters Parameters)
+        {
+            MensagemDTO ResultView = new GrvService(_context)
+                .ValidateInputGrv(Parameters.IdentificadorProcesso, Parameters.IdentificadorUsuario);
+
+            if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+            {
+                return ResultView;
+            }
+
+            TipoLiberacaoModel TipoLiberacao = await _context
+                .TipoLiberacao
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.TipoLiberacaoId == Parameters.IdentificadorTipoLiberacao);
+
+            if (Parameters.IdentificadorTipoLiberacao <= 0)
+                return MensagemViewHelper.SetBadRequest("Precisa ter um tipo de liberação");
+
+            GrvModel Grv = await _context.Grv
+                .Include(x => x.StatusOperacao)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.GrvId == Parameters.IdentificadorProcesso);
+
+            if (Grv.StatusOperacao.StatusOperacaoId != "T" && Grv.StatusOperacao.StatusOperacaoId != "U" && Grv.StatusOperacao.StatusOperacaoId != "R")
+            {
+                return MensagemViewHelper.SetBadRequest($"O Status atual deste Processo não permite o cadastro da Entrega. " +
+                    $"Descrição do Status atual: {Grv.StatusOperacao.Descricao.ToUpper()}");
+            }
+
+            List<FaturamentoModel> Faturamentos = await _context.Faturamento
+                .Include(x => x.Atendimento)
+                .Where(x => x.Atendimento.GrvId == Parameters.IdentificadorProcesso && x.Status != "C")
+                .AsNoTracking()
+                .ToListAsync();
+
+            if (Faturamentos == null)
+            {
+                return MensagemViewHelper.SetNotFound(MensagemPadraoEnum.NaoEncontradoFaturamento);
+            }
+
+            if (Faturamentos.Exists(x => x.Status == "N"))
+            {
+                return MensagemViewHelper.SetBadRequest($"Este Processo possui uma Fatura não paga");
+            }
+
+            DateTime DataHoraPorDeposito = new DepositoService(_context)
+                .GetDataHoraPorDeposito(Grv.DepositoId);
+
+            FaturamentoModel UltimoFaturamento = Faturamentos
+                .OrderByDescending(x => x.DataCadastro)
+                .FirstOrDefault();
+
+            if (UltimoFaturamento.DataPrazoRetiradaVeiculo.Value.Date < DataHoraPorDeposito.Date)
+            {
+                return MensagemViewHelper.SetBadRequest($"O prazo para a Entrega do veículo está vencida ({UltimoFaturamento.DataPrazoRetiradaVeiculo.Value.Date:dd/MM/yyyy}), a Entrega não poderá ser realizada");
+            }
+
+            LiberacaoModel Liberacao = new()
+            {
+                TipoLiberacaoId = Parameters.IdentificadorTipoLiberacao,
+
+                UsuarioCadastroId = Parameters.IdentificadorUsuario
+            };
+
+
+            await using (IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync())
+            {
+                try
+                {
+                    await _context.Liberacao.AddAsync(Liberacao);
+
+                    await _context.SaveChangesAsync();
+
+                    if (Parameters.IdentificadorTipoLiberacao == 2)
+                    {
+
+                        await _context.LiberacaoEspecial
+                            .Where(x => x.IdGrv == Parameters.IdentificadorProcesso)
+                            .UpdateAsync(x => new LiberacaoEspecialModel() { DataLiberacao = Liberacao.DataCadastro });
+                    }
+
+                    if (Grv.StatusOperacaoId.Equals("R"))
+                    {
+                        if (Parameters.IdentificadorSaidaReparo == null)
+                        {
+                            await transaction.RollbackAsync();
+                            ResultView = MensagemViewHelper.SetBadRequest("Propriedade obrigatória");
+                            return ResultView;
+                        }
+                        await _context.SaidaReparo
+                            .AsTracking()
+                            .Where(x => x.Id == Parameters.IdentificadorSaidaReparo)
+                            .UpdateAsync(x => new Domain.Models.Atendimento.AtendimentoSaidaParaReparoModel
+                            {
+                                DataRetorno = DateTime.Now,
+                                IdUsuario = Parameters.IdentificadorUsuario
+                            });
+                    }
+
+                    if (!string.Equals(Grv.StatusOperacaoId, "2") && !string.Equals(Grv.StatusOperacaoId, "R"))
+                    {
+                        await _provider
+                            .GetService<WSNfseService>()
+                            .CreateNfseAsync(Grv.GrvId, Parameters.IdentificadorUsuario);
+                    }
+
+                    if (string.Equals(Grv.StatusOperacaoId, "T") || string.Equals(Grv.StatusOperacaoId, "R"))
+                    {
+                        await _context.Grv
+                            .Where(x => x.GrvId == Parameters.IdentificadorProcesso)
+                            .UpdateAsync(x => new GrvModel() { LiberacaoId = Liberacao.LiberacaoId, StatusOperacaoId = "E", UsuarioAlteracaoId = Parameters.IdentificadorUsuario });
+                    }
+                    else if(string.Equals(Grv.StatusOperacaoId, "2") || string.Equals(Grv.StatusOperacaoId, "6"))
+                    {
+                        await _context.Grv
+                           .Where(x => x.GrvId == Parameters.IdentificadorProcesso)
+                           .UpdateAsync(x => new GrvModel() { LiberacaoId = Liberacao.LiberacaoId, StatusOperacaoId = "7", UsuarioAlteracaoId = Parameters.IdentificadorUsuario });
+                    }
+
+                    if (Parameters.ResponsavelFoto != null)
+                    {
+                        new BucketService(_context, _httpClientFactory)
+                            .SendFile(BucketNomeTabelaOrigemEnum.EntregaFotoResponsavel, Liberacao.LiberacaoId, Parameters.IdentificadorUsuario, Parameters.ResponsavelFoto);
+                    }
+
+                    await _context.SaveChangesAsync();
+
+                    await transaction.CommitAsync();
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+
+                    return MensagemViewHelper.SetInternalServerError(ex.Message);
                 }
             }
 

@@ -3,6 +3,7 @@ using Castle.Components.DictionaryAdapter.Xml;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using WebZi.Plataform.CrossCutting.Contacts;
 using WebZi.Plataform.CrossCutting.Date;
 using WebZi.Plataform.CrossCutting.Documents;
@@ -44,6 +45,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
         private readonly AppDbContext _context;
         private readonly IMapper _mapper;
         private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IServiceProvider _provider;
 
         public AtendimentoService(AppDbContext context, IHttpClientFactory httpClientFactory)
         {
@@ -56,6 +58,13 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             _context = context;
             _mapper = mapper;
             _httpClientFactory = httpClientFactory;
+        }
+        public AtendimentoService(AppDbContext context, IMapper mapper, IHttpClientFactory httpClientFactory, IServiceProvider provider)
+        {
+            _context = context;
+            _mapper = mapper;
+            _httpClientFactory = httpClientFactory;
+            _provider = provider;
         }
 
         public async Task<MensagemDTO> CheckInformacoesParaCadastroAsync(AtendimentoParameters AtendimentoCadastro)
@@ -880,21 +889,25 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             };
 
 
-            using (IDbContextTransaction _transaction = await _context.Database.BeginTransactionAsync())
+            await using (IDbContextTransaction _transaction = await _context.Database.BeginTransactionAsync())
             {
                 try
                 {
 
                     await _context.SaidaReparo.AddAsync(saidaReparo);
                     
-                    _context.Grv
+                    await _context.Grv
                         .Where(x => x.GrvId == parameters.IdentificadorProcesso)
-                        .Update(x => new GrvModel()
+                        .UpdateAsync(x => new GrvModel()
                         {
                             StatusOperacaoId = "R",
                             DataAlteracao = DateTime.Now,
                             UsuarioAlteracaoId = parameters.IdentificadorUsuario
                         });
+
+                    await _provider.GetService<WSNfseService>()
+                        .CreateNfseAsync(parameters.IdentificadorProcesso, parameters.IdentificadorUsuario);
+                        
 
                     await _context.SaveChangesAsync();
                     await _transaction.CommitAsync();
@@ -936,13 +949,13 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 return ResultView;
             }
 
-            using (IDbContextTransaction _transaction = await _context.Database.BeginTransactionAsync())
+            await using (IDbContextTransaction _transaction = await _context.Database.BeginTransactionAsync())
             {
                 try
                 {
-                    _context.SaidaReparo
+                    await _context.SaidaReparo
                         .Where(x => x.Id == parameters.IdentificadorSaidaParaReparo)
-                        .Update(x => new AtendimentoSaidaParaReparoModel()
+                        .UpdateAsync(x => new AtendimentoSaidaParaReparoModel()
                         {
                             DataPrevisaoRetorno = parameters.DataPrevisaoRetorno,
                         });

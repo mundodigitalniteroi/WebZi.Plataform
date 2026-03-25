@@ -50,6 +50,34 @@ namespace WebZi.Plataform.API.Controllers
             }
         }
 
+        [HttpPost("Entrega")]
+        // TODO: [Authorize]
+        [IgnoreAntiforgeryToken]
+        public async Task<ActionResult<MensagemDTO>> Entrega([FromBody] EntregaSimplificadaParameters Parameters)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            MensagemDTO ResultView;
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<LiberacaoService>()
+                    .EntregaAsync(Parameters);
+
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView = MensagemViewHelper.SetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+        }
+
         [HttpPost("ValidarUsuario")]
         public ActionResult<MensagemDTO> ValidarUsuarioLiberacaoEspecial([FromBody]LiberacaoEspecialValidarParameters parameters)
         {
