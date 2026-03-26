@@ -12,6 +12,7 @@ using WebZi.Plataform.Domain.Models.Nfe;
 using WebZi.Plataform.Domain.Models.Sistema;
 using WebZi.Plataform.Domain.Options;
 using WebZi.Plataform.Domain.Services.GRV;
+using static System.Net.WebRequestMethods;
 
 namespace WebZi.Plataform.Data.Services.WebServices
 {
@@ -84,13 +85,16 @@ namespace WebZi.Plataform.Data.Services.WebServices
             WebServiceUrlModel WebServiceUrl = await _context.WebServiceUrl
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.Name == "Wsnfse");
+            var localhost = "http://localhost:8655/WSnfse.asmx";
+            var UrlBinding = _options?.Value != null ? localhost : WebServiceUrl.Url;
+
 
             List<string> result;
             try
             {
                 //var response = await ClientConfig("http://localhost:8655/WSnfse.asmx")
                 //    .GerarNotaFiscalAsync(grvId, usuarioId, config.IsDev);
-                var response = await ClientConfig(WebServiceUrl)
+                var response = await ClientConfig(UrlBinding)
                     .GerarNotaFiscalAsync(grvId, usuarioId, config.IsDev);
 
                 result = response?.Body?.GerarNotaFiscalResult;
@@ -139,21 +143,18 @@ namespace WebZi.Plataform.Data.Services.WebServices
             }
             return ResultView;
         }
-        private static WSnfseSoapClient ClientConfig(WebServiceUrlModel WebServiceUrl)
+        private WSnfseSoapClient ClientConfig(string WebServiceUrl)
         {
-
-            //PARAMETRO PADRAO WEBSERVICE: WebServiceUrlModel WebServiceUrl
             BasicHttpBinding httpBinding = new()
             {
                 MaxReceivedMessageSize = int.MaxValue,
                 MaxBufferSize = int.MaxValue
             };
-            httpBinding.Security.Mode = BasicHttpSecurityMode.Transport;
-            //httpBinding.Security.Mode = BasicHttpSecurityMode.None;
-            httpBinding.Security.Transport.ClientCredentialType = HttpClientCredentialType.None;
+            
+            httpBinding.Security.Mode = _options?.Value != null ? BasicHttpSecurityMode.None : BasicHttpSecurityMode.Transport;
 
             //WSnfseSoapClient client = new(httpBinding, new(new Uri(WebServiceUrl)));
-            WSnfseSoapClient client = new(httpBinding, new(new Uri(WebServiceUrl.Url)));
+            WSnfseSoapClient client = new(httpBinding, new(new Uri(WebServiceUrl)));
 
             client.ChannelFactory.CreateChannel();
 
