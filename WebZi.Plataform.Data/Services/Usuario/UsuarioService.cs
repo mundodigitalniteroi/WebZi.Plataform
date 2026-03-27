@@ -10,8 +10,11 @@ using System.Text;
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
+using WebZi.Plataform.Domain.DTO.Pessoa;
 using WebZi.Plataform.Domain.DTO.Usuario;
 using WebZi.Plataform.Domain.Enums;
+using WebZi.Plataform.Domain.Models.Documento;
+using WebZi.Plataform.Domain.Models.Pessoa.Contato;
 using WebZi.Plataform.Domain.Models.Usuario;
 
 namespace WebZi.Plataform.Domain.Services.Usuario
@@ -105,18 +108,46 @@ namespace WebZi.Plataform.Domain.Services.Usuario
 
             UsuarioModel result = await _context.Usuario
                 .Where(x => (UsuarioId > 0 ? x.UsuarioId == UsuarioId : true) &&
-                             !string.IsNullOrWhiteSpace(Login) ? x.Login == Login : true)
+                            (!string.IsNullOrWhiteSpace(Login) ? x.Login == Login : true))
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
 
-            if (result != null)
+            if (result == null)
             {
-                ResultView = new();
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound(MensagemPadraoEnum.NaoEncontradoUsuario);
 
-                ResultView = _mapper.Map<UsuarioDTO>(result);
+                return ResultView;
+            }
 
-                ResultView.Mensagem = MensagemViewHelper.SetFound();
+            List<SistemaPerfilAcessoUsuariosModel> resultPerfilDeAcesso = await _context.PerfilAcessoUsuario
+                .Where(x => x.UsuarioId == result.UsuarioId)
+                .Include(x => x.PerfilAcesso)
+                .AsNoTracking()
+                .ToListAsync();
 
+            List<TiposContatoPessoaModel> resultTiposContatos = new();
+
+            if (result.PessoaId != null)
+            {
+                resultTiposContatos = await _context.TipoPessoaContatos
+                    .Where(x => x.PessoaId == result.PessoaId.Value && x.TiposContatos != null && x.TiposContatos.FlagAtivo == 'S')
+                    .Include(x => x.TiposContatos)
+                    .OrderBy(x => x.Descricao)
+                    .AsNoTracking()
+                    .ToListAsync();
+            }
+
+            ResultView = _mapper.Map<UsuarioDTO>(result);
+
+            ResultView.PerfisAcesso ??= new PerfisAcessoUsuarioListDTO();
+            ResultView.PerfisAcesso.Listagem = _mapper.Map<List<PerfisAcessoUsuarioDTO>>(resultPerfilDeAcesso);
+
+            ResultView.Contatos ??= new TiposContatosPessoaListDTO();
+            ResultView.Contatos.Listagem = _mapper.Map<List<TiposContatosPessoaDTO>>(resultTiposContatos);
+
+            ResultView.Mensagem = MensagemViewHelper.SetFound();
+
+             
                 //var ListagemUsuarioClienteDeposito = await _context.ViewUsuarioClienteDeposito
                 //    .Where(x => x.UsuarioId == UsuarioId)
                 //    .Select(x => new { x.ClienteId, x.DepositoId })
@@ -140,14 +171,7 @@ namespace WebZi.Plataform.Domain.Services.Usuario
                 //    ResultView.Mensagem.AvisosInformativos.Add("Atenção. Este Usuário não possui associação com Cliente e Depósito");
                 //}
 
-                return ResultView;
-            }
-            else
-            {
-                ResultView.Mensagem = MensagemViewHelper.SetNotFound(MensagemPadraoEnum.NaoEncontradoUsuario);
-
-                return ResultView;
-            }
+            return ResultView;
         }
 
         public async Task<UsuarioPorNomeOuLoginListDTO> GetByUsernameOrLogin(string login, string username)

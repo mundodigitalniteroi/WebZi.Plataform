@@ -36,6 +36,7 @@ using WebZi.Plataform.Domain.Models.GRV;
 using WebZi.Plataform.Domain.Models.GRV.DRFA;
 using WebZi.Plataform.Domain.Models.Liberacao;
 using WebZi.Plataform.Domain.Models.Nfe;
+using WebZi.Plataform.Domain.Models.Pessoa.Contato;
 using WebZi.Plataform.Domain.Models.Pessoa.Documento;
 using WebZi.Plataform.Domain.Models.Servico;
 using WebZi.Plataform.Domain.Models.Sistema;
@@ -314,6 +315,17 @@ namespace WebZi.Plataform.Data.Services
             CreateMap<UsuarioModel, UsuarioDTO>()
                 .ForMember(dest => dest.IdentificadorUsuario, from => from.MapFrom(src => src.UsuarioId))
                 .ForMember(dest => dest.Login, from => from.MapFrom(src => src.Login));
+
+            CreateMap<SistemaPerfilAcessoUsuariosModel, PerfisAcessoUsuarioDTO>()
+                .ForMember(d => d.PerfilAcessoId, o => o.MapFrom(s => s.PerfilAcessoId))
+                .ForMember(d => d.Descricao, o => o.MapFrom(s => s.PerfilAcesso.Descricao));
+
+            CreateMap<TiposContatoPessoaModel, TiposContatosPessoaDTO>()
+                .ForMember(d => d.TipoContaotId, o => o.MapFrom(s => s.TipoContatoId))
+                .ForMember(d => d.TipoContato, o => o.MapFrom(s => s.TiposContatos.Descricao))
+                .ForMember(d => d.Contato, o => o.MapFrom(s => s.Descricao))
+                .ForMember(d => d.FlagContatoPrincipal, o => o.MapFrom(s => s.FlagContatoPrincipal));
+
             CreateMap<UsuarioModel, UsuarioPorNomeOuLoginDTO>()
                 .ForMember(dest => dest.IdentificadorUsuario, from => from.MapFrom(src => src.UsuarioId))
                 .ForMember(dest => dest.Login, from => from.MapFrom(src => src.Login))

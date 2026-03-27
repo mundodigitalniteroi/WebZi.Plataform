@@ -1,4 +1,5 @@
-﻿using WebZi.Plataform.Domain.DTO.Sistema;
+﻿using WebZi.Plataform.Domain.DTO.Pessoa;
+using WebZi.Plataform.Domain.DTO.Sistema;
 
 namespace WebZi.Plataform.Domain.DTO.Usuario
 {
@@ -18,6 +19,9 @@ namespace WebZi.Plataform.Domain.DTO.Usuario
         public string DataUltimoAcesso { get; set; }
         public string FlagAtivo { get; set; }
 
+        public TiposContatosPessoaListDTO Contatos { get; set; }
+        public PerfisAcessoUsuarioListDTO PerfisAcesso { get; set; }
+        
         //public List<UsuarioClienteDepositoDTO> ListagemClienteDepositoAssociado { get; set; } = new();
     }
 }

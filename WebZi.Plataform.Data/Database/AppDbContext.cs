@@ -23,6 +23,7 @@ using WebZi.Plataform.Domain.Models.Liberacao;
 using WebZi.Plataform.Domain.Models.Localizacao;
 using WebZi.Plataform.Domain.Models.Nfe;
 using WebZi.Plataform.Domain.Models.Pessoa;
+using WebZi.Plataform.Domain.Models.Pessoa.Contato;
 using WebZi.Plataform.Domain.Models.Pessoa.Documento;
 using WebZi.Plataform.Domain.Models.Servico;
 using WebZi.Plataform.Domain.Models.Sistema;
@@ -201,6 +202,10 @@ namespace WebZi.Plataform.Data.Database
         public DbSet<TipoVeiculoModel> TipoVeiculo { get; set; }
 
         public DbSet<UsuarioModel> Usuario { get; set; }
+        public DbSet<SistemaPerfilAcessoModel> PerfilAcesso{ get; set; }
+        public DbSet<SistemaPerfilAcessoUsuariosModel> PerfilAcessoUsuario { get; set; }
+        public DbSet<TiposContatosModel> TipoContatos { get; set; }
+        public DbSet<TiposContatoPessoaModel> TipoPessoaContatos { get; set; }
 
         public DbSet<UsuarioClienteModel> UsuarioCliente { get; set; }
 
