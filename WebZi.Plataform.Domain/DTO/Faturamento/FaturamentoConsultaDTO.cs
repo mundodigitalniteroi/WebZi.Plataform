@@ -3,6 +3,7 @@ using WebZi.Plataform.Domain.DTO.Faturamento.Simulacao;
 using WebZi.Plataform.Domain.DTO.Liberacao;
 using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.DTO.WebServices.DetranRio;
+using WebZi.Plataform.Domain.DTO.WebServices.Nfse;
 
 namespace WebZi.Plataform.Domain.DTO.Faturamento
 {
@@ -33,7 +34,7 @@ namespace WebZi.Plataform.Domain.DTO.Faturamento
 
         public string Status { get; set; }
         public int TipoMeioCobrancaId { get; set; }
-        public string? NotaFiscalUrl { get; set; }
+        public List<NFERetornoFaturamentoDTO?> NotaFiscal { get; set; }
         public AtendimentoDTO Atendimento { get; set; }
 
         public SimulacaoFaturamentoDTO Faturamento { get; set; }

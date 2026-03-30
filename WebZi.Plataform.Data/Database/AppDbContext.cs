@@ -258,6 +258,7 @@ namespace WebZi.Plataform.Data.Database
 
         public DbSet<FaturamentoComposicaoModel> FaturamentoComposicao { get; set; }
         public DbSet<NfeModel> Nfe { get; set; }
+        public DbSet<NfeRetornoSolicitacaoModel> NfeRetornoSolicitacao { get; set; }
         public DbSet<FaturamentoComposicaoNotaFiscalModel> FaturamentoComposicaoNotaFiscal { get; set; }
 
         public DbSet<FaturamentoCondicaoPagamentoModel> FaturamentoCondicaoPagamento { get; set; }

@@ -19,9 +19,7 @@ namespace WebZi.Plataform.Domain.DTO.Usuario
         public string DataUltimoAcesso { get; set; }
         public string FlagAtivo { get; set; }
 
-        public TiposContatosPessoaListDTO Contatos { get; set; }
-        public PerfisAcessoUsuarioListDTO PerfisAcesso { get; set; }
-        
+        public InformacoesUsuarioDTO InformacoesUsuario { get; set; }        
         //public List<UsuarioClienteDepositoDTO> ListagemClienteDepositoAssociado { get; set; } = new();
     }
 }

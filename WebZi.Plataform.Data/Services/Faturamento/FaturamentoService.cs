@@ -2,6 +2,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using System.Data;
+using System.Globalization;
+using System.Text.RegularExpressions;
 using WebZi.Plataform.CrossCutting.Date;
 using WebZi.Plataform.CrossCutting.Number;
 using WebZi.Plataform.CrossCutting.Strings;
@@ -25,6 +27,7 @@ using WebZi.Plataform.Domain.DTO.Faturamento.Simulacao;
 using WebZi.Plataform.Domain.DTO.Generic;
 using WebZi.Plataform.Domain.DTO.Liberacao;
 using WebZi.Plataform.Domain.DTO.Sistema;
+using WebZi.Plataform.Domain.DTO.WebServices.Nfse;
 using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Atendimento;
 using WebZi.Plataform.Domain.Models.Banco;
@@ -1757,9 +1760,10 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.FaturamentoId == identificadorFaturamento);
 
-            NfeModel NotaFiscal = await _context.Nfe
+            List<NfeModel> notasFiscais = await _context.Nfe
+                .Where(x => x.GrvId == Faturamento.Atendimento.GrvId)
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.GrvId == Faturamento.Atendimento.GrvId);
+                .ToListAsync();
 
             LiberacaoEspecialModel liberacaoEspecial = _context.LiberacaoEspecial
                 .AsNoTracking()
@@ -1808,10 +1812,38 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             ResultView.Status = Faturamento.Status;
 
             ResultView.TipoMeioCobrancaId = Faturamento.TipoMeioCobrancaId;
-
-            if(Faturamento.Atendimento.Grv.StatusOperacaoId == "E" && NotaFiscal != null)
+            if (notasFiscais.Count > 0)
             {
-                ResultView.NotaFiscalUrl = NotaFiscal.Url;
+                var notasDto = _mapper.Map<List<NFERetornoFaturamentoDTO>>(notasFiscais);
+
+                var nfeIds = notasFiscais.Select(x => x.NfeId).ToList();
+
+                var retornos = await _context.NfeRetornoSolicitacao
+                    .Where(x => nfeIds.Contains(x.NfeId))
+                    .AsNoTracking()
+                    .ToListAsync();
+
+                var retornoPorNfeId = retornos
+                    .GroupBy(x => x.NfeId)
+                    .ToDictionary(g => g.Key, g => g.First());
+
+
+                foreach (var nf in notasDto)
+                {
+                    if (retornoPorNfeId.TryGetValue(nf.NfeId, out var retorno))
+                    {
+                        var totMatch = Regex.Match(
+                            retorno.ServicoDiscriminacao,
+                            @"TOT:\s*R\$\s*([\d]+,[\d]{2})"
+                        );
+                        nf.Servico = Regex.Match(retorno.ServicoDiscriminacao, @"^(.*?)\.").ToString();
+                        nf.Valor = decimal.Parse(
+                            totMatch.Groups[1].Value,
+                            new CultureInfo("pt-BR"));
+                    }
+                }
+
+                ResultView.NotaFiscal = notasDto;
             }
 
             EnderecoService Endereco = new();

@@ -139,11 +139,13 @@ namespace WebZi.Plataform.Domain.Services.Usuario
 
             ResultView = _mapper.Map<UsuarioDTO>(result);
 
-            ResultView.PerfisAcesso ??= new PerfisAcessoUsuarioListDTO();
-            ResultView.PerfisAcesso.Listagem = _mapper.Map<List<PerfisAcessoUsuarioDTO>>(resultPerfilDeAcesso);
+            ResultView.InformacoesUsuario ??= new InformacoesUsuarioDTO();
 
-            ResultView.Contatos ??= new TiposContatosPessoaListDTO();
-            ResultView.Contatos.Listagem = _mapper.Map<List<TiposContatosPessoaDTO>>(resultTiposContatos);
+            ResultView.InformacoesUsuario.Perfis =
+                _mapper.Map<List<PerfisAcessoUsuarioDTO>>(resultPerfilDeAcesso);
+
+            ResultView.InformacoesUsuario.Contatos =
+                _mapper.Map<List<TiposContatosPessoaDTO>>(resultTiposContatos);
 
             ResultView.Mensagem = MensagemViewHelper.SetFound();
 

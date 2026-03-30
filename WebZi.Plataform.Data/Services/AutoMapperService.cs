@@ -139,6 +139,12 @@ namespace WebZi.Plataform.Data.Services
                 .ForMember(dest => dest.IdentificadorCNAEListaServico, from => from.MapFrom(src => src.CnaeListaServicoId));
 
             CreateMap<NfeModel, NfeDTO>();
+
+            CreateMap<NfeModel, NFERetornoFaturamentoDTO>()
+                .ForMember(dest => dest.Url, from => from.MapFrom(src => src.Url))
+                .ForMember(dest => dest.NumeroNotaFiscal, from => from.MapFrom(src => src.NumeroNotaFiscal));
+            
+
             CreateMap<NfeDTO, WSNfseGerarNotaFiscalDTO>()
                 .ForMember(dest => dest.CnpjPrestador, from => from.MapFrom(src => src.Cnpj))
                 .ForMember(dest => dest.Ref, from => from.MapFrom(src => src.Referencia))
