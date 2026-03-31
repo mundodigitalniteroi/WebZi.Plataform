@@ -149,8 +149,8 @@ namespace WebZi.Plataform.Data.Services.WebServices
                 MaxBufferSize = int.MaxValue
             };
 
-            httpBinding.Security.Mode = BasicHttpSecurityMode.TransportCredentialOnly;
-            httpBinding.Security.Transport.ClientCredentialType = HttpClientCredentialType.Basic;
+            httpBinding.Security.Mode = BasicHttpSecurityMode.Transport;
+            httpBinding.Security.Transport.ClientCredentialType = HttpClientCredentialType.None;
             WSnfseSoapClient client = new(httpBinding, new(new Uri(WebServiceUrl)));
 
             client.ChannelFactory.CreateChannel();
