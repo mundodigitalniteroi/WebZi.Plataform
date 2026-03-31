@@ -85,16 +85,14 @@ namespace WebZi.Plataform.Data.Services.WebServices
             WebServiceUrlModel WebServiceUrl = await _context.WebServiceUrl
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.Name == "Wsnfse");
-            var localhost = "http://localhost:8655/WSnfse.asmx";
-            var UrlBinding = _options?.Value != null ? localhost : WebServiceUrl.Url;
-
+            //var localhost = "http://localhost:8655/WSnfse.asmx";
 
             List<string> result;
             try
             {
                 //var response = await ClientConfig("http://localhost:8655/WSnfse.asmx")
                 //    .GerarNotaFiscalAsync(grvId, usuarioId, config.IsDev);
-                var response = await ClientConfig(UrlBinding)
+                var response = await ClientConfig(WebServiceUrl.Url)
                     .GerarNotaFiscalAsync(grvId, usuarioId, config.IsDev);
 
                 result = response?.Body?.GerarNotaFiscalResult;
@@ -150,10 +148,9 @@ namespace WebZi.Plataform.Data.Services.WebServices
                 MaxReceivedMessageSize = int.MaxValue,
                 MaxBufferSize = int.MaxValue
             };
-            
-            httpBinding.Security.Mode = _options?.Value != null ? BasicHttpSecurityMode.None : BasicHttpSecurityMode.Transport;
 
-            //WSnfseSoapClient client = new(httpBinding, new(new Uri(WebServiceUrl)));
+            httpBinding.Security.Mode = BasicHttpSecurityMode.TransportCredentialOnly;
+            httpBinding.Security.Transport.ClientCredentialType = HttpClientCredentialType.Basic;
             WSnfseSoapClient client = new(httpBinding, new(new Uri(WebServiceUrl)));
 
             client.ChannelFactory.CreateChannel();
