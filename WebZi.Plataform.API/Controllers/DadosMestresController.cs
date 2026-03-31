@@ -94,7 +94,7 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("ListarAutoridadeResponsavel")]
         // TODO: [Authorize]
-        public async Task<ActionResult<AutoridadeResponsavelListDTO>> ListarAutoridadeResponsavel(string UF)
+        public async Task<ActionResult<AutoridadeResponsavelListDTO>> ListarAutoridadeResponsavel(int? identificadorDeposito, string? UF, string? nomeAutoridade, int skip, int take)
         {
             if (!ModelState.IsValid)
             {
@@ -107,33 +107,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<GrvService>()
-                    .ListAutoridadeResponsavelAsync(UF);
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-            catch (Exception ex)
-            {
-                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-        }
-        [HttpGet("ListarAutoridadeResponsavelPorDeposito")]
-        // TODO: [Authorize]
-        public async Task<ActionResult<AutoridadeResponsavelListDTO>> ListarAutoridadeResponsavelPorDeposito(int identificadorDeposito)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            AutoridadeResponsavelListDTO ResultView = new();
-
-            try
-            {
-                ResultView = await _provider
-                    .GetService<GrvService>()
-                    .ListAutoridadeResponsavelPorDepositoAsync(identificadorDeposito);
+                    .ListAutoridadesResponsaveisUfOuDepositoAsync(identificadorDeposito,UF, nomeAutoridade, skip, take);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }

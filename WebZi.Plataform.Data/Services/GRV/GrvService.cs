@@ -1,5 +1,6 @@
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
@@ -1469,88 +1470,89 @@ namespace WebZi.Plataform.Domain.Services.GRV
             return ResultView;
         }
 
-        public async Task<AutoridadeResponsavelListDTO> ListAutoridadeResponsavelAsync(string UF)
+        public async Task<AutoridadeResponsavelListDTO> ListAutoridadesResponsaveisUfOuDepositoAsync(int? depositoId, string? UF, string? nomeAutoridade, int skip = 0, int take = 300)
         {
             AutoridadeResponsavelListDTO ResultView = new();
 
-            if (string.IsNullOrWhiteSpace(UF))
+            if ((depositoId.HasValue && !string.IsNullOrWhiteSpace(UF)) ||
+                (!depositoId.HasValue && string.IsNullOrWhiteSpace(UF)))
             {
-                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Informe a Unidade Federativa");
-
-                return ResultView;
-            }
-            else if (!LocalizacaoHelper.IsUF(UF))
-            {
-                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Unidade Federativa inválida");
-
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest(
+                    "Informe apenas um dos parâmetros: depositoId OU UF");
                 return ResultView;
             }
 
-            OrgaoEmissorModel result = await _context.OrgaoEmissor
-                .Include(x => x.AutoridadesResponsaveis)
-                .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.UF == UF.ToUpperTrim().ToNullIfEmpty());
+            string uf;
 
-            if (result == null)
+            if (!string.IsNullOrWhiteSpace(UF))
             {
-                ResultView.Mensagem = MensagemViewHelper.SetNotFound("Unidade Federativa sem Órgão Emissor cadastrado");
+                if (!LocalizacaoHelper.IsUF(UF))
+                {
+                    ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Unidade Federativa inválida");
+                    return ResultView;
+                }
 
-                return ResultView;
-            }
-
-            if (result.AutoridadesResponsaveis?.Count > 0)
-            {
-                ResultView.Listagem = _mapper.Map<List<AutoridadeResponsavelDTO>>(result.AutoridadesResponsaveis
-                    .OrderBy(x => x.Divisao)
-                    .ToList()); 
-
-                ResultView.Mensagem = MensagemViewHelper.SetFound(result.AutoridadesResponsaveis.Count);
+                uf = UF.Trim().ToUpper();
             }
             else
             {
-                ResultView.Mensagem = MensagemViewHelper.SetNotFound();
+                var deposito = await _context.Deposito
+                    .Include(x => x.Endereco)
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(x => x.DepositoId == depositoId);
+
+                if (deposito?.Endereco?.UF == null)
+                {
+                    ResultView.Mensagem = MensagemViewHelper.SetNotFound("Depósito sem UF válida");
+                    return ResultView;
+                }
+
+                uf = deposito.Endereco.UF.Trim().ToUpper();
             }
 
-            return ResultView;
+            return await ListAutoridadesResponsaveisAsync(uf, nomeAutoridade, skip, take);
         }
-        public async Task<AutoridadeResponsavelListDTO> ListAutoridadeResponsavelPorDepositoAsync(int identificadorDeposito)
+
+        private async Task<AutoridadeResponsavelListDTO> ListAutoridadesResponsaveisAsync(string uf,string? nomeAutoridade, int skip, int take)
         {
             AutoridadeResponsavelListDTO ResultView = new();
 
-            DepositoModel deposito = await _context.Deposito
-                                    .Include(x => x.Endereco)
-                                    .AsNoTracking()
-                                    .FirstOrDefaultAsync(x => x.DepositoId == identificadorDeposito);
-            string uf = deposito.Endereco.UF.ToUpperTrim().ToNullIfEmpty();
-
-            List<AutoridadeResponsavelModel> result = await _context.AutoridadeResponsavel
-                .Include(x => x.OrgaoEmissor)
-                .Where(x => x.OrgaoEmissor.UF == uf)
-                .OrderBy(x => x.Divisao)
+            var query = _context.OrgaoEmissor
                 .AsNoTracking()
+                .Where(x =>
+                    x.UF == uf &&
+                    x.FlagAutoridadeResponsavel == "S" &&
+                    x.FlagAtivo == "S"
+                )
+                .SelectMany(x => x.AutoridadesResponsaveis)
+                .Distinct();
+
+            if (!string.IsNullOrWhiteSpace(nomeAutoridade))
+            {
+                nomeAutoridade = nomeAutoridade.Trim().ToUpper();
+                query = query.Where(x =>
+                    EF.Functions.Like(x.Divisao, $"%{nomeAutoridade}%"));
+            }
+
+            if(skip > 0)
+                query = query.Skip(skip);
+
+
+            var result = await query
+                .Take(take)
                 .ToListAsync();
 
-
-            if (result?.Count < 0)
+            if (result == null || result.Count == 0)
             {
-                ResultView.Mensagem = MensagemViewHelper.SetNotFound("Unidade Federativa sem Órgão Emissor cadastrado");
-
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound();
                 return ResultView;
             }
 
-            if (result?.Count > 0)
-            {
-                ResultView.Listagem = _mapper.Map<List<AutoridadeResponsavelDTO>>(result);
-                ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
-            }
-            else
-            {
-                ResultView.Mensagem = MensagemViewHelper.SetNotFound();
-            }
+            ResultView.Listagem = _mapper.Map<List<AutoridadeResponsavelDTO>>(result);
+            ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
 
             return ResultView;
         }
-
         public async Task<ImageListDTO> ListDocumentosCondutorAsync(int GrvId, int UsuarioId)
         {
             ImageListDTO ResultView = new()
