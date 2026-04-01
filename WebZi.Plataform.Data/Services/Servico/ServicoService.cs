@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
+using WebZi.Plataform.CrossCutting.Strings;
 using WebZi.Plataform.CrossCutting.Veiculo;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
@@ -17,6 +18,7 @@ using WebZi.Plataform.Domain.Models.Cliente;
 using WebZi.Plataform.Domain.Models.Deposito;
 using WebZi.Plataform.Domain.Models.Servico;
 using WebZi.Plataform.Domain.ViewModel.GRV.Cadastro;
+using WebZi.Plataform.Domain.ViewModel.Reboque;
 using WebZi.Plataform.Domain.Views.Usuario;
 
 namespace WebZi.Plataform.Data.Services.Servico
@@ -430,6 +432,70 @@ namespace WebZi.Plataform.Data.Services.Servico
             try
             {
                 await _context.Reboquista.AddAsync(body);
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+            }
+            catch (Exception e)
+            {
+                await transaction.RollbackAsync();
+                ResultView = MensagemViewHelper.SetInternalServerError(e);
+                return ResultView;
+            }
+
+            ResultView = MensagemViewHelper.SetCreateSuccess();
+            return ResultView;
+        }
+        public async Task<MensagemDTO> CreateReboqueAsync(CadastrarReboqueParameters parameters)
+        {
+            MensagemDTO ResultView = new();
+            List<string> Erros = new();
+            #region Consulta
+
+            var clientes = await _context.UsuarioCliente
+                .AsNoTracking()
+                .AnyAsync(x =>
+                    x.UsuarioId == parameters.IdentificadorUsuario && x.ClienteId == parameters.IdentificadorCliente);
+            var deposito = await _context.UsuarioDeposito
+                .AsNoTracking()
+                .AnyAsync(x =>
+                    x.UsuarioId == parameters.IdentificadorUsuario && x.DepositoId == parameters.IdentificadorDeposito);
+            var clienteDeposito = await _context.ClienteDeposito
+                .AsNoTracking()
+                .AnyAsync(x => x.ClienteId == parameters.IdentificadorCliente && x.DepositoId == parameters.IdentificadorDeposito);
+
+            #endregion
+
+            if (!clientes)
+                Erros.Add(MensagemPadraoEnum.UsuarioSemPermissaoAcessoCliente);
+            if (!deposito)
+                Erros.Add(MensagemPadraoEnum.UsuarioSemPermissaoAcessoDeposito);
+            if (!clienteDeposito)
+                Erros.Add(MensagemPadraoEnum.NaoEncontradoAssociacaoClienteDeposito);
+            if (!parameters.Placa.IsPlaca())
+                Erros.Add("Placa inválida");
+            ReboqueModel body = new()
+            {
+                UsuarioCadastroId = parameters.IdentificadorUsuario,
+                ClienteId = parameters.IdentificadorCliente,
+                DepositoId = parameters.IdentificadorDeposito,
+                Codigo = parameters.Codigo,
+                Placa = parameters.Placa.NormalizePlaca(),
+                Chassi = string.IsNullOrWhiteSpace(parameters.Chassi) ? null : parameters.Chassi,
+                Renavam = string.IsNullOrWhiteSpace(parameters.Renavam) ? null : parameters.Renavam,
+                Marca = string.IsNullOrWhiteSpace(parameters.Marca) ? null : parameters.Marca,
+                Modelo = string.IsNullOrWhiteSpace(parameters.Modelo) ? null : parameters.Modelo,
+                Ano = parameters.Ano,
+                DataCadastro = DateTime.UtcNow.AddHours(-3)
+            };
+            if (Erros.Count > 0)
+            {
+                ResultView = MensagemViewHelper.SetBadRequest(Erros);
+                return ResultView;
+            }
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                await _context.Reboque.AddAsync(body);
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
             }

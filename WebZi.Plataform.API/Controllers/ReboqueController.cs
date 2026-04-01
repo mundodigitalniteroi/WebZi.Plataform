@@ -5,61 +5,38 @@ using WebZi.Plataform.Data.Services.Servico;
 using WebZi.Plataform.Domain.DTO.Servico;
 using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.ViewModel.GRV.Cadastro;
+using WebZi.Plataform.Domain.ViewModel.Reboque;
 
 namespace WebZi.Plataform.API.Controllers
 {
     [Route("api/[controller]")]
     [Authorize]
     [ApiController]
-    public class ReboquistaController : ControllerBase
+    public class ReboqueController : ControllerBase
     {
         private readonly IServiceProvider _provider;
 
-        public ReboquistaController(IServiceProvider provider)
+        public ReboqueController(IServiceProvider provider)
         {
             _provider = provider;
         }
 
-        [HttpGet("ListarReboquista")]
-        public async Task<ActionResult<ReboquistaListDTO>> ListarReboquista(int IdentificadorCliente, int IdentificadorDeposito)
+        [HttpGet("ListarReboque")]
+        // TODO: [Authorize]
+        public async Task<ActionResult<ReboqueListDTO>> ListarReboque(int IdentificadorCliente, int IdentificadorDeposito)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            ReboquistaListDTO ResultView = new();
+            ReboqueListDTO ResultView = new();
 
             try
             {
                 ResultView = await _provider
                     .GetService<ServicoService>()
-                    .ListReboquistaAsync(IdentificadorCliente, IdentificadorDeposito);
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-            catch (Exception ex)
-            {
-                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-        }
-        [HttpGet("SelecionarReboquistaPorIdentificador")]
-        public async Task<ActionResult<ReboquistaListDTO>> SelecionarReboquistaPorIdentificador(int IdentificadorReboquista)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            ReboquistaListDTO ResultView = new();
-
-            try
-            {
-                ResultView = await _provider
-                    .GetService<ServicoService>()
-                    .GetReboquistaByIdAsync(IdentificadorReboquista);
+                    .ListReboqueAsync(IdentificadorCliente, IdentificadorDeposito);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -71,8 +48,61 @@ namespace WebZi.Plataform.API.Controllers
             }
         }
 
+        [HttpGet("SelecionarReboquePorIdentificador")]
+        // TODO: [Authorize]
+        public async Task<ActionResult<ReboqueListDTO>> SelecionarReboquePorIdentificador(int IdentificadorReboque)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            ReboqueListDTO ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<ServicoService>()
+                    .GetReboqueByIdAsync(IdentificadorReboque);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
+
+        [HttpGet("SelecionarReboquePorPlaca")]
+        // TODO: [Authorize]
+        public async Task<ActionResult<ReboqueListDTO>> SelecionarReboquePorPlaca(string Placa, int IdentificadorCliente, int IdentificadorDeposito)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            ReboqueListDTO ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<ServicoService>()
+                    .GetReboqueByPlacaAsync(Placa, IdentificadorCliente, IdentificadorDeposito);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
         [HttpPost("Cadastrar")]
-        public async Task<ActionResult<MensagemDTO>> Cadastrar(CadastrarReboquistaParameters parameters)
+        public async Task<ActionResult<MensagemDTO>> Cadastrar(CadastrarReboqueParameters parameters)
         {
             MensagemDTO ResultView = new();
 
@@ -85,7 +115,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<ServicoService>()
-                    .CreateReboquistaAsync(parameters);
+                    .CreateReboqueAsync(parameters);
 
                 return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
             }
