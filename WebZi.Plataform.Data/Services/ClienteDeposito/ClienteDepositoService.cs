@@ -80,7 +80,7 @@ namespace WebZi.Plataform.Data.Services.ClienteDeposito
                 return ResultView;
 
             ResultView = _mapper.Map<ClienteDepositoFlagParcelamentoDTO>(query);
-            ResultView.Mensagem = MensagemViewHelper.SetOk();
+            ResultView.Mensagem = MensagemViewHelper.SetFound();
             return ResultView;
         }
     }
