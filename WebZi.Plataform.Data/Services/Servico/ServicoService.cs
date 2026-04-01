@@ -1,15 +1,22 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.DependencyInjection;
 using WebZi.Plataform.CrossCutting.Veiculo;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
+using WebZi.Plataform.Data.Services.Cliente;
+using WebZi.Plataform.Data.Services.ClienteDeposito;
+using WebZi.Plataform.Data.Services.Deposito;
 using WebZi.Plataform.Domain.DTO.GRV.Pesquisa;
 using WebZi.Plataform.Domain.DTO.Servico;
+using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.DTO.Usuario;
 using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Cliente;
 using WebZi.Plataform.Domain.Models.Deposito;
 using WebZi.Plataform.Domain.Models.Servico;
+using WebZi.Plataform.Domain.ViewModel.GRV.Cadastro;
 using WebZi.Plataform.Domain.Views.Usuario;
 
 namespace WebZi.Plataform.Data.Services.Servico
@@ -18,7 +25,6 @@ namespace WebZi.Plataform.Data.Services.Servico
     {
         private readonly AppDbContext _context;
         private readonly IMapper _mapper;
-
         public ServicoService(AppDbContext context, IMapper mapper)
         {
             _context = context;
@@ -375,6 +381,62 @@ namespace WebZi.Plataform.Data.Services.Servico
             else
             {
                 ResultView.Mensagem = MensagemViewHelper.SetNotFound();
+            }
+
+            return ResultView;
+        }
+        public async Task<MensagemDTO> CreateReboquistaAsync(CadastrarReboquistaParameters parameters)
+        {
+            MensagemDTO ResultView = new();
+            #region Consulta
+
+            var clientes = await _context.UsuarioCliente
+                .AsNoTracking()
+                .AnyAsync(x =>
+                    x.ClienteId == parameters.IdentificadorCliente && x.UsuarioId == parameters.IdentificadorUsuario);
+            var deposito = await _context.UsuarioDeposito
+                .AsNoTracking()
+                .AnyAsync(x =>
+                    x.DepositoId == parameters.IdentificadorDeposito && x.UsuarioId == parameters.IdentificadorUsuario);
+            var clienteDeposito = await _context.ClienteDeposito
+                .AsNoTracking()
+                .AnyAsync(x => x.ClienteId == parameters.IdentificadorCliente && x.DepositoId == parameters.IdentificadorDeposito);
+                
+            #endregion
+
+            if (!clientes)
+                ResultView = MensagemViewHelper.SetNotFound(MensagemPadraoEnum.UsuarioSemPermissaoAcessoCliente);
+            if(!deposito)
+                ResultView = MensagemViewHelper.SetNotFound(MensagemPadraoEnum.UsuarioSemPermissaoAcessoDeposito);
+            if(!clienteDeposito)
+                ResultView = MensagemViewHelper.SetNotFound(MensagemPadraoEnum.NaoEncontradoAssociacaoClienteDeposito);
+    
+
+            ReboquistaModel body = new()
+            {
+                UsuarioCadastroId = parameters.IdentificadorUsuario,
+                ClienteId = parameters.IdentificadorCliente,
+                DepositoId = parameters.IdentificadorDeposito,
+                Nome = parameters.NomeReboquista,
+                DataCadastro = DateTime.UtcNow,
+            };
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+            if (ResultView.AvisosImpeditivos?.Count > 0 || ResultView.Erros.Count > 0)
+            {
+                ResultView = MensagemViewHelper.SetBadRequest();
+                return ResultView;
+            }
+            try
+            {
+                await _context.Reboquista.AddAsync(body);
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+            }
+            catch (Exception e)
+            {
+                await transaction.RollbackAsync();
+                ResultView = MensagemViewHelper.SetInternalServerError(e);
+                return ResultView;
             }
 
             return ResultView;
