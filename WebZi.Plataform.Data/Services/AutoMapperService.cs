@@ -27,6 +27,7 @@ using WebZi.Plataform.Domain.Models.Atendimento;
 using WebZi.Plataform.Domain.Models.Banco;
 using WebZi.Plataform.Domain.Models.Banco.PIX.Dinamico.Persistencia;
 using WebZi.Plataform.Domain.Models.Cliente;
+using WebZi.Plataform.Domain.Models.ClienteDeposito;
 using WebZi.Plataform.Domain.Models.Condutor;
 using WebZi.Plataform.Domain.Models.Deposito;
 using WebZi.Plataform.Domain.Models.Documento;
@@ -107,6 +108,10 @@ namespace WebZi.Plataform.Data.Services
                 .ForMember(dest => dest.Cep, from => from.MapFrom(src => src.Endereco != null ? src.Endereco.CEP : null))
                 .ForMember(dest => dest.UF, from => from.MapFrom(src => src.Endereco != null ? src.Endereco.UF : null))
                 .ForMember(dest => dest.Municipio, from => from.MapFrom(src => src.Endereco != null ? src.Endereco.Municipio : null));
+
+            CreateMap<ClienteDepositoModel, ClienteDepositoFlagParcelamentoDTO>()
+                .ForMember(dest => dest.IdentificadorCliente, from => from.MapFrom(src => src.ClienteId))
+                .ForMember(dest => dest.IdentificadorDeposito, from => from.MapFrom(src => src.DepositoId));
 
             CreateMap<DetranRioVeiculoModel, DetranRioVeiculoDTO>()
                 .ForMember(dest => dest.IdentificadorVeiculo, from => from.MapFrom(src => src.DetranVeiculoId))
