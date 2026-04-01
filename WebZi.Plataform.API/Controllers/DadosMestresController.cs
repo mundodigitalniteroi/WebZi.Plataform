@@ -442,32 +442,6 @@ namespace WebZi.Plataform.API.Controllers
             }
         }
 
-        [HttpGet("ListarReboquista")]
-        // TODO: [Authorize]
-        public async Task<ActionResult<ReboquistaListDTO>> ListarReboquista(int IdentificadorCliente, int IdentificadorDeposito)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            ReboquistaListDTO ResultView = new();
-
-            try
-            {
-                ResultView = await _provider
-                    .GetService<ServicoService>()
-                    .ListReboquistaAsync(IdentificadorCliente, IdentificadorDeposito);
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-            catch (Exception ex)
-            {
-                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-        }
 
         [HttpGet("ListarSituacaoChassi")]
         // TODO: [Authorize]
@@ -755,33 +729,6 @@ namespace WebZi.Plataform.API.Controllers
                 ResultView = await _provider
                     .GetService<ServicoService>()
                     .GetReboqueByPlacaAsync(Placa, IdentificadorCliente, IdentificadorDeposito);
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-            catch (Exception ex)
-            {
-                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-        }
-
-        [HttpGet("SelecionarReboquistaPorIdentificador")]
-        // TODO: [Authorize]
-        public async Task<ActionResult<ReboquistaListDTO>> SelecionarReboquistaPorIdentificador(int IdentificadorReboquista)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            ReboquistaListDTO ResultView = new();
-
-            try
-            {
-                ResultView = await _provider
-                    .GetService<ServicoService>()
-                    .GetReboquistaByIdAsync(IdentificadorReboquista);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
