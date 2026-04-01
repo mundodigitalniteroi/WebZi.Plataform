@@ -55,6 +55,8 @@
         public static readonly string NumeroProcessoInvalido = "Número do Processo inválido";
 
         public static readonly string UsuarioSemPermissaoAcessoClienteDeposito = "Usuário sem permissão de acesso ao Cliente e Depósito";
+        public static readonly string UsuarioSemPermissaoAcessoCliente = "Usuário sem permissão de acesso ao Cliente";
+        public static readonly string UsuarioSemPermissaoAcessoDeposito = "Usuário sem permissão de acesso ao Depósito";
 
         public static readonly string UsuarioSemPermissaoAcessoGrv = "Usuário sem permissão de acesso ao Processo";
     }
