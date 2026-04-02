@@ -33,6 +33,7 @@ namespace WebZi.Plataform.Domain.DTO.GRV
         public byte? IdentificadorMotivoApreensao { get; set; }
 
         public string IdentificadorStatusOperacao { get; set; }
+        public string StatusOperacao { get; set; }
 
         public int? IdentificadorLiberacao { get; set; }
 

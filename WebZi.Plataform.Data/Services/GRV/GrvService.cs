@@ -177,6 +177,12 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 return ResultView;
             }
 
+            if (!new[] { "1", "G", "L", "T", "V" }.Contains(grv.StatusOperacaoId))
+            {
+                return MensagemViewHelper.SetBadRequest($"O Status atual deste Processo não permite o atualização do Grv. " +
+                                                        $"Descrição do Status atual: {grv.StatusOperacao.Descricao.ToUpper()}");
+            }
+
             grv.ClienteId = GrvPersistencia.IdentificadorCliente;
             grv.DepositoId = GrvPersistencia.IdentificadorDeposito;
             grv.TipoVeiculoId = GrvPersistencia.IdentificadorTipoVeiculo;

@@ -260,6 +260,7 @@ namespace WebZi.Plataform.Data.Services
                 .ForMember(dest => dest.IdentificadorMarcaModelo, from => from.MapFrom(src => src.MarcaModeloId))
                 .ForMember(dest => dest.IdentificadorMotivoApreensao, from => from.MapFrom(src => src.MotivoApreensaoId))
                 .ForMember(dest => dest.IdentificadorStatusOperacao, from => from.MapFrom(src => src.StatusOperacaoId))
+                .ForMember(dest => dest.StatusOperacao, from => from.MapFrom(src => src.StatusOperacao.Descricao))
                 .ForMember(dest => dest.IdentificadorLiberacao, from => from.MapFrom(src => src.LiberacaoId))
                 .ForMember(dest => dest.CodigoProduto, from => from.MapFrom(src => src.FaturamentoProdutoId))
                 .ForMember(dest => dest.Infracoes, opt => opt.MapFrom(src => src.ListagemEnquadramentoInfracao.Select(li => li.EnquadramentoInfracao)))
