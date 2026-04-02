@@ -96,5 +96,30 @@ namespace WebZi.Plataform.API.Controllers
                 return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
             }
         }
+        [HttpPut("Atualizar")]
+        public async Task<ActionResult<MensagemDTO>> Atualizar(AtualizarReboquistaParameters parameters)
+        {
+            MensagemDTO ResultView = new();
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<ServicoService>()
+                    .UpdateReboquistaAsync(parameters);
+
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+            catch (Exception e)
+            {
+                ResultView = MensagemViewHelper.SetInternalServerError(e);
+
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+        }
     }
 }

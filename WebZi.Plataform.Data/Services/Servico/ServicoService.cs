@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using System.Configuration;
+using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
@@ -443,6 +444,67 @@ namespace WebZi.Plataform.Data.Services.Servico
             }
 
             ResultView = MensagemViewHelper.SetCreateSuccess();
+            return ResultView;
+        }
+        public async Task<MensagemDTO> UpdateReboquistaAsync(AtualizarReboquistaParameters parameters)
+        {
+            MensagemDTO ResultView = new();
+            List<string> Erros = new();
+            #region Consulta
+            var reboquista = await _context.Reboquista
+                .AsNoTracking()
+                .AnyAsync(x => x.ReboquistaId == parameters.IdentificadorReboquista);
+            var clientes = await _context.UsuarioCliente
+                .AsNoTracking()
+                .AnyAsync(x =>
+                    x.UsuarioId == parameters.IdentificadorUsuario && x.ClienteId == parameters.IdentificadorCliente);
+            var deposito = await _context.UsuarioDeposito
+                .AsNoTracking()
+                .AnyAsync(x =>
+                    x.UsuarioId == parameters.IdentificadorUsuario && x.DepositoId == parameters.IdentificadorDeposito);
+            var clienteDeposito = await _context.ClienteDeposito
+                .AsNoTracking()
+                .AnyAsync(x => x.ClienteId == parameters.IdentificadorCliente && x.DepositoId == parameters.IdentificadorDeposito);
+            #endregion
+
+            if (!reboquista)
+                Erros.Add(MensagemPadraoEnum.IdentificadorReboquistaInvalido);
+            if (!clientes)
+                Erros.Add(MensagemPadraoEnum.UsuarioSemPermissaoAcessoCliente);
+            if (!deposito)
+                Erros.Add(MensagemPadraoEnum.UsuarioSemPermissaoAcessoDeposito);
+            if (!clienteDeposito)
+                Erros.Add(MensagemPadraoEnum.NaoEncontradoAssociacaoClienteDeposito);
+
+            if (Erros.Count > 0)
+            {
+                ResultView = MensagemViewHelper.SetBadRequest(Erros);
+                return ResultView;
+            }
+
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                await _context.Reboquista
+                    .Where(x => x.ReboquistaId == parameters.IdentificadorReboquista)
+                    .ExecuteUpdateAsync(x => x
+                            .SetProperty(x => x.ClienteId, parameters.IdentificadorCliente)
+                            .SetProperty(x => x.ReboquistaId, parameters.IdentificadorReboquista)
+                            .SetProperty(x => x.UsuarioAlteracaoId, parameters.IdentificadorUsuario)
+                            .SetProperty(x => x.Nome, parameters.NomeReboquista)
+                            .SetProperty(x => x.DataAlteracao, DateTime.UtcNow.AddHours(-3))
+                            .SetProperty(x => x.FlagAtivo, parameters.FlagAtivo)
+                    );
+                await transaction.CommitAsync();
+            }
+            catch (Exception e)
+            {
+                await transaction.RollbackAsync();
+                ResultView = MensagemViewHelper.SetInternalServerError(e);
+                return ResultView;
+            }
+
+            ResultView = MensagemViewHelper.SetUpdateSuccess();
             return ResultView;
         }
         public async Task<MensagemDTO> CreateReboqueAsync(CadastrarReboqueParameters parameters)
