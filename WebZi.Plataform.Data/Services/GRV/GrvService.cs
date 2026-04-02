@@ -50,6 +50,7 @@ using WebZi.Plataform.Domain.ViewModel.GRV.Cadastro;
 using WebZi.Plataform.Domain.ViewModel.GRV.Pesquisa;
 using WebZi.Plataform.Domain.Views.Usuario;
 using Z.EntityFramework.Plus;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace WebZi.Plataform.Domain.Services.GRV
 {
@@ -1781,7 +1782,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 }
             }
 
-            if (GrvPesquisa.ListagemStatusOperacao?.Count > 0)
+            if (GrvPesquisa.ListagemStatusOperacao?.Any() == true)
             {
                 List<string> StatusOperacoes = await _context.StatusOperacao
                     .Select(x => x.StatusOperacaoId)
@@ -1833,24 +1834,27 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 erros.Add(MensagemPadraoEnum.IdentificadorUsuarioInvalido);
             }
 
-            if (!GrvPesquisa.DataInicialRemocao.HasValue)
-            {
-                var baseDate = GrvPesquisa.DataFinalRemocao ?? DateTime.Now;
-                GrvPesquisa.DataInicialRemocao = baseDate.AddDays(-180);
-            }
+            //if (!GrvPesquisa.DataInicialRemocao.HasValue)
+            //{
+            //    var baseDate = GrvPesquisa.DataFinalRemocao ?? DateTime.Now;
+            //    GrvPesquisa.DataInicialRemocao = baseDate.AddDays(-180);
+            //}
 
-            if (!GrvPesquisa.DataFinalRemocao.HasValue)
-            {
-                GrvPesquisa.DataFinalRemocao = DateTime.Now;
-            }
+            //if (!GrvPesquisa.DataFinalRemocao.HasValue)
+            //{
+            //    GrvPesquisa.DataFinalRemocao = DateTime.Now;
+            //}
 
-            if (GrvPesquisa.DataInicialRemocao.Value.Date > GrvPesquisa.DataFinalRemocao.Value.Date)
+            if (GrvPesquisa.DataInicialRemocao.HasValue && GrvPesquisa.DataFinalRemocao.HasValue)
             {
-                erros.Add("A Data Inicial não pode ser maior do que a Data Final");
-            }
-            else if ((GrvPesquisa.DataFinalRemocao.Value.Date - GrvPesquisa.DataInicialRemocao.Value.Date).Days > 180)
-            {
-                erros.Add("O período de pesquisa não pode superar 180 dias");
+                if (GrvPesquisa.DataInicialRemocao.Value.Date > GrvPesquisa.DataFinalRemocao.Value.Date)
+                {
+                    erros.Add("A Data Inicial não pode ser maior do que a Data Final");
+                }
+                else if ((GrvPesquisa.DataFinalRemocao.Value.Date - GrvPesquisa.DataInicialRemocao.Value.Date).Days > 180)
+                {
+                    erros.Add("O período de pesquisa não pode superar 180 dias");
+                }
             }
 
             GrvPesquisaResultListDTO ResultView = new();
@@ -1861,27 +1865,73 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
                 return ResultView;
             }
-            List<GrvModel> result = await _context.Grv
+            var query = _context.Grv
                 .Include(x => x.Cliente)
                 .Include(x => x.Atendimento)
-                    .ThenInclude(x => x.ListagemFaturamento)
-                    .ThenInclude(x => x.ListagemFaturamentoComposicao)
+                .ThenInclude(x => x.ListagemFaturamento)
+                .ThenInclude(x => x.ListagemFaturamentoComposicao)
                 .Include(x => x.Deposito)
                 .Include(x => x.StatusOperacao)
                 .Include(x => x.MarcaModelo)
                 .Include(x => x.UsuarioClienteDepositoGrv)
-                .Where(x => x.UsuarioClienteDepositoGrv.UsuarioId == GrvPesquisa.IdentificadorUsuario &&
-                             GrvPesquisa.ListagemCodigoProduto.Contains(x.FaturamentoProdutoId) &&
-                             x.UsuarioClienteDepositoGrv.FaturamentoProdutoCodigo == x.FaturamentoProdutoId &&
-                            (x.DataHoraRemocao.Date >= GrvPesquisa.DataInicialRemocao.Value.Date && x.DataHoraRemocao.Date <= GrvPesquisa.DataFinalRemocao.Value.Date) &&
-                            (GrvPesquisa.ListagemCodigoProduto.Count > 0 ? GrvPesquisa.ListagemCodigoProduto.Contains(x.FaturamentoProdutoId) : true) &&
-                            (GrvPesquisa.ListagemStatusOperacao.Count > 0 ? GrvPesquisa.ListagemStatusOperacao.Contains(x.StatusOperacaoId) : true) &&
-                            (!string.IsNullOrWhiteSpace(GrvPesquisa.NumeroProcesso) ? x.NumeroFormularioGrv == GrvPesquisa.NumeroProcesso : true) &&
-                            (!string.IsNullOrWhiteSpace(GrvPesquisa.PlacaVeiculo) ? x.Placa == GrvPesquisa.PlacaVeiculo : true) &&
-                            (!string.IsNullOrWhiteSpace(GrvPesquisa.Chassi) ? x.Chassi == GrvPesquisa.Chassi : true) &&
-                            (!string.IsNullOrWhiteSpace(GrvPesquisa.FlagVeiculoNaoIdentificado) ? x.FlagVeiculoNaoIdentificado == GrvPesquisa.FlagVeiculoNaoIdentificado : true) &&
-                            (GrvPesquisa.IdentificadorCliente > 0 ? x.ClienteId == GrvPesquisa.IdentificadorCliente : true) &&
-                            (GrvPesquisa.IdentificadorDeposito > 0 ? x.DepositoId == GrvPesquisa.IdentificadorDeposito : true))
+                .Where(x =>
+                    x.UsuarioClienteDepositoGrv.UsuarioId == GrvPesquisa.IdentificadorUsuario &&
+                    x.UsuarioClienteDepositoGrv.FaturamentoProdutoCodigo == x.FaturamentoProdutoId)
+                .AsQueryable();
+
+
+            if (GrvPesquisa.ListagemCodigoProduto?.Any() == true)
+            {
+                query = query.Where(x => GrvPesquisa.ListagemCodigoProduto.Contains(x.FaturamentoProdutoId));
+            }
+
+            if (GrvPesquisa.ListagemStatusOperacao?.Any() == true)
+            {
+                query = query.Where(x => GrvPesquisa.ListagemStatusOperacao.Contains(x.StatusOperacaoId));
+            }
+
+            if (!string.IsNullOrWhiteSpace(GrvPesquisa.NumeroProcesso))
+            {
+                query = query.Where(x => x.NumeroFormularioGrv == GrvPesquisa.NumeroProcesso);
+            }
+
+            if (!string.IsNullOrWhiteSpace(GrvPesquisa.PlacaVeiculo))
+            {
+                query = query.Where(x => x.Placa == GrvPesquisa.PlacaVeiculo);
+            }
+
+            if (!string.IsNullOrWhiteSpace(GrvPesquisa.Chassi))
+            {
+                query = query.Where(x => x.Chassi == GrvPesquisa.Chassi);
+            }
+
+            if (!string.IsNullOrWhiteSpace(GrvPesquisa.FlagVeiculoNaoIdentificado))
+            {
+                query = query.Where(x => x.FlagVeiculoNaoIdentificado == GrvPesquisa.FlagVeiculoNaoIdentificado);
+            }
+
+            if (GrvPesquisa.IdentificadorCliente > 0)
+            {
+                query = query.Where(x => x.ClienteId == GrvPesquisa.IdentificadorCliente);
+            }
+
+            if (GrvPesquisa.IdentificadorDeposito > 0)
+            {
+                query = query.Where(x => x.DepositoId == GrvPesquisa.IdentificadorDeposito);
+            }
+
+            if (GrvPesquisa.DataInicialRemocao.HasValue)
+            {
+                query = query.Where(x => x.DataHoraRemocao >= GrvPesquisa.DataInicialRemocao.Value);
+            }
+
+            if (GrvPesquisa.DataFinalRemocao.HasValue)
+            {
+                query = query.Where(x => x.DataHoraRemocao <= GrvPesquisa.DataFinalRemocao.Value);
+            }
+
+
+            var result = await query
                 .OrderBy(x => Convert.ToInt64(x.NumeroFormularioGrv))
                 .Take(100)
                 .AsNoTracking()
