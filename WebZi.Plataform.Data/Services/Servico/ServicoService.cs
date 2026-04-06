@@ -489,7 +489,7 @@ namespace WebZi.Plataform.Data.Services.Servico
                     .Where(x => x.ReboquistaId == parameters.IdentificadorReboquista)
                     .ExecuteUpdateAsync(x => x
                             .SetProperty(x => x.ClienteId, parameters.IdentificadorCliente)
-                            .SetProperty(x => x.ReboquistaId, parameters.IdentificadorReboquista)
+                            .SetProperty(x => x.DepositoId, parameters.IdentificadorDeposito)
                             .SetProperty(x => x.UsuarioAlteracaoId, parameters.IdentificadorUsuario)
                             .SetProperty(x => x.Nome, parameters.NomeReboquista)
                             .SetProperty(x => x.DataAlteracao, DateTime.UtcNow.AddHours(-3))
@@ -559,6 +559,73 @@ namespace WebZi.Plataform.Data.Services.Servico
             {
                 await _context.Reboque.AddAsync(body);
                 await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+            }
+            catch (Exception e)
+            {
+                await transaction.RollbackAsync();
+                ResultView = MensagemViewHelper.SetInternalServerError(e);
+                return ResultView;
+            }
+
+            ResultView = MensagemViewHelper.SetCreateSuccess();
+            return ResultView;
+        }
+        public async Task<MensagemDTO> UpdateReboqueAsync(AtualizarReboqueParameters parameters)
+        {
+            MensagemDTO ResultView = new();
+            List<string> Erros = new();
+            #region Consulta
+            var reboque = await _context.Reboquista
+                .AsNoTracking()
+                .AnyAsync(x => x.ReboquistaId == parameters.IdentificadorReboque);
+            var clientes = await _context.UsuarioCliente
+                .AsNoTracking()
+                .AnyAsync(x =>
+                    x.UsuarioId == parameters.IdentificadorUsuario && x.ClienteId == parameters.IdentificadorCliente);
+            var deposito = await _context.UsuarioDeposito
+                .AsNoTracking()
+                .AnyAsync(x =>
+                    x.UsuarioId == parameters.IdentificadorUsuario && x.DepositoId == parameters.IdentificadorDeposito);
+            var clienteDeposito = await _context.ClienteDeposito
+                .AsNoTracking()
+                .AnyAsync(x => x.ClienteId == parameters.IdentificadorCliente && x.DepositoId == parameters.IdentificadorDeposito);
+
+            #endregion
+            if(!reboque)
+                Erros.Add(MensagemPadraoEnum.UsuarioSemPermissaoAcessoCliente);
+            if (!clientes)
+                Erros.Add(MensagemPadraoEnum.UsuarioSemPermissaoAcessoCliente);
+            if (!deposito)
+                Erros.Add(MensagemPadraoEnum.UsuarioSemPermissaoAcessoDeposito);
+            if (!clienteDeposito)
+                Erros.Add(MensagemPadraoEnum.NaoEncontradoAssociacaoClienteDeposito);
+            if (!parameters.Placa.IsPlaca())
+                Erros.Add("Placa inválida");
+            if (Erros.Count > 0)
+            {
+                ResultView = MensagemViewHelper.SetBadRequest(Erros);
+                return ResultView;
+            }
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                await _context.Reboque
+                    .Where(x => x.ReboqueId == parameters.IdentificadorReboque)
+                    .ExecuteUpdateAsync(x => x
+                        .SetProperty(x => x.ClienteId, parameters.IdentificadorCliente)
+                        .SetProperty(x => x.DepositoId, parameters.IdentificadorDeposito)
+                        .SetProperty(x => x.UsuarioAlteracaoId, parameters.IdentificadorUsuario)
+                        .SetProperty(x => x.Codigo, parameters.Codigo)
+                        .SetProperty(x => x.Placa, parameters.Placa)
+                        .SetProperty(x => x.Chassi, string.IsNullOrWhiteSpace(parameters.Chassi) ? null : parameters.Chassi)
+                        .SetProperty(x => x.Renavam, string.IsNullOrWhiteSpace(parameters.Renavam) ? null : parameters.Renavam)
+                        .SetProperty(x => x.Marca, string.IsNullOrWhiteSpace(parameters.Marca) ? null : parameters.Marca)
+                        .SetProperty(x => x.Modelo, string.IsNullOrWhiteSpace(parameters.Modelo) ? null : parameters.Modelo)
+                        .SetProperty(x => x.Ano, parameters.Ano)
+                        .SetProperty(x => x.DataAlteracao, DateTime.UtcNow.AddHours(-3))
+                        .SetProperty(x => x.FlagAtivo, parameters.FlagAtivo)
+                    );
                 await transaction.CommitAsync();
             }
             catch (Exception e)
