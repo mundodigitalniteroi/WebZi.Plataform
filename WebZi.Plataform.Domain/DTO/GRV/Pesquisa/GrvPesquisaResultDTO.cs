@@ -10,13 +10,13 @@
 
         public string NumeroProcesso { get; set; }
 
-        public string Placa { get; set; }
+        public string? Placa { get; set; }
 
-        public string Chassi { get; set; }
+        public string? Chassi { get; set; }
 
-        public string Renavam { get; set; }
+        public string? Renavam { get; set; }
 
-        public string MarcaModelo { get; set; }
+        public string? MarcaModelo { get; set; }
 
         public string StatusOperacaoId { get; set; }
 

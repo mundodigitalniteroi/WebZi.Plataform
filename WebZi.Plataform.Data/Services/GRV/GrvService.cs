@@ -243,7 +243,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                     .GetByCEP(GrvPersistencia.EnderecoLocalizacaoVeiculoCEP
                     .Replace("-", ""));
 
-                if (Endereco != null)
+                if (Endereco.Mensagem.Erros.Count < 0 && Endereco != null)
                 {
                     grv.EnderecoLocalizacaoVeiculoCEPId = Endereco.IdentificadorCEP;
 
@@ -414,7 +414,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             if (GrvPersistencia.ImagemAssinaturaCondutor != null)
             {
                 new BucketService(_context, _httpClientFactory)
-                    .SendFile(BucketNomeTabelaOrigemEnum.AssinaturaCondutor, grv.GrvId, grv.UsuarioCadastroId, GrvPersistencia.ImagemAssinaturaAgente);
+                    .SendFile(BucketNomeTabelaOrigemEnum.AssinaturaCondutor, grv.GrvId, grv.UsuarioCadastroId, GrvPersistencia.ImagemAssinaturaCondutor);
             }
 
             ResultView = MensagemViewHelper.SetUpdateSuccess();
@@ -526,7 +526,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                     .GetByCEP(GrvPersistencia.EnderecoLocalizacaoVeiculoCEP
                     .Replace("-", ""));
 
-                if (Endereco != null)
+                if (Endereco.Mensagem.Erros.Count < 0 && Endereco != null)
                 {
                     Grv.EnderecoLocalizacaoVeiculoCEPId = Endereco.IdentificadorCEP;
 
@@ -1885,57 +1885,28 @@ namespace WebZi.Plataform.Domain.Services.GRV
                     x.UsuarioClienteDepositoGrv.FaturamentoProdutoCodigo == x.FaturamentoProdutoId)
                 .AsQueryable();
 
-
-            if (GrvPesquisa.ListagemCodigoProduto?.Any() == true)
-            {
-                query = query.Where(x => GrvPesquisa.ListagemCodigoProduto.Contains(x.FaturamentoProdutoId));
-            }
-
-            if (GrvPesquisa.ListagemStatusOperacao?.Any() == true)
-            {
-                query = query.Where(x => GrvPesquisa.ListagemStatusOperacao.Contains(x.StatusOperacaoId));
-            }
-
-            if (!string.IsNullOrWhiteSpace(GrvPesquisa.NumeroProcesso))
-            {
-                query = query.Where(x => x.NumeroFormularioGrv == GrvPesquisa.NumeroProcesso);
-            }
-
-            if (!string.IsNullOrWhiteSpace(GrvPesquisa.PlacaVeiculo))
-            {
-                query = query.Where(x => x.Placa == GrvPesquisa.PlacaVeiculo);
-            }
-
-            if (!string.IsNullOrWhiteSpace(GrvPesquisa.Chassi))
-            {
-                query = query.Where(x => x.Chassi == GrvPesquisa.Chassi);
-            }
-
-            if (!string.IsNullOrWhiteSpace(GrvPesquisa.FlagVeiculoNaoIdentificado))
-            {
-                query = query.Where(x => x.FlagVeiculoNaoIdentificado == GrvPesquisa.FlagVeiculoNaoIdentificado);
-            }
-
-            if (GrvPesquisa.IdentificadorCliente > 0)
-            {
-                query = query.Where(x => x.ClienteId == GrvPesquisa.IdentificadorCliente);
-            }
-
-            if (GrvPesquisa.IdentificadorDeposito > 0)
-            {
-                query = query.Where(x => x.DepositoId == GrvPesquisa.IdentificadorDeposito);
-            }
-
-            if (GrvPesquisa.DataInicialRemocao.HasValue)
-            {
-                query = query.Where(x => x.DataHoraRemocao >= GrvPesquisa.DataInicialRemocao.Value);
-            }
-
-            if (GrvPesquisa.DataFinalRemocao.HasValue)
-            {
-                query = query.Where(x => x.DataHoraRemocao <= GrvPesquisa.DataFinalRemocao.Value);
-            }
-
+            #region Filtros
+                if (GrvPesquisa.ListagemCodigoProduto?.Any() == true)
+                    query = query.Where(x => GrvPesquisa.ListagemCodigoProduto.Contains(x.FaturamentoProdutoId));
+                if (GrvPesquisa.ListagemStatusOperacao?.Any() == true)
+                    query = query.Where(x => GrvPesquisa.ListagemStatusOperacao.Contains(x.StatusOperacaoId));
+                if (!string.IsNullOrWhiteSpace(GrvPesquisa.NumeroProcesso))
+                    query = query.Where(x => x.NumeroFormularioGrv == GrvPesquisa.NumeroProcesso);
+                if (!string.IsNullOrWhiteSpace(GrvPesquisa.PlacaVeiculo))
+                    query = query.Where(x => x.Placa == GrvPesquisa.PlacaVeiculo);
+                if (!string.IsNullOrWhiteSpace(GrvPesquisa.Chassi))
+                    query = query.Where(x => x.Chassi == GrvPesquisa.Chassi);
+                if (!string.IsNullOrWhiteSpace(GrvPesquisa.FlagVeiculoNaoIdentificado))
+                    query = query.Where(x => x.FlagVeiculoNaoIdentificado == GrvPesquisa.FlagVeiculoNaoIdentificado);
+                if (GrvPesquisa.IdentificadorCliente > 0)
+                    query = query.Where(x => x.ClienteId == GrvPesquisa.IdentificadorCliente);
+                if (GrvPesquisa.IdentificadorDeposito > 0)
+                    query = query.Where(x => x.DepositoId == GrvPesquisa.IdentificadorDeposito);
+                if (GrvPesquisa.DataInicialRemocao.HasValue)
+                    query = query.Where(x => x.DataHoraRemocao >= GrvPesquisa.DataInicialRemocao.Value);
+                if (GrvPesquisa.DataFinalRemocao.HasValue)
+                    query = query.Where(x => x.DataHoraRemocao <= GrvPesquisa.DataFinalRemocao.Value);
+            #endregion
 
             var result = await query
                 .OrderBy(x => Convert.ToInt64(x.NumeroFormularioGrv))
@@ -1963,13 +1934,13 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
                     NumeroProcesso = Grv.NumeroFormularioGrv,
 
-                    Placa = Grv.Placa,
+                    Placa = Grv?.Placa ?? "",
 
-                    Chassi = Grv.Chassi,
+                    Chassi = Grv?.Chassi ?? "",
 
-                    Renavam = Grv.Renavam,
+                    Renavam = Grv?.Renavam ?? "",
 
-                    MarcaModelo = Grv.MarcaModelo.MarcaModelo,
+                    MarcaModelo = Grv.MarcaModelo?.MarcaModelo ?? "",
 
                     StatusOperacao = Grv.StatusOperacao.Descricao,
 
@@ -2271,9 +2242,9 @@ namespace WebZi.Plataform.Domain.Services.GRV
             //}
             if(GrvPersistencia.FlagVeiculoNaoOstentaPlaca == "S") 
             {
-                if (!string.IsNullOrWhiteSpace(GrvPersistencia.Placa) || !string.IsNullOrWhiteSpace(GrvPersistencia.Chassi))
+                if (string.IsNullOrWhiteSpace(GrvPersistencia.Placa) || string.IsNullOrWhiteSpace(GrvPersistencia.Chassi))
                 {
-                    erros.Add("Ao informar que o Veículo não foi identificado, não se deve informar a Placa nem o Chassi");
+                    erros.Add("Ao informar que o Veículo não foi identificado, se deve informar a Placa nem o Chassi");
                 }
             }
             if (GrvPersistencia.FlagVeiculoNaoIdentificado == "S")
@@ -2650,12 +2621,15 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 ResultView.AvisosImpeditivos.Add(MensagemPadraoEnum.NaoEncontradoFaturamentoProduto);
             }
 
-            if (GrvPersistencia.EnderecoLocalizacaoVeiculoCEP.IsCEP())
+            if (!string.IsNullOrWhiteSpace(GrvPersistencia.EnderecoLocalizacaoVeiculoCEP))
             {
-                if (await _context.CEP
-                    .FirstOrDefaultAsync(x => x.CEP == GrvPersistencia.EnderecoLocalizacaoVeiculoCEP.GetNumbers()) == null)
+                if (GrvPersistencia.EnderecoLocalizacaoVeiculoCEP.IsCEP())
                 {
-                    ResultView.AvisosImpeditivos.Add("CEP inexistente");
+                    if (await _context.CEP
+                        .FirstOrDefaultAsync(x => x.CEP == GrvPersistencia.EnderecoLocalizacaoVeiculoCEP.GetNumbers()) == null)
+                    {
+                        ResultView.AvisosImpeditivos.Add("CEP inexistente");
+                    }
                 }
             }
 

@@ -19,7 +19,7 @@ namespace WebZi.Plataform.Domain.ViewModel.GRV.Cadastro
         [MaxLength(9)]
         public string Telefone { get; set; }
 
-        [StringLength(2, MinimumLength = 2)]
+        [MaxLength(2)]
         public string TelefoneDDD { get; set; }
 
         [MaxLength(150)]
