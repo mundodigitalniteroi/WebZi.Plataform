@@ -132,12 +132,11 @@ namespace WebZi.Plataform.Data.Services.WebServices
             }
             if (erros?.Count > 0)
             {
-                throw new ArgumentException("Erros: " + MensagemViewHelper.SetBadRequest(string.Join(" | ", erros)));
+                throw new ArgumentException("Erros: " + string.Join(" | ", erros));
             }
             if (avisos?.Count > 0)
             {
-                throw new ArgumentException("Avisos: " + MensagemViewHelper.SetBadRequest(string.Join(" | ", avisos)));
-
+                throw new ArgumentException("Avisos: " + string.Join(" | ", avisos));
             }
             return ResultView;
         }
