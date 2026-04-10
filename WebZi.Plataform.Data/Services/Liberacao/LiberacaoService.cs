@@ -51,7 +51,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
         private readonly IMapper _mapper;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IServiceProvider _provider;
-
+        private readonly IOptions<WSNfseOptions> _options;
         public LiberacaoService(AppDbContext context)
         {
             _context = context;
@@ -76,7 +76,14 @@ namespace WebZi.Plataform.Data.Services.Liberacao
             _httpClientFactory = httpClientFactory;
             _provider = provider;
         }
-
+        public LiberacaoService(AppDbContext context, IMapper mapper, IHttpClientFactory httpClientFactory, IServiceProvider provider, IOptions<WSNfseOptions> options)
+        {
+            _context = context;
+            _mapper = mapper;
+            _httpClientFactory = httpClientFactory;
+            _provider = provider;
+            _options = options;
+        }
         public async Task<GuiaAutorizacaoRetiradaVeiculoDTO> CreateGuiaAutorizacaoRetiradaVeiculoAsync(int GrvId, int UsuarioId)
         {
             GuiaAutorizacaoRetiradaVeiculoDTO ResultView = new()
@@ -796,11 +803,14 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                             });
                     }
 
-                    if (!string.Equals(Grv.StatusOperacaoId, "2") && !string.Equals(Grv.StatusOperacaoId, "R"))
+                    if (_options.Value.Enable)
                     {
-                        await _provider
-                            .GetService<WSNfseService>()
-                            .CreateNfseAsync(Grv.GrvId, Parameters.IdentificadorUsuario);
+                        if (!string.Equals(Grv.StatusOperacaoId, "2") && !string.Equals(Grv.StatusOperacaoId, "R"))
+                        {
+                            await _provider
+                                .GetService<WSNfseService>()
+                                .CreateNfseAsync(Grv.GrvId, Parameters.IdentificadorUsuario);
+                        }
                     }
 
                     if (string.Equals(Grv.StatusOperacaoId, "T") || string.Equals(Grv.StatusOperacaoId, "R"))

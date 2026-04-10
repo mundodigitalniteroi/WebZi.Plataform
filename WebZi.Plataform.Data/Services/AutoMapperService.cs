@@ -148,7 +148,6 @@ namespace WebZi.Plataform.Data.Services
             CreateMap<NfeModel, NFERetornoFaturamentoDTO>()
                 .ForMember(dest => dest.Url, from => from.MapFrom(src => src.Url))
                 .ForMember(dest => dest.NumeroNotaFiscal, from => from.MapFrom(src => src.NumeroNotaFiscal));
-            
 
             CreateMap<NfeDTO, WSNfseGerarNotaFiscalDTO>()
                 .ForMember(dest => dest.CnpjPrestador, from => from.MapFrom(src => src.Cnpj))
@@ -156,6 +155,11 @@ namespace WebZi.Plataform.Data.Services
                 .ForMember(dest => dest.NumeroRps, from => from.MapFrom(src => src.NumeroRps))
                 .ForMember(dest => dest.SerieRps, from => from.MapFrom(src => src.SerieRps))
                 .ForMember(dest => dest.Status, from => from.MapFrom(src => src.Status));
+
+            CreateMap<EnquadramentoInfracaoGrvModel, EnquadramentoInfracaoGrvDTO>()
+                .ForMember(dest => dest.NumeroInfracao, from => from.MapFrom(src => src.NumeroInfracao))
+                .ForMember(dest => dest.Infracao, from => from.MapFrom(src => src.EnquadramentoInfracao));
+
             CreateMap<EnquadramentoInfracaoModel, EnquadramentoInfracaoDTO>()
                 .ForMember(dest => dest.IdentificadorEnquadramentoInfracao, from => from.MapFrom(src => src.EnquadramentoInfracaoId))
                 .ForMember(dest => dest.FlagAtivo, from => from.MapFrom(src => src.Status));
@@ -263,7 +267,7 @@ namespace WebZi.Plataform.Data.Services
                 .ForMember(dest => dest.StatusOperacao, from => from.MapFrom(src => src.StatusOperacao.Descricao))
                 .ForMember(dest => dest.IdentificadorLiberacao, from => from.MapFrom(src => src.LiberacaoId))
                 .ForMember(dest => dest.CodigoProduto, from => from.MapFrom(src => src.FaturamentoProdutoId))
-                .ForMember(dest => dest.Infracoes, opt => opt.MapFrom(src => src.ListagemEnquadramentoInfracao.Select(li => li.EnquadramentoInfracao)))
+                .ForMember(dest => dest.Infracoes, opt => opt.MapFrom(src => src.ListagemEnquadramentoInfracao))
                 .ForMember(dest => dest.Condutor, opt => opt.MapFrom(src => src.Condutor))
                 .ForMember(dest => dest.EquipamentoOpcional, opt => opt.MapFrom(src => src.ListagemCondutorEquipamentoOpcional))
                 .ForMember(dest => dest.ListagemLacres, opt => opt.MapFrom(src => src.ListagemLacre));
@@ -394,7 +398,8 @@ namespace WebZi.Plataform.Data.Services
             CreateMap<UsuarioClienteDepositoReboqueDTO, UsuarioClienteDepositoReboqueDTO>();
 
             CreateMap<EnquadramentoInfracaoParameters, EnquadramentoInfracaoGrvModel>()
-                .ForMember(dest => dest.EnquadramentoInfracaoId, from => from.MapFrom(src => src.IdentificadorEnquadramentoInfracao));
+                .ForMember(dest => dest.EnquadramentoInfracaoId, from => from.MapFrom(src => src.IdentificadorEnquadramentoInfracao))
+                .ForMember(dest => dest.NumeroInfracao, from => from.MapFrom(src => src.NumeroInfracao));
         }
     }
 }

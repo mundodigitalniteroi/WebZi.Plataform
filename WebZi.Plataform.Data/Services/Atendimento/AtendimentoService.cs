@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using WebZi.Plataform.CrossCutting.Contacts;
 using WebZi.Plataform.CrossCutting.Date;
 using WebZi.Plataform.CrossCutting.Documents;
@@ -32,6 +33,7 @@ using WebZi.Plataform.Domain.Models.Liberacao;
 using WebZi.Plataform.Domain.Models.Pessoa.Documento;
 using WebZi.Plataform.Domain.Models.Sistema;
 using WebZi.Plataform.Domain.Models.Usuario;
+using WebZi.Plataform.Domain.Options;
 using WebZi.Plataform.Domain.Services.GRV;
 using WebZi.Plataform.Domain.Services.Usuario;
 using WebZi.Plataform.Domain.ViewModel.Atendimento;
@@ -46,6 +48,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
         private readonly IMapper _mapper;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IServiceProvider _provider;
+        private readonly IOptions<WSNfseOptions> _options;
 
         public AtendimentoService(AppDbContext context, IHttpClientFactory httpClientFactory)
         {
@@ -65,6 +68,14 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             _mapper = mapper;
             _httpClientFactory = httpClientFactory;
             _provider = provider;
+        }
+        public AtendimentoService(AppDbContext context, IMapper mapper, IHttpClientFactory httpClientFactory, IServiceProvider provider, IOptions<WSNfseOptions> options)
+        {
+            _context = context;
+            _mapper = mapper;
+            _httpClientFactory = httpClientFactory;
+            _provider = provider;
+            _options = options;
         }
 
         public async Task<MensagemDTO> CheckInformacoesParaCadastroAsync(AtendimentoParameters AtendimentoCadastro)
@@ -904,10 +915,11 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                             DataAlteracao = DateTime.Now,
                             UsuarioAlteracaoId = parameters.IdentificadorUsuario
                         });
-
-                    await _provider.GetService<WSNfseService>()
-                        .CreateNfseAsync(parameters.IdentificadorProcesso, parameters.IdentificadorUsuario);
-                        
+                    if (_options.Value.Enable)
+                    {
+                        await _provider.GetService<WSNfseService>()
+                            .CreateNfseAsync(parameters.IdentificadorProcesso, parameters.IdentificadorUsuario);
+                    }
 
                     await _context.SaveChangesAsync();
                     await _transaction.CommitAsync();
