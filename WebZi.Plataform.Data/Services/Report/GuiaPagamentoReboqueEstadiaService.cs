@@ -225,7 +225,7 @@ namespace WebZi.Plataform.Data.Services.Report
         {
             GuiaPagamentoEstadiaReboque.FaturamentoNumeroIdentificacao = Faturamento.NumeroIdentificacao;
 
-            GuiaPagamentoEstadiaReboque.FaturamentoValorFaturado = NumberHelper.FormatMoney(Faturamento.ValorFaturado);
+            GuiaPagamentoEstadiaReboque.FaturamentoValorFaturado = Faturamento.ValorFaturado.FormatMoney();
 
             GuiaPagamentoEstadiaReboque.FaturamentoDataVencimento = Faturamento.DataVencimento.ToString("dd/MM/yyyy");
 
@@ -240,7 +240,8 @@ namespace WebZi.Plataform.Data.Services.Report
                 GuiaPagamentoEstadiaReboque.PrazoRetiradaVeiculo = string.Empty;
             }
 
-            GuiaPagamentoEstadiaReboque.FaturamentoValorPagar = "Realizar depósito identificado “na boca do caixa” no valor de " + NumberHelper.FormatMoney(Faturamento.ValorPagamento ?? 0);
+            var valorPagamento = Faturamento.ValorPagamento ?? 0;
+            GuiaPagamentoEstadiaReboque.FaturamentoValorPagar = "Realizar depósito identificado “na boca do caixa” no valor de " + (Faturamento.TipoMeioCobrancaId == 12 ? valorPagamento : Faturamento.ValorFaturado).FormatMoney();
 
             if (Faturamento.FlagPermissaoDataRetroativaFaturamento == "S" && Faturamento.DataRetroativa.HasValue)
             {

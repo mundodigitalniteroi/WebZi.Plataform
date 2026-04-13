@@ -813,7 +813,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                         }
                     }
 
-                    if (string.Equals(Grv.StatusOperacaoId, "T") || string.Equals(Grv.StatusOperacaoId, "R"))
+                    if (string.Equals(Grv.StatusOperacaoId, "T") || string.Equals(Grv.StatusOperacaoId, "R") || string.Equals(Grv.StatusOperacaoId, "U"))
                     {
                         await _context.Grv
                             .Where(x => x.GrvId == Parameters.IdentificadorProcesso)
