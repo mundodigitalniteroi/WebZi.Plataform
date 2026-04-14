@@ -108,7 +108,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 PixDinamicoDTO pixDinamicoDTO = await _provider
                     .GetService<PixDinamicoService>()
-                    .CreateAsync(IdentificadorFaturamento, IdentificadorUsuario);
+                    .ConsultaAsync(IdentificadorFaturamento, IdentificadorUsuario);
 
                 if (pixDinamicoDTO.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
                 {

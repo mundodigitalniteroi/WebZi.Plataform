@@ -1644,7 +1644,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
                         if (pixDinamico.IdentificadorPixDinamicoTipoStatusGeracao != 2)
                         {
-                            ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Pix ainda não confirmado");
+                            ResultView.Mensagem = MensagemViewHelper.SetBadRequest($"Pix ainda não confirmado, status atual: ${pixDinamico.IdentificadorPixDinamicoTipoStatusGeracao}");
                             return ResultView;
                         }
                     }
