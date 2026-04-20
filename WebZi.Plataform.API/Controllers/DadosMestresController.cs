@@ -256,7 +256,7 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("ListarMarcaModelo")]
         // TODO: [Authorize]
-        public async Task<ActionResult<MarcaModeloListDTO>> ListarMarcaModelo(string MarcaModelo)
+        public async Task<ActionResult<MarcaModeloListDTO>> ListarMarcaModelo(string? MarcaModelo)
         {
             if (!ModelState.IsValid)
             {

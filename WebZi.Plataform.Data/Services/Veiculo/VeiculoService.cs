@@ -68,30 +68,29 @@ namespace WebZi.Plataform.Data.Services.Veiculo
             return ResultView;
         }
 
-        public async Task<MarcaModeloListDTO> ListMarcaModeloAsync(string MarcaModelo)
+        public async Task<MarcaModeloListDTO> ListMarcaModeloAsync(string? MarcaModelo)
         {
             MarcaModeloListDTO ResultView = new();
 
-            if (string.IsNullOrWhiteSpace(MarcaModelo))
-            {
-                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Informe a descrição da Marca/Modelo");
+            var query = _context.MarcaModelo
+                .AsNoTracking();
 
-                return ResultView;
+            if (!string.IsNullOrWhiteSpace(MarcaModelo))
+            {
+                var filtro = MarcaModelo.Trim();
+
+                query = query
+                    .Where(x => x.MarcaModelo.Contains(filtro))
+                    .OrderBy(x => x.MarcaModelo)
+                    .Take(100);
+            }
+            else
+            {
+                query = query
+                    .OrderBy(x => x.MarcaModelo);
             }
 
-            List<MarcaModeloModel> result = await _context.MarcaModelo
-                .Where(x => x.MarcaModelo.Contains(MarcaModelo.ToUpperTrim()))
-                .OrderBy(x => x.MarcaModelo)
-                .Take(100)
-                .AsNoTracking()
-                .ToListAsync();
-
-            if (result == null)
-            {
-                ResultView.Mensagem = MensagemViewHelper.SetNotFound("Marca/Modelo inexistente");
-
-                return ResultView;
-            }
+            var result = await query.ToListAsync();
 
             ResultView.Listagem = _mapper.Map<List<MarcaModeloDTO>>(result);
 
@@ -110,8 +109,8 @@ namespace WebZi.Plataform.Data.Services.Veiculo
 
             ResultView.Listagem = _mapper
                 .Map<List<TipoVeiculoDTO>>(result
-                .OrderBy(x => x.Descricao)
-                .ToList());
+                    .OrderBy(x => x.Descricao)
+                    .ToList());
 
             ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
 
