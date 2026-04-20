@@ -199,6 +199,32 @@ namespace WebZi.Plataform.API.Controllers
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
         }
+        [HttpGet("ListarEquipamentoOpcionalETipoVeiculo")]
+        // TODO: [Authorize]
+        public async Task<ActionResult<EquipamentoOpcionalListDTO>> ListarEquipamentoOpcionalETipoVeiculo()
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            EquipamentoOpcionalListDTO ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<VeiculoService>()
+                    .ListarEquipamentoOpcionalETipoVeiculo();
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
 
         [HttpGet("ListarEstadoGeralVeiculo")]
         // TODO: [Authorize]

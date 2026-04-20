@@ -3,7 +3,7 @@
     public class EquipamentoOpcionalDTO
     {
         public decimal IdentificadorEquipamentoOpcional { get; set; }
-
+        public int IdentificadorTipoVeiculo { get; set; }
         public int? OrdemVistoria { get; set; } = 0;
 
         public string Descricao { get; set; }
