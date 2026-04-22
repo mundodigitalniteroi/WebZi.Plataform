@@ -1543,10 +1543,10 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if(skip > 0)
                 query = query.Skip(skip);
-
-
+            if (take > 0)
+                query = query.Take(take);
+            
             var result = await query
-                .Take(take)
                 .ToListAsync();
 
             if (result == null || result.Count == 0)
@@ -1822,10 +1822,10 @@ namespace WebZi.Plataform.Domain.Services.GRV
                     erros.Add("Ao informar que o Veículo não possui identificação, não informe a Placa");
                 }
 
-                if (!string.IsNullOrWhiteSpace(GrvPesquisa.Chassi))
-                {
-                    erros.Add("Ao informar que o Veículo não possui identificação, não informe o Chassi");
-                }
+                // if (!string.IsNullOrWhiteSpace(GrvPesquisa.Chassi))
+                // {
+                //     erros.Add("Ao informar que o Veículo não possui identificação, não informe o Chassi");
+                // }
             }
             else
             {
@@ -2240,13 +2240,6 @@ namespace WebZi.Plataform.Domain.Services.GRV
             //{
             //    erros.Add(MensagemPadraoEnum.NumeroProcessoInvalido);
             //}
-            if(GrvPersistencia.FlagVeiculoNaoOstentaPlaca == "S") 
-            {
-                if (string.IsNullOrWhiteSpace(GrvPersistencia.Placa) || string.IsNullOrWhiteSpace(GrvPersistencia.Chassi))
-                {
-                    erros.Add("Ao informar que o Veículo não foi identificado, se deve informar a Placa nem o Chassi");
-                }
-            }
             if (GrvPersistencia.FlagVeiculoNaoIdentificado == "S")
             {
                 if (!string.IsNullOrWhiteSpace(GrvPersistencia.Placa) || !string.IsNullOrWhiteSpace(GrvPersistencia.Chassi))
@@ -2260,50 +2253,31 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 {
                     erros.Add("Ao informar que o Veículo não possui registro, não se deve informar a Placa");
                 }
-                else if (string.IsNullOrWhiteSpace(GrvPersistencia.Chassi))
-                {
-                    erros.Add("Informe o Chassi");
-                }
-                else if (GrvPersistencia.Chassi.Length < 6 || GrvPersistencia.Chassi.Length > 17 || (GrvPersistencia.Chassi.Length == 17 && !GrvPersistencia.Chassi.IsChassi()))
-                {
-                    erros.Add("Chassi inválido");
-                }
-            }
-            else if(GrvPersistencia.FlagVeiculoNaoOstentaPlaca != "S")
-            {
-                //if (string.IsNullOrWhiteSpace(GrvPersistencia.Placa))
-                //{
-                //    erros.Add("Informe a Placa");
-                //}
-                if (!GrvPersistencia.Placa.IsPlaca())
-                {
-                    erros.Add("Placa inválida");
-                }
 
-                //if (string.IsNullOrWhiteSpace(GrvPersistencia.Chassi))
-                //{
-                //    erros.Add("Informe o Chassi");
-                //}
-                 if (GrvPersistencia.Chassi.Length < 6 || GrvPersistencia.Chassi.Length > 24 || (GrvPersistencia.Chassi.Length == 17 && !GrvPersistencia.Chassi.IsChassi()))
-                {
-                    erros.Add("Chassi inválido");
-                }
-            }
-
-            if (GrvPersistencia.FlagVeiculoSemRegistro == "S")
-            {
                 if (string.IsNullOrWhiteSpace(GrvPersistencia.Chassi))
                 {
                     erros.Add("Informe o Chassi");
                 }
-                else
+                else if (GrvPersistencia.Chassi.Length < 6 || GrvPersistencia.Chassi.Length > 24 || (GrvPersistencia.Chassi.Length == 17 && !GrvPersistencia.Chassi.IsChassi()))
                 {
-                    if (!string.IsNullOrWhiteSpace(GrvPersistencia.Chassi))
+                    erros.Add("Chassi inválido");
+                }
+            }
+            else
+            {
+                if (!string.IsNullOrWhiteSpace(GrvPersistencia.Placa))
+                {
+                    if (!GrvPersistencia.Placa.IsPlaca())
                     {
-                        if (GrvPersistencia.Chassi.Length < 6 || GrvPersistencia.Chassi.Length > 24 || (GrvPersistencia.Chassi.Length == 17 && !GrvPersistencia.Chassi.IsChassi()))
-                        {
-                            erros.Add("Chassi inválido");
-                        }
+                        erros.Add("Placa inválida");
+                    }
+                }
+
+                if (!string.IsNullOrWhiteSpace(GrvPersistencia.Chassi))
+                {
+                    if (GrvPersistencia.Chassi.Length < 6 || GrvPersistencia.Chassi.Length > 24 || (GrvPersistencia.Chassi.Length == 17 && !GrvPersistencia.Chassi.IsChassi()))
+                    {
+                        erros.Add("Chassi inválido");
                     }
                 }
             }
