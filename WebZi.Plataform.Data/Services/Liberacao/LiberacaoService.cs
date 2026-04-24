@@ -52,6 +52,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IServiceProvider _provider;
         private readonly IOptions<WSNfseOptions> _options;
+
         public LiberacaoService(AppDbContext context)
         {
             _context = context;
@@ -69,14 +70,18 @@ namespace WebZi.Plataform.Data.Services.Liberacao
             _mapper = mapper;
             _httpClientFactory = httpClientFactory;
         }
-        public LiberacaoService(AppDbContext context, IMapper mapper, IHttpClientFactory httpClientFactory, IServiceProvider provider)
+
+        public LiberacaoService(AppDbContext context, IMapper mapper, IHttpClientFactory httpClientFactory,
+            IServiceProvider provider)
         {
             _context = context;
             _mapper = mapper;
             _httpClientFactory = httpClientFactory;
             _provider = provider;
         }
-        public LiberacaoService(AppDbContext context, IMapper mapper, IHttpClientFactory httpClientFactory, IServiceProvider provider, IOptions<WSNfseOptions> options)
+
+        public LiberacaoService(AppDbContext context, IMapper mapper, IHttpClientFactory httpClientFactory,
+            IServiceProvider provider, IOptions<WSNfseOptions> options)
         {
             _context = context;
             _mapper = mapper;
@@ -84,7 +89,9 @@ namespace WebZi.Plataform.Data.Services.Liberacao
             _provider = provider;
             _options = options;
         }
-        public async Task<GuiaAutorizacaoRetiradaVeiculoDTO> CreateGuiaAutorizacaoRetiradaVeiculoAsync(int GrvId, int UsuarioId)
+
+        public async Task<GuiaAutorizacaoRetiradaVeiculoDTO> CreateGuiaAutorizacaoRetiradaVeiculoAsync(int GrvId,
+            int UsuarioId)
         {
             GuiaAutorizacaoRetiradaVeiculoDTO ResultView = new()
             {
@@ -110,7 +117,8 @@ namespace WebZi.Plataform.Data.Services.Liberacao
             if (Grv.StatusOperacaoId is not "R" and not "T" and not "E" and not "U")
             {
                 ResultView.Mensagem = MensagemViewHelper
-                    .SetBadRequest($"O Status atual deste Processo não permite a geração do Documento. Status atual: {Grv.StatusOperacao.Descricao}");
+                    .SetBadRequest(
+                        $"O Status atual deste Processo não permite a geração do Documento. Status atual: {Grv.StatusOperacao.Descricao}");
 
                 return ResultView;
             }
@@ -119,7 +127,8 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                 if (DateTime.Now.Date > Grv.Liberacao.DataCadastro.Date)
                 {
                     ResultView.Mensagem.Alertas
-                        .Add($"Este Processo foi entregue em {Grv.Liberacao.DataCadastro:dd/MM/yyyy}, as informações impressas no Documento estão desatualizadas");
+                        .Add(
+                            $"Este Processo foi entregue em {Grv.Liberacao.DataCadastro:dd/MM/yyyy}, as informações impressas no Documento estão desatualizadas");
                 }
             }
 
@@ -132,16 +141,19 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                 return ResultView;
             }
 
-            GuiaPagamentoReboqueEstadiaDTO GuiaPagamentoReboqueEstadia = await new GuiaPagamentoReboqueEstadiaService(_context, _mapper, _httpClientFactory)
-                .GetGuiaPagamentoReboqueEstadiaAsync(FaturamentoId, UsuarioId, true);
+            GuiaPagamentoReboqueEstadiaDTO GuiaPagamentoReboqueEstadia =
+                await new GuiaPagamentoReboqueEstadiaService(_context, _mapper, _httpClientFactory)
+                    .GetGuiaPagamentoReboqueEstadiaAsync(FaturamentoId, UsuarioId, true);
 
             if (GuiaPagamentoReboqueEstadia == null)
             {
                 ResultView.Mensagem = MensagemViewHelper
-                    .SetNotFound("Informações para a geração da Guia de Autorização para a Retirada do Veículo não encontradas");
+                    .SetNotFound(
+                        "Informações para a geração da Guia de Autorização para a Retirada do Veículo não encontradas");
 
                 return ResultView;
             }
+
             var prazo = GuiaPagamentoReboqueEstadia.PrazoRetiradaVeiculo;
 
             var prazoFormatado = !string.IsNullOrEmpty(prazo) && prazo.Length >= 10
@@ -157,23 +169,26 @@ namespace WebZi.Plataform.Data.Services.Liberacao
 
             ResultView.DadosCodigoAutorizacao = "Link para validação";
 
-            ResultView.DadosProcessoGrv = "Dados do Processo Processo: " + GuiaPagamentoReboqueEstadia.NumeroFormularioGrv + " - " + "Depósito: " + GuiaPagamentoReboqueEstadia.DepositoNome;
+            ResultView.DadosProcessoGrv = "Dados do Processo Processo: " +
+                                          GuiaPagamentoReboqueEstadia.NumeroFormularioGrv + " - " + "Depósito: " +
+                                          GuiaPagamentoReboqueEstadia.DepositoNome;
 
             ResultView.DadosTipoProcesso = "REGISTRO DE APREENSÃO";
 
-            ResultView.DadosReboque = !string.IsNullOrWhiteSpace(GuiaPagamentoReboqueEstadia.ReboquePlaca) ?
-                VeiculoHelper.FormatPlaca(GuiaPagamentoReboqueEstadia.ReboquePlaca) :
-                string.Empty;
+            ResultView.DadosReboque = !string.IsNullOrWhiteSpace(GuiaPagamentoReboqueEstadia.ReboquePlaca)
+                ? VeiculoHelper.FormatPlaca(GuiaPagamentoReboqueEstadia.ReboquePlaca)
+                : string.Empty;
 
             ResultView.DadosDataEntrada = GuiaPagamentoReboqueEstadia.DataHoraGuarda.Left(10);
 
             ResultView.DadosHoraEntrada = GuiaPagamentoReboqueEstadia.DataHoraGuarda.Right(5);
 
-            ResultView.DadosPermanencia = GuiaPagamentoReboqueEstadia.QuantidadeEstadias == 1 ?
-                GuiaPagamentoReboqueEstadia.QuantidadeEstadias.ToString() + " dia" :
-                GuiaPagamentoReboqueEstadia.QuantidadeEstadias.ToString() + " dias";
+            ResultView.DadosPermanencia = GuiaPagamentoReboqueEstadia.QuantidadeEstadias == 1
+                ? GuiaPagamentoReboqueEstadia.QuantidadeEstadias.ToString() + " dia"
+                : GuiaPagamentoReboqueEstadia.QuantidadeEstadias.ToString() + " dias";
 
-            ResultView.DadosAutorizadaRetiradaVeiculoEm = DateTime.Now.ToString("dd/MM/yyyy"); //GuiaPagamentoReboqueEstadia.FaturamentoDataVencimento.Left(10);
+            ResultView.DadosAutorizadaRetiradaVeiculoEm =
+                DateTime.Now.ToString("dd/MM/yyyy"); //GuiaPagamentoReboqueEstadia.FaturamentoDataVencimento.Left(10);
 
             ResultView.VeiculoTipo = Grv.TipoVeiculo.Descricao;
 
@@ -187,26 +202,37 @@ namespace WebZi.Plataform.Data.Services.Liberacao
 
             ResultView.VeiculoCor = GuiaPagamentoReboqueEstadia.Cor;
 
-            ResultView.TextoApresentacao = "Este documento deverá ser apresentado no Depósito de Veículos localizado no endereço " +
+            ResultView.TextoApresentacao =
+                "Este documento deverá ser apresentado no Depósito de Veículos localizado no endereço " +
                 GuiaPagamentoReboqueEstadia.DepositoEndereco + ", até a data: " +
-                prazoFormatado + ", para que a retirada do veículo seja autorizada. A não apresentação até a data informada acarretará na cobrança de estadias adicionais.";
+                prazoFormatado +
+                ", para que a retirada do veículo seja autorizada. A não apresentação até a data informada acarretará na cobrança de estadias adicionais.";
 
-            ResultView.TextoDeclaracaoRetirada1 = $@"Eu {GuiaPagamentoReboqueEstadia.AtendimentoResponsavelNome}, portador do CPF {GuiaPagamentoReboqueEstadia.AtendimentoResponsavelDocumento}, declaro que no dia {DateTime.Now.ToString("dd 'de' MMMM 'de' yyyy", CultureInfo.GetCultureInfo("pt-BR"))}, " +
+            ResultView.TextoDeclaracaoRetirada1 =
+                $@"Eu {GuiaPagamentoReboqueEstadia.AtendimentoResponsavelNome}, portador do CPF {GuiaPagamentoReboqueEstadia.AtendimentoResponsavelDocumento}, declaro que no dia {DateTime.Now.ToString("dd 'de' MMMM 'de' yyyy", CultureInfo.GetCultureInfo("pt-BR"))}, " +
                 $"recebi do depósito {GuiaPagamentoReboqueEstadia.DepositoNome} o veículo de placa {VeiculoHelper.FormatPlaca(GuiaPagamentoReboqueEstadia.Placa)}, Marca/Modelo {GuiaPagamentoReboqueEstadia.MarcaModelo}, Cor {GuiaPagamentoReboqueEstadia.Cor}, recolhido às {GuiaPagamentoReboqueEstadia.DataHoraGuarda.Right(5)} do dia {GuiaPagamentoReboqueEstadia.DataHoraGuarda.Left(10)}, " +
                 $"no endereco {GuiaPagamentoReboqueEstadia.DepositoEndereco}";
 
-            ResultView.TextoDeclaracaoRetirada2 = $@"Declaro também que o veículo se encontrava nas mesmas condições, quando foi removido e ainda lacrado, " +
-                                    "conforme numeração abaixo descrita, sendo estes lacres conferidos na minha presença, nada havendo para reclamar agora ou no futuro.";
+            ResultView.TextoDeclaracaoRetirada2 =
+                $@"Declaro também que o veículo se encontrava nas mesmas condições, quando foi removido e ainda lacrado, " +
+                "conforme numeração abaixo descrita, sendo estes lacres conferidos na minha presença, nada havendo para reclamar agora ou no futuro.";
 
             ResultView.ProprietarioProcurador = GuiaPagamentoReboqueEstadia.AtendimentoResponsavelNome;
 
             ResultView.ProprietarioCpf = GuiaPagamentoReboqueEstadia.AtendimentoResponsavelDocumento;
 
-            ResultView.GrvEstacionamentoSetor = !GuiaPagamentoReboqueEstadia.EstacionamentoSetor.IsNullOrWhiteSpace() ? GuiaPagamentoReboqueEstadia.EstacionamentoSetor : "Não informado";
+            ResultView.GrvEstacionamentoSetor = !GuiaPagamentoReboqueEstadia.EstacionamentoSetor.IsNullOrWhiteSpace()
+                ? GuiaPagamentoReboqueEstadia.EstacionamentoSetor
+                : "Não informado";
 
-            ResultView.GrvEstacionamentoNumeroVaga = !GuiaPagamentoReboqueEstadia.EstacionamentoNumeroVaga.IsNullOrWhiteSpace() ? GuiaPagamentoReboqueEstadia.EstacionamentoNumeroVaga : "Não informado";
+            ResultView.GrvEstacionamentoNumeroVaga =
+                !GuiaPagamentoReboqueEstadia.EstacionamentoNumeroVaga.IsNullOrWhiteSpace()
+                    ? GuiaPagamentoReboqueEstadia.EstacionamentoNumeroVaga
+                    : "Não informado";
 
-            ResultView.GrvNumeroChave = !GuiaPagamentoReboqueEstadia.NumeroChave.IsNullOrWhiteSpace() ? GuiaPagamentoReboqueEstadia.NumeroChave : "Não informado";
+            ResultView.GrvNumeroChave = !GuiaPagamentoReboqueEstadia.NumeroChave.IsNullOrWhiteSpace()
+                ? GuiaPagamentoReboqueEstadia.NumeroChave
+                : "Não informado";
 
             ViewUsuarioModel Usuario = await _context.ViewUsuario
                 .FirstOrDefaultAsync(x => x.UsuarioId == UsuarioId);
@@ -226,7 +252,8 @@ namespace WebZi.Plataform.Data.Services.Liberacao
             {
                 ResultView.AtendimentoFormaLiberacao = "Condutor habilitado";
 
-                ResultView.AtendimentoFormaLiberacaoCpfPlaca = DocumentHelper.FormatCPF(GuiaPagamentoReboqueEstadia.AtendimentoFormaLiberacaoCPF);
+                ResultView.AtendimentoFormaLiberacaoCpfPlaca =
+                    DocumentHelper.FormatCPF(GuiaPagamentoReboqueEstadia.AtendimentoFormaLiberacaoCPF);
 
                 ResultView.LabelAtendimentoFormaLiberacaoCpfPlaca = "CPF:";
             }
@@ -234,7 +261,8 @@ namespace WebZi.Plataform.Data.Services.Liberacao
             {
                 ResultView.AtendimentoFormaLiberacao = "Reboque";
 
-                ResultView.AtendimentoFormaLiberacaoCpfPlaca = VeiculoHelper.FormatPlaca(GuiaPagamentoReboqueEstadia.AtendimentoFormaLiberacaoPlaca);
+                ResultView.AtendimentoFormaLiberacaoCpfPlaca =
+                    VeiculoHelper.FormatPlaca(GuiaPagamentoReboqueEstadia.AtendimentoFormaLiberacaoPlaca);
 
                 ResultView.LabelAtendimentoFormaLiberacaoCpfPlaca = "Placa:";
             }
@@ -246,6 +274,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
 
                 ResultView.AtendimentoFormaLiberacaoCNH = "Não informado";
             }
+
             #endregion FORMA DE LIBERAÇÃO
 
             // LOGOMARCA
@@ -259,14 +288,14 @@ namespace WebZi.Plataform.Data.Services.Liberacao
 
             string key = AppSettingsHelper.GetValue("Segredo", "QRCode");
 
-            string encrypted = CryptographyHelper.EncryptString(key, GrvId + "|" + DateTime.Now.ToString("yyyyMMdd") + "|" + DateTime.Now.ToString("HH:mm:ss"));
+            var agora = DateTime.Now;
+            string payload = $"{GrvId}|{agora:yyyyMMdd}|{agora:HH:mm:ss}";
+
+            string encrypted = CryptographyHelper.EncryptString(key, payload);
 
             string decrypted = CryptographyHelper.DecryptString(key, encrypted);
 
-            Console.WriteLine(CryptographyHelper.DecryptString(key, encrypted));
-
             ResultView.QRCodeString = encrypted;
-
             ResultView.QRCode = QRCodeHelper.CreateImageAsByteArray(encrypted, "PNG");
 
             if (Grv.ListagemLacre?.Count > 0)
@@ -280,95 +309,102 @@ namespace WebZi.Plataform.Data.Services.Liberacao
 
             return ResultView;
         }
+
         public MensagemDTO ValidarUsuario(LiberacaoEspecialValidarParameters parameters)
         {
             #region Parameters
-                StringBuilder Perm = new();
-                StringBuilder Usuario = new();
-                parameters.Login = parameters.Login.ToUpper().Trim();
-                parameters.Password = parameters.Password.ToUpper().Trim();
-                const int IdPerfilAcesso = 24;
-                const int IdSubModulo = 5;
+
+            StringBuilder Perm = new();
+            StringBuilder Usuario = new();
+            parameters.Login = parameters.Login.ToUpper().Trim();
+            parameters.Password = parameters.Password.ToUpper().Trim();
+            const int IdPerfilAcesso = 24;
+            const int IdSubModulo = 5;
+
             #endregion
 
             #region Consulta
 
-                Usuario.AppendLine("SELECT id_usuario AS Value");
-                Usuario.AppendLine("  FROM dbo.tb_dep_usuarios");
-                Usuario.AppendLine(" WHERE 1 = 1");
-                Usuario.Append("   AND login = @login");
-                Usuario.Append("   AND senha1 = HASHBYTES('MD5', @senha)");
+            Usuario.AppendLine("SELECT id_usuario AS Value");
+            Usuario.AppendLine("  FROM dbo.tb_dep_usuarios");
+            Usuario.AppendLine(" WHERE 1 = 1");
+            Usuario.Append("   AND login = @login");
+            Usuario.Append("   AND senha1 = HASHBYTES('MD5', @senha)");
 
-                SqlParameter[] sqlParameterUser = new SqlParameter[]
+            SqlParameter[] sqlParameterUser = new SqlParameter[]
+            {
+                new SqlParameter("@login", SqlDbType.VarChar)
                 {
-                        new SqlParameter("@login", SqlDbType.VarChar)
-                        {
-                            Value = parameters.Login
-                        },
+                    Value = parameters.Login
+                },
 
-                        new SqlParameter("@senha", SqlDbType.VarChar)
-                        {
-                            Value = parameters.Password
-                        }
-                };
-                int IdUsuario = _context.Database.SqlQueryRaw<int>(Usuario.ToString(), sqlParameterUser)
-                    .FirstOrDefault();
-
-
-                Perm.AppendLine("SELECT CAST(");
-                        Perm.AppendLine("IIF(");
-                            Perm.AppendLine("EXISTS(");
-                                Perm.AppendLine("SELECT 1");
-                                Perm.AppendLine("FROM dbo.tb_dep_usuarios u");
-                                    Perm.AppendLine("JOIN dbo.tb_dep_sistema_perfil_acesso_usuarios spu");
-                                        Perm.AppendLine("ON spu.id_usuario = u.id_usuario");
-                                    Perm.AppendLine("JOIN dbo.tb_dep_sistema_perfil_acesso tdspa");
-                                        Perm.AppendLine("ON tdspa.id_perfil_acesso = spu.id_perfil_acesso");
-                                    Perm.AppendLine("JOIN dbo.tb_dep_sistema_perfil_acesso_sub_modulos tdspasm");
-                                        Perm.AppendLine("ON tdspasm.id_perfil_acesso = tdspa.id_perfil_acesso");
-                                    Perm.AppendLine("JOIN dbo.tb_dep_sistema_sub_modulos tdssm");
-                                        Perm.AppendLine("ON tdssm.id_sub_modulo = tdspasm.id_sub_modulo");
-                                Perm.AppendLine("WHERE u.id_usuario = @IdUsuario");
-                                Perm.Append("    AND tdspa.id_perfil_acesso = @IdPerfilAcesso");
-                                Perm.Append("    AND tdssm.id_sub_modulo = @IdSubModulo");
-                            Perm.AppendLine("),");
-                            Perm.AppendLine("1, 0");
-                    Perm.AppendLine(") AS bit");
-                Perm.AppendLine(") AS Value");
-
-                SqlParameter[] sqlParameter = new SqlParameter[]
+                new SqlParameter("@senha", SqlDbType.VarChar)
                 {
-                    new SqlParameter("@IdUsuario", SqlDbType.Int)
-                    {
-                        Value = IdUsuario
-                    },
-                    new SqlParameter("@IdPerfilAcesso", SqlDbType.Int)
-                    {
-                        Value = IdPerfilAcesso
-                    },
-                    new SqlParameter("@IdSubModulo", SqlDbType.Int)
-                    {
-                        Value = IdSubModulo
-                    }
-                };
+                    Value = parameters.Password
+                }
+            };
+            int IdUsuario = _context.Database.SqlQueryRaw<int>(Usuario.ToString(), sqlParameterUser)
+                .FirstOrDefault();
 
-                bool Exists = _context.Database
-                    .SqlQueryRaw<bool>(Perm.ToString(), sqlParameter)
-                    .FirstOrDefault();
+
+            Perm.AppendLine("SELECT CAST(");
+            Perm.AppendLine("IIF(");
+            Perm.AppendLine("EXISTS(");
+            Perm.AppendLine("SELECT 1");
+            Perm.AppendLine("FROM dbo.tb_dep_usuarios u");
+            Perm.AppendLine("JOIN dbo.tb_dep_sistema_perfil_acesso_usuarios spu");
+            Perm.AppendLine("ON spu.id_usuario = u.id_usuario");
+            Perm.AppendLine("JOIN dbo.tb_dep_sistema_perfil_acesso tdspa");
+            Perm.AppendLine("ON tdspa.id_perfil_acesso = spu.id_perfil_acesso");
+            Perm.AppendLine("JOIN dbo.tb_dep_sistema_perfil_acesso_sub_modulos tdspasm");
+            Perm.AppendLine("ON tdspasm.id_perfil_acesso = tdspa.id_perfil_acesso");
+            Perm.AppendLine("JOIN dbo.tb_dep_sistema_sub_modulos tdssm");
+            Perm.AppendLine("ON tdssm.id_sub_modulo = tdspasm.id_sub_modulo");
+            Perm.AppendLine("WHERE u.id_usuario = @IdUsuario");
+            Perm.Append("    AND tdspa.id_perfil_acesso = @IdPerfilAcesso");
+            Perm.Append("    AND tdssm.id_sub_modulo = @IdSubModulo");
+            Perm.AppendLine("),");
+            Perm.AppendLine("1, 0");
+            Perm.AppendLine(") AS bit");
+            Perm.AppendLine(") AS Value");
+
+            SqlParameter[] sqlParameter = new SqlParameter[]
+            {
+                new SqlParameter("@IdUsuario", SqlDbType.Int)
+                {
+                    Value = IdUsuario
+                },
+                new SqlParameter("@IdPerfilAcesso", SqlDbType.Int)
+                {
+                    Value = IdPerfilAcesso
+                },
+                new SqlParameter("@IdSubModulo", SqlDbType.Int)
+                {
+                    Value = IdSubModulo
+                }
+            };
+
+            bool Exists = _context.Database
+                .SqlQueryRaw<bool>(Perm.ToString(), sqlParameter)
+                .FirstOrDefault();
 
             #endregion Consulta
 
             #region Validação
-                if (IdUsuario == 0)
-                    return MensagemViewHelper.SetNotFound("Usuario não Encontrado");
-                if (!Exists)
-                    return MensagemViewHelper.SetBadRequest("Usuario não possui permissão");
+
+            if (IdUsuario == 0)
+                return MensagemViewHelper.SetNotFound("Usuario não Encontrado");
+            if (!Exists)
+                return MensagemViewHelper.SetBadRequest("Usuario não possui permissão");
+
             #endregion Validação
 
 
             return MensagemViewHelper.SetOk();
         }
-        public async Task<ValidacaoGuiaAutorizacaoRetiradaVeiculoDTO> ValidarGuiaAutorizacaoRetiradaVeiculoAsync(string input, int UsuarioId)
+
+        public async Task<ValidacaoGuiaAutorizacaoRetiradaVeiculoDTO> ValidarGuiaAutorizacaoRetiradaVeiculoAsync(
+            string input, int UsuarioId)
         {
             ValidacaoGuiaAutorizacaoRetiradaVeiculoDTO ResultView = new();
 
@@ -396,7 +432,8 @@ namespace WebZi.Plataform.Data.Services.Liberacao
 
             string[] splitted = decrypted.Split('|');
 
-            if (splitted.Length != 3 || !NumberHelper.IsNumber(splitted[0]) || !DateTimeHelper.IsDate(splitted[1] + splitted[2], "yyyyMMddHH:mm:ss"))
+            if (splitted.Length != 3 || !NumberHelper.IsNumber(splitted[0]) ||
+                !DateTimeHelper.IsDate(splitted[1] + splitted[2], "yyyyMMddHH:mm:ss"))
             {
                 ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Parâmetro inválido");
 
@@ -438,7 +475,8 @@ namespace WebZi.Plataform.Data.Services.Liberacao
             {
                 if (DateTime.Now.Date > Grv.Liberacao.DataCadastro.Date)
                 {
-                    ResultView.Mensagem.Alertas.Add($"Este Processo foi entregue em {Grv.Liberacao.DataCadastro:dd/MM/yyyy}");
+                    ResultView.Mensagem.Alertas.Add(
+                        $"Este Processo foi entregue em {Grv.Liberacao.DataCadastro:dd/MM/yyyy}");
                 }
             }
 
@@ -447,7 +485,8 @@ namespace WebZi.Plataform.Data.Services.Liberacao
             if (Grv.Deposito.Endereco != null)
             {
                 EnderecoDeposito = new EnderecoService(_context, _mapper)
-                    .FormatarEndereco(Grv.Deposito.Endereco, Grv.Deposito.NumeroEndereco, Grv.Deposito.ComplementoEndereco);
+                    .FormatarEndereco(Grv.Deposito.Endereco, Grv.Deposito.NumeroEndereco,
+                        Grv.Deposito.ComplementoEndereco);
             }
             else
             {
@@ -462,23 +501,23 @@ namespace WebZi.Plataform.Data.Services.Liberacao
 
                     EnderecoDeposito = new EnderecoService(_context, _mapper)
                         .FormatarEndereco(string.Empty,
-                                          Grv.Deposito.Logradouro,
-                                          Grv.Deposito.NumeroEndereco,
-                                          Grv.Deposito.ComplementoEndereco,
-                                          Bairro.NomePtbr,
-                                          Bairro.Municipio.NomePtbr,
-                                          Bairro.Municipio.UF);
+                            Grv.Deposito.Logradouro,
+                            Grv.Deposito.NumeroEndereco,
+                            Grv.Deposito.ComplementoEndereco,
+                            Bairro.NomePtbr,
+                            Bairro.Municipio.NomePtbr,
+                            Bairro.Municipio.UF);
                 }
                 else
                 {
                     EnderecoDeposito = new EnderecoService(_context, _mapper)
                         .FormatarEndereco(string.Empty,
-                                          Grv.Deposito.Logradouro,
-                                          Grv.Deposito.NumeroEndereco,
-                                          Grv.Deposito.ComplementoEndereco,
-                                          string.Empty,
-                                          string.Empty,
-                                          string.Empty);
+                            Grv.Deposito.Logradouro,
+                            Grv.Deposito.NumeroEndereco,
+                            Grv.Deposito.ComplementoEndereco,
+                            string.Empty,
+                            string.Empty,
+                            string.Empty);
                 }
             }
 
@@ -524,9 +563,9 @@ namespace WebZi.Plataform.Data.Services.Liberacao
 
                 PessoaResponsavelLiberacao = Grv.Atendimento.ResponsavelNome.Trim(),
 
-                DocumentoPessoaResponsavelLiberacao = Grv.Atendimento.ResponsavelDocumento.Length == 11 ?
-                    DocumentHelper.FormatCPF(Grv.Atendimento.ResponsavelDocumento) :
-                    DocumentHelper.FormatCNPJ(Grv.Atendimento.ResponsavelDocumento),
+                DocumentoPessoaResponsavelLiberacao = Grv.Atendimento.ResponsavelDocumento.Length == 11
+                    ? DocumentHelper.FormatCPF(Grv.Atendimento.ResponsavelDocumento)
+                    : DocumentHelper.FormatCNPJ(Grv.Atendimento.ResponsavelDocumento),
 
                 ResponsavelNome = Grv.Atendimento.ResponsavelNome,
 
@@ -597,7 +636,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.TipoLiberacaoId == Parameters.IdentificadorTipoLiberacao);
 
-            if(Parameters.IdentificadorTipoLiberacao <= 0)
+            if (Parameters.IdentificadorTipoLiberacao <= 0)
                 return MensagemViewHelper.SetBadRequest("Precisa ter um tipo de liberação");
 
             GrvModel Grv = await _context.Grv
@@ -605,9 +644,11 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.GrvId == Parameters.IdentificadorProcesso);
 
-            if (Grv.StatusOperacao.StatusOperacaoId != "T" && Grv.StatusOperacao.StatusOperacaoId != "U" && Grv.StatusOperacao.StatusOperacaoId != "R")
+            if (Grv.StatusOperacao.StatusOperacaoId != "T" && Grv.StatusOperacao.StatusOperacaoId != "U" &&
+                Grv.StatusOperacao.StatusOperacaoId != "R")
             {
-                return MensagemViewHelper.SetBadRequest($"O Status atual deste Processo não permite o cadastro da Entrega. " +
+                return MensagemViewHelper.SetBadRequest(
+                    $"O Status atual deste Processo não permite o cadastro da Entrega. " +
                     $"Descrição do Status atual: {Grv.StatusOperacao.Descricao.ToUpper()}");
             }
 
@@ -636,7 +677,8 @@ namespace WebZi.Plataform.Data.Services.Liberacao
 
             if (UltimoFaturamento.DataPrazoRetiradaVeiculo.Value.Date < DataHoraPorDeposito.Date)
             {
-                return MensagemViewHelper.SetBadRequest($"O prazo para a Entrega do veículo está vencida ({UltimoFaturamento.DataPrazoRetiradaVeiculo.Value.Date:dd/MM/yyyy}), a Entrega não poderá ser realizada");
+                return MensagemViewHelper.SetBadRequest(
+                    $"O prazo para a Entrega do veículo está vencida ({UltimoFaturamento.DataPrazoRetiradaVeiculo.Value.Date:dd/MM/yyyy}), a Entrega não poderá ser realizada");
             }
 
             LiberacaoModel Liberacao = new()
@@ -657,7 +699,6 @@ namespace WebZi.Plataform.Data.Services.Liberacao
 
                     if (Parameters.IdentificadorTipoLiberacao == 2)
                     {
-
                         await _context.LiberacaoEspecial
                             .Where(x => x.IdGrv == Parameters.IdentificadorProcesso)
                             .UpdateAsync(x => new LiberacaoEspecialModel() { DataLiberacao = Liberacao.DataCadastro });
@@ -665,12 +706,13 @@ namespace WebZi.Plataform.Data.Services.Liberacao
 
                     if (Grv.StatusOperacaoId.Equals("R"))
                     {
-                        if(Parameters.IdentificadorSaidaReparo == null)
+                        if (Parameters.IdentificadorSaidaReparo == null)
                         {
                             ResultView = MensagemViewHelper.SetBadRequest("Propriedade obrigatória");
                             await transaction.RollbackAsync();
                             return ResultView;
                         }
+
                         await _context.SaidaReparo
                             .AsTracking()
                             .Where(x => x.Id == Parameters.IdentificadorSaidaReparo)
@@ -680,14 +722,20 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                                 IdUsuario = Parameters.IdentificadorUsuario
                             });
                     }
+
                     await _context.Grv
                         .Where(x => x.GrvId == Parameters.IdentificadorProcesso)
-                        .UpdateAsync(x => new GrvModel() { LiberacaoId = Liberacao.LiberacaoId, StatusOperacaoId = "E", UsuarioAlteracaoId = Parameters.IdentificadorUsuario });
+                        .UpdateAsync(x => new GrvModel()
+                        {
+                            LiberacaoId = Liberacao.LiberacaoId, StatusOperacaoId = "E",
+                            UsuarioAlteracaoId = Parameters.IdentificadorUsuario
+                        });
 
                     if (Parameters.ResponsavelFoto != null)
                     {
                         new BucketService(_context, _httpClientFactory)
-                            .SendFile(BucketNomeTabelaOrigemEnum.EntregaFotoResponsavel, Liberacao.LiberacaoId, Parameters.IdentificadorUsuario, Parameters.ResponsavelFoto);
+                            .SendFile(BucketNomeTabelaOrigemEnum.EntregaFotoResponsavel, Liberacao.LiberacaoId,
+                                Parameters.IdentificadorUsuario, Parameters.ResponsavelFoto);
                     }
 
                     await _context.SaveChangesAsync();
@@ -704,6 +752,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
 
             return MensagemViewHelper.SetCreateSuccess();
         }
+
         public async Task<MensagemDTO> EntregaAsync(EntregaSimplificadaParameters Parameters)
         {
             MensagemDTO ResultView = new GrvService(_context)
@@ -727,9 +776,11 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.GrvId == Parameters.IdentificadorProcesso);
 
-            if (Grv.StatusOperacao.StatusOperacaoId != "T" && Grv.StatusOperacao.StatusOperacaoId != "U" && Grv.StatusOperacao.StatusOperacaoId != "R")
+            if (Grv.StatusOperacao.StatusOperacaoId != "T" && Grv.StatusOperacao.StatusOperacaoId != "U" &&
+                Grv.StatusOperacao.StatusOperacaoId != "R")
             {
-                return MensagemViewHelper.SetBadRequest($"O Status atual deste Processo não permite o cadastro da Entrega. " +
+                return MensagemViewHelper.SetBadRequest(
+                    $"O Status atual deste Processo não permite o cadastro da Entrega. " +
                     $"Descrição do Status atual: {Grv.StatusOperacao.Descricao.ToUpper()}");
             }
 
@@ -758,7 +809,8 @@ namespace WebZi.Plataform.Data.Services.Liberacao
 
             if (UltimoFaturamento.DataPrazoRetiradaVeiculo.Value.Date < DataHoraPorDeposito.Date)
             {
-                return MensagemViewHelper.SetBadRequest($"O prazo para a Entrega do veículo está vencida ({UltimoFaturamento.DataPrazoRetiradaVeiculo.Value.Date:dd/MM/yyyy}), a Entrega não poderá ser realizada");
+                return MensagemViewHelper.SetBadRequest(
+                    $"O prazo para a Entrega do veículo está vencida ({UltimoFaturamento.DataPrazoRetiradaVeiculo.Value.Date:dd/MM/yyyy}), a Entrega não poderá ser realizada");
             }
 
             LiberacaoModel Liberacao = new()
@@ -779,7 +831,6 @@ namespace WebZi.Plataform.Data.Services.Liberacao
 
                     if (Parameters.IdentificadorTipoLiberacao == 2)
                     {
-
                         await _context.LiberacaoEspecial
                             .Where(x => x.IdGrv == Parameters.IdentificadorProcesso)
                             .UpdateAsync(x => new LiberacaoEspecialModel() { DataLiberacao = Liberacao.DataCadastro });
@@ -793,6 +844,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                             ResultView = MensagemViewHelper.SetBadRequest("Propriedade obrigatória");
                             return ResultView;
                         }
+
                         await _context.SaidaReparo
                             .AsTracking()
                             .Where(x => x.Id == Parameters.IdentificadorSaidaReparo)
@@ -813,23 +865,33 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                         }
                     }
 
-                    if (string.Equals(Grv.StatusOperacaoId, "T") || string.Equals(Grv.StatusOperacaoId, "R") || string.Equals(Grv.StatusOperacaoId, "U"))
+                    if (string.Equals(Grv.StatusOperacaoId, "T") || string.Equals(Grv.StatusOperacaoId, "R") ||
+                        string.Equals(Grv.StatusOperacaoId, "U"))
                     {
                         await _context.Grv
                             .Where(x => x.GrvId == Parameters.IdentificadorProcesso)
-                            .UpdateAsync(x => new GrvModel() { LiberacaoId = Liberacao.LiberacaoId, StatusOperacaoId = "E", UsuarioAlteracaoId = Parameters.IdentificadorUsuario });
+                            .UpdateAsync(x => new GrvModel()
+                            {
+                                LiberacaoId = Liberacao.LiberacaoId, StatusOperacaoId = "E",
+                                UsuarioAlteracaoId = Parameters.IdentificadorUsuario
+                            });
                     }
-                    else if(string.Equals(Grv.StatusOperacaoId, "2") || string.Equals(Grv.StatusOperacaoId, "6"))
+                    else if (string.Equals(Grv.StatusOperacaoId, "2") || string.Equals(Grv.StatusOperacaoId, "6"))
                     {
                         await _context.Grv
-                           .Where(x => x.GrvId == Parameters.IdentificadorProcesso)
-                           .UpdateAsync(x => new GrvModel() { LiberacaoId = Liberacao.LiberacaoId, StatusOperacaoId = "7", UsuarioAlteracaoId = Parameters.IdentificadorUsuario });
+                            .Where(x => x.GrvId == Parameters.IdentificadorProcesso)
+                            .UpdateAsync(x => new GrvModel()
+                            {
+                                LiberacaoId = Liberacao.LiberacaoId, StatusOperacaoId = "7",
+                                UsuarioAlteracaoId = Parameters.IdentificadorUsuario
+                            });
                     }
 
                     if (Parameters.ResponsavelFoto != null)
                     {
                         new BucketService(_context, _httpClientFactory)
-                            .SendFile(BucketNomeTabelaOrigemEnum.EntregaFotoResponsavel, Liberacao.LiberacaoId, Parameters.IdentificadorUsuario, Parameters.ResponsavelFoto);
+                            .SendFile(BucketNomeTabelaOrigemEnum.EntregaFotoResponsavel, Liberacao.LiberacaoId,
+                                Parameters.IdentificadorUsuario, Parameters.ResponsavelFoto);
                     }
 
                     await _context.SaveChangesAsync();
