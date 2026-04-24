@@ -1258,12 +1258,14 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 erros.Add(MensagemPadraoEnum.IdentificadorDepositoInvalido);
             }
 
-            if (model?.DataHoraInicialParaCalculo > DateTime.Now)
+            var now = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-3)).DateTime;
+            
+            if (model?.DataHoraInicialParaCalculo > now)
             {
                 erros.Add("A Data/Hora Inicial para o Cálculo não pode ser maior do que a Data/Hora atual");
             }
 
-            if (model?.DataHoraFinalParaCalculo > DateTime.Now)
+            if (model?.DataHoraFinalParaCalculo > now)
             {
                 erros.Add("A Data/Hora Final para o Cálculo não pode ser maior do que a Data/Hora atual");
             }
