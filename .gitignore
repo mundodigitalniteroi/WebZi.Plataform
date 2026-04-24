@@ -373,6 +373,11 @@ MigrationBackup/
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
 
+# Rider / JetBrains
+.idea/
+*.sln.iml
+*.DotSettings.user
+
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 
