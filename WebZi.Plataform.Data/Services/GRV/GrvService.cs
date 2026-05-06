@@ -2282,13 +2282,13 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 }
             }
 
-            if (!string.IsNullOrWhiteSpace(GrvPersistencia.EnderecoLocalizacaoVeiculoCEP))
-            {
-                if (!LocalizacaoHelper.IsCEP(GrvPersistencia.EnderecoLocalizacaoVeiculoCEP))
-                {
-                    erros.Add("CEP inválido");
-                }
-            }
+            // if (!string.IsNullOrWhiteSpace(GrvPersistencia.EnderecoLocalizacaoVeiculoCEP))
+            // {
+            //     if (!LocalizacaoHelper.IsCEP(GrvPersistencia.EnderecoLocalizacaoVeiculoCEP))
+            //     {
+            //         erros.Add("CEP inválido");
+            //     }
+            // }
 
             if (GrvPersistencia.Condutor == null)
             {
@@ -2595,17 +2595,17 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 ResultView.AvisosImpeditivos.Add(MensagemPadraoEnum.NaoEncontradoFaturamentoProduto);
             }
 
-            if (!string.IsNullOrWhiteSpace(GrvPersistencia.EnderecoLocalizacaoVeiculoCEP))
-            {
-                if (GrvPersistencia.EnderecoLocalizacaoVeiculoCEP.IsCEP())
-                {
-                    if (await _context.CEP
-                        .FirstOrDefaultAsync(x => x.CEP == GrvPersistencia.EnderecoLocalizacaoVeiculoCEP.GetNumbers()) == null)
-                    {
-                        ResultView.AvisosImpeditivos.Add("CEP inexistente");
-                    }
-                }
-            }
+            // if (!string.IsNullOrWhiteSpace(GrvPersistencia.EnderecoLocalizacaoVeiculoCEP))
+            // {
+            //     if (GrvPersistencia.EnderecoLocalizacaoVeiculoCEP.IsCEP())
+            //     {
+            //         if (await _context.CEP
+            //             .FirstOrDefaultAsync(x => x.CEP == GrvPersistencia.EnderecoLocalizacaoVeiculoCEP.GetNumbers()) == null)
+            //         {
+            //             ResultView.AvisosImpeditivos.Add("CEP inexistente");
+            //         }
+            //     }
+            // }
 
             if (GrvPersistencia.ListagemDocumentoCondutor?.Count > 0)
             {

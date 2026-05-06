@@ -62,10 +62,10 @@ namespace WebZi.Plataform.Data.Services.Localizacao
             {
                 ResultView.Mensagem.AvisosImpeditivos.Add("Informe o CEP");
             }
-            else if (!LocalizacaoHelper.IsCEP(CEP))
-            {
-                ResultView.Mensagem.AvisosImpeditivos.Add("CEP inválido");
-            }
+            // else if (!LocalizacaoHelper.IsCEP(CEP))
+            // {
+            //     ResultView.Mensagem.AvisosImpeditivos.Add("CEP inválido");
+            // }
 
             if (ResultView.Mensagem.AvisosImpeditivos.Count > 0)
             {
