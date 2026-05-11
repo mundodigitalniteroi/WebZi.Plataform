@@ -1,5 +1,6 @@
 ﻿using WebZi.Plataform.Domain.DTO.Cliente;
 using WebZi.Plataform.Domain.DTO.Deposito;
+using WebZi.Plataform.Domain.DTO.Faturamento.Servico;
 using WebZi.Plataform.Domain.DTO.Servico;
 using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.DTO.Veiculo;
@@ -27,6 +28,7 @@ namespace WebZi.Plataform.Domain.DTO.GRV
         public int? IdentificadorAutoridadeResponsavel { get; set; }
 
         public int? IdentificadorCor { get; set; }
+        public int? IdentificadorCorOstentada { get; set; }
 
         public int? IdentificadorMarcaModelo { get; set; }
 
@@ -127,7 +129,6 @@ namespace WebZi.Plataform.Domain.DTO.GRV
 
         public string FlagVeiculoRoubadoFurtado { get; set; }
 
-        public string FlagChaveDeposito { get; set; }
 
         public string FlagEstadoLacre { get; set; }
 
@@ -136,6 +137,9 @@ namespace WebZi.Plataform.Domain.DTO.GRV
         /// <summary>
         /// Flag que identifica se o GGV já foi cadastrado
         /// </summary>
+        
+        public string FlagChaveDeposito { get; set; }
+
         public string FlagGgv { get; set; }
 
         public string FlagVistoria { get; set; }
@@ -157,5 +161,8 @@ namespace WebZi.Plataform.Domain.DTO.GRV
         public List<EnquadramentoInfracaoGrvDTO> Infracoes { get; set; }
         public List<CondutorEquipamentoOpcionalDTO> EquipamentoOpcional { get; set; }
         public List<LacreDTO> ListagemLacres { get; set; }
+        public VistoriaDTO Vistoria { get; set; }
+        // public List<ServicoAssociadoTipoVeiculoDTO> ListagemServicoAssociadoVeiculo { get; set; }
+        public List<ServicoAssociadoGrvDTO> ListagemServicoGgv { get; set; }
     }
 }

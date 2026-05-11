@@ -19,7 +19,7 @@ using WebZi.Plataform.Data.Services.Report;
 using WebZi.Plataform.Data.Services.Servico;
 using WebZi.Plataform.Data.Services.Sistema;
 using WebZi.Plataform.Data.Services.Veiculo;
-using WebZi.Plataform.Data.Services.Vistoria;
+using WebZi.Plataform.Data.Services.Vistorias;
 using WebZi.Plataform.Data.Services.WebServices;
 using WebZi.Plataform.Domain.Services.GRV;
 using WebZi.Plataform.Domain.Services.Usuario;

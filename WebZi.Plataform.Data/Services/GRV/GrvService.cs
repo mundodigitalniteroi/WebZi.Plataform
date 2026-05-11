@@ -167,6 +167,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 .Include(x => x.ListagemEnquadramentoInfracao)
                 .Include(x => x.ListagemLacre)
                 .Include(x => x.ListagemCondutorEquipamentoOpcional)
+                .Include(x => x.ListagemFaturamentoServicoGrv)
                 .AsTracking()
                 .FirstOrDefaultAsync(x => x.GrvId == GrvPersistencia.IdentificadorGrv);
             #endregion Consulta
@@ -1013,10 +1014,10 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 return MensagemViewHelper.SetBadRequest(erros);
             }
 
-            new BucketService(_context, _httpClientFactory)
-                .DeleteFiles(BucketNomeTabelaOrigemEnum.FotoVeiculoGRV, ListagemTabelaOrigemId);
+            int totalExcluido = new BucketService(_context, _httpClientFactory)
+                .DeleteFiles(BucketNomeTabelaOrigemEnum.FotoVeiculoGRV, ListagemTabelaOrigemId, true);
 
-            return MensagemViewHelper.SetFound(BucketArquivos.Count, "Foto(s) excluída(s) com sucesso");
+            return MensagemViewHelper.SetFound(totalExcluido, "Foto(s) excluída(s) com sucesso");
         }
 
         public async Task<MensagemDTO> DeleteGrvAsync(string NumeroFormularioGrv, string FaturamentoProdutoId, int ClienteId, int DepositoId, string Login, string Senha)
@@ -1305,6 +1306,13 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 .Include(x => x.ListagemCondutorEquipamentoOpcional)
                     .ThenInclude(x => x.EquipamentoOpcional)
                 .Include(x => x.ListagemLacre)
+                .Include(x => x.ListagemFaturamentoServicoGrv)
+                    .ThenInclude(x => x.FaturamentoServicoTipoVeiculo)
+                        .ThenInclude(x => x.FaturamentoServicoAssociado)
+                .Include(x => x.Vistoria)
+                    .ThenInclude(x => x.VistoriaSituacaoChassi)
+                .Include(x => x.Vistoria)
+                    .ThenInclude(x => x.VistoriaStatus)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.GrvId == GrvId);
         }
@@ -1344,6 +1352,21 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 grvDTO.EnderecoLocalizacaoVeiculoCEP = cep?.CEP;
             }
 
+            grvDTO.NumeroChave = Grv.NumeroChave;
+            grvDTO.EstacionamentoSetor = Grv.EstacionamentoSetor;
+            grvDTO.EstacionamentoNumeroVaga = Grv.EstacionamentoNumeroVaga;
+            grvDTO.FlagChaveDeposito = Grv.FlagChaveDeposito;
+            grvDTO.FlagTransbordo = Grv.FlagTransbordo;
+            grvDTO.DataTransbordo = Grv.DataTransbordo;
+
+            // grvDTO.ListagemServicoAssociadoVeiculo = (await _provider
+            //     .GetService<FaturamentoService>()
+            //     .ListServicoAssociadoTipoVeiculoAsync(Grv.GrvId, UsuarioId)).Listagem;
+
+            grvDTO.ListagemServicoGgv = (await _provider
+                .GetService<FaturamentoService>()
+                .ListServicoAssociadoGrvAsync(Grv.GrvId, UsuarioId)).Listagem;
+
             ResultView.Listagem.Add(grvDTO);
             ResultView.Mensagem = MensagemViewHelper.SetFound();
 
@@ -1376,6 +1399,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 return ResultView;
             }
 
+            Grv = await GetByIdAsync(Grv.GrvId);
+
             ResultView.Mensagem = ValidateInputGrv(Grv, UsuarioId);
 
             if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
@@ -1383,7 +1408,24 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 return ResultView;
             }
 
-            ResultView.Listagem.Add(_mapper.Map<GrvDTO>(Grv));
+            var grvDTO = _mapper.Map<GrvDTO>(Grv);
+
+            grvDTO.NumeroChave = Grv.NumeroChave;
+            grvDTO.EstacionamentoSetor = Grv.EstacionamentoSetor;
+            grvDTO.EstacionamentoNumeroVaga = Grv.EstacionamentoNumeroVaga;
+            grvDTO.FlagChaveDeposito = Grv.FlagChaveDeposito;
+            grvDTO.FlagTransbordo = Grv.FlagTransbordo;
+            grvDTO.DataTransbordo = Grv.DataTransbordo;
+
+            // grvDTO.ListagemServicoAssociadoVeiculo = (await _provider
+            //     .GetService<FaturamentoService>()
+            //     .ListServicoAssociadoTipoVeiculoAsync(Grv.GrvId, UsuarioId)).Listagem;
+
+            grvDTO.ListagemServicoGgv = (await _provider
+                .GetService<FaturamentoService>()
+                .ListServicoAssociadoGrvAsync(Grv.GrvId, UsuarioId)).Listagem;
+
+            ResultView.Listagem.Add(grvDTO);
 
             ResultView.Mensagem = MensagemViewHelper.SetFound();
 
