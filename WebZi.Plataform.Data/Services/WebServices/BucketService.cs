@@ -232,8 +232,9 @@ namespace WebZi.Plataform.Data.Services.WebServices
                 };
 
                 TipoCadastro = ArquivosEnvio
+                    .Where(x => x.NomeArquivo == BucketArquivoRetorno.NomeArquivo)
                     .Select(x => x.TipoArquivo)
-                    .FirstOrDefault(x => x == BucketArquivoRetorno.NomeArquivo);
+                    .FirstOrDefault();
 
                 if (!string.IsNullOrWhiteSpace(TipoCadastro))
                 {
@@ -292,7 +293,9 @@ namespace WebZi.Plataform.Data.Services.WebServices
                     {
                         Identificador = BucketArquivo.RepositorioArquivoId,
 
-                        Imagem = await Service.DownloadFileAsync(BucketArquivo.Url)
+                        Imagem = await Service.DownloadFileAsync(BucketArquivo.Url),
+
+                        TipoCadastro = BucketArquivo.TipoCadastro
                     }); ;
                 }
 
@@ -350,7 +353,9 @@ namespace WebZi.Plataform.Data.Services.WebServices
                     {
                         Identificador = BucketArquivo.RepositorioArquivoId,
 
-                        Imagem = await Service.DownloadFileAsync(BucketArquivo.Url)
+                        Imagem = await Service.DownloadFileAsync(BucketArquivo.Url),
+
+                        TipoCadastro = BucketArquivo.TipoCadastro
                     });
                 }
 
@@ -364,27 +369,29 @@ namespace WebZi.Plataform.Data.Services.WebServices
             return ResultView;
         }
 
-        public void DeleteFiles(string CodigoTabelaOrigem, List<int> ListagemTabelaOrigemId)
+        public int DeleteFiles(string CodigoTabelaOrigem, List<int> ListagemId, bool isByRepositorioArquivoId = false)
         {
             ConfiguracaoModel Configuracao = _context.Configuracao
                 .AsNoTracking()
                 .FirstOrDefault();
 
-            List<BucketArquivoModel> BucketArquivos = _context.BucketArquivo
+            IQueryable<BucketArquivoModel> query = _context.BucketArquivo
                 .Include(x => x.BucketNomeTabelaOrigem)
-                .Where(x => x.BucketNomeTabelaOrigem.Codigo == CodigoTabelaOrigem
-                         && ListagemTabelaOrigemId.Contains(x.TabelaOrigemId))
-                .ToList();
+                .Where(x => x.BucketNomeTabelaOrigem.Codigo == CodigoTabelaOrigem);
+
+            if (isByRepositorioArquivoId)
+            {
+                query = query.Where(x => ListagemId.Contains(x.RepositorioArquivoId));
+            }
+            else
+            {
+                query = query.Where(x => ListagemId.Contains(x.TabelaOrigemId));
+            }
+
+            List<BucketArquivoModel> BucketArquivos = query.ToList();
 
             if (BucketArquivos.Count > 0)
             {
-                foreach (BucketArquivoModel BucketArquivo in BucketArquivos)
-                {
-                    _context.BucketArquivo.Remove(BucketArquivo);
-
-                    _context.SaveChanges();
-                }
-
                 HttpClientFactoryService Service = new(_httpClientFactory);
 
                 foreach (BucketArquivoModel BucketArquivo in BucketArquivos)
@@ -405,18 +412,25 @@ namespace WebZi.Plataform.Data.Services.WebServices
                         password: Configuracao.RepositorioArquivoPassword,
                         obj: DeletarArquivoEnvio
                     );
+
+                    _context.BucketArquivo.Remove(BucketArquivo);
                 }
+
+                _context.SaveChanges();
             }
+
+            return BucketArquivos.Count;
         }
 
-        public void DeleteFiles(string CodigoTabelaOrigem, int TabelaOrigemId)
+        public int DeleteFiles(string CodigoTabelaOrigem, int TabelaOrigemId)
         {
-            DeleteFiles(CodigoTabelaOrigem, (List<int>)new() { TabelaOrigemId });
+            return DeleteFiles(CodigoTabelaOrigem, new List<int> { TabelaOrigemId });
         }
 
         public void DeleteFile(int RepositorioArquivoId)
         {
             BucketArquivoModel BucketArquivo = _context.BucketArquivo
+                .Include(x => x.BucketNomeTabelaOrigem)
                 .FirstOrDefault(x => x.RepositorioArquivoId == RepositorioArquivoId);
 
             if (BucketArquivo != null)
@@ -424,10 +438,6 @@ namespace WebZi.Plataform.Data.Services.WebServices
                 ConfiguracaoModel Configuracao = _context.Configuracao
                     .AsNoTracking()
                     .FirstOrDefault();
-
-                _context.BucketArquivo.Remove(BucketArquivo);
-
-                _context.SaveChanges();
 
                 HttpClientFactoryService Service = new(_httpClientFactory);
 
@@ -447,6 +457,10 @@ namespace WebZi.Plataform.Data.Services.WebServices
                     password: Configuracao.RepositorioArquivoPassword,
                     obj: DeletarArquivoEnvio
                 );
+
+                _context.BucketArquivo.Remove(BucketArquivo);
+
+                _context.SaveChanges();
             }
         }
     }
