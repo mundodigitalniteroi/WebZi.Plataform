@@ -5,5 +5,7 @@
         public int Identificador { get; set; }
 
         public byte[] Imagem { get; set; }
+
+        public string TipoCadastro { get; set; }
     }
 }
