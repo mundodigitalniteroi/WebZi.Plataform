@@ -9,7 +9,7 @@ using WebZi.Plataform.Data.Services.GGV;
 using WebZi.Plataform.Data.Services.Servico;
 using WebZi.Plataform.Data.Services.Sistema;
 using WebZi.Plataform.Data.Services.Veiculo;
-using WebZi.Plataform.Data.Services.Vistoria;
+using WebZi.Plataform.Data.Services.Vistorias;
 using WebZi.Plataform.Domain.DTO.Atendimento;
 using WebZi.Plataform.Domain.DTO.Banco;
 using WebZi.Plataform.Domain.DTO.Documento;
