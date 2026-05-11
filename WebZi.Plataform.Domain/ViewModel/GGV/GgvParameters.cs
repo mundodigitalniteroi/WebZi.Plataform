@@ -31,7 +31,7 @@ namespace WebZi.Plataform.Domain.ViewModel.GGV
 
         public VistoriaParameters Vistoria { get; set; }
 
-        public List<EquipamentoOpcionalParameters> ListagemEquipamentoOpcional { get; set; }
+        // public List<EquipamentoOpcionalParameters> ListagemEquipamentoOpcional { get; set; }
 
         public List<FotoTipoCadastroParameters> ListagemFotos { get; set; }
 

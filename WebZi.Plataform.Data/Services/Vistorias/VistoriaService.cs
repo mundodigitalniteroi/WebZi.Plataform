@@ -5,7 +5,7 @@ using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Domain.DTO.Vistoria;
 using WebZi.Plataform.Domain.Models.Vistoria;
 
-namespace WebZi.Plataform.Data.Services.Vistoria
+namespace WebZi.Plataform.Data.Services.Vistorias
 {
     public class VistoriaService
     {

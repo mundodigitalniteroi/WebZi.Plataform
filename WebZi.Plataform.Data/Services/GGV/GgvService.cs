@@ -11,10 +11,11 @@ using WebZi.Plataform.Data.Services.Deposito;
 using WebZi.Plataform.Data.Services.Empresa;
 using WebZi.Plataform.Data.Services.Faturamento;
 using WebZi.Plataform.Data.Services.Sistema;
-using WebZi.Plataform.Data.Services.Vistoria;
+using WebZi.Plataform.Data.Services.Vistorias;
 using WebZi.Plataform.Data.Services.WebServices;
 using WebZi.Plataform.Domain.DTO.Generic;
 using WebZi.Plataform.Domain.DTO.GGV;
+using WebZi.Plataform.Domain.DTO.Faturamento.Servico;
 using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Bucket;
@@ -42,9 +43,9 @@ namespace WebZi.Plataform.Data.Services.GGV
             _httpClientFactory = httpClientFactory;
         }
 
-        public async Task<MensagemDTO> CreateGgvAsync(GgvParameters GgvPersistencia)
+        public async Task<MensagemDTO> UpdateGgvAsync(GgvParameters GgvPersistencia)
         {
-            MensagemDTO ResultView = await ValidarInformacoesPersistenciaAsync(GgvPersistencia);
+            MensagemDTO ResultView = await ValidarInformacoesPersistenciaAsync(GgvPersistencia, true);
 
             if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
             {
@@ -52,12 +53,13 @@ namespace WebZi.Plataform.Data.Services.GGV
             }
 
             GrvModel Grv = await _context.Grv
+                .Include(x => x.Vistoria)
+                .Include(x => x.ListagemFaturamentoServicoGrv)
                 .FirstOrDefaultAsync(x => x.GrvId == GgvPersistencia.IdentificadorProcesso);
 
             DateTime DataHoraPorDeposito = new DepositoService(_context)
                 .GetDataHoraPorDeposito(Grv.DepositoId);
 
-            Grv.StatusOperacaoId = "V";
             Grv.UsuarioCadastroGgvId = GgvPersistencia.IdentificadorUsuario;
             Grv.DataAlteracao = DataHoraPorDeposito;
             Grv.DataHoraGuarda = GgvPersistencia.DataHoraGuarda;
@@ -79,100 +81,18 @@ namespace WebZi.Plataform.Data.Services.GGV
                 Grv.DataTransbordo = GgvPersistencia.DataTransbordo;
             }
 
-            List<CondutorEquipamentoOpcionalModel> ListagemCadastroCondutorEquipamentoOpcional = new();
-
-            if (GgvPersistencia.ListagemEquipamentoOpcional?.Count > 0)
-            {
-                List<decimal> EquipamentoOpcionalIds = GgvPersistencia.ListagemEquipamentoOpcional
-                    .Select(x => x.IdentificadorEquipamentoOpcional)
-                    .Distinct()
-                    .ToList();
-
-                List<CondutorEquipamentoOpcionalModel> ListagemCondutorEquipamentoOpcional = await _context.CondutorEquipamentoOpcional
-                    .Where(x => EquipamentoOpcionalIds.Contains(x.EquipamentoOpcionalId) && x.GrvId == Grv.GrvId)
-                    .AsNoTracking()
-                    .ToListAsync();
-
-                Grv.ListagemCondutorEquipamentoOpcional = new HashSet<CondutorEquipamentoOpcionalModel>();
-
-                CondutorEquipamentoOpcionalModel CadastroCondutorEquipamentoOpcional = new();
-
-                CondutorEquipamentoOpcionalModel CondutorEquipamentoOpcional = new();
-
-                List<TipoAvariaModel> ListagemTipoAvaria = await _context.TipoAvaria
-                    .AsNoTracking()
-                    .ToListAsync();
-
-                foreach (EquipamentoOpcionalParameters item in GgvPersistencia.ListagemEquipamentoOpcional)
-                {
-                    CadastroCondutorEquipamentoOpcional = new()
-                    {
-                        GrvId = Grv.GrvId,
-
-                        EquipamentoOpcionalId = item.IdentificadorEquipamentoOpcional,
-
-                        FlagPossuiEquipamento = item.FlagPossuiEquipamento
-                    };
-
-                    CondutorEquipamentoOpcional = ListagemCondutorEquipamentoOpcional
-                        .FirstOrDefault(x => x.EquipamentoOpcionalId == item.IdentificadorEquipamentoOpcional);
-
-                    // Já possui cadastro
-                    if (CondutorEquipamentoOpcional != null)
-                    {
-                        if (CondutorEquipamentoOpcional.FlagPossuiEquipamento == item.FlagPossuiEquipamento
-                         && (CondutorEquipamentoOpcional.FlagEquipamentoAvariado == item.FlagEquipamentoAvariado && CondutorEquipamentoOpcional.CodigoAvaria == item.IdentificadorTipoAvaria))
-                        {
-                            continue;
-                        }
-
-                        CadastroCondutorEquipamentoOpcional.CondutorEquipamentoOpcionalId = CondutorEquipamentoOpcional.CondutorEquipamentoOpcionalId;
-
-                        CadastroCondutorEquipamentoOpcional.UsuarioAlteracaoId = GgvPersistencia.IdentificadorUsuario;
-
-                        CadastroCondutorEquipamentoOpcional.DataAtualizacao = DataHoraPorDeposito;
-                    }
-                    else
-                    {
-                        CadastroCondutorEquipamentoOpcional = new()
-                        {
-                            GrvId = Grv.GrvId,
-
-                            EquipamentoOpcionalId = item.IdentificadorEquipamentoOpcional,
-
-                            FlagPossuiEquipamento = item.FlagPossuiEquipamento,
-
-                            UsuarioCadastroId = GgvPersistencia.IdentificadorUsuario
-                        };
-                    }
-
-                    if (item.FlagPossuiEquipamento == "S")
-                    {
-                        CadastroCondutorEquipamentoOpcional.FlagEquipamentoAvariado = item.FlagEquipamentoAvariado;
-
-                        if (item.FlagEquipamentoAvariado == "S")
-                        {
-                            CadastroCondutorEquipamentoOpcional.CodigoAvaria = item.IdentificadorTipoAvaria;
-                        }
-                    }
-                    else
-                    {
-                        CadastroCondutorEquipamentoOpcional.FlagEquipamentoAvariado = null;
-
-                        CadastroCondutorEquipamentoOpcional.CodigoAvaria = null;
-                    }
-
-                    ListagemCadastroCondutorEquipamentoOpcional.Add(CadastroCondutorEquipamentoOpcional);
-                }
-            }
-
-            VistoriaModel Vistoria = new();
-
             TabelaGenericaService TabelaGenericaService = new(_context);
 
             if (GgvPersistencia.Vistoria != null)
             {
-                Vistoria.UsuarioCadastroId = GgvPersistencia.IdentificadorUsuario;
+                VistoriaModel Vistoria = Grv.Vistoria ?? new VistoriaModel
+                {
+                    UsuarioCadastroId = GgvPersistencia.IdentificadorUsuario,
+                    DataCadastro = DataHoraPorDeposito
+                };
+
+                Vistoria.UsuarioAlteracaoId = GgvPersistencia.IdentificadorUsuario;
+                Vistoria.DataAlteracao = DataHoraPorDeposito;
 
                 if (GgvPersistencia.Vistoria.FlagVistoria == "N")
                 {
@@ -189,48 +109,49 @@ namespace WebZi.Plataform.Data.Services.GGV
                 {
                     Grv.FlagVistoria = "S";
 
-                    Vistoria = new()
-                    {
-                        UsuarioCadastroId = GgvPersistencia.IdentificadorUsuario,
+                    Vistoria.MotivoNaoRealizacaoVistoria = null;
 
-                        MotivoNaoRealizacaoVistoria = null,
+                    Vistoria.FlagPossuiRestricoes = GgvPersistencia.Vistoria.FlagPossuiRestricoes;
 
-                        FlagPossuiRestricoes = GgvPersistencia.Vistoria.FlagPossuiRestricoes,
+                    Vistoria.FlagPossuiVidroEletrico = GgvPersistencia.Vistoria.FlagPossuiVidroEletrico;
 
-                        FlagPossuiVidroEletrico = GgvPersistencia.Vistoria.FlagPossuiVidroEletrico,
+                    Vistoria.FlagPossuiTravaEletrica = GgvPersistencia.Vistoria.FlagPossuiTravaEletrica;
 
-                        FlagPossuiTravaEletrica = GgvPersistencia.Vistoria.FlagPossuiTravaEletrica,
+                    Vistoria.FlagPossuiPlaca = GgvPersistencia.Vistoria.FlagPossuiPlaca;
 
-                        FlagPossuiPlaca = GgvPersistencia.Vistoria.FlagPossuiPlaca,
+                    Vistoria.EmpresaVistoriaId = GgvPersistencia.Vistoria.IdentificadorEmpresaVistoria;
 
-                        EmpresaVistoriaId = GgvPersistencia.Vistoria.IdentificadorEmpresaVistoria,
+                    Vistoria.NumeroVistoria = GgvPersistencia.Vistoria.NumeroVistoria.ToUpperTrim().ToNullIfEmpty();
 
-                        NumeroVistoria = GgvPersistencia.Vistoria.NumeroVistoria.ToUpperTrim().ToNullIfEmpty(),
+                    Vistoria.NomeVistoriador = GgvPersistencia.Vistoria.NomeVistoriador.ToUpperTrim().ToNullIfEmpty();
 
-                        NomeVistoriador = GgvPersistencia.Vistoria.NomeVistoriador.ToUpperTrim().ToNullIfEmpty(),
+                    Vistoria.NumeroMotor = GgvPersistencia.Vistoria.NumeroMotor.ToUpperTrim().ToNullIfEmpty();
 
-                        NumeroMotor = GgvPersistencia.Vistoria.NumeroMotor.ToUpperTrim().ToNullIfEmpty(),
+                    Vistoria.DataVistoria = GgvPersistencia.Vistoria.DataVistoria;
 
-                        DataVistoria = GgvPersistencia.Vistoria.DataVistoria,
+                    Vistoria.ResumoVistoria = GgvPersistencia.Vistoria.ResumoVistoria.ToUpperTrim().ToNullIfEmpty();
 
-                        ResumoVistoria = GgvPersistencia.Vistoria.ResumoVistoria.ToUpperTrim().ToNullIfEmpty(),
-
-                        VistoriaStatusId = _context.VistoriaStatus
+                    Vistoria.VistoriaStatusId = (await _context.VistoriaStatus
                             .AsNoTracking()
-                            .FirstOrDefault(x => x.VistoriaStatusId == (byte)GgvPersistencia.Vistoria.IdentificadorStatusVistoria)
-                            .VistoriaStatusId,
+                            .FirstOrDefaultAsync(x =>
+                                x.VistoriaStatusId == (byte)GgvPersistencia.Vistoria.IdentificadorStatusVistoria))?
+                        .VistoriaStatusId;
 
-                        VistoriaSituacaoChassiId = _context.VistoriaSituacaoChassi
+                    Vistoria.VistoriaSituacaoChassiId = (await _context.VistoriaSituacaoChassi
                             .AsNoTracking()
-                            .FirstOrDefault(x => x.VistoriaSituacaoChassiId == GgvPersistencia.Vistoria.IdentificadorSituacaoChassi)
-                            .VistoriaSituacaoChassiId,
+                            .FirstOrDefaultAsync(x =>
+                                x.VistoriaSituacaoChassiId == GgvPersistencia.Vistoria.IdentificadorSituacaoChassi))?
+                        .VistoriaSituacaoChassiId;
 
-                        // VISTORIA_TIPO_DIRECAO
-                        TipoDirecao = await TabelaGenericaService.GetValorCadastroAsync(GgvPersistencia.Vistoria.IdentificadorTipoDirecao),
+                    // VISTORIA_TIPO_DIRECAO
+                    Vistoria.TipoDirecao =
+                        await TabelaGenericaService.GetValorCadastroAsync(GgvPersistencia.Vistoria
+                            .IdentificadorTipoDirecao);
 
-                        // VISTORIA_ESTADO_GERAL_VEICULO
-                        EstadoGeralVeiculo = await TabelaGenericaService.GetValorCadastroAsync(GgvPersistencia.Vistoria.IdentificadorEstadoGeralVeiculo)
-                    };
+                    // VISTORIA_ESTADO_GERAL_VEICULO
+                    Vistoria.EstadoGeralVeiculo =
+                        await TabelaGenericaService.GetValorCadastroAsync(GgvPersistencia.Vistoria
+                            .IdentificadorEstadoGeralVeiculo);
 
                     if (GgvPersistencia.Vistoria.FlagPossuiPlaca == "S")
                     {
@@ -244,12 +165,15 @@ namespace WebZi.Plataform.Data.Services.GGV
             }
             else
             {
-                Vistoria = null;
+                Grv.Vistoria = null;
             }
 
             if (GgvPersistencia.ListagemFaturamentoServicoGrv?.Count > 0)
             {
-                Grv.ListagemFaturamentoServicoGrv = new HashSet<FaturamentoServicoGrvModel>();
+                if (Grv.ListagemFaturamentoServicoGrv == null)
+                {
+                    Grv.ListagemFaturamentoServicoGrv = new HashSet<FaturamentoServicoGrvModel>();
+                }
 
                 List<int> ids = GgvPersistencia.ListagemFaturamentoServicoGrv
                     .Where(x => x.IdentificadorServicoAssociadoTipoVeiculo > 0)
@@ -257,7 +181,8 @@ namespace WebZi.Plataform.Data.Services.GGV
                     .Distinct()
                     .ToList();
 
-                List<FaturamentoServicoTipoVeiculoModel> FaturamentoServicoTipoVeiculoList = await _context.FaturamentoServicoTipoVeiculo
+                List<FaturamentoServicoTipoVeiculoModel> FaturamentoServicoTipoVeiculoList = await _context
+                    .FaturamentoServicoTipoVeiculo
                     .Include(x => x.FaturamentoServicoAssociado)
                     .ThenInclude(x => x.FaturamentoServicoTipo)
                     .Where(x => ids.Contains(x.FaturamentoServicoTipoVeiculoId))
@@ -270,30 +195,44 @@ namespace WebZi.Plataform.Data.Services.GGV
 
                 foreach (FaturamentoServicoGrvParameters item in GgvPersistencia.ListagemFaturamentoServicoGrv)
                 {
-                    FaturamentoServicoGrv = new()
-                    {
-                        GrvId = GgvPersistencia.IdentificadorProcesso,
-
-                        FaturamentoServicoTipoVeiculoId = item.IdentificadorServicoAssociadoTipoVeiculo
-                    };
-
                     FaturamentoServicoTipoVeiculo = FaturamentoServicoTipoVeiculoList
-                        .FirstOrDefault(x => x.FaturamentoServicoTipoVeiculoId == item.IdentificadorServicoAssociadoTipoVeiculo);
+                        .FirstOrDefault(x =>
+                            x.FaturamentoServicoTipoVeiculoId == item.IdentificadorServicoAssociadoTipoVeiculo);
 
-                    switch (FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.FaturamentoServicoTipo.TipoCobranca)
+                    if (FaturamentoServicoTipoVeiculo == null)
+                    {
+                        continue;
+                    }
+
+                    FaturamentoServicoGrv = Grv.ListagemFaturamentoServicoGrv
+                        .FirstOrDefault(x =>
+                            x.FaturamentoServicoTipoVeiculoId == item.IdentificadorServicoAssociadoTipoVeiculo);
+
+                    if (FaturamentoServicoGrv == null)
+                    {
+                        FaturamentoServicoGrv = new()
+                        {
+                            GrvId = GgvPersistencia.IdentificadorProcesso,
+                            FaturamentoServicoTipoVeiculoId = item.IdentificadorServicoAssociadoTipoVeiculo
+                        };
+
+                        Grv.ListagemFaturamentoServicoGrv.Add(FaturamentoServicoGrv);
+                    }
+
+                    FaturamentoServicoGrv.QuantidadeDesconto = item.Quantidade;
+                    FaturamentoServicoGrv.FlagRealizarCobranca = item.FlagCobranca;
+
+                    switch (FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.FaturamentoServicoTipo
+                                .TipoCobranca)
                     {
                         case "V":
-
-                            FaturamentoServicoGrv.Valor = decimal.Parse(item.ValorTipoCobrancaInformado.Replace(".", ","));
-
-                            break;
-
                         case "D":
                         case "P":
                         case "Q":
                         case "T":
 
-                            FaturamentoServicoGrv.Valor = int.Parse(item.ValorTipoCobrancaInformado);
+                            FaturamentoServicoGrv.Valor =
+                                decimal.Parse(item.ValorTipoCobrancaInformado.Replace(".", ","));
 
                             break;
 
@@ -303,8 +242,6 @@ namespace WebZi.Plataform.Data.Services.GGV
 
                             break;
                     }
-
-                    Grv.ListagemFaturamentoServicoGrv.Add(FaturamentoServicoGrv);
                 }
             }
 
@@ -314,17 +251,17 @@ namespace WebZi.Plataform.Data.Services.GGV
                 {
                     _context.Grv.Update(Grv);
 
-                    foreach (CondutorEquipamentoOpcionalModel item in ListagemCadastroCondutorEquipamentoOpcional)
-                    {
-                        if (item.CondutorEquipamentoOpcionalId > 0)
-                        {
-                            _context.CondutorEquipamentoOpcional.Update(item);
-                        }
-                        else
-                        {
-                            _context.CondutorEquipamentoOpcional.Add(item);
-                        }
-                    }
+                    // foreach (CondutorEquipamentoOpcionalModel item in ListagemCadastroCondutorEquipamentoOpcional)
+                    // {
+                    //     if (item.CondutorEquipamentoOpcionalId > 0)
+                    //     {
+                    //         _context.CondutorEquipamentoOpcional.Update(item);
+                    //     }
+                    //     else
+                    //     {
+                    //         _context.CondutorEquipamentoOpcional.Add(item);
+                    //     }
+                    // }
 
                     _context.SaveChanges();
 
@@ -334,7 +271,9 @@ namespace WebZi.Plataform.Data.Services.GGV
                 {
                     transaction.Rollback();
 
-                    return MensagemViewHelper.SetInternalServerError(ex);
+                    ResultView = MensagemViewHelper.SetInternalServerError(ex);
+
+                    return ResultView;
                 }
             }
 
@@ -366,7 +305,357 @@ namespace WebZi.Plataform.Data.Services.GGV
                         Files);
             }
 
-            return MensagemViewHelper.SetCreateSuccess(1);
+            return MensagemViewHelper.SetUpdateSuccess();
+        }
+
+
+        public async Task<MensagemDTO> CreateGgvAsync(GgvParameters GgvPersistencia)
+        {
+            MensagemDTO ResultView = await ValidarInformacoesPersistenciaAsync(GgvPersistencia, false);
+
+            if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+            {
+                return ResultView;
+            }
+
+            GrvModel Grv = await _context.Grv
+                .Include(x => x.ListagemFaturamentoServicoGrv)
+                .FirstOrDefaultAsync(x => x.GrvId == GgvPersistencia.IdentificadorProcesso);
+
+            DateTime DataHoraPorDeposito = new DepositoService(_context)
+                .GetDataHoraPorDeposito(Grv.DepositoId);
+
+            Grv.StatusOperacaoId = "V";
+            Grv.UsuarioCadastroGgvId = GgvPersistencia.IdentificadorUsuario;
+            Grv.DataAlteracao = DataHoraPorDeposito;
+            Grv.DataHoraGuarda = GgvPersistencia.DataHoraGuarda;
+            Grv.FlagChaveDeposito = GgvPersistencia.FlagChaveDeposito;
+
+            if (GgvPersistencia.FlagChaveDeposito == "S")
+            {
+                Grv.NumeroChave = GgvPersistencia.NumeroChave;
+            }
+
+            Grv.EstacionamentoSetor = GgvPersistencia.EstacionamentoSetor;
+
+            Grv.EstacionamentoNumeroVaga = GgvPersistencia.EstacionamentoNumeroVaga;
+
+            if (GgvPersistencia.FlagTransbordo == "S")
+            {
+                Grv.FlagTransbordo = "S";
+
+                Grv.DataTransbordo = GgvPersistencia.DataTransbordo;
+            }
+
+            // List<CondutorEquipamentoOpcionalModel> ListagemCadastroCondutorEquipamentoOpcional = new();
+
+            // if (GgvPersistencia.ListagemEquipamentoOpcional?.Count > 0)
+            // {
+            //     List<decimal> EquipamentoOpcionalIds = GgvPersistencia.ListagemEquipamentoOpcional
+            //         .Select(x => x.IdentificadorEquipamentoOpcional)
+            //         .Distinct()
+            //         .ToList();
+            //
+            //     List<CondutorEquipamentoOpcionalModel> ListagemCondutorEquipamentoOpcional = await _context.CondutorEquipamentoOpcional
+            //         .Where(x => EquipamentoOpcionalIds.Contains(x.EquipamentoOpcionalId) && x.GrvId == Grv.GrvId)
+            //         .AsNoTracking()
+            //         .ToListAsync();
+            //
+            //     Grv.ListagemCondutorEquipamentoOpcional = new HashSet<CondutorEquipamentoOpcionalModel>();
+            //
+            //     CondutorEquipamentoOpcionalModel CadastroCondutorEquipamentoOpcional = new();
+            //
+            //     CondutorEquipamentoOpcionalModel CondutorEquipamentoOpcional = new();
+            //
+            //     List<TipoAvariaModel> ListagemTipoAvaria = await _context.TipoAvaria
+            //         .AsNoTracking()
+            //         .ToListAsync();
+            //
+            //     foreach (EquipamentoOpcionalParameters item in GgvPersistencia.ListagemEquipamentoOpcional)
+            //     {
+            //         CadastroCondutorEquipamentoOpcional = new()
+            //         {
+            //             GrvId = Grv.GrvId,
+            //
+            //             EquipamentoOpcionalId = item.IdentificadorEquipamentoOpcional,
+            //
+            //             FlagPossuiEquipamento = item.FlagPossuiEquipamento
+            //         };
+            //
+            //         CondutorEquipamentoOpcional = ListagemCondutorEquipamentoOpcional
+            //             .FirstOrDefault(x => x.EquipamentoOpcionalId == item.IdentificadorEquipamentoOpcional);
+            //
+            //         // Já possui cadastro
+            //         if (CondutorEquipamentoOpcional != null)
+            //         {
+            //             if (CondutorEquipamentoOpcional.FlagPossuiEquipamento == item.FlagPossuiEquipamento
+            //              && (CondutorEquipamentoOpcional.FlagEquipamentoAvariado == item.FlagEquipamentoAvariado && CondutorEquipamentoOpcional.CodigoAvaria == item.IdentificadorTipoAvaria))
+            //             {
+            //                 continue;
+            //             }
+            //
+            //             CadastroCondutorEquipamentoOpcional.CondutorEquipamentoOpcionalId = CondutorEquipamentoOpcional.CondutorEquipamentoOpcionalId;
+            //
+            //             CadastroCondutorEquipamentoOpcional.UsuarioAlteracaoId = GgvPersistencia.IdentificadorUsuario;
+            //
+            //             CadastroCondutorEquipamentoOpcional.DataAtualizacao = DataHoraPorDeposito;
+            //         }
+            //         else
+            //         {
+            //             CadastroCondutorEquipamentoOpcional = new()
+            //             {
+            //                 GrvId = Grv.GrvId,
+            //
+            //                 EquipamentoOpcionalId = item.IdentificadorEquipamentoOpcional,
+            //
+            //                 FlagPossuiEquipamento = item.FlagPossuiEquipamento,
+            //
+            //                 UsuarioCadastroId = GgvPersistencia.IdentificadorUsuario
+            //             };
+            //         }
+            //
+            //         if (item.FlagPossuiEquipamento == "S")
+            //         {
+            //             CadastroCondutorEquipamentoOpcional.FlagEquipamentoAvariado = item.FlagEquipamentoAvariado;
+            //
+            //             if (item.FlagEquipamentoAvariado == "S")
+            //             {
+            //                 CadastroCondutorEquipamentoOpcional.CodigoAvaria = item.IdentificadorTipoAvaria;
+            //             }
+            //         }
+            //         else
+            //         {
+            //             CadastroCondutorEquipamentoOpcional.FlagEquipamentoAvariado = null;
+            //
+            //             CadastroCondutorEquipamentoOpcional.CodigoAvaria = null;
+            //         }
+            //
+            //         ListagemCadastroCondutorEquipamentoOpcional.Add(CadastroCondutorEquipamentoOpcional);
+            //     }
+            // }
+
+            TabelaGenericaService TabelaGenericaService = new(_context);
+
+            if (GgvPersistencia.Vistoria != null)
+            {
+                VistoriaModel Vistoria = new()
+                {
+                    UsuarioCadastroId = GgvPersistencia.IdentificadorUsuario,
+                    DataCadastro = DataHoraPorDeposito
+                };
+
+                if (GgvPersistencia.Vistoria.FlagVistoria == "N")
+                {
+                    if (!string.IsNullOrWhiteSpace(GgvPersistencia.Vistoria.MotivoNaoRealizacaoVistoria))
+                    {
+                        Vistoria.MotivoNaoRealizacaoVistoria = GgvPersistencia.Vistoria.MotivoNaoRealizacaoVistoria;
+                    }
+                    else
+                    {
+                        Vistoria.MotivoNaoRealizacaoVistoria = "VISTORIA NÃO REALIZADA";
+                    }
+                }
+                else
+                {
+                    Grv.FlagVistoria = "S";
+
+                    Vistoria.MotivoNaoRealizacaoVistoria = null;
+
+                    Vistoria.FlagPossuiRestricoes = GgvPersistencia.Vistoria.FlagPossuiRestricoes;
+
+                    Vistoria.FlagPossuiVidroEletrico = GgvPersistencia.Vistoria.FlagPossuiVidroEletrico;
+
+                    Vistoria.FlagPossuiTravaEletrica = GgvPersistencia.Vistoria.FlagPossuiTravaEletrica;
+
+                    Vistoria.FlagPossuiPlaca = GgvPersistencia.Vistoria.FlagPossuiPlaca;
+
+                    Vistoria.EmpresaVistoriaId = GgvPersistencia.Vistoria.IdentificadorEmpresaVistoria;
+
+                    Vistoria.NumeroVistoria = GgvPersistencia.Vistoria.NumeroVistoria.ToUpperTrim().ToNullIfEmpty();
+
+                    Vistoria.NomeVistoriador = GgvPersistencia.Vistoria.NomeVistoriador.ToUpperTrim().ToNullIfEmpty();
+
+                    Vistoria.NumeroMotor = GgvPersistencia.Vistoria.NumeroMotor.ToUpperTrim().ToNullIfEmpty();
+
+                    Vistoria.DataVistoria = GgvPersistencia.Vistoria.DataVistoria;
+
+                    Vistoria.ResumoVistoria = GgvPersistencia.Vistoria.ResumoVistoria.ToUpperTrim().ToNullIfEmpty();
+
+                    Vistoria.VistoriaStatusId = (await _context.VistoriaStatus
+                            .AsNoTracking()
+                            .FirstOrDefaultAsync(x =>
+                                x.VistoriaStatusId == (byte)GgvPersistencia.Vistoria.IdentificadorStatusVistoria))?
+                        .VistoriaStatusId;
+
+                    Vistoria.VistoriaSituacaoChassiId = (await _context.VistoriaSituacaoChassi
+                            .AsNoTracking()
+                            .FirstOrDefaultAsync(x =>
+                                x.VistoriaSituacaoChassiId == GgvPersistencia.Vistoria.IdentificadorSituacaoChassi))?
+                        .VistoriaSituacaoChassiId;
+
+                    // VISTORIA_TIPO_DIRECAO
+                    Vistoria.TipoDirecao =
+                        await TabelaGenericaService.GetValorCadastroAsync(GgvPersistencia.Vistoria
+                            .IdentificadorTipoDirecao);
+
+                    // VISTORIA_ESTADO_GERAL_VEICULO
+                    Vistoria.EstadoGeralVeiculo =
+                        await TabelaGenericaService.GetValorCadastroAsync(GgvPersistencia.Vistoria
+                            .IdentificadorEstadoGeralVeiculo);
+
+                    if (GgvPersistencia.Vistoria.FlagPossuiPlaca == "S")
+                    {
+                        Grv.PlacaOstentada = GgvPersistencia.Vistoria.PlacaOstentada;
+
+                        Grv.CorOstentadaId = GgvPersistencia.Vistoria.IdentificadorCorOstentada;
+                    }
+                }
+
+                Grv.Vistoria = Vistoria;
+            }
+            else
+            {
+                Grv.Vistoria = null;
+            }
+
+            if (GgvPersistencia.ListagemFaturamentoServicoGrv?.Count > 0)
+            {
+                if (Grv.ListagemFaturamentoServicoGrv == null)
+                {
+                    Grv.ListagemFaturamentoServicoGrv = new HashSet<FaturamentoServicoGrvModel>();
+                }
+
+                List<int> ids = GgvPersistencia.ListagemFaturamentoServicoGrv
+                    .Where(x => x.IdentificadorServicoAssociadoTipoVeiculo > 0)
+                    .Select(x => x.IdentificadorServicoAssociadoTipoVeiculo)
+                    .Distinct()
+                    .ToList();
+
+                List<FaturamentoServicoTipoVeiculoModel> FaturamentoServicoTipoVeiculoList = await _context
+                    .FaturamentoServicoTipoVeiculo
+                    .Include(x => x.FaturamentoServicoAssociado)
+                    .ThenInclude(x => x.FaturamentoServicoTipo)
+                    .Where(x => ids.Contains(x.FaturamentoServicoTipoVeiculoId))
+                    .AsNoTracking()
+                    .ToListAsync();
+
+                FaturamentoServicoTipoVeiculoModel FaturamentoServicoTipoVeiculo = new();
+
+                FaturamentoServicoGrvModel FaturamentoServicoGrv = new();
+
+                foreach (FaturamentoServicoGrvParameters item in GgvPersistencia.ListagemFaturamentoServicoGrv)
+                {
+                    FaturamentoServicoTipoVeiculo = FaturamentoServicoTipoVeiculoList
+                        .FirstOrDefault(x =>
+                            x.FaturamentoServicoTipoVeiculoId == item.IdentificadorServicoAssociadoTipoVeiculo);
+
+                    if (FaturamentoServicoTipoVeiculo == null)
+                    {
+                        continue;
+                    }
+
+                    FaturamentoServicoGrv = Grv.ListagemFaturamentoServicoGrv
+                        .FirstOrDefault(x =>
+                            x.FaturamentoServicoTipoVeiculoId == item.IdentificadorServicoAssociadoTipoVeiculo);
+
+                    if (FaturamentoServicoGrv == null)
+                    {
+                        FaturamentoServicoGrv = new()
+                        {
+                            GrvId = GgvPersistencia.IdentificadorProcesso,
+                            FaturamentoServicoTipoVeiculoId = item.IdentificadorServicoAssociadoTipoVeiculo
+                        };
+
+                        Grv.ListagemFaturamentoServicoGrv.Add(FaturamentoServicoGrv);
+                    }
+
+                    FaturamentoServicoGrv.QuantidadeDesconto = item.Quantidade;
+                    FaturamentoServicoGrv.FlagRealizarCobranca = item.FlagCobranca;
+
+                    switch (FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.FaturamentoServicoTipo
+                                .TipoCobranca)
+                    {
+                        case "V":
+                        case "D":
+                        case "P":
+                        case "Q":
+                        case "T":
+
+                            FaturamentoServicoGrv.Valor =
+                                decimal.Parse(item.ValorTipoCobrancaInformado.Replace(".", ","));
+
+                            break;
+
+                        case "H":
+
+                            FaturamentoServicoGrv.TempoTrabalhado = item.ValorTipoCobrancaInformado;
+
+                            break;
+                    }
+                }
+            }
+
+            using (IDbContextTransaction transaction = _context.Database.BeginTransaction())
+            {
+                try
+                {
+                    _context.Grv.Update(Grv);
+
+                    // foreach (CondutorEquipamentoOpcionalModel item in ListagemCadastroCondutorEquipamentoOpcional)
+                    // {
+                    //     if (item.CondutorEquipamentoOpcionalId > 0)
+                    //     {
+                    //         _context.CondutorEquipamentoOpcional.Update(item);
+                    //     }
+                    //     else
+                    //     {
+                    //         _context.CondutorEquipamentoOpcional.Add(item);
+                    //     }
+                    // }
+
+                    _context.SaveChanges();
+
+                    transaction.Commit();
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+
+                    ResultView = MensagemViewHelper.SetInternalServerError(ex);
+
+                    return ResultView;
+                }
+            }
+
+            if (GgvPersistencia.ListagemFotos?.Count > 0)
+            {
+                List<TabelaGenericaModel> ListagemTipoCadastroFoto = await TabelaGenericaService
+                    .ListAsync("GGV_TIPO_CADASTRO_FOTO");
+
+                List<BucketFileModel> Files = new();
+
+                foreach (FotoTipoCadastroParameters item in GgvPersistencia.ListagemFotos)
+                {
+                    string TipoCadastro = ListagemTipoCadastroFoto
+                        .Where(x => x.TabelaGenericaId == item.IdentificadorTipoCadastro)
+                        .Select(x => x.ValorCadastro)
+                        .FirstOrDefault();
+
+                    Files.Add(new BucketFileModel
+                    {
+                        TipoCadastro = TipoCadastro,
+                        File = item.Foto
+                    });
+                }
+
+                new BucketService(_context, _httpClientFactory)
+                    .SendFiles(BucketNomeTabelaOrigemEnum.FotoVeiculoGGV,
+                        GgvPersistencia.IdentificadorProcesso,
+                        GgvPersistencia.IdentificadorUsuario,
+                        Files);
+            }
+
+            return MensagemViewHelper.SetCreateSuccess();
         }
 
         public async Task<MensagemDTO> CreateFotosAsync(FotoGgvParameters Fotos)
@@ -388,7 +677,8 @@ namespace WebZi.Plataform.Data.Services.GGV
 
             if (new[] { "C" }.Contains(Grv.StatusOperacao.StatusOperacaoId))
             {
-                return MensagemViewHelper.SetBadRequest($"O Status atual deste Processo não permite o envio de Fotos. Status atual: {Grv.StatusOperacao.Descricao}");
+                return MensagemViewHelper.SetBadRequest(
+                    $"O Status atual deste Processo não permite o envio de Fotos. Status atual: {Grv.StatusOperacao.Descricao}");
             }
 
             List<BucketFileModel> Files = new();
@@ -407,7 +697,8 @@ namespace WebZi.Plataform.Data.Services.GGV
             }
 
             new BucketService(_context, _httpClientFactory)
-                .SendFiles(BucketNomeTabelaOrigemEnum.FotoVeiculoGGV, Fotos.IdentificadorProcesso, Fotos.IdentificadorUsuario, Files);
+                .SendFiles(BucketNomeTabelaOrigemEnum.FotoVeiculoGGV, Fotos.IdentificadorProcesso,
+                    Fotos.IdentificadorUsuario, Files);
 
             return MensagemViewHelper.SetCreateSuccess(Fotos.ListagemFotos.Count);
         }
@@ -430,14 +721,15 @@ namespace WebZi.Plataform.Data.Services.GGV
 
             if (!new[] { "E", "B", "D", "G", "L", "R", "T", "U", "V" }.Contains(Grv.StatusOperacaoId))
             {
-                return MensagemViewHelper.SetBadRequest($"O Status atual deste Processo não permite a exclusão de Fotos. Status atual: {Grv.StatusOperacao.Descricao}");
+                return MensagemViewHelper.SetBadRequest(
+                    $"O Status atual deste Processo não permite a exclusão de Fotos. Status atual: {Grv.StatusOperacao.Descricao}");
             }
 
             List<BucketArquivoModel> BucketArquivos = await _context.BucketArquivo
                 .Include(x => x.BucketNomeTabelaOrigem)
                 .Where(x => x.TabelaOrigemId != GrvId
-                         && ListagemTabelaOrigemId.Contains(x.RepositorioArquivoId)
-                         && x.BucketNomeTabelaOrigem.Codigo == BucketNomeTabelaOrigemEnum.FotoVeiculoGGV)
+                            && ListagemTabelaOrigemId.Contains(x.RepositorioArquivoId)
+                            && x.BucketNomeTabelaOrigem.Codigo == BucketNomeTabelaOrigemEnum.FotoVeiculoGGV)
                 .AsNoTracking()
                 .ToListAsync();
 
@@ -457,9 +749,54 @@ namespace WebZi.Plataform.Data.Services.GGV
             }
 
             new BucketService(_context, _httpClientFactory)
-                .DeleteFiles(BucketNomeTabelaOrigemEnum.FotoVeiculoGGV, ListagemTabelaOrigemId);
+                .DeleteFiles(BucketNomeTabelaOrigemEnum.FotoVeiculoGGV, ListagemTabelaOrigemId, true);
 
-            return MensagemViewHelper.SetDeleteSuccess(BucketArquivos.Count, "Foto(s) excluída(s) com sucesso");
+            return MensagemViewHelper.SetDeleteSuccess("Foto(s) excluída(s) com sucesso");
+        }
+
+        public async Task<MensagemDTO> DeleteGgvServiceAssociationAsync(int GrvId, int UsuarioId,
+            int faturamentoServicoGrvId)
+        {
+            if (faturamentoServicoGrvId <= 0)
+            {
+                return MensagemViewHelper.SetBadRequest("Informe os Identificadores dos Serviços");
+            }
+
+            MensagemDTO ResultView = new GrvService(_context).ValidateInputGrv(GrvId, UsuarioId);
+
+            if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+            {
+                return ResultView;
+            }
+
+            FaturamentoServicoGrvModel Servico = await _context.FaturamentoServicoGrv
+                .FirstOrDefaultAsync(x => x.GrvId == GrvId && x.FaturamentoServicoGrvId == faturamentoServicoGrvId);
+
+            if (Servico is null)
+            {
+                return MensagemViewHelper.SetNotFound(
+                    "Nenhum serviço encontrado para exclusão ou os serviços não pertencem a este Processo");
+            }
+
+            using (IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync())
+            {
+                try
+                {
+                    _context.FaturamentoServicoGrv.Remove(Servico);
+
+                    await _context.SaveChangesAsync();
+
+                    transaction.Commit();
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+
+                    return MensagemViewHelper.SetInternalServerError(ex);
+                }
+            }
+
+            return MensagemViewHelper.SetDeleteSuccess("Serviço(s) removido(s) com sucesso");
         }
 
         public async Task<DadosMestresDTO> ListDadosMestresAsync(int GrvId, int UsuarioId)
@@ -500,9 +837,9 @@ namespace WebZi.Plataform.Data.Services.GGV
             return DadosMestres;
         }
 
-        public async Task<ImageListDTO> ListFotosAsync(int GrvId, int UsuarioId)
+        public async Task<ListarImagemGgvDTO> ListFotosAsync(int GrvId, int UsuarioId)
         {
-            ImageListDTO ResultView = new()
+            ListarImagemGgvDTO ResultView = new()
             {
                 Mensagem = new GrvService(_context).ValidateInputGrv(GrvId, UsuarioId)
             };
@@ -512,11 +849,45 @@ namespace WebZi.Plataform.Data.Services.GGV
                 return ResultView;
             }
 
-            return await new BucketService(_context, _httpClientFactory)
+            ImageListDTO fotos = await new BucketService(_context, _httpClientFactory)
                 .DownloadFileAsync(BucketNomeTabelaOrigemEnum.FotoVeiculoGGV, GrvId);
+
+            if (fotos.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+            {
+                ResultView.Mensagem = fotos.Mensagem;
+
+                return ResultView;
+            }
+
+            List<TabelaGenericaModel> ListagemTipoCadastroFoto = await new TabelaGenericaService(_context)
+                .ListAsync("GGV_TIPO_CADASTRO_FOTO");
+
+            ResultView.Listagem = fotos.Listagem.Select(x =>
+            {
+                TabelaGenericaModel tipoCadastro = ListagemTipoCadastroFoto
+                    .FirstOrDefault(t => t.ValorCadastro == x.TipoCadastro);
+
+                return new ImageGgvDTO
+                {
+                    Identificador = x.Identificador,
+
+                    Imagem = x.Imagem,
+
+                    Sigla = tipoCadastro?.Sigla.ToNullIfEmpty(),
+
+                    TipoCadastro = tipoCadastro?.Descricao.ToNullIfEmpty(),
+
+                    IdentificadorTipoCadastro = tipoCadastro?.TabelaGenericaId
+                };
+            }).ToList();
+
+            ResultView.Mensagem = fotos.Mensagem;
+
+            return ResultView;
         }
 
-        public async Task<MensagemDTO> ValidarInformacoesPersistenciaAsync(GgvParameters GgvPersistencia)
+        public async Task<MensagemDTO> ValidarInformacoesPersistenciaAsync(GgvParameters GgvPersistencia,
+            bool IsUpdatating)
         {
             if (GgvPersistencia == null)
             {
@@ -542,7 +913,7 @@ namespace WebZi.Plataform.Data.Services.GGV
             if (Grv.StatusOperacao.StatusOperacaoId != "G" && Grv.StatusOperacao.StatusOperacaoId != "V")
             {
                 erros.Add($"O Status do Processo não está apto para o cadastro do GGV. " +
-                    $"Status atual: {Grv.StatusOperacao.Descricao.ToUpper()}");
+                          $"Status atual: {Grv.StatusOperacao.Descricao.ToUpper()}");
             }
 
             DateTime DataHoraPorDeposito = new DepositoService(_context)
@@ -573,7 +944,8 @@ namespace WebZi.Plataform.Data.Services.GGV
                 Grv.Deposito.GrvLimiteMinimoDatahoraGuarda = 20; // Anos
             }
 
-            if (((DataHoraPorDeposito.Date - GgvPersistencia.DataHoraGuarda.Date).TotalDays) > (Grv.Deposito.GrvLimiteMinimoDatahoraGuarda * 365))
+            if (((DataHoraPorDeposito.Date - GgvPersistencia.DataHoraGuarda.Date).TotalDays) >
+                (Grv.Deposito.GrvLimiteMinimoDatahoraGuarda * 365))
             {
                 if (Grv.Deposito.GrvLimiteMinimoDatahoraGuarda == 1)
                 {
@@ -581,7 +953,8 @@ namespace WebZi.Plataform.Data.Services.GGV
                 }
                 else
                 {
-                    erros.Add("A Data da Guarda não pode ser inferior a " + Grv.Deposito.GrvLimiteMinimoDatahoraGuarda + " anos");
+                    erros.Add("A Data da Guarda não pode ser inferior a " + Grv.Deposito.GrvLimiteMinimoDatahoraGuarda +
+                              " anos");
                 }
             }
 
@@ -651,23 +1024,24 @@ namespace WebZi.Plataform.Data.Services.GGV
 
                     if (result >= 1)
                     {
-                        erros.Add($"Foram indentificados {count} Identificador do Tipo do Cadastro da Foto inexistente");
+                        erros.Add(
+                            $"Foram indentificados {count} Identificador do Tipo do Cadastro da Foto inexistente");
                     }
                 }
             }
 
-            if (GgvPersistencia.ListagemEquipamentoOpcional?.Count > 0)
-            {
-                if (GgvPersistencia.ListagemEquipamentoOpcional.Where(x => x.IdentificadorEquipamentoOpcional <= 0).ToList().Count > 0)
-                {
-                    erros.Add("Existe um ou mais Identificador do Equipamento Opcional inválido");
-                }
-
-                if (GgvPersistencia.ListagemEquipamentoOpcional.Where(x => x.FlagEquipamentoAvariado == "S" && (x.IdentificadorTipoAvaria <= 0 || x.IdentificadorTipoAvaria == null)).ToList().Count > 0)
-                {
-                    erros.Add("Existe um ou mais Identificador do Tipo de Avaria inválido");
-                }
-            }
+            // if (GgvPersistencia.ListagemEquipamentoOpcional?.Count > 0)
+            // {
+            //     if (GgvPersistencia.ListagemEquipamentoOpcional.Where(x => x.IdentificadorEquipamentoOpcional <= 0).ToList().Count > 0)
+            //     {
+            //         erros.Add("Existe um ou mais Identificador do Equipamento Opcional inválido");
+            //     }
+            //
+            //     if (GgvPersistencia.ListagemEquipamentoOpcional.Where(x => x.FlagEquipamentoAvariado == "S" && (x.IdentificadorTipoAvaria <= 0 || x.IdentificadorTipoAvaria == null)).ToList().Count > 0)
+            //     {
+            //         erros.Add("Existe um ou mais Identificador do Tipo de Avaria inválido");
+            //     }
+            // }
 
             if (GgvPersistencia.Vistoria != null)
             {
@@ -676,8 +1050,9 @@ namespace WebZi.Plataform.Data.Services.GGV
                     if (GgvPersistencia.Vistoria.IdentificadorEmpresaVistoria > 0)
                     {
                         if (await _context.Empresa
-                            .AsNoTracking()
-                            .FirstOrDefaultAsync(w => w.EmpresaId == GgvPersistencia.Vistoria.IdentificadorEmpresaVistoria) == null)
+                                .AsNoTracking()
+                                .FirstOrDefaultAsync(w =>
+                                    w.EmpresaId == GgvPersistencia.Vistoria.IdentificadorEmpresaVistoria) == null)
                         {
                             erros.Add("Identificador da Empresa inexistente");
                         }
@@ -686,16 +1061,19 @@ namespace WebZi.Plataform.Data.Services.GGV
                     if (GgvPersistencia.Vistoria.IdentificadorStatusVistoria > 0)
                     {
                         if (await _context.VistoriaStatus
-                            .AsNoTracking()
-                            .FirstOrDefaultAsync(x => x.VistoriaStatusId == GgvPersistencia.Vistoria.IdentificadorStatusVistoria) == null)
+                                .AsNoTracking()
+                                .FirstOrDefaultAsync(x =>
+                                    x.VistoriaStatusId == GgvPersistencia.Vistoria.IdentificadorStatusVistoria) == null)
                         {
                             erros.Add("Identificador do Status da Vistoria inexistente");
                         }
                     }
 
                     if (await _context.VistoriaSituacaoChassi
-                        .AsNoTracking()
-                        .FirstOrDefaultAsync(x => x.VistoriaSituacaoChassiId == GgvPersistencia.Vistoria.IdentificadorSituacaoChassi) == null)
+                            .AsNoTracking()
+                            .FirstOrDefaultAsync(x =>
+                                x.VistoriaSituacaoChassiId == GgvPersistencia.Vistoria.IdentificadorSituacaoChassi) ==
+                        null)
                     {
                         erros.Add("Identificador da Situação do Chassi inexistente");
                     }
@@ -703,9 +1081,10 @@ namespace WebZi.Plataform.Data.Services.GGV
                     if (GgvPersistencia.Vistoria.IdentificadorTipoDirecao > 0)
                     {
                         if (await _context.TabelaGenerica
-                            .AsNoTracking()
-                            .FirstOrDefaultAsync(x => x.Codigo == "VISTORIA_TIPO_DIRECAO"
-                                                   && x.TabelaGenericaId == GgvPersistencia.Vistoria.IdentificadorTipoDirecao) == null)
+                                .AsNoTracking()
+                                .FirstOrDefaultAsync(x => x.Codigo == "VISTORIA_TIPO_DIRECAO"
+                                                          && x.TabelaGenericaId == GgvPersistencia.Vistoria
+                                                              .IdentificadorTipoDirecao) == null)
                         {
                             erros.Add("Identificador do Tipo de Direção inexistente");
                         }
@@ -714,7 +1093,8 @@ namespace WebZi.Plataform.Data.Services.GGV
                     if (await _context.TabelaGenerica
                             .AsNoTracking()
                             .FirstOrDefaultAsync(x => x.Codigo == "VISTORIA_ESTADO_GERAL_VEICULO"
-                                                   && x.TabelaGenericaId == GgvPersistencia.Vistoria.IdentificadorEstadoGeralVeiculo) == null)
+                                                      && x.TabelaGenericaId == GgvPersistencia.Vistoria
+                                                          .IdentificadorEstadoGeralVeiculo) == null)
                     {
                         erros.Add("Identificador do Estado Geral do Veículo inexistente");
                     }
@@ -738,197 +1118,253 @@ namespace WebZi.Plataform.Data.Services.GGV
                 }
             }
 
-            if (GgvPersistencia.ListagemFaturamentoServicoGrv?.Count > 0)
+            if (!IsUpdatating)
             {
-                int duplicados = GgvPersistencia.ListagemFaturamentoServicoGrv
-                    .Where(x => x.IdentificadorServicoAssociadoTipoVeiculo > 0)
-                    .Select(x => x.IdentificadorServicoAssociadoTipoVeiculo)
-                    .GroupBy(x => x)
-                    .Where(x => x.Count() > 1)
-                    .Count();
-
-                if (duplicados > 0)
+                if (GgvPersistencia.ListagemFaturamentoServicoGrv?.Count > 0)
                 {
-                    erros.Add("Existem Serviços duplicados");
-                }
-
-                int invalidos = GgvPersistencia.ListagemFaturamentoServicoGrv
-                    .Where(x => x.IdentificadorServicoAssociadoTipoVeiculo <= 0)
-                    .Count();
-
-                if (invalidos > 0)
-                {
-                    erros.Add("Existem Identificador dos Serviços inválidos");
-                }
-
-                if (duplicados == 0 && invalidos == 0)
-                {
-                    List<int> ids = GgvPersistencia.ListagemFaturamentoServicoGrv
+                    int duplicados = GgvPersistencia.ListagemFaturamentoServicoGrv
                         .Where(x => x.IdentificadorServicoAssociadoTipoVeiculo > 0)
                         .Select(x => x.IdentificadorServicoAssociadoTipoVeiculo)
-                        .Distinct()
-                        .ToList();
+                        .GroupBy(x => x)
+                        .Where(x => x.Count() > 1)
+                        .Count();
 
-                    List<FaturamentoServicoTipoVeiculoModel> FaturamentoServicoTipoVeiculoList = await _context.FaturamentoServicoTipoVeiculo
-                        .Include(x => x.FaturamentoServicoAssociado)
-                        .ThenInclude(x => x.FaturamentoServicoTipo)
-                        .Where(x => ids.Contains(x.FaturamentoServicoTipoVeiculoId))
-                        .AsNoTracking()
-                        .ToListAsync();
-
-                    if (ids.Count != FaturamentoServicoTipoVeiculoList.Count)
+                    if (duplicados > 0)
                     {
-                        erros.Add("A listagem de Serviço possui um ou mais Identificador inexistente");
+                        erros.Add("Existem Serviços duplicados");
                     }
-                    else
+
+                    int invalidos = GgvPersistencia.ListagemFaturamentoServicoGrv
+                        .Where(x => x.IdentificadorServicoAssociadoTipoVeiculo <= 0)
+                        .Count();
+
+                    if (invalidos > 0)
                     {
-                        FaturamentoServicoTipoVeiculoModel FaturamentoServicoTipoVeiculo = new();
+                        erros.Add("Existem Identificador dos Serviços inválidos");
+                    }
 
-                        FaturamentoServicoGrvModel FaturamentoServicoGrv = new();
-
-                        List<FaturamentoServicoGrvModel> FaturamentoServicoGrvList = _context.FaturamentoServicoGrv
-                            .Include(x => x.FaturamentoServicoTipoVeiculo)
-                            .ThenInclude(x => x.FaturamentoServicoAssociado)
-                            .Where(x => x.GrvId == GgvPersistencia.IdentificadorProcesso)
-                            .AsNoTracking()
+                    if (duplicados == 0 && invalidos == 0)
+                    {
+                        List<int> ids = GgvPersistencia.ListagemFaturamentoServicoGrv
+                            .Where(x => x.IdentificadorServicoAssociadoTipoVeiculo > 0)
+                            .Select(x => x.IdentificadorServicoAssociadoTipoVeiculo)
+                            .Distinct()
                             .ToList();
 
-                        foreach (FaturamentoServicoGrvParameters item in GgvPersistencia.ListagemFaturamentoServicoGrv)
+                        List<FaturamentoServicoTipoVeiculoModel> FaturamentoServicoTipoVeiculoList = await _context
+                            .FaturamentoServicoTipoVeiculo
+                            .Include(x => x.FaturamentoServicoAssociado)
+                            .ThenInclude(x => x.FaturamentoServicoTipo)
+                            .Where(x => ids.Contains(x.FaturamentoServicoTipoVeiculoId))
+                            .AsNoTracking()
+                            .ToListAsync();
+
+                        if (ids.Count != FaturamentoServicoTipoVeiculoList.Count)
                         {
-                            if (FaturamentoServicoGrvList?.Count > 0)
-                            {
-                                FaturamentoServicoGrv = FaturamentoServicoGrvList
-                                    .FirstOrDefault(x => x.FaturamentoServicoTipoVeiculoId == item.IdentificadorServicoAssociadoTipoVeiculo);
+                            erros.Add("A listagem de Serviço possui um ou mais Identificador inexistente");
+                        }
+                        else
+                        {
+                            FaturamentoServicoTipoVeiculoModel FaturamentoServicoTipoVeiculo = new();
 
-                                if (FaturamentoServicoGrv != null)
-                                {
-                                    erros.Add($"O Serviço {FaturamentoServicoGrv.FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.Descricao} já está cadastrado para este Processo");
-                                }
-                            }
-                            else
-                            {
-                                FaturamentoServicoTipoVeiculo = FaturamentoServicoTipoVeiculoList
-                                    .FirstOrDefault(x => x.FaturamentoServicoTipoVeiculoId == item.IdentificadorServicoAssociadoTipoVeiculo);
+                            FaturamentoServicoGrvModel FaturamentoServicoGrv = new();
 
-                                if (FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.FaturamentoServicoTipo.FlagCobrarTelaGrv == "N")
+                            List<FaturamentoServicoGrvModel> FaturamentoServicoGrvList = _context.FaturamentoServicoGrv
+                                .Include(x => x.FaturamentoServicoTipoVeiculo)
+                                .ThenInclude(x => x.FaturamentoServicoAssociado)
+                                .Where(x => x.GrvId == GgvPersistencia.IdentificadorProcesso)
+                                .AsNoTracking()
+                                .ToList();
+
+                            foreach (FaturamentoServicoGrvParameters item in GgvPersistencia
+                                         .ListagemFaturamentoServicoGrv)
+                            {
+                                if (FaturamentoServicoGrvList?.Count > 0)
                                 {
-                                    erros.Add($"Foi identificado um Serviço que não pode ser cobrado antes do Atendimento. Serviço informado: {FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.Descricao}");
+                                    FaturamentoServicoGrv = FaturamentoServicoGrvList
+                                        .FirstOrDefault(x =>
+                                            x.FaturamentoServicoTipoVeiculoId ==
+                                            item.IdentificadorServicoAssociadoTipoVeiculo);
+
+                                    if (FaturamentoServicoGrv != null)
+                                    {
+                                        erros.Add(
+                                            $"O Serviço {FaturamentoServicoGrv.FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.Descricao} já está cadastrado para este Processo");
+                                    }
                                 }
                                 else
                                 {
-                                    item.ValorTipoCobrancaInformado = item.ValorTipoCobrancaInformado.Replace(".", ",");
+                                    FaturamentoServicoTipoVeiculo = FaturamentoServicoTipoVeiculoList
+                                        .FirstOrDefault(x =>
+                                            x.FaturamentoServicoTipoVeiculoId ==
+                                            item.IdentificadorServicoAssociadoTipoVeiculo);
 
-                                    switch (FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.FaturamentoServicoTipo.TipoCobranca)
+                                    if (FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.FaturamentoServicoTipo
+                                            .FlagCobrarTelaGrv == "N")
                                     {
-                                        // Diárias
-                                        case "D":
+                                        erros.Add(
+                                            $"Foi identificado um Serviço que não pode ser cobrado antes do Atendimento. Serviço informado: {FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.Descricao}");
+                                    }
+                                    else
+                                    {
+                                        item.ValorTipoCobrancaInformado =
+                                            item.ValorTipoCobrancaInformado.Replace(".", ",");
 
-                                            if (!NumberHelper.IsNumber(item.ValorTipoCobrancaInformado))
-                                            {
-                                                erros.Add($"Valor do Tipo de Cobrança Diárias inválido. Valor informado: {item.ValorTipoCobrancaInformado}");
-                                            }
+                                        switch (FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado
+                                                    .FaturamentoServicoTipo.TipoCobranca)
+                                        {
+                                            // Diárias
+                                            case "D":
 
-                                            break;
-
-                                        // Horas
-                                        case "H":
-
-                                            if (!NumberHelper.IsNumber(item.ValorTipoCobrancaInformado.RemoveString(":")))
-                                            {
-                                                erros.Add($"Valor do Tipo de Cobrança Horas inválido. Valor informado: {item.ValorTipoCobrancaInformado}. Informe no padrão HH:MM");
-                                            }
-                                            else
-                                            {
-                                                string[] aux = item.ValorTipoCobrancaInformado.Split(':');
-
-                                                if (aux.Length != 2)
+                                                if (!NumberHelper.IsNumber(
+                                                        item.ValorTipoCobrancaInformado.RemoveStrings(
+                                                            new[] { ".", "," })))
                                                 {
-                                                    erros.Add($"Valor do Tipo de Cobrança Horas inválido. Valor informado: {item.ValorTipoCobrancaInformado}. Informe no padrão HH:MM");
+                                                    erros.Add(
+                                                        $"Valor do Tipo de Cobrança Diárias inválido. Valor informado: {item.ValorTipoCobrancaInformado}");
                                                 }
-                                                else if (int.Parse(aux[0]) < 0 || int.Parse(aux[0]) > 23 || int.Parse(aux[1]) < 0 || int.Parse(aux[1]) > 59)
+                                                else if (!decimal.TryParse(item.ValorTipoCobrancaInformado,
+                                                             out decimal valorDiaria) || valorDiaria < 0)
                                                 {
-                                                    erros.Add($"Valor do Tipo de Cobrança Horas inválido. Valor informado: {item.ValorTipoCobrancaInformado}. Informe no padrão HH:MM");
+                                                    erros.Add(
+                                                        $"Valor do Tipo de Cobrança Diárias inválido. Valor informado: {item.ValorTipoCobrancaInformado}");
                                                 }
-                                                else if (int.Parse(aux[0]) == 0 && int.Parse(aux[1]) == 0)
+
+                                                break;
+
+                                            // Horas
+                                            case "H":
+
+                                                if (!NumberHelper.IsNumber(
+                                                        item.ValorTipoCobrancaInformado.RemoveString(":")))
                                                 {
-                                                    erros.Add($"Informe o Tempo trabalhado");
+                                                    erros.Add(
+                                                        $"Valor do Tipo de Cobrança Horas inválido. Valor informado: {item.ValorTipoCobrancaInformado}. Informe no padrão HH:MM");
                                                 }
-                                            }
-
-                                            break;
-
-                                        // Percentual
-                                        case "P":
-
-                                            if (!NumberHelper.IsNumber(item.ValorTipoCobrancaInformado))
-                                            {
-                                                erros.Add($"Valor do Tipo de Cobrança Percentual inválido. Valor informado: {item.ValorTipoCobrancaInformado}");
-                                            }
-                                            else if (int.Parse(item.ValorTipoCobrancaInformado) < 0 || int.Parse(item.ValorTipoCobrancaInformado) > 100)
-                                            {
-                                                erros.Add($"Valor do Tipo de Cobrança Percentual inválido. Valor informado: {item.ValorTipoCobrancaInformado}");
-                                            }
-
-                                            break;
-
-                                        // Quantidade
-                                        case "Q":
-
-                                            if (!NumberHelper.IsNumber(item.ValorTipoCobrancaInformado))
-                                            {
-                                                erros.Add($"Valor do Tipo de Cobrança Quantidade inválido. Valor informado: {item.ValorTipoCobrancaInformado}");
-                                            }
-                                            else if (int.Parse(item.ValorTipoCobrancaInformado) < 0)
-                                            {
-                                                erros.Add($"Valor do Tipo de Cobrança Quantidade inválido. Valor informado: {item.ValorTipoCobrancaInformado}");
-                                            }
-
-                                            break;
-
-                                        // Tempo/Espaço
-                                        case "T":
-
-                                            if (!NumberHelper.IsNumber(item.ValorTipoCobrancaInformado))
-                                            {
-                                                erros.Add($"Valor do Tipo de Cobrança Tempo inválido. Valor informado: {item.ValorTipoCobrancaInformado}");
-                                            }
-                                            else if (int.Parse(item.ValorTipoCobrancaInformado) < 0)
-                                            {
-                                                erros.Add($"Valor do Tipo de Cobrança Tempo inválido. Valor informado: {item.ValorTipoCobrancaInformado}");
-                                            }
-
-                                            break;
-
-                                        // Valor Monetário
-                                        case "V":
-
-                                            if (!NumberHelper.IsNumber(item.ValorTipoCobrancaInformado.RemoveStrings(new[] { ".", "," })))
-                                            {
-                                                erros.Add($"Valor do Tipo de Cobrança Valor Monetário inválido. Valor informado: {item.ValorTipoCobrancaInformado}");
-                                            }
-                                            else if (!decimal.TryParse(item.ValorTipoCobrancaInformado, out _))
-                                            {
-                                                erros.Add($"Valor do Tipo de Cobrança Valor Monetário inválido. Valor informado: {item.ValorTipoCobrancaInformado}");
-                                            }
-                                            else if (decimal.Parse(item.ValorTipoCobrancaInformado) < 0)
-                                            {
-                                                erros.Add($"Valor do Tipo de Cobrança Valor Monetário inválido. Valor informado: {item.ValorTipoCobrancaInformado}");
-                                            }
-                                            else
-                                            {
-                                                if (FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.FlagPermiteAlteracaoValor == "N"
-                                                    && FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.PrecoPadrao != decimal.Parse(item.ValorTipoCobrancaInformado))
+                                                else
                                                 {
-                                                    erros.Add($"Valor do Tipo de Cobrança Valor Monetário não pode ser diferente do Preço Padrão. Valor informado: {item.ValorTipoCobrancaInformado}");
-                                                }
-                                                else if (decimal.Parse(item.ValorTipoCobrancaInformado) < FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.PrecoValorMinimo)
-                                                {
-                                                    erros.Add($"Valor do Tipo de Cobrança Valor Monetário não pode ser menor do que o valor do Preço Mínimo parametrizado" +
-                                                        $". Valor informado: {item.ValorTipoCobrancaInformado}");
-                                                }
-                                            }
+                                                    string[] aux = item.ValorTipoCobrancaInformado.Split(':');
 
-                                            break;
+                                                    if (aux.Length != 2)
+                                                    {
+                                                        erros.Add(
+                                                            $"Valor do Tipo de Cobrança Horas inválido. Valor informado: {item.ValorTipoCobrancaInformado}. Informe no padrão HH:MM");
+                                                    }
+                                                    else if (int.Parse(aux[0]) < 0 || int.Parse(aux[0]) > 23 ||
+                                                             int.Parse(aux[1]) < 0 || int.Parse(aux[1]) > 59)
+                                                    {
+                                                        erros.Add(
+                                                            $"Valor do Tipo de Cobrança Horas inválido. Valor informado: {item.ValorTipoCobrancaInformado}. Informe no padrão HH:MM");
+                                                    }
+                                                    else if (int.Parse(aux[0]) == 0 && int.Parse(aux[1]) == 0)
+                                                    {
+                                                        erros.Add($"Informe o Tempo trabalhado");
+                                                    }
+                                                }
+
+                                                break;
+
+                                            // Percentual
+                                            case "P":
+
+                                                if (!NumberHelper.IsNumber(
+                                                        item.ValorTipoCobrancaInformado.RemoveStrings(
+                                                            new[] { ".", "," })))
+                                                {
+                                                    erros.Add(
+                                                        $"Valor do Tipo de Cobrança Percentual inválido. Valor informado: {item.ValorTipoCobrancaInformado}");
+                                                }
+                                                else if (!decimal.TryParse(item.ValorTipoCobrancaInformado,
+                                                             out decimal valorPercentual) || valorPercentual < 0 ||
+                                                         valorPercentual > 100)
+                                                {
+                                                    erros.Add(
+                                                        $"Valor do Tipo de Cobrança Percentual inválido. Valor informado: {item.ValorTipoCobrancaInformado}");
+                                                }
+
+                                                break;
+
+                                            // Quantidade
+                                            case "Q":
+
+                                                if (!NumberHelper.IsNumber(
+                                                        item.ValorTipoCobrancaInformado.RemoveStrings(
+                                                            new[] { ".", "," })))
+                                                {
+                                                    erros.Add(
+                                                        $"Valor do Tipo de Cobrança Quantidade inválido. Valor informado: {item.ValorTipoCobrancaInformado}");
+                                                }
+                                                else if (!decimal.TryParse(item.ValorTipoCobrancaInformado,
+                                                             out decimal valorQuantidade) || valorQuantidade < 0)
+                                                {
+                                                    erros.Add(
+                                                        $"Valor do Tipo de Cobrança Quantidade inválido. Valor informado: {item.ValorTipoCobrancaInformado}");
+                                                }
+
+                                                break;
+
+                                            // Tempo/Espaço
+                                            case "T":
+
+                                                if (!NumberHelper.IsNumber(
+                                                        item.ValorTipoCobrancaInformado.RemoveStrings(
+                                                            new[] { ".", "," })))
+                                                {
+                                                    erros.Add(
+                                                        $"Valor do Tipo de Cobrança Tempo inválido. Valor informado: {item.ValorTipoCobrancaInformado}");
+                                                }
+                                                else if (!decimal.TryParse(item.ValorTipoCobrancaInformado,
+                                                             out decimal valorTempo) || valorTempo < 0)
+                                                {
+                                                    erros.Add(
+                                                        $"Valor do Tipo de Cobrança Tempo inválido. Valor informado: {item.ValorTipoCobrancaInformado}");
+                                                }
+
+                                                break;
+
+                                            // Valor Monetário
+                                            case "V":
+
+                                                if (!NumberHelper.IsNumber(
+                                                        item.ValorTipoCobrancaInformado.RemoveStrings(
+                                                            new[] { ".", "," })))
+                                                {
+                                                    erros.Add(
+                                                        $"Valor do Tipo de Cobrança Valor Monetário inválido. Valor informado: {item.ValorTipoCobrancaInformado}");
+                                                }
+                                                else if (!decimal.TryParse(item.ValorTipoCobrancaInformado, out _))
+                                                {
+                                                    erros.Add(
+                                                        $"Valor do Tipo de Cobrança Valor Monetário inválido. Valor informado: {item.ValorTipoCobrancaInformado}");
+                                                }
+                                                else if (decimal.Parse(item.ValorTipoCobrancaInformado) < 0)
+                                                {
+                                                    erros.Add(
+                                                        $"Valor do Tipo de Cobrança Valor Monetário inválido. Valor informado: {item.ValorTipoCobrancaInformado}");
+                                                }
+                                                else
+                                                {
+                                                    if (FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado
+                                                            .FlagPermiteAlteracaoValor == "N"
+                                                        && FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado
+                                                            .PrecoPadrao !=
+                                                        decimal.Parse(item.ValorTipoCobrancaInformado))
+                                                    {
+                                                        erros.Add(
+                                                            $"Valor do Tipo de Cobrança Valor Monetário não pode ser diferente do Preço Padrão. Valor informado: {item.ValorTipoCobrancaInformado}");
+                                                    }
+                                                    else if (decimal.Parse(item.ValorTipoCobrancaInformado) <
+                                                             FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado
+                                                                 .PrecoValorMinimo)
+                                                    {
+                                                        erros.Add(
+                                                            $"Valor do Tipo de Cobrança Valor Monetário não pode ser menor do que o valor do Preço Mínimo parametrizado" +
+                                                            $". Valor informado: {item.ValorTipoCobrancaInformado}");
+                                                    }
+                                                }
+
+                                                break;
+                                        }
                                     }
                                 }
                             }

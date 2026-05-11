@@ -6,6 +6,7 @@ using WebZi.Plataform.Data.Services.GGV;
 using WebZi.Plataform.Domain.DTO.Generic;
 using WebZi.Plataform.Domain.DTO.GGV;
 using WebZi.Plataform.Domain.DTO.Sistema;
+using WebZi.Plataform.Domain.DTO.Faturamento.Servico;
 using WebZi.Plataform.Domain.ViewModel.GGV;
 
 namespace WebZi.Plataform.API.Controllers
@@ -32,25 +33,7 @@ namespace WebZi.Plataform.API.Controllers
                 return BadRequest(ModelState);
             }
 
-            MensagemDTO ResultView;
-
-            try
-            {
-                ResultView = await _provider
-                    .GetService<GgvService>()
-                    .ValidarInformacoesPersistenciaAsync(Ggv);
-
-                if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
-                {
-                    return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
-                }
-            }
-            catch (Exception ex)
-            {
-                ResultView = MensagemViewHelper.SetInternalServerError(ex);
-
-                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
-            }
+            MensagemDTO ResultView = new();
 
             try
             {
@@ -72,6 +55,41 @@ namespace WebZi.Plataform.API.Controllers
 
             return ResultView;
         }
+
+        [HttpPut("Atualizar")]
+        // TODO: [Authorize]
+        [IgnoreAntiforgeryToken]
+        public async Task<ActionResult<MensagemDTO>> Atualizar([FromBody] GgvParameters Ggv)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            MensagemDTO ResultView = new();
+
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<GgvService>()
+                    .UpdateGgvAsync(Ggv);
+
+                if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+                {
+                    return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+                }
+            }
+            catch (Exception ex)
+            {
+                ResultView = MensagemViewHelper.SetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+
+            return ResultView;
+        }
+
 
         [HttpPost("CadastrarFotos")]
         // TODO: [Authorize]
@@ -104,7 +122,8 @@ namespace WebZi.Plataform.API.Controllers
         [HttpDelete("ExcluirFotos")]
         // TODO: [Authorize]
         [IgnoreAntiforgeryToken]
-        public async Task<ActionResult<MensagemDTO>> ExcluirFotos(int IdentificadorProcesso, int IdentificadorUsuario, [FromBody] List<int> ListagemIdentificadorTabelaOrigem)
+        public async Task<ActionResult<MensagemDTO>> ExcluirFotos(int IdentificadorProcesso, int IdentificadorUsuario,
+            [FromBody] List<int> ListagemIdentificadorTabelaOrigem)
         {
             if (!ModelState.IsValid)
             {
@@ -120,6 +139,32 @@ namespace WebZi.Plataform.API.Controllers
                     .DeleteFotosAsync(IdentificadorProcesso, IdentificadorUsuario, ListagemIdentificadorTabelaOrigem);
 
                 return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView = MensagemViewHelper.SetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+        }
+
+        [HttpDelete("DesvincularServicoAssociadoGgv")]
+        public async Task<ActionResult<MensagemDTO>> DesvincularServicoAssociadoGgv(int GrvId, int UsuarioId,
+            int servicoGrvId)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            MensagemDTO ResultView = new();
+            try
+            {
+                ResultView = await _provider
+                    .GetService<GgvService>()
+                    .DeleteGgvServiceAssociationAsync(GrvId, UsuarioId, servicoGrvId);
+
+                return StatusCode((int)HtmlStatusCodeEnum.Ok, ResultView);
             }
             catch (Exception ex)
             {
@@ -158,14 +203,15 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("ListarFotos")]
         // TODO: [Authorize]
-        public async Task<ActionResult<ImageListDTO>> ListarFotos(int IdentificadorProcesso, int IdentificadorUsuario)
+        public async Task<ActionResult<ListarImagemGgvDTO>> ListarFotos(int IdentificadorProcesso,
+            int IdentificadorUsuario)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            ImageListDTO ResultView = new();
+            ListarImagemGgvDTO ResultView = new();
 
             try
             {
