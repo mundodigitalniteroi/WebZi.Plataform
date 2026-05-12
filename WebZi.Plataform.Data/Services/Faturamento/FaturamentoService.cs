@@ -1318,6 +1318,37 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
         public async Task<SimulacaoDTO> SimularAsync(SimulacaoParameters model)
         {
+            #region Consulta
+
+            GrvModel Grv = null;
+
+            if (model.IdentificadorProcesso > 0)
+            {
+                Grv = await _context.Grv
+                    .Include(x => x.FaturamentoProduto)
+                    .Include(x => x.TipoVeiculo)
+                    .Include(x => x.Atendimento)
+                    .Include(x => x.StatusOperacao)
+                    .AsNoTracking()
+                    .OrderByDescending(x => x.DataHoraRemocao)
+                    .FirstOrDefaultAsync(x => x.GrvId == model.IdentificadorProcesso);
+            }
+            else
+            {
+                Grv = await _context.Grv
+                    .Include(x => x.FaturamentoProduto)
+                    .Include(x => x.TipoVeiculo)
+                    .Include(x => x.Atendimento)
+                    .Include(x => x.StatusOperacao)
+                    .AsNoTracking()
+                    .OrderByDescending(x => x.DataHoraRemocao)
+                    .FirstOrDefaultAsync(x => !model.Placa.IsNullOrWhiteSpace() ? x.Placa == model.Placa :
+                        true
+                        && !model.Chassi.IsNullOrWhiteSpace() ? x.Chassi == model.Chassi : true);
+            }
+
+            #endregion
+
             #region Validações dos parâmetros
 
             List<string> erros = new();
@@ -1352,13 +1383,13 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             }
 
             var now = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-3)).DateTime;
-
+            //
             if (model?.DataHoraInicialParaCalculo > now)
             {
                 erros.Add("A Data/Hora Inicial para o Cálculo não pode ser maior do que a Data/Hora atual");
             }
 
-            if (model?.DataHoraFinalParaCalculo > now)
+            if (model?.DataHoraFinalParaCalculo > Grv.DataHoraGuarda)
             {
                 erros.Add("A Data/Hora Final para o Cálculo não pode ser maior do que a Data/Hora atual");
             }
@@ -1368,6 +1399,11 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 erros.Add(
                     "A Data/Hora Inicial para o Cálculo não pode ser maior do que a Data/Hora Final para o Cálculo");
             }
+
+            if (model.DataHoraFinalParaCalculo == null || model.DataHoraFinalParaCalculo == DateTime.MinValue)
+                erros.Add(
+                    "Não pode ser feito atendimento sem ter feito o registro do GGV");
+
 
             SimulacaoDTO ResultView = new();
 
@@ -1381,33 +1417,6 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             #endregion Validações dos parâmetros
 
             #region Validações das Consultas
-
-            GrvModel Grv = null;
-
-            if (model.IdentificadorProcesso > 0)
-            {
-                Grv = await _context.Grv
-                    .Include(x => x.FaturamentoProduto)
-                    .Include(x => x.TipoVeiculo)
-                    .Include(x => x.Atendimento)
-                    .Include(x => x.StatusOperacao)
-                    .AsNoTracking()
-                    .OrderByDescending(x => x.DataHoraRemocao)
-                    .FirstOrDefaultAsync(x => x.GrvId == model.IdentificadorProcesso);
-            }
-            else
-            {
-                Grv = await _context.Grv
-                    .Include(x => x.FaturamentoProduto)
-                    .Include(x => x.TipoVeiculo)
-                    .Include(x => x.Atendimento)
-                    .Include(x => x.StatusOperacao)
-                    .AsNoTracking()
-                    .OrderByDescending(x => x.DataHoraRemocao)
-                    .FirstOrDefaultAsync(x => !model.Placa.IsNullOrWhiteSpace() ? x.Placa == model.Placa :
-                        true
-                        && !model.Chassi.IsNullOrWhiteSpace() ? x.Chassi == model.Chassi : true);
-            }
 
             if (Grv == null)
             {
@@ -1477,9 +1486,9 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             CalculoFaturamentoParametroModel ParametrosCalculoFaturamento = new()
             {
-                DataHoraInicialParaCalculo = model.DataHoraInicialParaCalculo ?? Grv.DataHoraGuarda.Value,
+                DataHoraInicialParaCalculo = model.DataHoraInicialParaCalculo,
 
-                DataHoraFinalParaCalculo = model.DataHoraFinalParaCalculo ?? DataHoraPorDeposito,
+                DataHoraFinalParaCalculo = model.DataHoraFinalParaCalculo,
 
                 DataHoraPorDeposito = DataHoraPorDeposito,
 
