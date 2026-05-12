@@ -22,9 +22,9 @@ namespace WebZi.Plataform.Domain.ViewModel.Faturamento
 
         public string Chassi { get; set; }
 
-        public DateTime? DataHoraInicialParaCalculo { get; set; }
+        public DateTime DataHoraInicialParaCalculo { get; set; }
 
-        public DateTime? DataHoraFinalParaCalculo { get; set; }
+        public DateTime DataHoraFinalParaCalculo { get; set; }
 
         public bool IsComboio { get; set; }
     }
