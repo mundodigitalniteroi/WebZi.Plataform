@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using System.Net.Security;
+using AutoMapper;
 using Castle.Components.DictionaryAdapter.Xml;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -62,14 +63,18 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             _mapper = mapper;
             _httpClientFactory = httpClientFactory;
         }
-        public AtendimentoService(AppDbContext context, IMapper mapper, IHttpClientFactory httpClientFactory, IServiceProvider provider)
+
+        public AtendimentoService(AppDbContext context, IMapper mapper, IHttpClientFactory httpClientFactory,
+            IServiceProvider provider)
         {
             _context = context;
             _mapper = mapper;
             _httpClientFactory = httpClientFactory;
             _provider = provider;
         }
-        public AtendimentoService(AppDbContext context, IMapper mapper, IHttpClientFactory httpClientFactory, IServiceProvider provider, IOptions<WSNfseOptions> options)
+
+        public AtendimentoService(AppDbContext context, IMapper mapper, IHttpClientFactory httpClientFactory,
+            IServiceProvider provider, IOptions<WSNfseOptions> options)
         {
             _context = context;
             _mapper = mapper;
@@ -94,6 +99,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             }
 
             #region Consultas
+
             GrvModel Grv = await _context.Grv
                 .Include(x => x.Cliente)
                 .Include(x => x.Deposito)
@@ -108,18 +114,23 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             if (!new[] { "B", "D", "V", "L", "E", "1", "2", "3", "4", "7" }.Contains(Grv.StatusOperacaoId))
             {
-                return MensagemViewHelper.SetBadRequest($"O Status atual deste Processo não permite o cadastro do Atendimento. " +
+                return MensagemViewHelper.SetBadRequest(
+                    $"O Status atual deste Processo não permite o cadastro do Atendimento. " +
                     $"Descrição do Status atual: {Grv.StatusOperacao.Descricao.ToUpper()}");
             }
             else if (Grv.Atendimento != null)
             {
-                return MensagemViewHelper.SetBadRequest($"Este Processo já possui um Atendimento cadastrado. Identificador do Atendimento: {Grv.Atendimento.AtendimentoId}");
+                return MensagemViewHelper.SetBadRequest(
+                    $"Este Processo já possui um Atendimento cadastrado. Identificador do Atendimento: {Grv.Atendimento.AtendimentoId}");
             }
 
-            if (Usuario.FlagPermissaoDesconto != "S") return MensagemViewHelper.SetBadRequest($"Este usuario não é permitido o cadastro de Descontos.");
+            if (Usuario.FlagPermissaoDesconto != "S")
+                return MensagemViewHelper.SetBadRequest($"Este usuario não é permitido o cadastro de Descontos.");
+
             #endregion Consultas
 
             #region Leilão
+
             ResultView = await new LeilaoService(_context)
                 .GetAvisosLeilaoAsync(Grv.GrvId, Grv.StatusOperacaoId);
 
@@ -139,9 +150,11 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             {
                 ResultView = new();
             }
+
             #endregion Leilão
 
             #region Dados do Responsável
+
             if (AtendimentoCadastro.IdentificadorQualificacaoResponsavel <= 0)
             {
                 ResultView.AvisosImpeditivos.Add("Informe a Qualificação do Responsável");
@@ -158,19 +171,23 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             }
             else if (!DocumentHelper.IsCPF(AtendimentoCadastro.ResponsavelDocumento))
             {
-                ResultView.AvisosImpeditivos.Add($"CPF do Responsável inválido: {AtendimentoCadastro.ResponsavelDocumento}");
+                ResultView.AvisosImpeditivos.Add(
+                    $"CPF do Responsável inválido: {AtendimentoCadastro.ResponsavelDocumento}");
             }
 
             if (!string.IsNullOrWhiteSpace(AtendimentoCadastro.ResponsavelCNH))
             {
                 if (!DocumentHelper.IsCNH(AtendimentoCadastro.ResponsavelCNH))
                 {
-                    ResultView.AvisosImpeditivos.Add($"CNH do Responsável inválido: {AtendimentoCadastro.ResponsavelCNH}");
+                    ResultView.AvisosImpeditivos.Add(
+                        $"CNH do Responsável inválido: {AtendimentoCadastro.ResponsavelCNH}");
                 }
             }
+
             #endregion Dados do Responsável
 
             #region Endereço do Responsável
+
             if (string.IsNullOrWhiteSpace(AtendimentoCadastro.ResponsavelCEP))
             {
                 ResultView.AvisosImpeditivos.Add("Informe o CEP do Responsável");
@@ -208,28 +225,36 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             {
                 ResultView.AvisosImpeditivos.Add("Unidade Federativa do Responsável inválida");
             }
+
             #endregion Endereço do Responsável
 
             #region DDD + Telefone/Celular do Responsável
+
             if (!string.IsNullOrWhiteSpace(AtendimentoCadastro.ResponsavelTelefone))
             {
-                if ((!ContactHelper.IsTelephone(AtendimentoCadastro.ResponsavelTelefone) && !ContactHelper.IsCellphone(AtendimentoCadastro.ResponsavelTelefone)))
+                if ((!ContactHelper.IsTelephone(AtendimentoCadastro.ResponsavelTelefone) &&
+                     !ContactHelper.IsCellphone(AtendimentoCadastro.ResponsavelTelefone)))
                 {
-                    ResultView.AvisosImpeditivos.Add($"Telefone/Celular do Responsável inválido: {AtendimentoCadastro.ResponsavelTelefone}");
+                    ResultView.AvisosImpeditivos.Add(
+                        $"Telefone/Celular do Responsável inválido: {AtendimentoCadastro.ResponsavelTelefone}");
                 }
 
                 if (string.IsNullOrWhiteSpace(AtendimentoCadastro.ResponsavelDDD))
                 {
-                    ResultView.AvisosImpeditivos.Add("Ao informar o Número do Telefone/Celular do Responsável também é preciso informar o DDD");
+                    ResultView.AvisosImpeditivos.Add(
+                        "Ao informar o Número do Telefone/Celular do Responsável também é preciso informar o DDD");
                 }
                 else if (!ContactHelper.IsDDD(AtendimentoCadastro.ResponsavelDDD))
                 {
-                    ResultView.AvisosImpeditivos.Add($"DDD do Número do Telefone/Celular do Responsável inválido: {AtendimentoCadastro.ResponsavelDDD}");
+                    ResultView.AvisosImpeditivos.Add(
+                        $"DDD do Número do Telefone/Celular do Responsável inválido: {AtendimentoCadastro.ResponsavelDDD}");
                 }
             }
+
             #endregion DDD + Telefone/Celular do Responsável
 
             #region Dados do Proprietário
+
             if (string.IsNullOrWhiteSpace(AtendimentoCadastro.ProprietarioNome))
             {
                 ResultView.AvisosImpeditivos.Add("Informe o Nome do Proprietário");
@@ -249,35 +274,42 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             {
                 TipoDocumentoIdentificacaoModel TipoDocumentoIdentificacao = await _context.TipoDocumentoIdentificacao
                     .AsNoTracking()
-                    .FirstOrDefaultAsync(w => w.TipoDocumentoIdentificacaoId == AtendimentoCadastro.IdentificadorProprietarioTipoDocumento);
+                    .FirstOrDefaultAsync(w =>
+                        w.TipoDocumentoIdentificacaoId == AtendimentoCadastro.IdentificadorProprietarioTipoDocumento);
 
                 if (TipoDocumentoIdentificacao == null)
                 {
-                    ResultView.AvisosImpeditivos.Add($"Tipo do Documento do Proprietário inexistente: {AtendimentoCadastro.IdentificadorProprietarioTipoDocumento}");
+                    ResultView.AvisosImpeditivos.Add(
+                        $"Tipo do Documento do Proprietário inexistente: {AtendimentoCadastro.IdentificadorProprietarioTipoDocumento}");
                 }
                 else if (TipoDocumentoIdentificacao.Codigo != "CPF" && TipoDocumentoIdentificacao.Codigo != "CNPJ")
                 {
                     ResultView.AvisosImpeditivos.Add("O Tipo do Documento do Proprietário precisa ser CPF ou CNPJ");
                 }
                 else if (TipoDocumentoIdentificacao.Codigo == "CPF"
-                    && !string.IsNullOrWhiteSpace(AtendimentoCadastro.ProprietarioDocumento)
-                    && !DocumentHelper.IsCPF(AtendimentoCadastro.ProprietarioDocumento))
+                         && !string.IsNullOrWhiteSpace(AtendimentoCadastro.ProprietarioDocumento)
+                         && !DocumentHelper.IsCPF(AtendimentoCadastro.ProprietarioDocumento))
                 {
-                    ResultView.AvisosImpeditivos.Add($"O CPF do Proprietário inválido: {AtendimentoCadastro.ProprietarioDocumento}");
+                    ResultView.AvisosImpeditivos.Add(
+                        $"O CPF do Proprietário inválido: {AtendimentoCadastro.ProprietarioDocumento}");
                 }
                 else if (TipoDocumentoIdentificacao.Codigo == "CNPJ"
-                    && !string.IsNullOrWhiteSpace(AtendimentoCadastro.ProprietarioDocumento)
-                    && !DocumentHelper.IsCNPJ(AtendimentoCadastro.ProprietarioDocumento))
+                         && !string.IsNullOrWhiteSpace(AtendimentoCadastro.ProprietarioDocumento)
+                         && !DocumentHelper.IsCNPJ(AtendimentoCadastro.ProprietarioDocumento))
                 {
-                    ResultView.AvisosImpeditivos.Add($"O CNPJ do Proprietário inválido: {AtendimentoCadastro.ProprietarioDocumento}");
+                    ResultView.AvisosImpeditivos.Add(
+                        $"O CNPJ do Proprietário inválido: {AtendimentoCadastro.ProprietarioDocumento}");
                 }
             }
+
             #endregion Dados do Proprietário
 
             #region Nota Fiscal
+
             if (Grv.Cliente.FlagEmissaoNotaFiscal == "S")
             {
                 #region Receptor da Nota Fiscal
+
                 if (string.IsNullOrWhiteSpace(AtendimentoCadastro.NotaFiscalNome))
                 {
                     ResultView.AvisosImpeditivos.Add("Informe o Nome do Receptor da Nota Fiscal");
@@ -287,20 +319,25 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 {
                     ResultView.AvisosImpeditivos.Add("Informe o CPF ou CNPJ do Receptor da Nota Fiscal");
                 }
-                else if (!DocumentHelper.IsCPF(AtendimentoCadastro.NotaFiscalDocumento) && !DocumentHelper.IsCNPJ(AtendimentoCadastro.NotaFiscalDocumento))
+                else if (!DocumentHelper.IsCPF(AtendimentoCadastro.NotaFiscalDocumento) &&
+                         !DocumentHelper.IsCNPJ(AtendimentoCadastro.NotaFiscalDocumento))
                 {
-                    ResultView.AvisosImpeditivos.Add($"CPF ou CNPJ do Receptor da Nota Fiscal inválido: {AtendimentoCadastro.NotaFiscalDocumento}");
+                    ResultView.AvisosImpeditivos.Add(
+                        $"CPF ou CNPJ do Receptor da Nota Fiscal inválido: {AtendimentoCadastro.NotaFiscalDocumento}");
                 }
+
                 #endregion Receptor da Nota Fiscal
 
                 #region Endereço do Receptor da Nota Fiscal
+
                 if (string.IsNullOrWhiteSpace(AtendimentoCadastro.NotaFiscalCEP))
                 {
                     ResultView.AvisosImpeditivos.Add("Informe o CEP do Receptor da Nota Fiscal");
                 }
                 else if (!LocalizacaoHelper.IsCEP(AtendimentoCadastro.NotaFiscalCEP))
                 {
-                    ResultView.AvisosImpeditivos.Add($"CEP do Receptor da Nota Fiscal inválido: {AtendimentoCadastro.NotaFiscalCEP}");
+                    ResultView.AvisosImpeditivos.Add(
+                        $"CEP do Receptor da Nota Fiscal inválido: {AtendimentoCadastro.NotaFiscalCEP}");
                 }
 
                 if (string.IsNullOrWhiteSpace(AtendimentoCadastro.NotaFiscalEndereco))
@@ -329,18 +366,23 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 }
                 else if (!LocalizacaoHelper.IsUF(AtendimentoCadastro.NotaFiscalUF))
                 {
-                    ResultView.AvisosImpeditivos.Add($"Unidade Federativa do Receptor da Nota Fiscal inválida: {AtendimentoCadastro.NotaFiscalUF}");
+                    ResultView.AvisosImpeditivos.Add(
+                        $"Unidade Federativa do Receptor da Nota Fiscal inválida: {AtendimentoCadastro.NotaFiscalUF}");
                 }
+
                 #endregion Endereço do Receptor da Nota Fiscal
 
                 #region Contatos do Receptor da Nota Fiscal
+
                 if (string.IsNullOrWhiteSpace(AtendimentoCadastro.NotaFiscalTelefone))
                 {
                     ResultView.AvisosImpeditivos.Add("Informe o Número do Telefone/Celular do Receptor da Nota Fiscal");
                 }
-                else if (!ContactHelper.IsTelephone(AtendimentoCadastro.NotaFiscalTelefone) && !ContactHelper.IsCellphone(AtendimentoCadastro.NotaFiscalTelefone))
+                else if (!ContactHelper.IsTelephone(AtendimentoCadastro.NotaFiscalTelefone) &&
+                         !ContactHelper.IsCellphone(AtendimentoCadastro.NotaFiscalTelefone))
                 {
-                    ResultView.AvisosImpeditivos.Add($"Número do Telefone/Celular do Receptor da Nota Fiscal inválido: {AtendimentoCadastro.NotaFiscalTelefone}");
+                    ResultView.AvisosImpeditivos.Add(
+                        $"Número do Telefone/Celular do Receptor da Nota Fiscal inválido: {AtendimentoCadastro.NotaFiscalTelefone}");
                 }
 
                 if (string.IsNullOrWhiteSpace(AtendimentoCadastro.NotaFiscalDDD))
@@ -349,17 +391,23 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 }
                 else if (!ContactHelper.IsDDD(AtendimentoCadastro.NotaFiscalDDD))
                 {
-                    ResultView.AvisosImpeditivos.Add($"DDD do Número do Telefone/Celular do Receptor da Nota Fiscal inválido: {AtendimentoCadastro.NotaFiscalDDD}");
+                    ResultView.AvisosImpeditivos.Add(
+                        $"DDD do Número do Telefone/Celular do Receptor da Nota Fiscal inválido: {AtendimentoCadastro.NotaFiscalDDD}");
                 }
 
-                if (!string.IsNullOrWhiteSpace(AtendimentoCadastro.NotaFiscalEmail) && !EmailHelper.IsEmail(AtendimentoCadastro.NotaFiscalEmail))
+                if (!string.IsNullOrWhiteSpace(AtendimentoCadastro.NotaFiscalEmail) &&
+                    !EmailHelper.IsEmail(AtendimentoCadastro.NotaFiscalEmail))
                 {
-                    ResultView.AvisosImpeditivos.Add($"E-mail do Receptor da Nota Fiscal inválido: {AtendimentoCadastro.NotaFiscalEmail}");
+                    ResultView.AvisosImpeditivos.Add(
+                        $"E-mail do Receptor da Nota Fiscal inválido: {AtendimentoCadastro.NotaFiscalEmail}");
                 }
+
                 #endregion Contatos do Receptor da Nota Fiscal
 
                 #region Inscrição Municipal do Tomador do Serviço
-                if (!string.IsNullOrWhiteSpace(AtendimentoCadastro.NotaFiscalDocumento) && DocumentHelper.IsCNPJ(AtendimentoCadastro.NotaFiscalDocumento))
+
+                if (!string.IsNullOrWhiteSpace(AtendimentoCadastro.NotaFiscalDocumento) &&
+                    DocumentHelper.IsCNPJ(AtendimentoCadastro.NotaFiscalDocumento))
                 {
                     // Informar a Inscrição Municipal do Tomador do Serviço do Receptor da Nota Fiscal só é obrigatorio
                     // caso o Cliente esteja cadastrado na regra do Faturamento "ATENDINSCRICMUNIC".
@@ -367,36 +415,47 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                     FaturamentoRegraModel FaturamentoRegra = await _context.FaturamentoRegra
                         .Include(x => x.FaturamentoRegraTipo)
                         .Where(x => x.ClienteId == Grv.ClienteId &&
-                                    x.FaturamentoRegraTipo.Codigo == FaturamentoRegraTipoEnum.ObrigatorioInformarInscricaoMunicipal)
+                                    x.FaturamentoRegraTipo.Codigo ==
+                                    FaturamentoRegraTipoEnum.ObrigatorioInformarInscricaoMunicipal)
                         .AsNoTracking()
                         .FirstOrDefaultAsync();
 
                     if (FaturamentoRegra != null)
                     {
-                        ResultView.AvisosImpeditivos.Add("Ao informar o CNPJ do Receptor da Nota Fiscal é preciso informar a Inscrição Municipal do Tomador do Serviço");
+                        ResultView.AvisosImpeditivos.Add(
+                            "Ao informar o CNPJ do Receptor da Nota Fiscal é preciso informar a Inscrição Municipal do Tomador do Serviço");
                     }
                 }
+
                 #endregion Inscrição Municipal do Tomador do Serviço
             }
+
             #endregion Nota Fiscal
 
             #region Forma de Pagamento
+
             TipoMeioCobrancaModel TipoMeioCobranca = await _context.TipoMeioCobranca
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.TipoMeioCobrancaId == AtendimentoCadastro.IdentificadorTipoMeioCobranca);
 
             if (TipoMeioCobranca == null)
             {
-                ResultView.AvisosImpeditivos.Add($"Forma de Pagamento inexistente: {AtendimentoCadastro.IdentificadorTipoMeioCobranca}");
+                ResultView.AvisosImpeditivos.Add(
+                    $"Forma de Pagamento inexistente: {AtendimentoCadastro.IdentificadorTipoMeioCobranca}");
             }
-            else if (TipoMeioCobranca.Alias == TipoMeioCobrancaAliasEnum.PixEstatico && Grv.Cliente.FlagPossuiPixEstatico == "N")
+            else if (TipoMeioCobranca.Alias == TipoMeioCobrancaAliasEnum.PixEstatico &&
+                     Grv.Cliente.FlagPossuiPixEstatico == "N")
             {
-                ResultView.AvisosImpeditivos.Add("Este Cliente não está configurado para emitir a Forma de Pagamento PIX Estático");
+                ResultView.AvisosImpeditivos.Add(
+                    "Este Cliente não está configurado para emitir a Forma de Pagamento PIX Estático");
             }
-            else if (TipoMeioCobranca.Alias == TipoMeioCobrancaAliasEnum.PixDinamico && Grv.Cliente.FlagPossuiPixDinamico == "N")
+            else if (TipoMeioCobranca.Alias == TipoMeioCobrancaAliasEnum.PixDinamico &&
+                     Grv.Cliente.FlagPossuiPixDinamico == "N")
             {
-                ResultView.AvisosImpeditivos.Add("Este Cliente não está configurado para emitir a Forma de Pagamento PIX Dinâmico");
+                ResultView.AvisosImpeditivos.Add(
+                    "Este Cliente não está configurado para emitir a Forma de Pagamento PIX Dinâmico");
             }
+
             #endregion Forma de Pagamento
 
             if (ResultView.AvisosImpeditivos.Count > 0)
@@ -417,6 +476,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             MensagemDTO mensagem = new();
 
             #region Consultas
+
             if (Atendimento.IdentificadorFaturamento <= 0)
             {
                 mensagem.Erros.Add(MensagemPadraoEnum.IdentificadorAtendimentoInvalido);
@@ -447,10 +507,12 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             if (grv.StatusOperacao.StatusOperacaoId != "L")
             {
-                mensagem.AvisosImpeditivos.Add($"Status do Processo não está apto para o cadastro do Atendimento: {grv.StatusOperacao.Descricao.ToUpperTrim()}");
+                mensagem.AvisosImpeditivos.Add(
+                    $"Status do Processo não está apto para o cadastro do Atendimento: {grv.StatusOperacao.Descricao.ToUpperTrim()}");
 
                 return mensagem;
             }
+
             #endregion Consultas
 
             return mensagem;
@@ -459,6 +521,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
         public async Task<AtendimentoCadastroDTO> CreateAtendimentoAsync(AtendimentoParameters AtendimentoInput)
         {
             #region Consultas
+
             GrvModel Grv = await _context.Grv
                 .Include(x => x.Cliente)
                 .Include(x => x.Deposito)
@@ -468,9 +531,11 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             DateTime DataHoraPorDeposito = new DepositoService(_context)
                 .GetDataHoraPorDeposito(Grv.DepositoId);
+
             #endregion Consultas
 
             #region Dados do Atendimento
+
             AtendimentoModel Atendimento = new()
             {
                 GrvId = AtendimentoInput.IdentificadorProcesso,
@@ -485,7 +550,8 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
                 ResponsavelNome = AtendimentoInput.ResponsavelNome.ToUpperTrim(),
 
-                ResponsavelDocumento = AtendimentoInput.ResponsavelDocumento.Replace(".", "").Replace("/", "").Replace("-", ""),
+                ResponsavelDocumento = AtendimentoInput.ResponsavelDocumento.Replace(".", "").Replace("/", "")
+                    .Replace("-", ""),
 
                 ResponsavelCnh = AtendimentoInput.ResponsavelCNH,
 
@@ -535,18 +601,20 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
                 FormaLiberacaoCNH = AtendimentoInput.FormaLiberacaoCNH,
 
-                FormaLiberacaoCPF = AtendimentoInput.FormaLiberacaoCPF.Replace(".", "").Replace("/", "").Replace("-", ""),
+                FormaLiberacaoCPF = AtendimentoInput.FormaLiberacaoCPF.Replace(".", "").Replace("/", "")
+                    .Replace("-", ""),
 
                 FormaLiberacaoNome = AtendimentoInput.FormaLiberacaoNome.ToUpperTrim(),
 
-                FormaLiberacaoPlaca = AtendimentoInput.FormaLiberacaoPlaca.Replace("-", "").ToUpperTrim(),                
+                FormaLiberacaoPlaca = AtendimentoInput.FormaLiberacaoPlaca.Replace("-", "").ToUpperTrim(),
             };
 
             if (Grv.Cliente.FlagEmissaoNotaFiscal == "S")
             {
                 Atendimento.NotaFiscalNome = AtendimentoInput.NotaFiscalNome.ToUpperTrim();
 
-                Atendimento.NotaFiscalDocumento = AtendimentoInput.NotaFiscalDocumento.Replace(".", "").Replace("/", "").Replace("-", "");
+                Atendimento.NotaFiscalDocumento = AtendimentoInput.NotaFiscalDocumento.Replace(".", "").Replace("/", "")
+                    .Replace("-", "");
 
                 Atendimento.NotaFiscalEndereco = AtendimentoInput.NotaFiscalEndereco.ToUpperTrim();
 
@@ -570,9 +638,12 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
                 Atendimento.NotaFiscalInscricaoMunicipal = AtendimentoInput.NotaFiscalInscricaoMunicipal.ToUpperTrim();
             }
+
             #endregion Dados do Atendimento
 
-            CalculoFaturamentoParametroModel ParametrosCalculoFaturamento = await ConfigParametrosCalculoFaturamentoAsync(Grv, AtendimentoInput.IdentificadorTipoMeioCobranca, AtendimentoInput.IdentificadorUsuario, DataHoraPorDeposito, AtendimentoInput.Descontos);
+            CalculoFaturamentoParametroModel ParametrosCalculoFaturamento =
+                await ConfigParametrosCalculoFaturamentoAsync(Grv, AtendimentoInput.IdentificadorTipoMeioCobranca,
+                    AtendimentoInput.IdentificadorUsuario, DataHoraPorDeposito, AtendimentoInput.Descontos);
 
             AtendimentoCadastroDTO ResultView = new();
 
@@ -590,7 +661,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
                     Faturamento = new FaturamentoService(_context)
                         .Faturar(ParametrosCalculoFaturamento, out CalculoDiarias);
-                    
+
 
                     CreateFotoResponsavel(Atendimento.AtendimentoId, AtendimentoInput);
 
@@ -656,7 +727,8 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             ResultView.Faturamento = _mapper.Map<FaturamentoCadastroDTO>(Faturamento);
 
-            ResultView.Faturamento.ListagemServico = _mapper.Map<List<FaturamentoCadastroComposicaoDTO>>(Faturamento.ListagemFaturamentoComposicao);
+            ResultView.Faturamento.ListagemServico =
+                _mapper.Map<List<FaturamentoCadastroComposicaoDTO>>(Faturamento.ListagemFaturamentoComposicao);
 
             FaturamentoServicoTipoVeiculoModel FaturamentoServicoTipoVeiculo = new();
 
@@ -665,13 +737,16 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 FaturamentoServicoTipoVeiculo = _context.FaturamentoServicoTipoVeiculo
                     .Include(x => x.FaturamentoServicoAssociado)
                     .AsNoTracking()
-                    .FirstOrDefault(x => x.FaturamentoServicoTipoVeiculoId == item.IdentificadorFaturamentoServicoTipoVeiculo);
+                    .FirstOrDefault(x =>
+                        x.FaturamentoServicoTipoVeiculoId == item.IdentificadorFaturamentoServicoTipoVeiculo);
 
-                item.DescricaoTipoServico = ListagemTipoCobranca.Where(x => x.ValorCadastro == item.TipoServico).FirstOrDefault().Descricao;
+                item.DescricaoTipoServico = ListagemTipoCobranca.Where(x => x.ValorCadastro == item.TipoServico)
+                    .FirstOrDefault().Descricao;
 
                 item.NomeServico = FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.Descricao;
 
-                item.DataVigenciaInicial = FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.DataVigenciaInicial;
+                item.DataVigenciaInicial =
+                    FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.DataVigenciaInicial;
 
                 item.DataVigenciaFinal = FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.DataVigenciaFinal;
             }
@@ -687,8 +762,10 @@ namespace WebZi.Plataform.Data.Services.Atendimento
         private void CreateLiberacaoEspecial(int idFaturamento, LiberacaoEspecialParameters parameters)
         {
             #region Validação
+
             if (parameters.DataEmissaoDocumento < DateTime.Today)
-                    throw new Exception("Data não pode ser menor que hoje");
+                throw new Exception("Data não pode ser menor que hoje");
+
             #endregion Validação
 
             LiberacaoEspecialModel liberacaoEspecial = new()
@@ -712,12 +789,14 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             };
             _context.LiberacaoEspecial.Add(liberacaoEspecial);
         }
+
         private void CreateFotoResponsavel(int AtendimentoId, AtendimentoParameters AtendimentoInput)
         {
             if (AtendimentoInput.ResponsavelFoto != null)
             {
                 new BucketService(_context, _httpClientFactory)
-                    .SendFile(BucketNomeTabelaOrigemEnum.AtendimentoFotoResponsavel, AtendimentoId, AtendimentoInput.IdentificadorUsuario, AtendimentoInput.ResponsavelFoto);
+                    .SendFile(BucketNomeTabelaOrigemEnum.AtendimentoFotoResponsavel, AtendimentoId,
+                        AtendimentoInput.IdentificadorUsuario, AtendimentoInput.ResponsavelFoto);
             }
         }
 
@@ -736,14 +815,18 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             }
         }
 
-        private async Task<CalculoFaturamentoParametroModel> ConfigParametrosCalculoFaturamentoAsync(GrvModel Grv, int TipoMeioCobrancaId, 
+        private async Task<CalculoFaturamentoParametroModel> ConfigParametrosCalculoFaturamentoAsync(GrvModel Grv,
+            int TipoMeioCobrancaId,
             int UsuarioCadastroId, DateTime DataHoraPorDeposito, List<DescontoParameters> descontoParameters)
         {
             // Quando no cadastro do Cliente foi configurado o Tipo de Cobrança, este cadastro é o que será usado para o cadastro da Fatura.
             var TipoMeioCobranca = await _context.TipoMeioCobranca
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.TipoMeioCobrancaId ==
-                    (Grv.Cliente.TipoMeioCobrancaId.HasValue && Grv.Cliente.TipoMeioCobrancaId.Value > 0 ? Grv.Cliente.TipoMeioCobrancaId.Value : TipoMeioCobrancaId));
+                                          (Grv.Cliente.TipoMeioCobrancaId.HasValue &&
+                                           Grv.Cliente.TipoMeioCobrancaId.Value > 0
+                                              ? Grv.Cliente.TipoMeioCobrancaId.Value
+                                              : TipoMeioCobrancaId));
 
             CalculoFaturamentoParametroModel ParametrosCalculoFaturamento = new()
             {
@@ -772,7 +855,9 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 // Esta funcionalidade altera o GRV com Status de Leilão para Status de Atendimento
                 // para que o fluxo do Atendimento/Faturamento/Liberação funcionem.
                 StatusOperacaoLeilaoId = new[] { "1", "2", "4" }
-                    .Contains(Grv.StatusOperacaoId) ? Grv.StatusOperacaoId : string.Empty,
+                    .Contains(Grv.StatusOperacaoId)
+                    ? Grv.StatusOperacaoId
+                    : string.Empty,
 
                 TipoMeioCobrancaId = TipoMeioCobranca.TipoMeioCobrancaId,
 
@@ -797,16 +882,16 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 }).ToList(),
 
                 FaturamentoQuantidadesAlteradas = descontoParameters
-                .Where(x => x.QuantidadeAjuste != 0)
-                .Select(x => new CalculoFaturamentoQuantidadeAlteradaModel
-                {
-                    FaturamentoServicoTipoVeiculoId = x.FaturamentoServicoTipoVeiculoId,
-                    TipoComposicao = x.TipoComposicao,
-                    FaturamentoTipoComposicaoId = x.FaturamentoTipoComposicaoId,
-                    UsuarioAlteracaoQuantidadeId = x.UsuarioDescontoId,
-                    QuantidadeAjuste = x.QuantidadeAjuste,
-                    QuantidadeAlterada = 0,
-                }).ToList()
+                    .Where(x => x.QuantidadeAjuste != 0)
+                    .Select(x => new CalculoFaturamentoQuantidadeAlteradaModel
+                    {
+                        FaturamentoServicoTipoVeiculoId = x.FaturamentoServicoTipoVeiculoId,
+                        TipoComposicao = x.TipoComposicao,
+                        FaturamentoTipoComposicaoId = x.FaturamentoTipoComposicaoId,
+                        UsuarioAlteracaoQuantidadeId = x.UsuarioDescontoId,
+                        QuantidadeAjuste = x.QuantidadeAjuste,
+                        QuantidadeAlterada = 0,
+                    }).ToList()
             };
 
             return ParametrosCalculoFaturamento;
@@ -818,7 +903,8 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             if (AtendimentoId <= 0)
             {
-                ResultView.Mensagem = MensagemViewHelper.SetBadRequest(MensagemPadraoEnum.IdentificadorAtendimentoInvalido);
+                ResultView.Mensagem =
+                    MensagemViewHelper.SetBadRequest(MensagemPadraoEnum.IdentificadorAtendimentoInvalido);
 
                 return ResultView;
             }
@@ -859,35 +945,38 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
         public async Task<MensagemDTO> CreateSaidaReparo(SaidaParaReparoParameters parameters)
         {
-            MensagemDTO ResultView = new GrvService(_context).ValidateInputGrv(parameters.IdentificadorProcesso, parameters.IdentificadorUsuario);
+            MensagemDTO ResultView = new GrvService(_context).ValidateInputGrv(parameters.IdentificadorProcesso,
+                parameters.IdentificadorUsuario);
+
+            var errors = new List<string>();
+
+            #region Consultar
+            var atendimento = await _context.Atendimento
+                .Include(x => x.Grv)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.AtendimentoId == parameters.IdentificadorAtendimento);
+            bool exists = await _context.SaidaReparo
+                .AsNoTracking()
+                .AnyAsync(x => x.AtendimentoId == parameters.IdentificadorAtendimento);
+
+            #endregion
+
+            if (atendimento is null)
+                errors.Add("Atendimento não identificado");
+
+            if (exists)
+                errors.Add("Já está cadastrado");
+
+            if (parameters.DataSaida > atendimento.Grv.DataHoraGuarda)
+                errors.Add("A Data da Saída não pode ser maior do que a Data da guarda");
+
+            if (parameters.DataSaida > parameters.DataPrevisaoRetorno)
+                errors.Add("A Data da Saída não pode ser maior do que a Data da Previão de Retorno");
+
 
             if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
             {
-                return ResultView;
-            }
-            #region Consultar
-            bool atendimento = await _context.Atendimento
-                .AsNoTracking()
-                .AnyAsync(x => x.AtendimentoId == parameters.IdentificadorAtendimento);
-            bool exists = await _context.SaidaReparo
-                            .AsNoTracking()
-                            .AnyAsync(x => x.AtendimentoId == parameters.IdentificadorAtendimento);
-
-            #endregion
-            if (!atendimento)
-            {
-                ResultView = MensagemViewHelper.SetNotFound("Atendimento não identificado");
-                return ResultView;
-            }
-            if(exists)
-            {
-                ResultView = MensagemViewHelper.SetBadRequest("Já está cadastrado");
-                return ResultView;
-            }
-
-            if (parameters.DataSaida > parameters.DataPrevisaoRetorno)
-            {
-                ResultView = MensagemViewHelper.SetBadRequest("A Data da Saída não pode ser maior do que a Data da Previão de Retorno");
+                ResultView.AvisosImpeditivos.AddRange(errors);
                 return ResultView;
             }
 
@@ -904,9 +993,8 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             {
                 try
                 {
-
                     await _context.SaidaReparo.AddAsync(saidaReparo);
-                    
+
                     await _context.Grv
                         .Where(x => x.GrvId == parameters.IdentificadorProcesso)
                         .UpdateAsync(x => new GrvModel()
@@ -931,35 +1019,45 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                     return ResultView;
                 }
             }
+
             return ResultView;
         }
+
         public async Task<MensagemDTO> UpdateSaidaReparo(SaidaParaReparoUpdateParameters parameters)
         {
             MensagemDTO ResultView = new();
+            var errors = new List<string>();
+
             #region Consultar
-            bool atendimento = await _context.Atendimento
+
+            var atendimento = await _context.Atendimento
+                .Include(x => x.Grv)
                 .AsNoTracking()
-                .AnyAsync(x => x.AtendimentoId == parameters.IdentificadorAtendimento);
+                .FirstOrDefaultAsync(x => x.AtendimentoId == parameters.IdentificadorAtendimento);
             var saidaReparo = await _context.SaidaReparo
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.Id == parameters.IdentificadorSaidaParaReparo);
+
             #endregion
-            if (!atendimento)
-            {
-                ResultView = MensagemViewHelper.SetNotFound("Atendimento não identificado");
-                return ResultView;
-            }
+
+            if (atendimento is null)
+                errors.Add("Atendimento não identificado");
+
             if (saidaReparo is null)
+                errors.Add("Saida para reparo não encontrado");
+
+            if (saidaReparo.DataSaida > atendimento.Grv.DataHoraGuarda)
+                errors.Add("A Data da Saída não pode ser maior do que a Data da guarda");
+
+            if (saidaReparo.DataSaida > parameters.DataPrevisaoRetorno)
+                errors.Add("A Data da Saída não pode ser maior do que a Data da Previão de Retorno");
+
+            if (errors.Count <= 0)
             {
-                ResultView = MensagemViewHelper.SetNotFound("Saida para reparo não encontrado");
+                ResultView.AvisosImpeditivos.AddRange(errors);
                 return ResultView;
             }
 
-            if(saidaReparo.DataSaida > parameters.DataPrevisaoRetorno)
-            {
-                ResultView = MensagemViewHelper.SetBadRequest("A data prevista de retorno não pode ser anterior à data de saída.");
-                return ResultView;
-            }
 
             await using (IDbContextTransaction _transaction = await _context.Database.BeginTransactionAsync())
             {
@@ -981,13 +1079,17 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                     return ResultView;
                 }
             }
+
             return ResultView;
         }
-        public async Task<AtendimentoDTO> GetByProcessoAsync(string NumeroProcesso, string CodigoProduto, int ClienteId, int DepositoId, int UsuarioId)
+
+        public async Task<AtendimentoDTO> GetByProcessoAsync(string NumeroProcesso, string CodigoProduto, int ClienteId,
+            int DepositoId, int UsuarioId)
         {
             AtendimentoDTO ResultView = new()
             {
-                Mensagem = new GrvService(_context).ValidateInputGrv(NumeroProcesso, CodigoProduto, ClienteId, DepositoId, UsuarioId)
+                Mensagem = new GrvService(_context).ValidateInputGrv(NumeroProcesso, CodigoProduto, ClienteId,
+                    DepositoId, UsuarioId)
             };
 
             if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
@@ -998,8 +1100,8 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             GrvModel Grv = await _context.Grv
                 .Include(x => x.Atendimento)
                 .Where(x => x.NumeroFormularioGrv == NumeroProcesso
-                         && x.ClienteId == ClienteId
-                         && x.DepositoId == DepositoId)
+                            && x.ClienteId == ClienteId
+                            && x.DepositoId == DepositoId)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
 
@@ -1116,9 +1218,11 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             }
         }
 
-        private void UpdateStatusERP(ClienteDepositoModel ClienteDeposito, FaturamentoModel Faturamento, AtendimentoModel Atendimento)
+        private void UpdateStatusERP(ClienteDepositoModel ClienteDeposito, FaturamentoModel Faturamento,
+            AtendimentoModel Atendimento)
         {
-            if (ClienteDeposito.Cliente.FlagEmissaoNotaFiscal == "S" && !string.IsNullOrWhiteSpace(ClienteDeposito.CodigoERPOrdemVenda))
+            if (ClienteDeposito.Cliente.FlagEmissaoNotaFiscal == "S" &&
+                !string.IsNullOrWhiteSpace(ClienteDeposito.CodigoERPOrdemVenda))
             {
                 Atendimento.StatusCadastroERP = "P";
 
