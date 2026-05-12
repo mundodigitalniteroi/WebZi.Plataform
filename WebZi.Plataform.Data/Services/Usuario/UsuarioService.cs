@@ -40,21 +40,21 @@ namespace WebZi.Plataform.Domain.Services.Usuario
             _configuration = configuration;
         }
 
-        private async Task<UsuarioDTO> GetAsync(int UsuarioId, string Username, string Password)
+        private async Task<UsuarioDTO> GetAsync(int UsuarioId, string Login, string Password)
         {
             UsuarioDTO ResultView = new();
 
-            Username = Username.ToUpper().Trim();
+            Login = Login.ToUpper().Trim();
 
             Password = Password.ToUpper().Trim();
 
-            if (UsuarioId <= 0 && string.IsNullOrWhiteSpace(Username))
+            if (UsuarioId <= 0 && string.IsNullOrWhiteSpace(Login))
             {
                 ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Informe o Identificador do Usuário ou o Login");
 
                 return ResultView;
             }
-            else if (string.IsNullOrWhiteSpace(Username) && !string.IsNullOrWhiteSpace(Password))
+            else if (string.IsNullOrWhiteSpace(Login) && !string.IsNullOrWhiteSpace(Password))
             {
                 ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Ao informar a Senha do Usuário, é preciso informar o Login");
 
@@ -79,7 +79,7 @@ namespace WebZi.Plataform.Domain.Services.Usuario
                 {
                     new SqlParameter("@login", SqlDbType.VarChar)
                     {
-                        Value = Username
+                        Value = Login
                     },
 
                     new SqlParameter("@senha", SqlDbType.VarChar)
@@ -105,49 +105,72 @@ namespace WebZi.Plataform.Domain.Services.Usuario
 
             UsuarioModel result = await _context.Usuario
                 .Where(x => (UsuarioId > 0 ? x.UsuarioId == UsuarioId : true) &&
-                             !string.IsNullOrWhiteSpace(Username) ? x.Login == Username : true)
+                            (!string.IsNullOrWhiteSpace(Login) ? x.Login == Login : true))
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
 
-            if (result != null)
-            {
-                ResultView = new();
-
-                ResultView = _mapper.Map<UsuarioDTO>(result);
-
-                ResultView.Mensagem = MensagemViewHelper.SetFound();
-
-                //var ListagemUsuarioClienteDeposito = await _context.ViewUsuarioClienteDeposito
-                //    .Where(x => x.UsuarioId == UsuarioId)
-                //    .Select(x => new { x.ClienteId, x.DepositoId })
-                //    .AsNoTracking()
-                //    .ToListAsync();
-
-                //if (ListagemUsuarioClienteDeposito?.Count > 0)
-                //{
-                //    ListagemUsuarioClienteDeposito = ListagemUsuarioClienteDeposito
-                //        .OrderBy(x => x.ClienteId)
-                //        .ThenBy(x => x.DepositoId)
-                //        .ToList();
-
-                //    foreach (var item in ListagemUsuarioClienteDeposito)
-                //    {
-                //        ResultView.ListagemClienteDepositoAssociado.Add(new UsuarioClienteDepositoDTO { IdentificadorCliente = item.ClienteId, IdentificadorDeposito = item.DepositoId });
-                //    }
-                //}
-                //else
-                //{
-                //    ResultView.Mensagem.AvisosInformativos.Add("Atenção. Este Usuário não possui associação com Cliente e Depósito");
-                //}
-
-                return ResultView;
-            }
-            else
+            if (result == null)
             {
                 ResultView.Mensagem = MensagemViewHelper.SetNotFound(MensagemPadraoEnum.NaoEncontradoUsuario);
 
                 return ResultView;
             }
+
+            //List<SistemaPerfilAcessoUsuariosModel> resultPerfilDeAcesso = await _context.PerfilAcessoUsuario
+            //    .Where(x => x.UsuarioId == result.UsuarioId)
+            //    .Include(x => x.PerfilAcesso)
+            //    .AsNoTracking()
+            //    .ToListAsync();
+
+            //List<TiposContatoPessoaModel> resultTiposContatos = new();
+
+            //if (result.PessoaId != null)
+            //{
+            //    resultTiposContatos = await _context.TipoPessoaContatos
+            //        .Where(x => x.PessoaId == result.PessoaId.Value && x.TiposContatos != null && x.TiposContatos.FlagAtivo == 'S')
+            //        .Include(x => x.TiposContatos)
+            //        .OrderBy(x => x.Descricao)
+            //        .AsNoTracking()
+            //        .ToListAsync();
+            //}
+
+            ResultView = _mapper.Map<UsuarioDTO>(result);
+
+            //ResultView.InformacoesUsuario ??= new InformacoesUsuarioDTO();
+
+            //ResultView.InformacoesUsuario.Perfis =
+            //    _mapper.Map<List<PerfisAcessoUsuarioDTO>>(resultPerfilDeAcesso);
+
+            //ResultView.InformacoesUsuario.Contatos =
+            //    _mapper.Map<List<TiposContatosPessoaDTO>>(resultTiposContatos);
+
+            ResultView.Mensagem = MensagemViewHelper.SetFound();
+
+
+            //var ListagemUsuarioClienteDeposito = await _context.ViewUsuarioClienteDeposito
+            //    .Where(x => x.UsuarioId == UsuarioId)
+            //    .Select(x => new { x.ClienteId, x.DepositoId })
+            //    .AsNoTracking()
+            //    .ToListAsync();
+
+            //if (ListagemUsuarioClienteDeposito?.Count > 0)
+            //{
+            //    ListagemUsuarioClienteDeposito = ListagemUsuarioClienteDeposito
+            //        .OrderBy(x => x.ClienteId)
+            //        .ThenBy(x => x.DepositoId)
+            //        .ToList();
+
+            //    foreach (var item in ListagemUsuarioClienteDeposito)
+            //    {
+            //        ResultView.ListagemClienteDepositoAssociado.Add(new UsuarioClienteDepositoDTO { IdentificadorCliente = item.ClienteId, IdentificadorDeposito = item.DepositoId });
+            //    }
+            //}
+            //else
+            //{
+            //    ResultView.Mensagem.AvisosInformativos.Add("Atenção. Este Usuário não possui associação com Cliente e Depósito");
+            //}
+
+            return ResultView;
         }
 
         public async Task<UsuarioDTO> GetByIdAsync(int UsuarioId)
