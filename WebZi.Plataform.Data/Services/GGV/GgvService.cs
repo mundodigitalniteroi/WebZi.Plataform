@@ -770,6 +770,7 @@ namespace WebZi.Plataform.Data.Services.GGV
             }
 
             FaturamentoServicoGrvModel Servico = await _context.FaturamentoServicoGrv
+                .AsTracking()
                 .FirstOrDefaultAsync(x => x.GrvId == GrvId && x.FaturamentoServicoGrvId == faturamentoServicoGrvId);
 
             if (Servico is null)
@@ -786,11 +787,11 @@ namespace WebZi.Plataform.Data.Services.GGV
 
                     await _context.SaveChangesAsync();
 
-                    transaction.Commit();
+                    await transaction.CommitAsync();
                 }
                 catch (Exception ex)
                 {
-                    transaction.Rollback();
+                    await transaction.RollbackAsync();
 
                     return MensagemViewHelper.SetInternalServerError(ex);
                 }
