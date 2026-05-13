@@ -2551,6 +2551,20 @@ namespace WebZi.Plataform.Domain.Services.GRV
             }
 
             MensagemDTO ResultView = new();
+            var grv = await _context.Grv.AsNoTracking()
+                .FirstOrDefaultAsync(x => (!string.IsNullOrWhiteSpace(GrvPersistencia.Placa) &&
+                                           x.Placa == GrvPersistencia.Placa)
+                                          ||
+                                          (!string.IsNullOrWhiteSpace(GrvPersistencia.Chassi) &&
+                                           x.Chassi == GrvPersistencia.Chassi));
+
+            if (grv is not null)
+            {
+                ResultView.AvisosImpeditivos.Add("Esse Grv já existe");
+                ResultView.AvisosInformativos.Add($"{grv.NumeroFormularioGrv}");
+                ResultView = MensagemViewHelper.SetFound();
+                return ResultView;
+            }
 
             ClienteModel Cliente = await _context.Cliente
                 .Include(x => x.Endereco)
