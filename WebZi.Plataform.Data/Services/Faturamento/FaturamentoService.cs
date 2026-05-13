@@ -1284,35 +1284,48 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 .AsNoTracking()
                 .ToList();
 
-            if (result?.Count > 0)
+            if (result.Any())
             {
-                foreach (FaturamentoServicoGrvModel item in result)
+                foreach (var item in result)
                 {
+                    decimal valor = item.Valor / (item.QuantidadeDesconto ?? 1);
+
                     ResultView.Listagem.Add(new()
                     {
+                        IdentificadorServicoGrv = item.FaturamentoServicoGrvId,
                         identificadorServicoAssociadoTipoVeiculo = item.FaturamentoServicoTipoVeiculoId,
                         GrvId = item.GrvId,
-                        Valor = item.Valor,
+                        Valor = valor,
+                        ValorTotal = valor * (item.QuantidadeDesconto ?? 1),
+                        Quantidade = item.QuantidadeDesconto ?? 1,
                         FlagRealizarCobranca = item.FlagRealizarCobranca,
-                        Quantidade = item.QuantidadeDesconto ?? 0,
                     });
                 }
-
-                if (ResultView.Listagem.Count > 0)
-                {
-                    ResultView.Mensagem = MensagemViewHelper
-                        .SetFound(ResultView.Listagem.Count);
-                }
-                else
-                {
-                    ResultView.Mensagem = MensagemViewHelper.SetNotFound();
-                }
             }
-            else
+            // if (result?.Count > 0)
+            // {
+            //     foreach (FaturamentoServicoGrvModel item in result)
+            //     {
+            //         ResultView.Listagem.Add(new()
+            //         {
+            //             IdentificadorServicoGrv = item.FaturamentoServicoGrvId,
+            //             identificadorServicoAssociadoTipoVeiculo = item.FaturamentoServicoTipoVeiculoId,
+            //             GrvId = item.GrvId,
+            //             Valor = item.Valor / (item.QuantidadeDesconto ?? 1),
+            //             ValorTotal = item.Valor * (item.QuantidadeDesconto ?? 1),
+            //             Quantidade = item.QuantidadeDesconto ?? 1,
+            //             FlagRealizarCobranca = item.FlagRealizarCobranca,
+            //         });
+            //     }
+
+            if (ResultView.Listagem.Count < 0)
             {
                 ResultView.Mensagem = MensagemViewHelper.SetNotFound();
+                return ResultView;
             }
 
+            ResultView.Mensagem = MensagemViewHelper
+                .SetFound(ResultView.Listagem.Count);
             return ResultView;
         }
 
