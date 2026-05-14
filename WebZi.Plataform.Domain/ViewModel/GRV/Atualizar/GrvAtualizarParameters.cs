@@ -151,7 +151,7 @@ namespace WebZi.Plataform.Domain.ViewModel.GRV.Cadastro
 
         public List<byte[]> ListagemFoto { get; set; }
 
-        public List<string> ListagemLacre { get; set; }
+        public List<LacreParameters> ListagemLacre { get; set; }
 
         public byte[] ImagemAssinaturaAgente { get; set; }
 

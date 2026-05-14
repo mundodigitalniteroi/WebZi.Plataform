@@ -277,58 +277,169 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (GrvPersistencia.ListagemEnquadramentoInfracao?.Count > 0)
             {
-                GrvPersistencia.ListagemEnquadramentoInfracao = GrvPersistencia.ListagemEnquadramentoInfracao
-                    .OrderBy(x => x.NumeroInfracao)
+                var identificadoresEntrada = GrvPersistencia.ListagemEnquadramentoInfracao
+                    .Where(x => x.IdentificadorEnquadramentoGrv.HasValue)
+                    .Select(x => x.IdentificadorEnquadramentoGrv.Value)
                     .ToList();
 
-                GrvPersistencia.ListagemEnquadramentoInfracao
-                    .ForEach(x => x.NumeroInfracao = x.NumeroInfracao.ToUpperTrim().ToNullIfEmpty());
+                var infracoesParaRemover = grv.ListagemEnquadramentoInfracao
+                    .Where(e => !identificadoresEntrada.Contains(e.GrvEnquadramentoInfracaoId) && e.GrvEnquadramentoInfracaoId > 0)
+                    .ToList();
 
-                grv.ListagemEnquadramentoInfracao = _mapper
-                    .Map<List<EnquadramentoInfracaoGrvModel>>(GrvPersistencia.ListagemEnquadramentoInfracao);
+                foreach (var infracao in infracoesParaRemover)
+                {
+                    grv.ListagemEnquadramentoInfracao.Remove(infracao);
+                }
+
+                foreach (var input in GrvPersistencia.ListagemEnquadramentoInfracao)
+                {
+                    string numeroInfracao = input.NumeroInfracao.ToUpperTrim().ToNullIfEmpty();
+
+                    if (input.IdentificadorEnquadramentoGrv.HasValue)
+                    {
+                        EnquadramentoInfracaoGrvModel infracaoExistente = grv.ListagemEnquadramentoInfracao
+                            .FirstOrDefault(e => e.GrvEnquadramentoInfracaoId == input.IdentificadorEnquadramentoGrv.Value);
+
+                        if (infracaoExistente != null)
+                        {
+                            infracaoExistente.EnquadramentoInfracaoId = input.IdentificadorEnquadramentoInfracao;
+
+                            infracaoExistente.NumeroInfracao = numeroInfracao;
+                        }
+                    }
+                    else
+                    {
+                        if (!grv.ListagemEnquadramentoInfracao.Any(e => e.EnquadramentoInfracaoId == input.IdentificadorEnquadramentoInfracao && e.NumeroInfracao == numeroInfracao))
+                        {
+                            grv.ListagemEnquadramentoInfracao.Add(new EnquadramentoInfracaoGrvModel
+                            {
+                                GrvId = grv.GrvId,
+
+                                EnquadramentoInfracaoId = input.IdentificadorEnquadramentoInfracao,
+
+                                NumeroInfracao = numeroInfracao
+                            });
+                        }
+                    }
+                }
             }
 
             if (GrvPersistencia.ListagemLacre?.Count > 0)
             {
-                GrvPersistencia.ListagemLacre = GrvPersistencia.ListagemLacre
-                    .ConvertAll(x => x.ToUpperTrim().ToNullIfEmpty())
-                    .OrderBy(x => x)
+                var identificadoresEntrada = GrvPersistencia.ListagemLacre
+                    .Where(x => x.IdentificadorLacre.HasValue)
+                    .Select(x => x.IdentificadorLacre.Value)
                     .ToList();
 
-                grv.ListagemLacre = new List<LacreModel>();
+                // var lacresParaRemover = grv.ListagemLacre
+                //     .Where(l => !identificadoresEntrada.Contains(l.LacreId) && l.LacreId > 0)
+                //     .ToList();
+                //
+                // foreach (var lacre in lacresParaRemover)
+                // {
+                //     grv.ListagemLacre.Remove(lacre);
+                // }
 
-                foreach (string item in GrvPersistencia.ListagemLacre)
+                foreach (var item in GrvPersistencia.ListagemLacre)
                 {
-                    grv.ListagemLacre.Add(new LacreModel
-                        { UsuarioCadastroId = GrvPersistencia.IdentificadorUsuario, Lacre = item });
+                    string lacreValue = item.Lacre.ToUpperTrim().ToNullIfEmpty();
+
+                    if (string.IsNullOrWhiteSpace(lacreValue))
+                    {
+                        continue;
+                    }
+
+                    if (item.IdentificadorLacre.HasValue)
+                    {
+                        LacreModel lacreExistente = grv.ListagemLacre
+                            .FirstOrDefault(l => l.LacreId == item.IdentificadorLacre.Value);
+
+                        if (lacreExistente != null)
+                        {
+                            if (lacreExistente.Lacre != lacreValue)
+                            {
+                                lacreExistente.LacreAnterior = lacreExistente.Lacre;
+
+                                lacreExistente.Lacre = lacreValue;
+
+                                lacreExistente.UsuarioAlteracaoId = GrvPersistencia.IdentificadorUsuario;
+
+                                lacreExistente.DataAlteracao = DateTime.Now;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (!grv.ListagemLacre.Any(l => l.Lacre == lacreValue))
+                        {
+                            grv.ListagemLacre.Add(new LacreModel
+                            {
+                                GrvId = grv.GrvId,
+
+                                UsuarioCadastroId = GrvPersistencia.IdentificadorUsuario,
+
+                                Lacre = lacreValue,
+
+                                DataCadastro = DateTime.Now
+                            });
+                        }
+                    }
                 }
             }
 
             if (GrvPersistencia.ListagemEquipamentoOpcional?.Count > 0)
             {
-                grv.ListagemCondutorEquipamentoOpcional = new List<CondutorEquipamentoOpcionalModel>();
+                // Remover equipamentos que não estão na entrada
+                var equipamentosRemover = grv.ListagemCondutorEquipamentoOpcional
+                    .Where(e => !GrvPersistencia.ListagemEquipamentoOpcional.Any(i => i.IdentificadorEquipamentoOpcional == e.EquipamentoOpcionalId))
+                    .ToList();
 
-                CondutorEquipamentoOpcionalModel CondutorEquipamentoOpcional = new();
-
-                foreach (EquipamentoOpcionalParameters item in GrvPersistencia.ListagemEquipamentoOpcional)
+                foreach (var remover in equipamentosRemover)
                 {
-                    CondutorEquipamentoOpcional = new()
+                    grv.ListagemCondutorEquipamentoOpcional.Remove(remover);
+                }
+
+                foreach (var item in GrvPersistencia.ListagemEquipamentoOpcional)
+                {
+                    var equipamentoExistente = grv.ListagemCondutorEquipamentoOpcional
+                        .FirstOrDefault(e => e.EquipamentoOpcionalId == item.IdentificadorEquipamentoOpcional);
+
+                    if (equipamentoExistente != null)
                     {
-                        EquipamentoOpcionalId = item.IdentificadorEquipamentoOpcional,
+                        equipamentoExistente.FlagPossuiEquipamento = item.FlagPossuiEquipamento;
+                        equipamentoExistente.UsuarioAlteracaoId = GrvPersistencia.IdentificadorUsuario;
+                        equipamentoExistente.DataAtualizacao = DateTime.Now;
 
-                        FlagPossuiEquipamento = item.FlagPossuiEquipamento,
-
-                        UsuarioCadastroId = GrvPersistencia.IdentificadorUsuario
-                    };
-
-                    if (item.FlagPossuiEquipamento == "S")
-                    {
-                        CondutorEquipamentoOpcional.FlagEquipamentoAvariado = item.FlagEquipamentoAvariado;
-
-                        CondutorEquipamentoOpcional.CodigoAvaria = item.IdentificadorTipoAvaria;
+                        if (item.FlagPossuiEquipamento == "S")
+                        {
+                            equipamentoExistente.FlagEquipamentoAvariado = item.FlagEquipamentoAvariado;
+                            equipamentoExistente.CodigoAvaria = item.IdentificadorTipoAvaria;
+                        }
+                        else
+                        {
+                            equipamentoExistente.FlagEquipamentoAvariado = "N";
+                            equipamentoExistente.CodigoAvaria = null;
+                        }
                     }
+                    else
+                    {
+                        var novoEquipamento = new CondutorEquipamentoOpcionalModel
+                        {
+                            GrvId = grv.GrvId,
+                            EquipamentoOpcionalId = item.IdentificadorEquipamentoOpcional,
+                            FlagPossuiEquipamento = item.FlagPossuiEquipamento,
+                            UsuarioCadastroId = GrvPersistencia.IdentificadorUsuario,
+                            DataCadastro = DateTime.Now
+                        };
 
-                    grv.ListagemCondutorEquipamentoOpcional.Add(CondutorEquipamentoOpcional);
+                        if (item.FlagPossuiEquipamento == "S")
+                        {
+                            novoEquipamento.FlagEquipamentoAvariado = item.FlagEquipamentoAvariado;
+                            novoEquipamento.CodigoAvaria = item.IdentificadorTipoAvaria;
+                        }
+
+                        grv.ListagemCondutorEquipamentoOpcional.Add(novoEquipamento);
+                    }
                 }
             }
 
@@ -2562,7 +2673,6 @@ namespace WebZi.Plataform.Domain.Services.GRV
             {
                 ResultView.AvisosImpeditivos.Add("Esse Grv já existe");
                 ResultView.AvisosInformativos.Add($"{grv.NumeroFormularioGrv}");
-                ResultView = MensagemViewHelper.SetFound();
                 return ResultView;
             }
 

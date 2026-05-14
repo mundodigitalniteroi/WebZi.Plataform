@@ -47,8 +47,12 @@ namespace WebZi.Plataform.API.Controllers
                 ResultView.Mensagem = await _provider
                     .GetService<GrvService>()
                     .CheckInformacoesPersistenciaAsync(Grv);
-
+                
                 if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+                {
+                    return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView.Mensagem);
+                }
+                if(ResultView.Mensagem.AvisosInformativos.Count > 0)
                 {
                     return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView.Mensagem);
                 }

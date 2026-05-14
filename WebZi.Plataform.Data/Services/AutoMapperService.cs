@@ -171,6 +171,8 @@ namespace WebZi.Plataform.Data.Services
                 .ForMember(dest => dest.Status, from => from.MapFrom(src => src.Status));
 
             CreateMap<EnquadramentoInfracaoGrvModel, EnquadramentoInfracaoGrvDTO>()
+                .ForMember(dest => dest.IdentificadorEnquadramentoGrv,
+                    from => from.MapFrom(src => src.GrvEnquadramentoInfracaoId))
                 .ForMember(dest => dest.NumeroInfracao, from => from.MapFrom(src => src.NumeroInfracao))
                 .ForMember(dest => dest.Infracao, from => from.MapFrom(src => src.EnquadramentoInfracao));
 

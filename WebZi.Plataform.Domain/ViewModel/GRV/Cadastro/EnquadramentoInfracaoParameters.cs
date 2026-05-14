@@ -4,6 +4,7 @@ namespace WebZi.Plataform.Domain.ViewModel.GRV.Cadastro
 {
     public class EnquadramentoInfracaoParameters
     {
+        public int? IdentificadorEnquadramentoGrv { get; set; }
         [Required(ErrorMessage = "Propriedade obrigatória")]
         public decimal IdentificadorEnquadramentoInfracao { get; set; }
 
