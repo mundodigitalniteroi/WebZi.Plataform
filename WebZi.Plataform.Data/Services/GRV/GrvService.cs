@@ -2669,7 +2669,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                                           (!string.IsNullOrWhiteSpace(GrvPersistencia.Chassi) &&
                                            x.Chassi == GrvPersistencia.Chassi));
 
-            if (grv is not null)
+            if (grv is not null && grv.StatusOperacaoId != "E")
             {
                 ResultView.AvisosImpeditivos.Add("Esse Grv já existe");
                 ResultView.AvisosInformativos.Add($"{grv.NumeroFormularioGrv}");

@@ -1407,10 +1407,10 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 erros.Add("A Data/Hora Final para o Cálculo não pode ser maior do que a Data/Hora atual");
             }
 
-            if (model?.DataHoraInicialParaCalculo > model?.DataHoraFinalParaCalculo)
+            if (model?.DataHoraFinalParaCalculo > model?.DataHoraInicialParaCalculo)
             {
                 erros.Add(
-                    "A Data/Hora Inicial para o Cálculo não pode ser maior do que a Data/Hora Final para o Cálculo");
+                    "A Data/Hora Final para o Cálculo não pode ser maior do que a Data/Hora Inicial para o Cálculo");
             }
 
             if (model.DataHoraFinalParaCalculo == null || model.DataHoraFinalParaCalculo == DateTime.MinValue)
