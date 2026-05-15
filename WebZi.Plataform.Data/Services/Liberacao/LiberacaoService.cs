@@ -29,6 +29,7 @@ using WebZi.Plataform.Domain.DTO.Report;
 using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.DTO.Usuario;
 using WebZi.Plataform.Domain.Enums;
+using WebZi.Plataform.Domain.Models.Atendimento;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.GRV;
 using WebZi.Plataform.Domain.Models.Liberacao;
@@ -758,10 +759,26 @@ namespace WebZi.Plataform.Data.Services.Liberacao
             MensagemDTO ResultView = new GrvService(_context)
                 .ValidateInputGrv(Parameters.IdentificadorProcesso, Parameters.IdentificadorUsuario);
 
+            List<string> Errors = new List<string>();
+            if (!string.IsNullOrWhiteSpace(Parameters.FormaLiberacao.FormaLiberacaoPlaca) &&
+                !Parameters.FormaLiberacao.FormaLiberacaoPlaca.IsPlaca())
+                Errors.Add("Placa inválida");
+            if (!string.IsNullOrWhiteSpace(Parameters.FormaLiberacao.FormaLiberacaoCnh) &&
+                !Parameters.FormaLiberacao.FormaLiberacaoCnh.IsCNH())
+                Errors.Add("CNH inválido");
+            if (!string.IsNullOrWhiteSpace(Parameters.FormaLiberacao.FormaLiberacaoCpf) &&
+                !Parameters.FormaLiberacao.FormaLiberacaoCpf.IsCPF())
+                Errors.Add("CPF inválido");
+
             if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+                Errors.Add("Grv incorreto");
+
+            if (Errors.Count > 0)
             {
+                ResultView = MensagemViewHelper.SetBadRequest(Errors);
                 return ResultView;
             }
+
 
             TipoLiberacaoModel TipoLiberacao = await _context
                 .TipoLiberacao
@@ -828,6 +845,18 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                     await _context.Liberacao.AddAsync(Liberacao);
 
                     await _context.SaveChangesAsync();
+
+
+                    await _context.Atendimento
+                        .Where(x => x.AtendimentoId == Parameters.IdentificadorAtendimento)
+                        .UpdateAsync(x => new AtendimentoModel()
+                        {
+                            FormaLiberacao = Parameters.FormaLiberacao.FormaLiberacao,
+                            FormaLiberacaoNome = Parameters.FormaLiberacao.FormaLiberacaoNome,
+                            FormaLiberacaoCNH = Parameters.FormaLiberacao.FormaLiberacaoCnh,
+                            FormaLiberacaoCPF = Parameters.FormaLiberacao.FormaLiberacaoCpf,
+                            FormaLiberacaoPlaca = Parameters.FormaLiberacao.FormaLiberacaoPlaca,
+                        });
 
                     if (Parameters.IdentificadorTipoLiberacao == 2)
                     {
