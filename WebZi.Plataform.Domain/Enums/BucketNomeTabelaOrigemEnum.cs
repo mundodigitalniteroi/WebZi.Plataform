@@ -14,5 +14,6 @@
         public static readonly string NFE = "NFEIMGPREFEITUR";
         public static readonly string DRFAArquivoDeRouboFurto = "ARQUIROUBOFURTO";
         public static readonly string DRFAArquivoRegistroRecuperacao = "REGRECUPERACAO";
+        public static readonly string VISTORIAS = "VISTORIAS";
     }
 }

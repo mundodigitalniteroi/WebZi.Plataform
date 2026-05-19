@@ -60,6 +60,8 @@ namespace WebZi.Plataform.Domain.Models.Vistoria
 
         public string FlagPossuiTravaEletrica { get; set; } = "N";
 
+        public string MatriculaVistoriador { get; set; }
+
         public virtual GrvModel Grv { get; set; }
 
         public virtual VistoriaSituacaoChassiModel VistoriaSituacaoChassi { get; set; }

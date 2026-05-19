@@ -114,6 +114,9 @@ namespace WebZi.Plataform.Data.Mappings.Vistoria
                 .HasDefaultValueSql("('N')")
                 .IsFixedLength()
                 .HasColumnName("flag_possui_vidro_eletrico");
+            builder.Property(e => e.MatriculaVistoriador)
+                .HasMaxLength(20)
+                .HasColumnName("matricula_vistoriador");
         }
     }
 }

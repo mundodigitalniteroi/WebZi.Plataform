@@ -45,10 +45,10 @@ namespace WebZi.Plataform.Domain.ViewModel.GRV.Cadastro
         public string NomeAutoridadeResponsavel { get; set; }
 
         [MaxLength(7)]
-        public string Placa { get; set; }
+        public string? Placa { get; set; }
 
         [MaxLength(24)]
-        public string Chassi { get; set; }
+        public string? Chassi { get; set; }
 
         [MaxLength(15)]
         public string Renavam { get; set; }
@@ -144,7 +144,7 @@ namespace WebZi.Plataform.Domain.ViewModel.GRV.Cadastro
         public List<CondutorDocumentoParameters> ListagemDocumentoCondutor { get; set; }
 
         public List<EnquadramentoInfracaoParameters> ListagemEnquadramentoInfracao { get; set; }
-        public DRFAParameters? DRFA { get; set; }
+        // public DRFAParameters? DRFA { get; set; }
 
         public List<EquipamentoOpcionalParameters> ListagemEquipamentoOpcional { get; set; }
 

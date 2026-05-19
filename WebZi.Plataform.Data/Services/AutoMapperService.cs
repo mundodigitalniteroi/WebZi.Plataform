@@ -13,6 +13,7 @@ using WebZi.Plataform.Domain.DTO.Faturamento.Cadastro;
 using WebZi.Plataform.Domain.DTO.Faturamento.Simulacao;
 using WebZi.Plataform.Domain.DTO.GRV;
 using WebZi.Plataform.Domain.DTO.GRV.Pesquisa;
+using WebZi.Plataform.Domain.DTO.Leilao.Vistoria;
 using WebZi.Plataform.Domain.DTO.Liberacao;
 using WebZi.Plataform.Domain.DTO.Localizacao;
 using WebZi.Plataform.Domain.DTO.Pessoa;
@@ -157,6 +158,36 @@ namespace WebZi.Plataform.Data.Services
                 .ForMember(dest => dest.IdentificadorCNAEListaServico,
                     from => from.MapFrom(src => src.CnaeListaServicoId));
 
+            CreateMap<VistoriaModel, SelecionarVistoriaPreLeilaoDTO>()
+                .ForMember(dest => dest.NumeroProcesso, from => from.MapFrom(src => src.Grv.NumeroFormularioGrv))
+                .ForMember(dest => dest.Placa, from => from.MapFrom(src => src.Grv.Placa))
+                .ForMember(dest => dest.Chassi, from => from.MapFrom(src => src.Grv.Chassi))
+                .ForMember(dest => dest.Status, from => from.MapFrom(src => src.VistoriaStatus.Descricao))
+                .ForMember(dest => dest.VistoriaId, from => from.MapFrom(src => src.VistoriaId))
+                .ForMember(dest => dest.GrvId, from => from.MapFrom(src => src.GrvId))
+                .ForMember(dest => dest.EmpresaVistoriaId, from => from.MapFrom(src => src.EmpresaVistoriaId))
+                .ForMember(dest => dest.VistoriaStatusId, from => from.MapFrom(src => src.VistoriaStatusId))
+                .ForMember(dest => dest.VistoriaSituacaoChassiId, from => from.MapFrom(src => src.VistoriaSituacaoChassiId))
+                .ForMember(dest => dest.UsuarioCadastroId, from => from.MapFrom(src => src.UsuarioCadastroId))
+                .ForMember(dest => dest.UsuarioAlteracaoId, from => from.MapFrom(src => src.UsuarioAlteracaoId))
+                .ForMember(dest => dest.MotivoNaoRealizacaoVistoria, from => from.MapFrom(src => src.MotivoNaoRealizacaoVistoria))
+                .ForMember(dest => dest.NumeroVistoria, from => from.MapFrom(src => src.NumeroVistoria))
+                .ForMember(dest => dest.NomeVistoriador, from => from.MapFrom(src => src.NomeVistoriador))
+                .ForMember(dest => dest.NumeroMotor, from => from.MapFrom(src => src.NumeroMotor))
+                .ForMember(dest => dest.ResumoVistoria, from => from.MapFrom(src => src.ResumoVistoria))
+                .ForMember(dest => dest.DataVistoria, from => from.MapFrom(src => src.DataVistoria))
+                .ForMember(dest => dest.DataCadastro, from => from.MapFrom(src => src.DataCadastro))
+                .ForMember(dest => dest.DataAlteracao, from => from.MapFrom(src => src.DataAlteracao))
+                .ForMember(dest => dest.TipoDirecao, from => from.MapFrom(src => src.TipoDirecao))
+                .ForMember(dest => dest.EstadoGeralVeiculo, from => from.MapFrom(src => src.EstadoGeralVeiculo))
+                .ForMember(dest => dest.FlagPossuiRestricoes, from => from.MapFrom(src => src.FlagPossuiRestricoes))
+                .ForMember(dest => dest.FlagPossuiPlaca, from => from.MapFrom(src => src.FlagPossuiPlaca))
+                .ForMember(dest => dest.FlagPossuiVidroEletrico, from => from.MapFrom(src => src.FlagPossuiVidroEletrico))
+                .ForMember(dest => dest.FlagPossuiTravaEletrica, from => from.MapFrom(src => src.FlagPossuiTravaEletrica))
+                .ForMember(dest => dest.MatriculaVistoriador, from => from.MapFrom(src => src.MatriculaVistoriador))
+                .ForMember(dest => dest.Url, opt => opt.Ignore())
+                .ForMember(dest => dest.Mensagem, opt => opt.Ignore());
+            
             CreateMap<NfeModel, NfeDTO>();
 
             CreateMap<NfeModel, NFERetornoFaturamentoDTO>()
@@ -317,8 +348,11 @@ namespace WebZi.Plataform.Data.Services
                 .ForMember(dest => dest.Vistoria, from => from.MapFrom(src => src.Vistoria));
 
             CreateMap<VistoriaModel, VistoriaDTO>();
-            CreateMap<VistoriaSituacaoChassiModel, VistoriaSituacaoChassiDTO>();
-            CreateMap<VistoriaStatusModel, VistoriaStatusDTO>();
+            CreateMap<VistoriaSituacaoChassiModel, VistoriaSituacaoChassiDTO>()
+                .ForMember(dest => dest.IdentificadorSituacaoChassi, from => from.MapFrom(src => src.VistoriaSituacaoChassiId));
+
+            CreateMap<VistoriaStatusModel, VistoriaStatusDTO>()
+                .ForMember(dest => dest.IdentificadorStatus, from => from.MapFrom(src => src.VistoriaStatusId));
 
 
             CreateMap<LacreModel, LacreDTO>()
@@ -403,10 +437,6 @@ namespace WebZi.Plataform.Data.Services
                 .ForMember(dest => dest.Nome, from => from.MapFrom(src => src.Pessoa.Nome))
                 .ForMember(dest => dest.DataUltimoAcesso, from => from.MapFrom(src => src.DataUltimoAcesso))
                 .ForMember(dest => dest.FlagAtivo, from => from.MapFrom(src => src.FlagAtivo));
-
-            CreateMap<VistoriaSituacaoChassiModel, VistoriaSituacaoChassiDTO>()
-                .ForMember(dest => dest.IdentificadorSituacaoChassi,
-                    from => from.MapFrom(src => src.VistoriaSituacaoChassiId));
 
             CreateMap<ViewEnderecoCompletoModel, EnderecoDTO>()
                 .ForMember(dest => dest.IdentificadorCEP, from => from.MapFrom(src => src.CEPId))

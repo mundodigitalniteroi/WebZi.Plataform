@@ -461,18 +461,18 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 {
                     _context.SetUserContextInfo(GrvPersistencia.IdentificadorUsuario);
 
-                    if (GrvPersistencia.IdentificadorMotivoApreensao == 4)
-                    {
-                        var result = _provider
-                            .GetService<DRFAService>()
-                            .UpdateDRFAGrv(GrvPersistencia);
-                        if (result.Erros?.Count > 0)
-                        {
-                            transaction.Rollback();
-                            ResultView = result;
-                            return ResultView;
-                        }
-                    }
+                    // if (GrvPersistencia.IdentificadorMotivoApreensao == 4)
+                    // {
+                    //     var result = _provider
+                    //         .GetService<DRFAService>()
+                    //         .UpdateDRFAGrv(GrvPersistencia);
+                    //     if (result.Erros?.Count > 0)
+                    //     {
+                    //         transaction.Rollback();
+                    //         ResultView = result;
+                    //         return ResultView;
+                    //     }
+                    // }
 
                     if (ClienteDeposito.Cliente.FlagClientePossuiCodigoIdentificacao == "S")
                     {
@@ -776,18 +776,18 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
                     _context.SaveChanges();
 
-                    if (GrvPersistencia.IdentificadorMotivoApreensao == 4)
-                    {
-                        var result = await _provider
-                            .GetService<DRFAService>()
-                            .CreateDRFAGrv(Grv.GrvId, GrvPersistencia);
-                        if (result.Erros?.Count > 0)
-                        {
-                            transaction.Rollback();
-                            ResultView.Mensagem = result;
-                            return ResultView;
-                        }
-                    }
+                    // if (GrvPersistencia.IdentificadorMotivoApreensao == 4)
+                    // {
+                    //     var result = await _provider
+                    //         .GetService<DRFAService>()
+                    //         .CreateDRFAGrv(Grv.GrvId, GrvPersistencia);
+                    //     if (result.Erros?.Count > 0)
+                    //     {
+                    //         transaction.Rollback();
+                    //         ResultView.Mensagem = result;
+                    //         return ResultView;
+                    //     }
+                    // }
 
                     if (ClienteDeposito.Cliente.FlagClientePossuiCodigoIdentificacao == "S")
                     {
@@ -831,20 +831,20 @@ namespace WebZi.Plataform.Domain.Services.GRV
                     .SendFiles(BucketNomeTabelaOrigemEnum.FotoVeiculoGRV, Grv.GrvId, Grv.UsuarioCadastroId,
                         GrvPersistencia.ListagemFoto);
             }
+            //
+            // if (GrvPersistencia.DRFA?.ArquivoDoRegistroDoRouboFurto is not null)
+            // {
+            //     new BucketService(_context, _httpClientFactory)
+            //         .SendFile(BucketNomeTabelaOrigemEnum.DRFAArquivoDeRouboFurto, Grv.GrvId, Grv.UsuarioCadastroId,
+            //             GrvPersistencia.DRFA?.ArquivoDoRegistroDoRouboFurto);
+            // }
 
-            if (GrvPersistencia.DRFA?.ArquivoDoRegistroDoRouboFurto is not null)
-            {
-                new BucketService(_context, _httpClientFactory)
-                    .SendFile(BucketNomeTabelaOrigemEnum.DRFAArquivoDeRouboFurto, Grv.GrvId, Grv.UsuarioCadastroId,
-                        GrvPersistencia.DRFA?.ArquivoDoRegistroDoRouboFurto);
-            }
-
-            if (GrvPersistencia.DRFA?.RegistroRecuperacao?.ArquivoDeRecuperacao is not null)
-            {
-                new BucketService(_context, _httpClientFactory)
-                    .SendFile(BucketNomeTabelaOrigemEnum.DRFAArquivoRegistroRecuperacao, Grv.GrvId,
-                        Grv.UsuarioCadastroId, GrvPersistencia.DRFA.RegistroRecuperacao.ArquivoDeRecuperacao);
-            }
+            // if (GrvPersistencia.DRFA?.RegistroRecuperacao?.ArquivoDeRecuperacao is not null)
+            // {
+            //     new BucketService(_context, _httpClientFactory)
+            //         .SendFile(BucketNomeTabelaOrigemEnum.DRFAArquivoRegistroRecuperacao, Grv.GrvId,
+            //             Grv.UsuarioCadastroId, GrvPersistencia.DRFA.RegistroRecuperacao.ArquivoDeRecuperacao);
+            // }
 
             if (GrvPersistencia.ImagemAssinaturaAgente != null)
             {
@@ -2057,10 +2057,10 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (!string.IsNullOrWhiteSpace(GrvPesquisa.FlagVeiculoNaoIdentificado))
             {
-                if (!string.IsNullOrWhiteSpace(GrvPesquisa.PlacaVeiculo))
-                {
-                    erros.Add("Ao informar que o Veículo não possui identificação, não informe a Placa");
-                }
+                // if (!string.IsNullOrWhiteSpace(GrvPesquisa.PlacaVeiculo))
+                // {
+                //     erros.Add("Ao informar que o Veículo não possui identificação, não informe a Placa");
+                // }
 
                 // if (!string.IsNullOrWhiteSpace(GrvPesquisa.Chassi))
                 // {
@@ -2069,10 +2069,10 @@ namespace WebZi.Plataform.Domain.Services.GRV
             }
             else
             {
-                if (!string.IsNullOrWhiteSpace(GrvPesquisa.PlacaVeiculo) && !GrvPesquisa.PlacaVeiculo.IsPlaca())
-                {
-                    erros.Add("Placa inválida");
-                }
+                // if (!string.IsNullOrWhiteSpace(GrvPesquisa.PlacaVeiculo) && !GrvPesquisa.PlacaVeiculo.IsPlaca())
+                // {
+                //     erros.Add("Placa inválida");
+                // }
             }
 
             if (GrvPesquisa.IdentificadorUsuario <= 0)
@@ -2496,48 +2496,47 @@ namespace WebZi.Plataform.Domain.Services.GRV
             //}
             if (GrvPersistencia.FlagVeiculoNaoIdentificado == "S")
             {
-                if (!string.IsNullOrWhiteSpace(GrvPersistencia.Placa) ||
-                    !string.IsNullOrWhiteSpace(GrvPersistencia.Chassi))
-                {
-                    erros.Add(
-                        "Ao informar que o Veículo não foi identificado, não se deve informar a Placa nem o Chassi");
-                }
+                // if (!string.IsNullOrWhiteSpace(GrvPersistencia.Placa) ||
+                //     !string.IsNullOrWhiteSpace(GrvPersistencia.Chassi))
+                // {
+                //     erros.Add(
+                //         "Ao informar que o Veículo não foi identificado, não se deve informar a Placa nem o Chassi");
+                // }
             }
             else if (GrvPersistencia.FlagVeiculoSemRegistro == "S")
             {
-                if (!string.IsNullOrWhiteSpace(GrvPersistencia.Placa))
-                {
-                    erros.Add("Ao informar que o Veículo não possui registro, não se deve informar a Placa");
-                }
+                // if (!string.IsNullOrWhiteSpace(GrvPersistencia.Placa))
+                // {
+                //     erros.Add("Ao informar que o Veículo não possui registro, não se deve informar a Placa");
+                // }
 
-                if (string.IsNullOrWhiteSpace(GrvPersistencia.Chassi))
-                {
-                    erros.Add("Informe o Chassi");
-                }
-                else if (GrvPersistencia.Chassi.Length < 6 || GrvPersistencia.Chassi.Length > 24 ||
-                         (GrvPersistencia.Chassi.Length == 17 && !GrvPersistencia.Chassi.IsChassi()))
-                {
-                    erros.Add("Chassi inválido");
-                }
+                // if (string.IsNullOrWhiteSpace(GrvPersistencia.Chassi))
+                // {
+                //     erros.Add("Informe o Chassi");
+                // } //(GrvPersistencia.Chassi.Length == 17 && !GrvPersistencia.Chassi.IsChassi()
+                // else if (GrvPersistencia.Chassi.Length < 6 || GrvPersistencia.Chassi.Length > 24)
+                // {
+                //     erros.Add("Chassi inválido");
+                // }
+                
             }
             else
             {
-                if (!string.IsNullOrWhiteSpace(GrvPersistencia.Placa))
-                {
-                    if (!GrvPersistencia.Placa.IsPlaca())
-                    {
-                        erros.Add("Placa inválida");
-                    }
-                }
+                // if (!string.IsNullOrWhiteSpace(GrvPersistencia.Placa))
+                // {
+                //     // if (!GrvPersistencia.Placa.IsPlaca())
+                //     // {
+                //     //     erros.Add("Placa inválida");
+                //     // }
+                // }
 
-                if (!string.IsNullOrWhiteSpace(GrvPersistencia.Chassi))
-                {
-                    if (GrvPersistencia.Chassi.Length < 6 || GrvPersistencia.Chassi.Length > 24 ||
-                        (GrvPersistencia.Chassi.Length == 17 && !GrvPersistencia.Chassi.IsChassi()))
-                    {
-                        erros.Add("Chassi inválido");
-                    }
-                }
+                // if (!string.IsNullOrWhiteSpace(GrvPersistencia.Chassi))
+                // {
+                //     if (GrvPersistencia.Chassi.Length < 6 || GrvPersistencia.Chassi.Length > 24)
+                //     {
+                //         erros.Add("Chassi inválido");
+                //     }
+                // }
             }
 
             // if (!string.IsNullOrWhiteSpace(GrvPersistencia.EnderecoLocalizacaoVeiculoCEP))
