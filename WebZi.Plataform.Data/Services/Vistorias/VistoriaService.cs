@@ -74,7 +74,7 @@ namespace WebZi.Plataform.Data.Services.Vistorias
                     (numeroProcesso == null || x.Grv.NumeroFormularioGrv == numeroProcesso)
                 );
 
-            if (result == null)
+            if (result == null || result.Grv.FlagVistoria == "N")
             {
                 ResultView.Mensagem = MensagemViewHelper.SetNotFound();
 
