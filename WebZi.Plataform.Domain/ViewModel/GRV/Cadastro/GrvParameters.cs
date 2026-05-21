@@ -146,7 +146,7 @@ namespace WebZi.Plataform.Domain.ViewModel.GRV.Cadastro
         public List<EnquadramentoInfracaoParameters> ListagemEnquadramentoInfracao { get; set; }
         // public DRFAParameters? DRFA { get; set; }
 
-        public List<EquipamentoOpcionalParameters> ListagemEquipamentoOpcional { get; set; }
+        public List<EquipamentoOpcionalParameters>? ListagemEquipamentoOpcional { get; set; }
 
         public List<byte[]> ListagemFoto { get; set; }
 

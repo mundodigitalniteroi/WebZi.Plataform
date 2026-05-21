@@ -283,7 +283,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
                     .ToList();
 
                 var infracoesParaRemover = grv.ListagemEnquadramentoInfracao
-                    .Where(e => !identificadoresEntrada.Contains(e.GrvEnquadramentoInfracaoId) && e.GrvEnquadramentoInfracaoId > 0)
+                    .Where(e => !identificadoresEntrada.Contains(e.GrvEnquadramentoInfracaoId) &&
+                                e.GrvEnquadramentoInfracaoId > 0)
                     .ToList();
 
                 foreach (var infracao in infracoesParaRemover)
@@ -298,7 +299,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
                     if (input.IdentificadorEnquadramentoGrv.HasValue)
                     {
                         EnquadramentoInfracaoGrvModel infracaoExistente = grv.ListagemEnquadramentoInfracao
-                            .FirstOrDefault(e => e.GrvEnquadramentoInfracaoId == input.IdentificadorEnquadramentoGrv.Value);
+                            .FirstOrDefault(e =>
+                                e.GrvEnquadramentoInfracaoId == input.IdentificadorEnquadramentoGrv.Value);
 
                         if (infracaoExistente != null)
                         {
@@ -309,7 +311,9 @@ namespace WebZi.Plataform.Domain.Services.GRV
                     }
                     else
                     {
-                        if (!grv.ListagemEnquadramentoInfracao.Any(e => e.EnquadramentoInfracaoId == input.IdentificadorEnquadramentoInfracao && e.NumeroInfracao == numeroInfracao))
+                        if (!grv.ListagemEnquadramentoInfracao.Any(e =>
+                                e.EnquadramentoInfracaoId == input.IdentificadorEnquadramentoInfracao &&
+                                e.NumeroInfracao == numeroInfracao))
                         {
                             grv.ListagemEnquadramentoInfracao.Add(new EnquadramentoInfracaoGrvModel
                             {
@@ -391,7 +395,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
             {
                 // Remover equipamentos que não estão na entrada
                 var equipamentosRemover = grv.ListagemCondutorEquipamentoOpcional
-                    .Where(e => !GrvPersistencia.ListagemEquipamentoOpcional.Any(i => i.IdentificadorEquipamentoOpcional == e.EquipamentoOpcionalId))
+                    .Where(e => !GrvPersistencia.ListagemEquipamentoOpcional.Any(i =>
+                        i.IdentificadorEquipamentoOpcional == e.EquipamentoOpcionalId))
                     .ToList();
 
                 foreach (var remover in equipamentosRemover)
@@ -717,7 +722,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 }
             }
 
-            if (GrvPersistencia.ListagemEquipamentoOpcional?.Count > 0)
+            if (GrvPersistencia.ListagemEquipamentoOpcional?.Count > 0 &&
+                GrvPersistencia.ListagemEquipamentoOpcional is not null)
             {
                 Grv.ListagemCondutorEquipamentoOpcional = new List<CondutorEquipamentoOpcionalModel>();
 
@@ -2518,7 +2524,6 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 // {
                 //     erros.Add("Chassi inválido");
                 // }
-                
             }
             else
             {
@@ -2661,19 +2666,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             }
 
             MensagemDTO ResultView = new();
-            var grv = await _context.Grv.AsNoTracking()
-                .FirstOrDefaultAsync(x => (!string.IsNullOrWhiteSpace(GrvPersistencia.Placa) &&
-                                           x.Placa == GrvPersistencia.Placa)
-                                          ||
-                                          (!string.IsNullOrWhiteSpace(GrvPersistencia.Chassi) &&
-                                           x.Chassi == GrvPersistencia.Chassi));
 
-            if (grv is not null && grv.StatusOperacaoId != "E")
-            {
-                ResultView.AvisosImpeditivos.Add("Esse Grv já existe");
-                ResultView.AvisosInformativos.Add($"{grv.NumeroFormularioGrv}");
-                return ResultView;
-            }
 
             ClienteModel Cliente = await _context.Cliente
                 .Include(x => x.Endereco)
@@ -2978,16 +2971,23 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 }
             }
 
-            GrvModel Grv = await _context.Grv
-                .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.FaturamentoProdutoId == GrvPersistencia.CodigoProduto
-                                          && x.NumeroFormularioGrv == GrvPersistencia.NumeroProcesso
-                                          && x.ClienteId == GrvPersistencia.IdentificadorCliente
-                                          && x.DepositoId == GrvPersistencia.IdentificadorDeposito);
+            var grv = await _context.Grv.AsNoTracking()
+                .FirstOrDefaultAsync(x =>
+                    x.ClienteId == GrvPersistencia.IdentificadorCliente &&
+                    x.DepositoId == GrvPersistencia.IdentificadorDeposito &&
+                    x.FaturamentoProdutoId == GrvPersistencia.CodigoProduto &&
+                    (
+                        (!string.IsNullOrWhiteSpace(GrvPersistencia.Placa) &&
+                         x.Placa == GrvPersistencia.Placa)
+                        ||
+                        (!string.IsNullOrWhiteSpace(GrvPersistencia.Chassi) &&
+                         x.Chassi == GrvPersistencia.Chassi)
+                    ));
 
-            if (Grv != null)
+            if (grv is not null && grv.StatusOperacaoId != "E")
             {
-                ResultView.AvisosImpeditivos.Add("Processo já cadastrado");
+                ResultView.AvisosImpeditivos.Add("Esse Grv já existe");
+                ResultView.AvisosInformativos.Add($"{grv.NumeroFormularioGrv}");
             }
 
             #endregion Consultas
