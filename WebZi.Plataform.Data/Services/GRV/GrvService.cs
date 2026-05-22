@@ -466,18 +466,18 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 {
                     _context.SetUserContextInfo(GrvPersistencia.IdentificadorUsuario);
 
-                    // if (GrvPersistencia.IdentificadorMotivoApreensao == 4)
-                    // {
-                    //     var result = _provider
-                    //         .GetService<DRFAService>()
-                    //         .UpdateDRFAGrv(GrvPersistencia);
-                    //     if (result.Erros?.Count > 0)
-                    //     {
-                    //         transaction.Rollback();
-                    //         ResultView = result;
-                    //         return ResultView;
-                    //     }
-                    // }
+                    if (GrvPersistencia.IdentificadorMotivoApreensao == 4)
+                    {
+                        var result = _provider
+                            .GetService<DRFAService>()
+                            .UpdateDRFAGrv(GrvPersistencia);
+                        if (result.Erros?.Count > 0)
+                        {
+                            transaction.Rollback();
+                            ResultView = result;
+                            return ResultView;
+                        }
+                    }
 
                     if (ClienteDeposito.Cliente.FlagClientePossuiCodigoIdentificacao == "S")
                     {
@@ -782,18 +782,18 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
                     _context.SaveChanges();
 
-                    // if (GrvPersistencia.IdentificadorMotivoApreensao == 4)
-                    // {
-                    //     var result = await _provider
-                    //         .GetService<DRFAService>()
-                    //         .CreateDRFAGrv(Grv.GrvId, GrvPersistencia);
-                    //     if (result.Erros?.Count > 0)
-                    //     {
-                    //         transaction.Rollback();
-                    //         ResultView.Mensagem = result;
-                    //         return ResultView;
-                    //     }
-                    // }
+                    if (GrvPersistencia.IdentificadorMotivoApreensao == 4)
+                    {
+                        var result = await _provider
+                            .GetService<DRFAService>()
+                            .CreateDRFAGrv(Grv.GrvId, GrvPersistencia);
+                        if (result.Erros?.Count > 0)
+                        {
+                            transaction.Rollback();
+                            ResultView.Mensagem = result;
+                            return ResultView;
+                        }
+                    }
 
                     if (ClienteDeposito.Cliente.FlagClientePossuiCodigoIdentificacao == "S")
                     {
@@ -837,20 +837,19 @@ namespace WebZi.Plataform.Domain.Services.GRV
                     .SendFiles(BucketNomeTabelaOrigemEnum.FotoVeiculoGRV, Grv.GrvId, Grv.UsuarioCadastroId,
                         GrvPersistencia.ListagemFoto);
             }
-            //
-            // if (GrvPersistencia.DRFA?.ArquivoDoRegistroDoRouboFurto is not null)
-            // {
-            //     new BucketService(_context, _httpClientFactory)
-            //         .SendFile(BucketNomeTabelaOrigemEnum.DRFAArquivoDeRouboFurto, Grv.GrvId, Grv.UsuarioCadastroId,
-            //             GrvPersistencia.DRFA?.ArquivoDoRegistroDoRouboFurto);
-            // }
+            if (GrvPersistencia.DRFA?.ArquivoDoRegistroDoRouboFurto is not null)
+            {
+                new BucketService(_context, _httpClientFactory)
+                    .SendFile(BucketNomeTabelaOrigemEnum.DRFAArquivoDeRouboFurto, Grv.GrvId, Grv.UsuarioCadastroId,
+                        GrvPersistencia.DRFA?.ArquivoDoRegistroDoRouboFurto);
+            }
 
-            // if (GrvPersistencia.DRFA?.RegistroRecuperacao?.ArquivoDeRecuperacao is not null)
-            // {
-            //     new BucketService(_context, _httpClientFactory)
-            //         .SendFile(BucketNomeTabelaOrigemEnum.DRFAArquivoRegistroRecuperacao, Grv.GrvId,
-            //             Grv.UsuarioCadastroId, GrvPersistencia.DRFA.RegistroRecuperacao.ArquivoDeRecuperacao);
-            // }
+            if (GrvPersistencia.DRFA?.RegistroRecuperacao?.ArquivoDeRecuperacao is not null)
+            {
+                new BucketService(_context, _httpClientFactory)
+                    .SendFile(BucketNomeTabelaOrigemEnum.DRFAArquivoRegistroRecuperacao, Grv.GrvId,
+                        Grv.UsuarioCadastroId, GrvPersistencia.DRFA.RegistroRecuperacao.ArquivoDeRecuperacao);
+            }
 
             if (GrvPersistencia.ImagemAssinaturaAgente != null)
             {
