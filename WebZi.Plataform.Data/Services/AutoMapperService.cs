@@ -191,9 +191,26 @@ namespace WebZi.Plataform.Data.Services
             CreateMap<NfeModel, NfeDTO>();
 
             CreateMap<NfeModel, NFERetornoFaturamentoDTO>()
+                .ForMember(dest => dest.NfeId, from => from.MapFrom(src => src.NfeId))
+                .ForMember(dest => dest.NumeroNotaFiscal, from => from.MapFrom(src => src.NumeroNotaFiscal))
+                .ForMember(dest => dest.StatusId, from => from.MapFrom(src => src.Status))
+                .ForMember(dest => dest.Status, from => from.MapFrom(src =>
+                    src.Status == "C" ? "Cadastro" :
+                    src.Status == "A" ? "Aguardando Processamento" :
+                    src.Status == "P" ? "Processado" :
+                    src.Status == "E" ? "Erro" :
+                    src.Status == "R" ? "Reprocessar" :
+                    src.Status == "S" ? "Reprocessado" :
+                    src.Status == "I" ? "Inválido" :
+                    src.Status == "N" ? "Cancelado" :
+                    src.Status == "M" ? "Cadastro Manual" : 
+                    src.Status == "S" ? "Aguardando Reprocessamento" : 
+                    src.Status == "T" ? "Reprocessado" : src.Status))
+                .ForMember(dest => dest.StatusNfe, from => from.MapFrom(src => src.StatusNfe))
                 .ForMember(dest => dest.Url, from => from.MapFrom(src => src.Url))
-                .ForMember(dest => dest.NumeroNotaFiscal, from => from.MapFrom(src => src.NumeroNotaFiscal));
-
+                .ForMember(dest => dest.DataEmissao, from => from.MapFrom(src => src.DataEmissao))
+                .ForMember(dest => dest.Servico, from => from.Ignore())
+                .ForMember(dest => dest.Valor, from => from.Ignore());
             CreateMap<NfeDTO, WSNfseGerarNotaFiscalDTO>()
                 .ForMember(dest => dest.CnpjPrestador, from => from.MapFrom(src => src.Cnpj))
                 .ForMember(dest => dest.Ref, from => from.MapFrom(src => src.Referencia))

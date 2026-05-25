@@ -54,6 +54,8 @@
         public string Referencia { get; set; }
 
         public string SerieRps { get; set; }
+        
+        public ICollection<NfeFaturamentoComposicaoModel> NfeFaturamentoComposicao { get; set; }
 
         //public virtual TbDepGrv Grv { get; set; }
 

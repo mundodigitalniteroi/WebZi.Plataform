@@ -1903,8 +1903,35 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.FaturamentoId == identificadorFaturamento);
 
-            List<NfeModel> notasFiscais = await _context.Nfe
-                .Where(x => x.GrvId == Faturamento.Atendimento.GrvId)
+            var notas = await _context.Nfe
+                .Where(tdn =>
+                    tdn.GrvId == Faturamento.Atendimento.GrvId &&
+                    !_context.Nfe.Any(subconsulta =>
+                        subconsulta.GrvId == tdn.GrvId &&
+                        subconsulta.NfeComplementarId == tdn.NfeId))
+                .Select(tdn => new
+                {
+                    Nfe = tdn,
+
+                    Composicoes = tdn.NfeFaturamentoComposicao
+                        .Select(nfc => new
+                        {
+                            Valor = nfc.FaturamentoComposicao != null
+                                ? nfc.FaturamentoComposicao.ValorComposicao
+                                : 0,
+
+                            Servico = nfc.FaturamentoComposicao != null &&
+                                      nfc.FaturamentoComposicao.FaturamentoServicoTipoVeiculo != null &&
+                                      nfc.FaturamentoComposicao.FaturamentoServicoTipoVeiculo
+                                          .FaturamentoServicoAssociado != null
+                                ? nfc.FaturamentoComposicao
+                                    .FaturamentoServicoTipoVeiculo
+                                    .FaturamentoServicoAssociado
+                                    .Descricao
+                                : null
+                        })
+                        .ToList()
+                })
                 .AsNoTracking()
                 .ToListAsync();
 
@@ -1961,38 +1988,83 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             ResultView.Status = Faturamento.Status;
 
             ResultView.TipoMeioCobrancaId = Faturamento.TipoMeioCobrancaId;
-            if (notasFiscais.Count > 0)
+            if (notas.Count > 0)
             {
-                var notasDto = _mapper.Map<List<NFERetornoFaturamentoDTO>>(notasFiscais);
+                var notasDto = new List<NFERetornoFaturamentoDTO>();
 
-                var nfeIds = notasFiscais.Select(x => x.NfeId).ToList();
+                var nfeIdentificadoresComErro = notas
+                    .Where(x => x.Nfe.Status == "E")
+                    .Select(x => x.Nfe.IdentificadorNota)
+                    .Distinct()
+                    .ToList();
 
-                var retornos = await _context.NfeRetornoSolicitacao
-                    .Where(x => nfeIds.Contains(x.NfeId))
-                    .AsNoTracking()
-                    .ToListAsync();
+                var erroPorIdentificadorNota = new Dictionary<int, NfeWsErrosModel>();
 
-                var retornoPorNfeId = retornos
-                    .GroupBy(x => x.NfeId)
-                    .ToDictionary(g => g.Key, g => g.First());
-
-
-                foreach (var nf in notasDto)
+                if (nfeIdentificadoresComErro.Count > 0)
                 {
-                    if (retornoPorNfeId.TryGetValue(nf.NfeId, out var retorno))
+                    var errosNfe = await _context.NfeWsErros
+                        .Where(x =>
+                            x.GrvId == Faturamento.Atendimento.GrvId &&
+                            x.IdentificadorNota.HasValue &&
+                            nfeIdentificadoresComErro.Contains(x.IdentificadorNota.Value))
+                        .AsNoTracking()
+                        .ToListAsync();
+
+                    erroPorIdentificadorNota = errosNfe
+                        .Where(x => x.IdentificadorNota.HasValue)
+                        .GroupBy(x => x.IdentificadorNota.Value)
+                        .ToDictionary(
+                            g => g.Key,
+                            g => g
+                                .OrderByDescending(x => x.DataHoraCadastro)
+                                .First());
+                }
+
+                foreach (var item in notas)
+                {
+                    var nfe = item.Nfe;
+
+                    if (item.Composicoes != null && item.Composicoes.Any())
                     {
-                        var totMatch = Regex.Match(
-                            retorno.ServicoDiscriminacao,
-                            @"TOT:\s*R\$\s*([\d]+,[\d]{2})"
-                        );
-                        nf.Servico = Regex.Match(retorno.ServicoDiscriminacao, @"^(.*?)\.").ToString();
-                        nf.Valor = decimal.Parse(
-                            totMatch.Groups[1].Value,
-                            new CultureInfo("pt-BR"));
+                        foreach (var composicao in item.Composicoes)
+                        {
+                            var nfDto = _mapper.Map<NFERetornoFaturamentoDTO>(nfe);
+
+                            nfDto.Valor = composicao.Valor;
+                            nfDto.Servico = composicao.Servico;
+
+                            if (nfe.Status == "E" &&
+                                erroPorIdentificadorNota.TryGetValue(nfe.IdentificadorNota, out var erro))
+                            {
+                                nfDto.StatusErro = erro.Status;
+                                nfDto.MensagemErro = erro.MensagemErro;
+                                nfDto.CorrecaoErro = erro.CorrecaoErro;
+                            }
+
+                            notasDto.Add(nfDto);
+                        }
+                    }
+                    else
+                    {
+                        var nfDto = _mapper.Map<NFERetornoFaturamentoDTO>(nfe);
+
+                        if (nfe.Status == "E" &&
+                            erroPorIdentificadorNota.TryGetValue(nfe.IdentificadorNota, out var erro))
+                        {
+                            nfDto.StatusErro = erro.Status;
+                            nfDto.MensagemErro = erro.MensagemErro;
+                            nfDto.CorrecaoErro = erro.CorrecaoErro;
+                        }
+
+                        notasDto.Add(nfDto);
                     }
                 }
 
                 ResultView.NotaFiscal = notasDto;
+            }
+            else
+            {
+                ResultView.NotaFiscal = new List<NFERetornoFaturamentoDTO>();
             }
 
             EnderecoService Endereco = new();

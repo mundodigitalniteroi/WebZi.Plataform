@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using System.Reflection;
 using WebZi.Plataform.CrossCutting.Configuration;
+using WebZi.Plataform.Data.Mappings.Nfe;
 using WebZi.Plataform.Domain.Models.Atendimento;
 using WebZi.Plataform.Domain.Models.Banco;
 using WebZi.Plataform.Domain.Models.Banco.PIX.Dinamico.Persistencia;
@@ -259,6 +260,8 @@ namespace WebZi.Plataform.Data.Database
         public DbSet<FaturamentoComposicaoModel> FaturamentoComposicao { get; set; }
         public DbSet<NfeModel> Nfe { get; set; }
         public DbSet<NfeRetornoSolicitacaoModel> NfeRetornoSolicitacao { get; set; }
+        public DbSet<NfeFaturamentoComposicaoModel> NfeFaturamentoComposicao { get; set; }
+        public DbSet<NfeWsErrosModel> NfeWsErros { get; set; }
         public DbSet<FaturamentoComposicaoNotaFiscalModel> FaturamentoComposicaoNotaFiscal { get; set; }
 
         public DbSet<FaturamentoCondicaoPagamentoModel> FaturamentoCondicaoPagamento { get; set; }
