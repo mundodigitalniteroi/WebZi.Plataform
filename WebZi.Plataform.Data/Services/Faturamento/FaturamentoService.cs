@@ -1912,7 +1912,6 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 .Select(tdn => new
                 {
                     Nfe = tdn,
-
                     Composicoes = tdn.NfeFaturamentoComposicao
                         .Select(nfc => new
                         {
@@ -2024,7 +2023,26 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 {
                     var nfe = item.Nfe;
 
-                    if (item.Composicoes != null && item.Composicoes.Any())
+                    if (nfe.Status == "E")
+                    {
+                        var nfDto = _mapper.Map<NFERetornoFaturamentoDTO>(nfe);
+
+                        if (erroPorIdentificadorNota.TryGetValue(nfe.IdentificadorNota, out var erro))
+                        {
+                            nfDto.StatusErro = erro.Status;
+                            nfDto.MensagemErro = erro.MensagemErro;
+                            nfDto.CorrecaoErro = erro.CorrecaoErro;
+                        }
+
+                        if (item.Composicoes != null && item.Composicoes.Any())
+                        {
+                            nfDto.Valor = item.Composicoes.Sum(x => x.Valor);
+                            nfDto.Servico = item.Composicoes.Count > 1 ? "Vários" : item.Composicoes.FirstOrDefault()?.Servico;
+                        }
+
+                        notasDto.Add(nfDto);
+                    }
+                    else if (item.Composicoes != null && item.Composicoes.Any())
                     {
                         foreach (var composicao in item.Composicoes)
                         {
@@ -2033,30 +2051,12 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                             nfDto.Valor = composicao.Valor;
                             nfDto.Servico = composicao.Servico;
 
-                            if (nfe.Status == "E" &&
-                                erroPorIdentificadorNota.TryGetValue(nfe.IdentificadorNota, out var erro))
-                            {
-                                nfDto.StatusErro = erro.Status;
-                                nfDto.MensagemErro = erro.MensagemErro;
-                                nfDto.CorrecaoErro = erro.CorrecaoErro;
-                            }
-
                             notasDto.Add(nfDto);
                         }
                     }
                     else
                     {
-                        var nfDto = _mapper.Map<NFERetornoFaturamentoDTO>(nfe);
-
-                        if (nfe.Status == "E" &&
-                            erroPorIdentificadorNota.TryGetValue(nfe.IdentificadorNota, out var erro))
-                        {
-                            nfDto.StatusErro = erro.Status;
-                            nfDto.MensagemErro = erro.MensagemErro;
-                            nfDto.CorrecaoErro = erro.CorrecaoErro;
-                        }
-
-                        notasDto.Add(nfDto);
+                        notasDto.Add(_mapper.Map<NFERetornoFaturamentoDTO>(nfe));
                     }
                 }
 

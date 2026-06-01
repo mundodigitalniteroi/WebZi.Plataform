@@ -3,12 +3,14 @@
     public class NFERetornoFaturamentoDTO
     {
         public int NfeId { get; set; }
+        public int identificadorNota { get; set; }
         public string NumeroNotaFiscal { get; set; }
         public string StatusId { get; set; }
         public string Status { get; set; }
         public string? StatusNfe { get; set; }
         public string? Url { get; set; }
         public DateTime? DataEmissao { get; set; }
+        public int identificadorServico { get; set; }
         public string? Servico { get; set; }
         public decimal? Valor { get; set; }
         public string? StatusErro { get; set; }

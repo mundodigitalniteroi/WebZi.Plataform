@@ -192,6 +192,7 @@ namespace WebZi.Plataform.Data.Services
 
             CreateMap<NfeModel, NFERetornoFaturamentoDTO>()
                 .ForMember(dest => dest.NfeId, from => from.MapFrom(src => src.NfeId))
+                .ForMember(dest => dest.identificadorNota, from => from.MapFrom(src => src.IdentificadorNota))
                 .ForMember(dest => dest.NumeroNotaFiscal, from => from.MapFrom(src => src.NumeroNotaFiscal))
                 .ForMember(dest => dest.StatusId, from => from.MapFrom(src => src.Status))
                 .ForMember(dest => dest.Status, from => from.MapFrom(src =>
