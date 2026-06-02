@@ -56,6 +56,7 @@ namespace WebZi.Plataform.Domain.Models.Usuario
         public byte? TipoOperadorId { get; set; }
 
         public int? FuncionarioId { get; set; }
+        public int? NumeroFormularioGrvSequencia { get; set; }
 
         public virtual PessoaModel Pessoa { get; set; }
 

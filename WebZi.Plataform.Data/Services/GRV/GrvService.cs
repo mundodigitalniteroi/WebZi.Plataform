@@ -873,10 +873,11 @@ namespace WebZi.Plataform.Domain.Services.GRV
         private (string numeroProcesso, MensagemDTO Mensagem) CreateNumeroProcesso(int ClienteId, string NumeroProcesso)
         {
             const int maxLength = 14;
-
+            
             if (!string.IsNullOrWhiteSpace(NumeroProcesso))
             {
-                string numero = NumeroProcesso.Trim();
+                string numero = NumeroProcesso.Trim().Replace("-", "");
+
                 if (numero.Length > maxLength)
                     return (null, MensagemViewHelper.SetBadRequest(MensagemPadraoEnum.NumeroProcessoInvalido));
                 if (!NumberHelper.IsNumber(numero) || Convert.ToInt64(numero) <= 0)
@@ -885,6 +886,18 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 bool exists = _context.Grv.Any(x => x.NumeroFormularioGrv == numero);
                 if (exists)
                     return (null, MensagemViewHelper.SetBadRequest("Número do processo já utilizado anteriormente."));
+                var partes = NumeroProcesso.Trim().Split('-');
+
+                if (partes.Length == 3 && int.TryParse(partes[1], out int idUsuario))
+                {
+                    var user = _context.Usuario.AsTracking()
+                        .FirstOrDefault(x => x.UsuarioId == idUsuario);
+
+                    if (user is null)
+                        return (null, MensagemViewHelper.SetNotFound("Este usuario não existe."));
+
+                    user.NumeroFormularioGrvSequencia += 1;
+                }
 
                 return (numero, null);
             }
