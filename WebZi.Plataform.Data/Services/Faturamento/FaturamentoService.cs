@@ -25,6 +25,7 @@ using WebZi.Plataform.Domain.DTO.Faturamento.Simulacao;
 using WebZi.Plataform.Domain.DTO.Generic;
 using WebZi.Plataform.Domain.DTO.Liberacao;
 using WebZi.Plataform.Domain.DTO.Sistema;
+using WebZi.Plataform.Domain.DTO.Veiculo;
 using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Atendimento;
 using WebZi.Plataform.Domain.Models.Banco;
@@ -1288,6 +1289,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 Grv = await _context.Grv
                     .Include(x => x.FaturamentoProduto)
                     .Include(x => x.TipoVeiculo)
+                    .Include(x => x.MarcaModelo)
+                    .Include(x => x.Cor)
                     .Include(x => x.Atendimento)
                     .Include(x => x.StatusOperacao)
                     .AsNoTracking()
@@ -1299,6 +1302,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 Grv = await _context.Grv
                     .Include(x => x.FaturamentoProduto)
                     .Include(x => x.TipoVeiculo)
+                    .Include(x => x.MarcaModelo)
+                    .Include(x => x.Cor)
                     .Include(x => x.Atendimento)
                     .Include(x => x.StatusOperacao)
                     .AsNoTracking()
@@ -1337,28 +1342,37 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             ResultView.Mensagem = await new ClienteDepositoService(_context)
                 .ValidateClienteDepositoAsync(model.IdentificadorCliente, model.IdentificadorDeposito);
 
-            DetranRioService DetranRioService = new(_context, _mapper);
-
-            if (!Grv.Placa.IsNullOrWhiteSpace() || !Grv.Chassi.IsNullOrWhiteSpace())
+            ResultView.Veiculo = new()
             {
-                ResultView.Veiculo = Grv.Placa.IsPlaca() ? await DetranRioService.GetViewByPlacaAsync(Grv.Placa) : await DetranRioService.GetViewByChassiAsync(Grv.Chassi);
+                Placa = Grv.Placa,
+                Chassi = Grv.Chassi,               
+                TipoVeiculo = Grv.TipoVeiculo != null ? _mapper.Map<TipoVeiculoDTO>(Grv.TipoVeiculo) : null,
+                MarcaModelo = Grv.MarcaModelo != null ? _mapper.Map<MarcaModeloDTO>(Grv.MarcaModelo) : null,
+                Cor = Grv.Cor != null ? _mapper.Map<CorDTO>(Grv.Cor) : null
+            };
 
-                if (ResultView.Veiculo.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
-                {
-                    // ResultView.Mensagem = MensagemViewHelper.SetNewMessages(ResultView.Mensagem, ResultView.Veiculo.Mensagem);
-                }
-                else if (ResultView.Veiculo.TipoVeiculo == null)
-                {
-                    ResultView.Mensagem = MensagemViewHelper.SetNewMessage(ResultView.Mensagem, "Tipo do Veículo não retornado pelo Serviço do Departamento Estadual de Trânsito", MensagemTipoAvisoEnum.Alerta);
-                }
-            }
+            //DetranRioService DetranRioService = new(_context, _mapper);
 
-            if (ResultView.Mensagem.AvisosImpeditivos.Count + ResultView.Mensagem.Erros.Count > 0)
-            {
-                ResultView.Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.BadRequest;
+            //if (!Grv.Placa.IsNullOrWhiteSpace() || !Grv.Chassi.IsNullOrWhiteSpace())
+            //{
+            //    ResultView.Veiculo = Grv.Placa.IsPlaca() ? await DetranRioService.GetViewByPlacaAsync(Grv.Placa) : await DetranRioService.GetViewByChassiAsync(Grv.Chassi);
 
-                return ResultView;
-            }
+            //    if (ResultView.Veiculo.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+            //    {
+            //        // ResultView.Mensagem = MensagemViewHelper.SetNewMessages(ResultView.Mensagem, ResultView.Veiculo.Mensagem);
+            //    }
+            //    else if (ResultView.Veiculo.TipoVeiculo == null)
+            //    {
+            //        ResultView.Mensagem = MensagemViewHelper.SetNewMessage(ResultView.Mensagem, "Tipo do Veículo não retornado pelo Serviço do Departamento Estadual de Trânsito", MensagemTipoAvisoEnum.Alerta);
+            //    }
+            //}
+
+            //if (ResultView.Mensagem.AvisosImpeditivos.Count + ResultView.Mensagem.Erros.Count > 0)
+            //{
+            //    ResultView.Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.BadRequest;
+
+            //    return ResultView;
+            //}
             #endregion Validações das Consultas
 
             #region Aplicação das Configurações
@@ -1470,6 +1484,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             return ResultView;
         }
+
 
         public async Task<MensagemDTO> UpdateFormaPagamentoAsync(int FaturamentoId, byte TipoMeioCobrancaId, int UsuarioId)
         {

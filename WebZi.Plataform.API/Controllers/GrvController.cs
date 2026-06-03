@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
 using System.ComponentModel.DataAnnotations;
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Helper;
@@ -16,7 +15,6 @@ using WebZi.Plataform.Domain.ViewModel.GRV.Pesquisa;
 namespace WebZi.Plataform.API.Controllers
 {
     [Route("api/[controller]")]
-    [Authorize]
     [ApiController]
     public class GrvController : ControllerBase
     {

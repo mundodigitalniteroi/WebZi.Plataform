@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Pessoa;
 using WebZi.Plataform.Domain.DTO.Pessoa;
@@ -7,7 +6,6 @@ using WebZi.Plataform.Domain.DTO.Pessoa;
 namespace WebZi.Plataform.API.Controllers
 {
     [Route("api/[controller]")]
-    [Authorize]
     [ApiController]
     public class PessoaController : ControllerBase
     {

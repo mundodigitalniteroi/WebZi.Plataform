@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Domain.DTO.Usuario;
@@ -8,7 +7,6 @@ using WebZi.Plataform.Domain.ViewModel.Usuario;
 namespace WebZi.Plataform.API.Controllers
 {
     [Route("api/[controller]")]
-    [Authorize]
     [ApiController]
     public class UsuarioController : ControllerBase
     {
@@ -76,7 +74,6 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpPost("Login")]
-        [AllowAnonymous]
         [IgnoreAntiforgeryToken]
         public async Task<ActionResult<UsuarioDTO>> Login([FromBody] UsuarioLoginParameters Login)
         {
