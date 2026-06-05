@@ -1345,7 +1345,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             ResultView.Veiculo = new()
             {
                 Placa = Grv.Placa,
-                Chassi = Grv.Chassi,               
+                Chassi = Grv.Chassi,   
+                Renavam = Grv.Renavam,
                 TipoVeiculo = Grv.TipoVeiculo != null ? _mapper.Map<TipoVeiculoDTO>(Grv.TipoVeiculo) : null,
                 MarcaModelo = Grv.MarcaModelo != null ? _mapper.Map<MarcaModeloDTO>(Grv.MarcaModelo) : null,
                 Cor = Grv.Cor != null ? _mapper.Map<CorDTO>(Grv.Cor) : null
