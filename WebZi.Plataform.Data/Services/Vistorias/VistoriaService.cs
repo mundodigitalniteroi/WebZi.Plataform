@@ -73,7 +73,7 @@ namespace WebZi.Plataform.Data.Services.Vistorias
                     (identificadorEmpresaVistoria == 0 || x.EmpresaVistoriaId == identificadorEmpresaVistoria) &&
                     (numeroProcesso == null || x.Grv.NumeroFormularioGrv == numeroProcesso)
                 );
-            if (result == null)
+            if (result == null || result.VistoriaStatus == null)
             {
                 ResultView.Mensagem = MensagemViewHelper.SetNotFound();
 
@@ -85,7 +85,7 @@ namespace WebZi.Plataform.Data.Services.Vistorias
                 .FirstOrDefaultAsync(x =>
                     x.TabelaOrigemId == result.VistoriaId &&
                     x.NomeTabelaOrigemId == 19);
-            
+
             ResultView = _mapper.Map<SelecionarVistoriaPreLeilaoDTO>(result);
 
             ResultView.Url = url?.Url;
