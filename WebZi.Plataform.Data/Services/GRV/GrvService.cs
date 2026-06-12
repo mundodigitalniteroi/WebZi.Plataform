@@ -177,19 +177,24 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 .AsTracking()
                 .FirstOrDefaultAsync(x => x.GrvId == GrvPersistencia.IdentificadorGrv);
 
+            var possuiPermissaoEdicao = await _context.PerfilAcessoUsuario
+                .AnyAsync(x => x.UsuarioId == GrvPersistencia.IdentificadorUsuario
+                               // && x.PerfilAcessoId == 81
+                               && x.PerfilAcessoId == 79 // AMBIENTE DE HOMOLOG
+                               && _context.SistemaPerfilAcessoSubModulos
+                                   .Any(s => s.IdPerfilAcesso == 79 && s.IdSubModulo == 163)); // AMBIENTE DE HOMOLOG 
+                                   // .Any(s => s.IdPerfilAcesso == 81 && s.IdSubModulo == 164));
+
+            if (!possuiPermissaoEdicao)
+                return MensagemViewHelper.SetBadRequest(
+                    "O usuário não possui permissão para edição do GRV.");
+
             #endregion Consulta
 
             if (grv == null)
             {
                 ResultView = MensagemViewHelper.SetBadRequest("Grv não existe");
                 return ResultView;
-            }
-
-            if (!new[] { "1", "G", "L", "T", "V" }.Contains(grv.StatusOperacaoId))
-            {
-                return MensagemViewHelper.SetBadRequest(
-                    $"O Status atual deste Processo não permite o atualização do Grv. " +
-                    $"Descrição do Status atual: {grv.StatusOperacao.Descricao.ToUpper()}");
             }
 
             grv.ClienteId = GrvPersistencia.IdentificadorCliente;
@@ -837,6 +842,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                     .SendFiles(BucketNomeTabelaOrigemEnum.FotoVeiculoGRV, Grv.GrvId, Grv.UsuarioCadastroId,
                         GrvPersistencia.ListagemFoto);
             }
+
             if (GrvPersistencia.DRFA?.ArquivoDoRegistroDoRouboFurto is not null)
             {
                 new BucketService(_context, _httpClientFactory)
@@ -873,7 +879,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
         private (string numeroProcesso, MensagemDTO Mensagem) CreateNumeroProcesso(int ClienteId, string NumeroProcesso)
         {
             const int maxLength = 14;
-            
+
             if (!string.IsNullOrWhiteSpace(NumeroProcesso))
             {
                 string numero = NumeroProcesso.Trim().Replace("-", "");
