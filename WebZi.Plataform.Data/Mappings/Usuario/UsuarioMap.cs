@@ -128,7 +128,9 @@ namespace WebZi.Plataform.Data.Mappings.Usuario
                 .HasMaxLength(32)
                 .IsUnicode(false)
                 .HasColumnName("senha_android");
-
+            builder.Property(x => x.NumeroFormularioGrvSequencia)
+                .IsUnicode(false)
+                .HasColumnName("numero_formulario_grv_sequencia");
             builder
                 .HasMany(x => x.ListagemUsuarioClienteDeposito)
                 .WithOne(x => x.Usuario)

@@ -73,7 +73,7 @@ namespace WebZi.Plataform.Data.Services.Vistorias
                     (identificadorEmpresaVistoria == 0 || x.EmpresaVistoriaId == identificadorEmpresaVistoria) &&
                     (numeroProcesso == null || x.Grv.NumeroFormularioGrv == numeroProcesso)
                 );
-            if (result == null && result.VistoriaStatusId == null)
+            if (result == null || result.VistoriaStatus == null)
             {
                 ResultView.Mensagem = MensagemViewHelper.SetNotFound();
 

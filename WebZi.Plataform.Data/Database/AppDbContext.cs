@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using System.Reflection;
 using WebZi.Plataform.CrossCutting.Configuration;
 using WebZi.Plataform.Data.Mappings.Nfe;
+using WebZi.Plataform.Data.Mappings.Usuario;
 using WebZi.Plataform.Domain.Models.Atendimento;
 using WebZi.Plataform.Domain.Models.Banco;
 using WebZi.Plataform.Domain.Models.Banco.PIX.Dinamico.Persistencia;
@@ -43,9 +44,13 @@ namespace WebZi.Plataform.Data.Database
 {
     public partial class AppDbContext : DbContext
     {
-        public AppDbContext() { }
+        public AppDbContext()
+        {
+        }
 
-        public AppDbContext(DbContextOptions<DbContext> options) : base(options) { }
+        public AppDbContext(DbContextOptions<DbContext> options) : base(options)
+        {
+        }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -68,7 +73,8 @@ namespace WebZi.Plataform.Data.Database
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder
-                .UseSqlServer(AppSettingsHelper.GetConnectionString("DefaultConnection"), providerOptions => providerOptions.CommandTimeout(120))
+                .UseSqlServer(AppSettingsHelper.GetConnectionString("DefaultConnection"),
+                    providerOptions => providerOptions.CommandTimeout(120))
                 .LogTo(Console.WriteLine, LogLevel.Information) // Exibe as queries executadas no BD pelo EF
                 .EnableSensitiveDataLogging(); // Configura o EF para exibir os dados sensíveis
         }
@@ -101,11 +107,13 @@ namespace WebZi.Plataform.Data.Database
         {
             Database.ExecuteSqlRaw($"EXECUTE dbo.sp_set_contextinfo {UsuarioId}");
         }
+
         #region DbSets public DbSet<Model> Name { get; set; }
 
         public DbSet<GenericIntModel> GenericInt { get; set; }
 
         #region Banco
+
         public DbSet<AgenciaBancariaModel> AgenciaBancaria { get; set; }
 
         public DbSet<BancoModel> Banco { get; set; }
@@ -126,9 +134,11 @@ namespace WebZi.Plataform.Data.Database
         public DbSet<PixDinamicoTipoStatusGeracaoModel> PixDinamicoTipoStatusGeracao { get; set; }
 
         public DbSet<PixDinamicoUrlModel> PixDinamicoUrl { get; set; }
+
         #endregion Banco
 
         #region Depósito Público
+
         public DbSet<AtendimentoModel> Atendimento { get; set; }
         public DbSet<AtendimentoSaidaParaReparoModel> SaidaReparo { get; set; }
 
@@ -158,7 +168,11 @@ namespace WebZi.Plataform.Data.Database
 
         public DbSet<CondutorEquipamentoOpcionalModel> CondutorEquipamentoOpcional { get; set; }
 
-        public DbSet<CondutorEquipamentoOpcionalNaoConformidadeModel> CondutorEquipamentoOpcionalNaoConformidade { get; set; }
+        public DbSet<CondutorEquipamentoOpcionalNaoConformidadeModel> CondutorEquipamentoOpcionalNaoConformidade
+        {
+            get;
+            set;
+        }
 
         public DbSet<ConfiguracaoModel> Configuracao { get; set; }
 
@@ -203,7 +217,10 @@ namespace WebZi.Plataform.Data.Database
         public DbSet<TipoVeiculoModel> TipoVeiculo { get; set; }
 
         public DbSet<UsuarioModel> Usuario { get; set; }
-        public DbSet<SistemaPerfilAcessoModel> PerfilAcesso{ get; set; }
+        public DbSet<SistemaPerfilAcessoModel> PerfilAcesso { get; set; }
+        public DbSet<SistemaModulosModel> SistemaModulos { get; set; }
+        public DbSet<SistemaSubModulosModel> SistemaSubModulos { get; set; }
+        public DbSet<SistemaPerfilAcessoSubModulosModel> SistemaPerfilAcessoSubModulos { get; set; }
         public DbSet<SistemaPerfilAcessoUsuariosModel> PerfilAcessoUsuario { get; set; }
         public DbSet<TiposContatosModel> TipoContatos { get; set; }
         public DbSet<TiposContatoPessoaModel> TipoPessoaContatos { get; set; }
@@ -225,6 +242,7 @@ namespace WebZi.Plataform.Data.Database
         #endregion Depósito Público
 
         #region Endereço
+
         public DbSet<BairroModel> Bairro { get; set; }
 
         public DbSet<CEPModel> CEP { get; set; }
@@ -244,9 +262,11 @@ namespace WebZi.Plataform.Data.Database
         public DbSet<TipoLogradouroModel> TipoLogradouro { get; set; }
 
         public DbSet<UTCModel> UTC { get; set; }
+
         #endregion Endereço
 
         #region Faturamento
+
         public DbSet<FaturamentoModel> Faturamento { get; set; }
 
         public DbSet<BoletoModel> FaturamentoBoleto { get; set; }
@@ -281,17 +301,21 @@ namespace WebZi.Plataform.Data.Database
         public DbSet<FaturamentoServicoTipoVeiculoModel> FaturamentoServicoTipoVeiculo { get; set; }
 
         public DbSet<FaturamentoTipoComposicaoModel> FaturamentoTipoComposicao { get; set; }
+
         #endregion Faturamento
 
         #region Global
+
         public DbSet<CorModel> Cor { get; set; }
 
         public DbSet<EmpresaClassificacaoModel> EmpresaClassificacao { get; set; }
 
         public DbSet<EmpresaModel> Empresa { get; set; }
+
         #endregion Global
 
         #region Governo
+
         public DbSet<AssociacaoCnaeListaServicoModel> AssociacaoCnaeListaServico { get; set; }
 
         public DbSet<CnaeModel> Cnae { get; set; }
@@ -303,6 +327,7 @@ namespace WebZi.Plataform.Data.Database
         #endregion Governo
 
         #region Leilão
+
         public DbSet<LeilaoModel> Leilao { get; set; }
 
         public DbSet<LeilaoLoteModel> LeilaoLote { get; set; }
@@ -312,9 +337,11 @@ namespace WebZi.Plataform.Data.Database
         public DbSet<LeilaoStatusModel> LeilaoStatus { get; set; }
 
         public DbSet<LiberacaoLeilaoModel> LiberacaoLeilao { get; set; }
+
         #endregion
 
         #region Liberação
+
         public DbSet<CobrancaLegalModel> CobrancaLegal { get; set; }
 
         public DbSet<LiberacaoModel> Liberacao { get; set; }
@@ -323,25 +350,31 @@ namespace WebZi.Plataform.Data.Database
         public DbSet<TipoCobrancaLegalModel> TipoCobrancaLegal { get; set; }
 
         public DbSet<TipoLiberacaoModel> TipoLiberacao { get; set; }
+
         #endregion Liberação
 
         #region Pessoa
+
         public DbSet<OrgaoEmissorModel> OrgaoEmissor { get; set; }
 
         public DbSet<PessoaModel> Pessoa { get; set; }
 
         public DbSet<TipoDocumentoIdentificacaoModel> TipoDocumentoIdentificacao { get; set; }
+
         #endregion Pessoa
 
         #region Vistoria
+
         public DbSet<VistoriaModel> Vistoria { get; set; }
 
         public DbSet<VistoriaSituacaoChassiModel> VistoriaSituacaoChassi { get; set; }
 
         public DbSet<VistoriaStatusModel> VistoriaStatus { get; set; }
+
         #endregion Vistoria
 
         #region Views
+
         public DbSet<ViewFaturamentoBoletoModel> ViewFaturamentoBoleto { get; set; }
 
         public DbSet<ViewFaturamentoServicoAssociadoVeiculoModel> ViewFaturamentoServicoAssociadoVeiculo { get; set; }
@@ -361,14 +394,17 @@ namespace WebZi.Plataform.Data.Database
         public DbSet<ViewUsuarioClienteDepositoModel> ViewUsuarioClienteDeposito { get; set; }
 
         public DbSet<ViewEnderecoCompletoModel> EnderecoCompleto { get; set; }
+
         #endregion Views
 
         #region WS DETRAN RJ
+
         public DbSet<DetranRioVeiculoModel> DetranRioVeiculo { get; set; }
 
         public DbSet<DetranRioVeiculoOrigemRestricaoModel> DetranRioVeiculoOrigemRestricao { get; set; }
 
         public DbSet<DetranRioVeiculoRestricaoModel> DetranRioVeiculoRestricao { get; set; }
+
         #endregion WS DETRAN RJ
 
         #endregion DbSets

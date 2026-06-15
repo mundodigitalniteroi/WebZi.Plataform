@@ -11,6 +11,7 @@ namespace WebZi.Plataform.Domain.DTO.Usuario
         public string Nome { get; set; }
 
         public string Token { get; set; }
+        public int SequencialNumeroFormulario { get; set; }
 
         public string FlagPermissaoDesconto { get; set; }
 
