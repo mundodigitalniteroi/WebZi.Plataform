@@ -13,7 +13,6 @@ using WebZi.Plataform.Domain.DTO.Report;
 namespace WebZi.Plataform.API.Controllers
 {
     [Route("api/[controller]")]
-    [Authorize]
     [ApiController]
     public class BancoController : ControllerBase
     {

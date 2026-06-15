@@ -8,7 +8,6 @@ using WebZi.Plataform.Domain.DTO.Generic;
 namespace WebZi.Plataform.API.Controllers
 {
     [Route("api/[controller]")]
-    [Authorize]
     [ApiController]
     public class ClienteController : ControllerBase
     {

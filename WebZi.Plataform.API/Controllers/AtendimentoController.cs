@@ -11,7 +11,6 @@ using WebZi.Plataform.Domain.ViewModel.Atendimento;
 namespace WebZi.Plataform.API.Controllers
 {
     [Route("api/[controller]")]
-    [Authorize]
     [ApiController]
     public class AtendimentoController : ControllerBase
     {

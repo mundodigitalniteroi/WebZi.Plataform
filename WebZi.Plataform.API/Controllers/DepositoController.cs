@@ -8,7 +8,6 @@ using WebZi.Plataform.Domain.DTO.Sistema;
 namespace WebZi.Plataform.API.Controllers
 {
     [Route("api/[controller]")]
-    [Authorize]
     [ApiController]
     public class DepositoController : ControllerBase
     {

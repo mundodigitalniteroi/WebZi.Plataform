@@ -7,7 +7,6 @@ using WebZi.Plataform.Domain.DTO.WebServices.DetranRio;
 namespace WebZi.Plataform.API.Controllers
 {
     [Route("api/[controller]")]
-    [Authorize]
     [ApiController]
     public class DetranRioController : ControllerBase
     {

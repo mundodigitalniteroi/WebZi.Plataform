@@ -25,7 +25,6 @@ using WebZi.Plataform.Domain.Services.GRV;
 namespace WebZi.Plataform.API.Controllers
 {
     [Route("api/[controller]")]
-    [Authorize]
     [ApiController]
     public class DadosMestresController : ControllerBase
     {

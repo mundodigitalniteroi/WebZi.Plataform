@@ -8,7 +8,6 @@ using WebZi.Plataform.Domain.Models.WebServices.DetranAlagoas.ConsultaVeiculoApr
 namespace WebZi.Plataform.API.Controllers
 {
     [Route("api/[controller]")]
-    [Authorize]
     [ApiController]
     public class DetranAlagoasController : ControllerBase
     {

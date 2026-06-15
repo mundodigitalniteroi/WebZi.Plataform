@@ -7,7 +7,6 @@ using WebZi.Plataform.Domain.DTO.Empresa;
 namespace WebZi.Plataform.API.Controllers
 {
     [Route("api/[controller]")]
-    [Authorize]
     [ApiController]
     public class EmpresaController : ControllerBase
     {
