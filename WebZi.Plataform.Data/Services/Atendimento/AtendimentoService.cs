@@ -735,6 +735,11 @@ namespace WebZi.Plataform.Data.Services.Atendimento
         private async Task<CalculoFaturamentoParametroModel> ConfigParametrosCalculoFaturamentoAsync(GrvModel Grv, int TipoMeioCobrancaId, 
             int UsuarioCadastroId, DateTime DataHoraPorDeposito, List<DescontoParameters> descontoParameters)
         {
+
+            if (descontoParameters == null)
+            {
+                descontoParameters = new List<DescontoParameters>();
+            }
             // Quando no cadastro do Cliente foi configurado o Tipo de Cobrança, este cadastro é o que será usado para o cadastro da Fatura.
             var TipoMeioCobranca = await _context.TipoMeioCobranca
                 .AsNoTracking()
