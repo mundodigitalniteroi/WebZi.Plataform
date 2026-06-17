@@ -21,8 +21,34 @@ public class NfeController : ControllerBase
         _provider = provider;
     }
 
+    [HttpGet("ConsultaNfe")]
+    public async Task<ActionResult<NFERetornoFaturamentoDTOList>> ConsultarNfe(int grvId, int usuarioId)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        NFERetornoFaturamentoDTOList ResultView = new();
+
+        try
+        {
+            ResultView = await _provider
+                .GetService<WSNfseService>()
+                .ConsultarNfeAsync(grvId, usuarioId);
+
+            return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+        }
+        catch (Exception ex)
+        {
+            ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+
+            return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+        }
+    }
+    
     [HttpPost("ReprocessarNota")]
-    public async Task<ActionResult<MensagemDTO>> ReprocessarNota(int grvId, int notaId, int usuarioId)
+    public async Task<ActionResult<MensagemDTO>> ReprocessarNota(int grvId, string notaId, int usuarioId)
     {
         if (!ModelState.IsValid)
         {

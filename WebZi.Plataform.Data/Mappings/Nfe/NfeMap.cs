@@ -24,14 +24,21 @@ namespace WebZi.Plataform.Data.Mappings.Nfe
                 .IsRequired()
                 .HasMaxLength(14)
                 .IsUnicode(false);
-
+            builder.Property(x => x.FaturamentoServicoTipoVeiculoId);
+            
             builder.Property(e => e.CodigoVerificacao)
                 .HasMaxLength(100)
                 .IsUnicode(false);
-
+            builder.Property(e => e.CodigoRetorno);
             builder.Property(e => e.DataAlteracao)
                 .HasColumnType("smalldatetime");
-
+            builder.Property(e => e.IdentificadorNota)
+                .HasMaxLength(20)
+                .IsRequired();
+            builder.Property(x => x.NfeComplementarId);
+            builder.Property(x => x.UsuarioCadastroId)
+                .IsRequired();
+            
             builder.Property(e => e.DataCadastro)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("smalldatetime");
@@ -89,10 +96,11 @@ namespace WebZi.Plataform.Data.Mappings.Nfe
             //    .OnDelete(DeleteBehavior.NoAction)
             //    .HasConstraintName("FK_tb_dep_nfe4");
 
-            //builder.HasOne(d => d.UsuarioCadastro).WithMany(p => p.TbDepNves)
-            //    .HasForeignKey(d => d.UsuarioCadastroId)
-            //    .OnDelete(DeleteBehavior.NoAction)
-            //    .HasConstraintName("FK_tb_dep_nfe3");
+            builder.HasOne(d => d.UsuarioCadastro)
+                .WithMany()
+                .HasForeignKey(d => d.UsuarioCadastroId)
+                .OnDelete(DeleteBehavior.NoAction)
+                .HasConstraintName("FK_tb_dep_nfe3");
         }
     }
 }

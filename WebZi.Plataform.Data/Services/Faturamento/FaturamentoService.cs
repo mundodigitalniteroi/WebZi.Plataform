@@ -1365,7 +1365,11 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             #region Validações dos parâmetros
 
             List<string> erros = new();
-
+            var podeEmitirNota = await _context.FaturamentoRegra
+                .AnyAsync(x =>
+                    x.ClienteId == Grv.ClienteId && x.DepositoId == Grv.DepositoId &&
+                    x.FaturamentoRegraTipoId == 11);
+            
             if (model.IdentificadorProcesso <= 0 && model.Placa.IsNullOrWhiteSpace() &&
                 model.Chassi.IsNullOrWhiteSpace())
             {
@@ -1591,7 +1595,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
                 Endereco = Endereco.FormatarEndereco(ParametrosCalculoFaturamento.ClienteDeposito.Cliente.Endereco,
                     ParametrosCalculoFaturamento.ClienteDeposito.Cliente.NumeroEndereco,
-                    ParametrosCalculoFaturamento.ClienteDeposito.Cliente.ComplementoEndereco)
+                    ParametrosCalculoFaturamento.ClienteDeposito.Cliente.ComplementoEndereco),
+                EmitirNota = podeEmitirNota ? true : false
             };
 
             ResultView.Deposito = new()
@@ -1938,6 +1943,11 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 .AsNoTracking()
                 .FirstOrDefault(x => x.IdFaturamento == identificadorFaturamento);
 
+            var podeEmitirNota = await _context.FaturamentoRegra
+                .AnyAsync(x =>
+                    x.ClienteId == Faturamento.Atendimento.Grv.ClienteId && x.DepositoId == Faturamento.Atendimento.Grv.DepositoId &&
+                    x.FaturamentoRegraTipoId == 11);
+            
             #endregion Consultas
 
             ResultView.Faturamento = _mapper.Map<SimulacaoFaturamentoDTO>(Faturamento);
@@ -1998,14 +2008,13 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     .ToList();
 
                 var erroPorIdentificadorNota = new Dictionary<int, NfeWsErrosModel>();
-
                 if (nfeIdentificadoresComErro.Count > 0)
                 {
                     var errosNfe = await _context.NfeWsErros
                         .Where(x =>
                             x.GrvId == Faturamento.Atendimento.GrvId &&
-                            x.IdentificadorNota.HasValue &&
-                            nfeIdentificadoresComErro.Contains(x.IdentificadorNota.Value))
+                            x.IdentificadorNota != null &&
+                            nfeIdentificadoresComErro.Contains(x.IdentificadorNota.ToString()))
                         .AsNoTracking()
                         .ToListAsync();
 
@@ -2027,7 +2036,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     {
                         var nfDto = _mapper.Map<NFERetornoFaturamentoDTO>(nfe);
 
-                        if (erroPorIdentificadorNota.TryGetValue(nfe.IdentificadorNota, out var erro))
+                        if (int.TryParse(nfe.IdentificadorNota, out var identificadorNota) &&
+                            erroPorIdentificadorNota.TryGetValue(identificadorNota, out var erro))
                         {
                             nfDto.StatusErro = erro.Status;
                             nfDto.MensagemErro = erro.MensagemErro;
@@ -2076,7 +2086,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
                 Endereco = Endereco.FormatarEndereco(Faturamento.Atendimento.Grv.Cliente.Endereco,
                     Faturamento.Atendimento.Grv.Cliente.NumeroEndereco,
-                    Faturamento.Atendimento.Grv.Cliente.ComplementoEndereco)
+                    Faturamento.Atendimento.Grv.Cliente.ComplementoEndereco),
+                EmitirNota = podeEmitirNota ? true : false
             };
 
             ResultView.Deposito = new()

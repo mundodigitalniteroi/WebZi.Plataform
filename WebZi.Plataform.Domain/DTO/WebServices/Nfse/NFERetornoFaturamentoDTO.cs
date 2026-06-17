@@ -1,9 +1,11 @@
-﻿namespace WebZi.Plataform.Domain.DTO.WebServices.Nfse
+﻿using WebZi.Plataform.Domain.DTO.Sistema;
+
+namespace WebZi.Plataform.Domain.DTO.WebServices.Nfse
 {
     public class NFERetornoFaturamentoDTO
     {
         public int NfeId { get; set; }
-        public int identificadorNota { get; set; }
+        public string identificadorNota { get; set; }
         public string NumeroNotaFiscal { get; set; }
         public string StatusId { get; set; }
         public string Status { get; set; }

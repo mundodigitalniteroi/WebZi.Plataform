@@ -9,7 +9,7 @@ namespace WebZi.Plataform.Domain.DTO.WebServices.Nfse
 
         public int? FaturamentoServicoTipoVeiculoId { get; set; }
 
-        public int IdentificadorNota { get; set; }
+        public string IdentificadorNota { get; set; }
 
         public int? NfeComplementarId { get; set; }
 

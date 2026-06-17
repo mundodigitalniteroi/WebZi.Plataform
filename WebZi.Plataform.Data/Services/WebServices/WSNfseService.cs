@@ -20,6 +20,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
     {
         private readonly AppDbContext _context;
         private readonly IOptions<WSNfseOptions> _options;
+        private readonly IMapper _mapper;
 
         public WSNfseService(AppDbContext context)
         {
@@ -32,7 +33,149 @@ namespace WebZi.Plataform.Data.Services.WebServices
             _options = options;
         }
 
-        public async Task<MensagemDTO> ReprocessNfseAsync(int grvId, int notaId, int usuarioId)
+        public WSNfseService(AppDbContext context, IOptions<WSNfseOptions> options, IMapper mapper)
+        {
+            _context = context;
+            _options = options;
+            _mapper = mapper;
+        }
+
+        public async Task<NFERetornoFaturamentoDTOList> ConsultarNfeAsync(int grvId, int usuarioId)
+        {
+            NFERetornoFaturamentoDTOList ResultView = new();
+            List<string> Erros = new();
+
+
+            ResultView.Mensagem = new GrvService(_context).ValidateInputGrv(grvId, usuarioId);
+
+            if (ResultView.Mensagem.Erros.Count > 0)
+            {
+                return ResultView;
+            }
+
+            #region Consulta
+
+            var notas = await _context.Nfe
+                .Where(x =>
+                    x.GrvId == grvId &&
+                    !_context.Nfe.Any(j =>
+                        j.GrvId == x.GrvId &&
+                        j.NfeComplementarId == x.NfeId))
+                .Select(x => new
+                {
+                    Nfe = x,
+                    Composicoes = x.NfeFaturamentoComposicao
+                        .Select(nfc => new
+                        {
+                            Valor = nfc.FaturamentoComposicao != null
+                                ? nfc.FaturamentoComposicao.ValorComposicao
+                                : 0,
+
+                            Servico = nfc.FaturamentoComposicao != null &&
+                                      nfc.FaturamentoComposicao.FaturamentoServicoTipoVeiculo != null &&
+                                      nfc.FaturamentoComposicao.FaturamentoServicoTipoVeiculo
+                                          .FaturamentoServicoAssociado != null
+                                ? nfc.FaturamentoComposicao
+                                    .FaturamentoServicoTipoVeiculo
+                                    .FaturamentoServicoAssociado
+                                    .Descricao
+                                : null
+                        })
+                        .ToList()
+                })
+                .AsNoTracking()
+                .ToListAsync();
+
+            #endregion
+
+            if (notas.Count <= 0)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound("Não possui nota");
+                return ResultView;
+            }
+
+            List<NFERetornoFaturamentoDTO> notasDto = new();
+
+            var nfeIdentificadoresComErro = notas
+                .Where(x => x.Nfe.Status == "E")
+                .Select(x => x.Nfe.IdentificadorNota)
+                .Distinct()
+                .ToList();
+
+            var erroPorIdentificadorNota = new Dictionary<int, NfeWsErrosModel>();
+
+            if (nfeIdentificadoresComErro.Count > 0)
+            {
+                var errosNfe = await _context.NfeWsErros
+                    .Where(x =>
+                        x.GrvId == grvId &&
+                        x.IdentificadorNota != null &&
+                        nfeIdentificadoresComErro.Contains(x.IdentificadorNota.ToString()))
+                    .AsNoTracking()
+                    .ToListAsync();
+
+                erroPorIdentificadorNota = errosNfe
+                    .Where(x => x.IdentificadorNota.HasValue)
+                    .GroupBy(x => x.IdentificadorNota.Value)
+                    .ToDictionary(
+                        g => g.Key,
+                        g => g
+                            .OrderByDescending(x => x.DataHoraCadastro)
+                            .First());
+            }
+
+            foreach (var item in notas)
+            {
+                var nfe = item.Nfe;
+
+                if (nfe.Status == "E")
+                {
+                    var nfDto = _mapper.Map<NFERetornoFaturamentoDTO>(nfe);
+
+                    if (int.TryParse(nfe.IdentificadorNota, out var identificadorNota) &&
+                        erroPorIdentificadorNota.TryGetValue(identificadorNota, out var erro))
+                    {
+                        nfDto.StatusErro = erro.Status;
+                        nfDto.MensagemErro = erro.MensagemErro;
+                        nfDto.CorrecaoErro = erro.CorrecaoErro;
+                    }
+
+                    if (item.Composicoes != null && item.Composicoes.Any())
+                    {
+                        nfDto.Valor = item.Composicoes.Sum(x => x.Valor);
+                        nfDto.Servico = item.Composicoes.Count > 1
+                            ? "Vários"
+                            : item.Composicoes.FirstOrDefault()?.Servico;
+                    }
+
+                    notasDto.Add(nfDto);
+                }
+                else if (item.Composicoes != null && item.Composicoes.Any())
+                {
+                    foreach (var composicao in item.Composicoes)
+                    {
+                        var nfDto = _mapper.Map<NFERetornoFaturamentoDTO>(nfe);
+
+                        nfDto.Valor = composicao.Valor;
+                        nfDto.Servico = composicao.Servico;
+
+                        notasDto.Add(nfDto);
+                    }
+                }
+                else
+                {
+                    notasDto.Add(_mapper.Map<NFERetornoFaturamentoDTO>(nfe));
+                }
+            }
+
+            ResultView.Listagem = notasDto;
+
+            ResultView.Mensagem = MensagemViewHelper.SetFound(ResultView.Listagem.Count);
+
+            return ResultView;
+        }
+
+        public async Task<MensagemDTO> ReprocessNfseAsync(int grvId, string notaId, int usuarioId)
         {
             MensagemDTO ResultView = new GrvService(_context).ValidateInputGrv(grvId, usuarioId);
 
@@ -50,15 +193,18 @@ namespace WebZi.Plataform.Data.Services.WebServices
                 return ResultView;
             }
 
-            var result = await ReprocessNfseFromWSAsync(grvId, notaId.ToString(), usuarioId);
-            if (result.Mensagem.Erros.Count > 0 || result.Mensagem.AvisosImpeditivos.Count > 0)
+            if (_options.Value.Enable)
             {
-                ResultView = MensagemViewHelper.SetBadRequest(
-                    result.Mensagem.Erros.Count > 0
-                        ? string.Join(" | ", result.Mensagem.Erros)
-                        : string.Join(" | ", result.Mensagem.AvisosImpeditivos)
-                );
-                return ResultView;
+                var result = await ReprocessNfseFromWSAsync(grvId, notaId, usuarioId);
+                if (result.Mensagem.Erros.Count > 0 || result.Mensagem.AvisosImpeditivos.Count > 0)
+                {
+                    ResultView = MensagemViewHelper.SetBadRequest(
+                        result.Mensagem.Erros.Count > 0
+                            ? string.Join(" | ", result.Mensagem.Erros)
+                            : string.Join(" | ", result.Mensagem.AvisosImpeditivos)
+                    );
+                    return ResultView;
+                }
             }
 
             return MensagemViewHelper.SetCreateSuccess("Nota Fiscal Emitida");
@@ -72,14 +218,19 @@ namespace WebZi.Plataform.Data.Services.WebServices
 
             var grv = await _context.Grv
                 .AsNoTracking()
-                .AnyAsync(x => x.GrvId == grvId);
+                .FirstOrDefaultAsync(x => x.GrvId == grvId);
             NfeModel nfeDB = await _context.Nfe
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.GrvId == grvId);
 
+            var permitirEmissao = await _context.FaturamentoRegra
+                .AnyAsync(x =>
+                    x.ClienteId == grv.ClienteId && x.DepositoId == grv.DepositoId &&
+                    x.FaturamentoRegraTipoId == 11);
+            
             #endregion
 
-            if (!grv)
+            if (grv is null)
             {
                 ResultView = MensagemViewHelper.SetNotFound("Não foi encontrado este grv");
                 return ResultView;
@@ -91,6 +242,19 @@ namespace WebZi.Plataform.Data.Services.WebServices
                 return ResultView;
             }
 
+            if (!_options.Value.Enable)
+            {
+                ResultView = MensagemViewHelper.SetCreateSuccess("Emissão de nota desativada"); 
+                return ResultView;
+            }
+            
+            if (_options.Value.Enable && !permitirEmissao)
+            {
+                ResultView = MensagemViewHelper.SetCreateSuccess("Não possui permissão para emitir nota"); 
+                return ResultView;
+            }
+            
+            
             var result = await CreateNfseFromWSAsync(grvId, usuarioId);
             if (result.Mensagem.Erros.Count > 0 || result.Mensagem.AvisosImpeditivos.Count > 0)
             {
@@ -101,7 +265,6 @@ namespace WebZi.Plataform.Data.Services.WebServices
                 );
                 return ResultView;
             }
-
             return MensagemViewHelper.SetCreateSuccess("Nota Fiscal Emitida");
         }
 
@@ -126,10 +289,10 @@ namespace WebZi.Plataform.Data.Services.WebServices
             List<string> result;
             try
             {
-                var response = await ClientConfig("http://localhost:8655/WSnfse.asmx")
+                // var response = await ClientConfig("http://localhost:8655/WSnfse.asmx")
+                //     .GerarNovaNotaFiscalAsync(grvId, identificadorNota, usuarioId, config.IsDev);
+                var response = await ClientConfig(WebServiceUrl.Url)
                     .GerarNovaNotaFiscalAsync(grvId, identificadorNota, usuarioId, config.IsDev);
-                // var response = await ClientConfig(WebServiceUrl.Url)
-                // .GerarNovaNotaFiscalAsync(grvId, identificadorNota, usuarioId, config.IsDev);
 
                 result = response?.Body?.GerarNovaNotaFiscalResult;
             }
@@ -192,17 +355,17 @@ namespace WebZi.Plataform.Data.Services.WebServices
             WebServiceUrlModel WebServiceUrl = await _context.WebServiceUrl
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.Name == "Wsnfse");
-            var localhost = "http://localhost:8655/WSnfse.asmx";
+            // var localhost = "http://localhost:8655/WSnfse.asmx";
             List<string>? avisos = new List<string>();
             List<string>? erros = new List<string>();
 
             List<string> result;
             try
             {
-                var response = await ClientConfig("http://localhost:8655/WSnfse.asmx")
+                // var response = await ClientConfig("http://localhost:8655/WSnfse.asmx")
+                //     .GerarNotaFiscalAsync(grvId, usuarioId, config.IsDev);
+                var response = await ClientConfig(WebServiceUrl.Url)
                     .GerarNotaFiscalAsync(grvId, usuarioId, config.IsDev);
-                // var response = await ClientConfig(WebServiceUrl.Url)
-                // .GerarNotaFiscalAsync(grvId, usuarioId, config.IsDev);
 
                 result = response?.Body?.GerarNotaFiscalResult;
             }
@@ -263,7 +426,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
 
             // httpBinding.Security.Mode = BasicHttpSecurityMode.Transport;
             httpBinding.Security.Mode = BasicHttpSecurityMode.None;
-            httpBinding.Security.Transport.ClientCredentialType = HttpClientCredentialType.None;
+            // httpBinding.Security.Transport.ClientCredentialType = HttpClientCredentialType.None;
             WSnfseSoapClient client = new(httpBinding, new(new Uri(WebServiceUrl)));
 
             client.ChannelFactory.CreateChannel();

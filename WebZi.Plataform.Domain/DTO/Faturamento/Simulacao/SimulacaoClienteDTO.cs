@@ -6,5 +6,6 @@
         public string Nome { get; set; }
 
         public string Endereco { get; set; }
+        public bool EmitirNota { get; set; }
     }
 }

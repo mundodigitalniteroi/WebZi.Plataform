@@ -305,8 +305,12 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             #endregion Dados do Proprietário
 
             #region Nota Fiscal
-
-            if (Grv.Cliente.FlagEmissaoNotaFiscal == "S")
+            var permitirEmissao = await _context.FaturamentoRegra
+                .AnyAsync(x =>
+                    x.ClienteId == Grv.ClienteId && x.DepositoId == Grv.DepositoId &&
+                    x.FaturamentoRegraTipoId == 11);
+            
+            if (Grv.Cliente.FlagEmissaoNotaFiscal == "S" && permitirEmissao)
             {
                 #region Receptor da Nota Fiscal
 
@@ -531,6 +535,10 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             DateTime DataHoraPorDeposito = new DepositoService(_context)
                 .GetDataHoraPorDeposito(Grv.DepositoId);
+            var permitirEmissao = await _context.FaturamentoRegra
+                .AnyAsync(x =>
+                    x.ClienteId == Grv.ClienteId && x.DepositoId == Grv.DepositoId &&
+                    x.FaturamentoRegraTipoId == 11);
 
             #endregion Consultas
 
@@ -609,7 +617,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 FormaLiberacaoPlaca = AtendimentoInput.FormaLiberacaoPlaca.Replace("-", "").ToUpperTrim(),
             };
 
-            if (Grv.Cliente.FlagEmissaoNotaFiscal == "S")
+            if (Grv.Cliente.FlagEmissaoNotaFiscal == "S" && permitirEmissao)
             {
                 Atendimento.NotaFiscalNome = AtendimentoInput.NotaFiscalNome.ToUpperTrim();
 
@@ -955,6 +963,11 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 .Include(x => x.Grv)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.AtendimentoId == parameters.IdentificadorAtendimento);
+            var permitirEmissao = await _context.FaturamentoRegra
+                .AnyAsync(x =>
+                    x.ClienteId == atendimento.Grv.ClienteId && x.DepositoId == atendimento.Grv.DepositoId &&
+                    x.FaturamentoRegraTipoId == 11);
+            
             bool exists = await _context.SaidaReparo
                 .AsNoTracking()
                 .AnyAsync(x => x.AtendimentoId == parameters.IdentificadorAtendimento);
@@ -1003,7 +1016,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                             DataAlteracao = DateTime.Now,
                             UsuarioAlteracaoId = parameters.IdentificadorUsuario
                         });
-                    if (_options.Value.Enable)
+                    if (_options.Value.Enable && permitirEmissao)
                     {
                         await _provider.GetService<WSNfseService>()
                             .CreateNfseAsync(parameters.IdentificadorProcesso, parameters.IdentificadorUsuario);

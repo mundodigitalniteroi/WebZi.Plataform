@@ -1,4 +1,6 @@
-﻿namespace WebZi.Plataform.Domain.Models.Nfe
+﻿using WebZi.Plataform.Domain.Models.Usuario;
+
+namespace WebZi.Plataform.Domain.Models.Nfe
 {
     public class NfeModel
     {
@@ -8,7 +10,7 @@
 
         public int? FaturamentoServicoTipoVeiculoId { get; set; }
 
-        public int IdentificadorNota { get; set; }
+        public string IdentificadorNota { get; set; }
 
         public int? NfeComplementarId { get; set; }
 
@@ -77,6 +79,6 @@
 
         //public virtual ICollection<TbDepNfeRetornoSolicitacao> TbDepNfeRetornoSolicitacaos { get; set; } = new List<TbDepNfeRetornoSolicitacao>();
 
-        //public virtual TbDepUsuario UsuarioCadastro { get; set; }
+        public virtual UsuarioModel UsuarioCadastro { get; set; }
     }
 }

@@ -913,7 +913,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 return (null, MensagemViewHelper.SetBadRequest(MensagemPadraoEnum.NaoEncontradoCliente));
 
             client.NumeroFormularioGrvSequencia += 1;
-            string numeroFormulario = StringHelper.AddCharToLeft(ClienteId.ToString(), '0', 2)
+            string numeroFormulario = ClienteId.ToString().ToString()
                                       + DateTime.Now.Year.ToString().Substring(2)
                                       + StringHelper.AddCharToLeft(client.NumeroFormularioGrvSequencia.ToString(), '0',
                                           5);

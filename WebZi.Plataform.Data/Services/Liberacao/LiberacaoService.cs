@@ -793,6 +793,11 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.GrvId == Parameters.IdentificadorProcesso);
 
+            var permitirEmissao = await _context.FaturamentoRegra
+                .AnyAsync(x =>
+                    x.ClienteId == Grv.ClienteId && x.DepositoId == Grv.DepositoId &&
+                    x.FaturamentoRegraTipoId == 11);
+            
             if (Grv.StatusOperacao.StatusOperacaoId != "T" && Grv.StatusOperacao.StatusOperacaoId != "U" &&
                 Grv.StatusOperacao.StatusOperacaoId != "R")
             {
@@ -884,7 +889,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                             });
                     }
 
-                    if (_options.Value.Enable)
+                    if (_options.Value.Enable && permitirEmissao)
                     {
                         if (!string.Equals(Grv.StatusOperacaoId, "2") && !string.Equals(Grv.StatusOperacaoId, "R"))
                         {
