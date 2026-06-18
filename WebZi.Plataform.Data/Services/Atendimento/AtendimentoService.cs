@@ -305,11 +305,12 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             #endregion Dados do Proprietário
 
             #region Nota Fiscal
+
             var permitirEmissao = await _context.FaturamentoRegra
                 .AnyAsync(x =>
                     x.ClienteId == Grv.ClienteId && x.DepositoId == Grv.DepositoId &&
                     x.FaturamentoRegraTipoId == 11);
-            
+
             if (Grv.Cliente.FlagEmissaoNotaFiscal == "S" && permitirEmissao)
             {
                 #region Receptor da Nota Fiscal
@@ -473,6 +474,395 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             return ResultView;
         }
+
+        public async Task<MensagemDTO> CheckInformacoesParaAtualizarAsync(
+            AtualizarAtendimentoParameters AtualizarAtendimento)
+        {
+            if (AtualizarAtendimento.IdentificadorTipoMeioCobranca <= 0)
+            {
+                return MensagemViewHelper.SetBadRequest("Identificador da Forma de Pagamento inválido");
+            }
+
+            MensagemDTO ResultView = new GrvService(_context)
+                .ValidateInputGrv(AtualizarAtendimento.IdentificadorProcesso,
+                    AtualizarAtendimento.IdentificadorUsuario);
+
+            if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+            {
+                return ResultView;
+            }
+
+            #region Consultas
+
+            GrvModel Grv = await _context.Grv
+                .Include(x => x.Cliente)
+                .Include(x => x.Deposito)
+                .Include(x => x.StatusOperacao)
+                .Include(x => x.Atendimento)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.GrvId == AtualizarAtendimento.IdentificadorProcesso);
+
+            UsuarioModel Usuario = await _context.Usuario
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.UsuarioId == AtualizarAtendimento.IdentificadorUsuario);
+
+            if (Grv.Atendimento == null)
+            {
+                return MensagemViewHelper.SetBadRequest(
+                    $"Este Processo não possui um Atendimento cadastrado.");
+            }
+
+            if (Usuario.FlagPermissaoDesconto != "S")
+                return MensagemViewHelper.SetBadRequest($"Este usuario não é permitido o cadastro de Descontos.");
+
+            #endregion Consultas
+
+            #region Leilão
+
+            ResultView = await new LeilaoService(_context)
+                .GetAvisosLeilaoAsync(Grv.GrvId, Grv.StatusOperacaoId);
+
+            if (ResultView != null)
+            {
+                foreach (string item in ResultView.AvisosInformativos.ToList())
+                {
+                    ResultView.AvisosInformativos.Add(item);
+                }
+
+                if (ResultView.Erros.Count > 0)
+                {
+                    return MensagemViewHelper.SetBadRequest(ResultView.Erros);
+                }
+            }
+            else
+            {
+                ResultView = new();
+            }
+
+            #endregion Leilão
+
+            #region Dados do Responsável
+
+            if (AtualizarAtendimento.IdentificadorQualificacaoResponsavel <= 0)
+            {
+                ResultView.AvisosImpeditivos.Add("Informe a Qualificação do Responsável");
+            }
+
+            if (string.IsNullOrWhiteSpace(AtualizarAtendimento.ResponsavelNome))
+            {
+                ResultView.AvisosImpeditivos.Add("Informe o Nome do Responsável");
+            }
+
+            if (string.IsNullOrWhiteSpace(AtualizarAtendimento.ResponsavelDocumento))
+            {
+                ResultView.AvisosImpeditivos.Add("Informe o CPF do Responsável");
+            }
+            else if (!DocumentHelper.IsCPF(AtualizarAtendimento.ResponsavelDocumento))
+            {
+                ResultView.AvisosImpeditivos.Add(
+                    $"CPF do Responsável inválido: {AtualizarAtendimento.ResponsavelDocumento}");
+            }
+
+            if (!string.IsNullOrWhiteSpace(AtualizarAtendimento.ResponsavelCNH))
+            {
+                if (!DocumentHelper.IsCNH(AtualizarAtendimento.ResponsavelCNH))
+                {
+                    ResultView.AvisosImpeditivos.Add(
+                        $"CNH do Responsável inválido: {AtualizarAtendimento.ResponsavelCNH}");
+                }
+            }
+
+            #endregion Dados do Responsável
+
+            #region Endereço do Responsável
+
+            if (string.IsNullOrWhiteSpace(AtualizarAtendimento.ResponsavelCEP))
+            {
+                ResultView.AvisosImpeditivos.Add("Informe o CEP do Responsável");
+            }
+            else if (!LocalizacaoHelper.IsCEP(AtualizarAtendimento.ResponsavelCEP))
+            {
+                ResultView.AvisosImpeditivos.Add($"CEP do Responsável inválido: {AtualizarAtendimento.ResponsavelCEP}");
+            }
+
+            if (string.IsNullOrWhiteSpace(AtualizarAtendimento.ResponsavelEndereco))
+            {
+                ResultView.AvisosImpeditivos.Add("Informe o Logradouro do Responsável");
+            }
+
+            if (string.IsNullOrWhiteSpace(AtualizarAtendimento.ResponsavelNumero))
+            {
+                ResultView.AvisosImpeditivos.Add("Informe o Número do Logradouro do Responsável");
+            }
+
+            if (string.IsNullOrWhiteSpace(AtualizarAtendimento.ResponsavelBairro))
+            {
+                ResultView.AvisosImpeditivos.Add("Informe o Bairro do Responsável");
+            }
+
+            if (string.IsNullOrWhiteSpace(AtualizarAtendimento.ResponsavelMunicipio))
+            {
+                ResultView.AvisosImpeditivos.Add("Informe Município do Responsável");
+            }
+
+            if (string.IsNullOrWhiteSpace(AtualizarAtendimento.ResponsavelUF))
+            {
+                ResultView.AvisosImpeditivos.Add("Informe a Unidade Federativa do Responsável");
+            }
+            else if (!LocalizacaoHelper.IsUF(AtualizarAtendimento.ResponsavelUF))
+            {
+                ResultView.AvisosImpeditivos.Add("Unidade Federativa do Responsável inválida");
+            }
+
+            #endregion Endereço do Responsável
+
+            #region DDD + Telefone/Celular do Responsável
+
+            if (!string.IsNullOrWhiteSpace(AtualizarAtendimento.ResponsavelTelefone))
+            {
+                if ((!ContactHelper.IsTelephone(AtualizarAtendimento.ResponsavelTelefone) &&
+                     !ContactHelper.IsCellphone(AtualizarAtendimento.ResponsavelTelefone)))
+                {
+                    ResultView.AvisosImpeditivos.Add(
+                        $"Telefone/Celular do Responsável inválido: {AtualizarAtendimento.ResponsavelTelefone}");
+                }
+
+                if (string.IsNullOrWhiteSpace(AtualizarAtendimento.ResponsavelDDD))
+                {
+                    ResultView.AvisosImpeditivos.Add(
+                        "Ao informar o Número do Telefone/Celular do Responsável também é preciso informar o DDD");
+                }
+                else if (!ContactHelper.IsDDD(AtualizarAtendimento.ResponsavelDDD))
+                {
+                    ResultView.AvisosImpeditivos.Add(
+                        $"DDD do Número do Telefone/Celular do Responsável inválido: {AtualizarAtendimento.ResponsavelDDD}");
+                }
+            }
+
+            #endregion DDD + Telefone/Celular do Responsável
+
+            #region Dados do Proprietário
+
+            if (string.IsNullOrWhiteSpace(AtualizarAtendimento.ProprietarioNome))
+            {
+                ResultView.AvisosImpeditivos.Add("Informe o Nome do Proprietário");
+            }
+
+            if (AtualizarAtendimento.IdentificadorProprietarioTipoDocumento <= 0)
+            {
+                ResultView.AvisosImpeditivos.Add("Informe o Tipo do Documento do Proprietário");
+            }
+
+            if (string.IsNullOrWhiteSpace(AtualizarAtendimento.ProprietarioDocumento))
+            {
+                ResultView.AvisosImpeditivos.Add("Informe o Documento do Proprietário");
+            }
+
+            if (AtualizarAtendimento.IdentificadorProprietarioTipoDocumento > 0)
+            {
+                TipoDocumentoIdentificacaoModel TipoDocumentoIdentificacao = await _context.TipoDocumentoIdentificacao
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(w =>
+                        w.TipoDocumentoIdentificacaoId == AtualizarAtendimento.IdentificadorProprietarioTipoDocumento);
+
+                if (TipoDocumentoIdentificacao == null)
+                {
+                    ResultView.AvisosImpeditivos.Add(
+                        $"Tipo do Documento do Proprietário inexistente: {AtualizarAtendimento.IdentificadorProprietarioTipoDocumento}");
+                }
+                else if (TipoDocumentoIdentificacao.Codigo != "CPF" && TipoDocumentoIdentificacao.Codigo != "CNPJ")
+                {
+                    ResultView.AvisosImpeditivos.Add("O Tipo do Documento do Proprietário precisa ser CPF ou CNPJ");
+                }
+                else if (TipoDocumentoIdentificacao.Codigo == "CPF"
+                         && !string.IsNullOrWhiteSpace(AtualizarAtendimento.ProprietarioDocumento)
+                         && !DocumentHelper.IsCPF(AtualizarAtendimento.ProprietarioDocumento))
+                {
+                    ResultView.AvisosImpeditivos.Add(
+                        $"O CPF do Proprietário inválido: {AtualizarAtendimento.ProprietarioDocumento}");
+                }
+                else if (TipoDocumentoIdentificacao.Codigo == "CNPJ"
+                         && !string.IsNullOrWhiteSpace(AtualizarAtendimento.ProprietarioDocumento)
+                         && !DocumentHelper.IsCNPJ(AtualizarAtendimento.ProprietarioDocumento))
+                {
+                    ResultView.AvisosImpeditivos.Add(
+                        $"O CNPJ do Proprietário inválido: {AtualizarAtendimento.ProprietarioDocumento}");
+                }
+            }
+
+            #endregion Dados do Proprietário
+
+            #region Nota Fiscal
+
+            var permitirEmissao = await _context.FaturamentoRegra
+                .AnyAsync(x =>
+                    x.ClienteId == Grv.ClienteId && x.DepositoId == Grv.DepositoId &&
+                    x.FaturamentoRegraTipoId == 11);
+
+            if (Grv.Cliente.FlagEmissaoNotaFiscal == "S" && permitirEmissao)
+            {
+                #region Receptor da Nota Fiscal
+
+                if (string.IsNullOrWhiteSpace(AtualizarAtendimento.NotaFiscalNome))
+                {
+                    ResultView.AvisosImpeditivos.Add("Informe o Nome do Receptor da Nota Fiscal");
+                }
+
+                if (string.IsNullOrWhiteSpace(AtualizarAtendimento.NotaFiscalDocumento))
+                {
+                    ResultView.AvisosImpeditivos.Add("Informe o CPF ou CNPJ do Receptor da Nota Fiscal");
+                }
+                else if (!DocumentHelper.IsCPF(AtualizarAtendimento.NotaFiscalDocumento) &&
+                         !DocumentHelper.IsCNPJ(AtualizarAtendimento.NotaFiscalDocumento))
+                {
+                    ResultView.AvisosImpeditivos.Add(
+                        $"CPF ou CNPJ do Receptor da Nota Fiscal inválido: {AtualizarAtendimento.NotaFiscalDocumento}");
+                }
+
+                #endregion Receptor da Nota Fiscal
+
+                #region Endereço do Receptor da Nota Fiscal
+
+                if (string.IsNullOrWhiteSpace(AtualizarAtendimento.NotaFiscalCEP))
+                {
+                    ResultView.AvisosImpeditivos.Add("Informe o CEP do Receptor da Nota Fiscal");
+                }
+                else if (!LocalizacaoHelper.IsCEP(AtualizarAtendimento.NotaFiscalCEP))
+                {
+                    ResultView.AvisosImpeditivos.Add(
+                        $"CEP do Receptor da Nota Fiscal inválido: {AtualizarAtendimento.NotaFiscalCEP}");
+                }
+
+                if (string.IsNullOrWhiteSpace(AtualizarAtendimento.NotaFiscalEndereco))
+                {
+                    ResultView.AvisosImpeditivos.Add("Informe o Endereço do Receptor da Nota Fiscal");
+                }
+
+                if (string.IsNullOrWhiteSpace(AtualizarAtendimento.NotaFiscalNumero))
+                {
+                    ResultView.AvisosImpeditivos.Add("Informe o Número do Endereço do Receptor da Nota Fiscal");
+                }
+
+                if (string.IsNullOrWhiteSpace(AtualizarAtendimento.NotaFiscalBairro))
+                {
+                    ResultView.AvisosImpeditivos.Add("Informe o Bairro do Receptor da Nota Fiscal");
+                }
+
+                if (string.IsNullOrWhiteSpace(AtualizarAtendimento.NotaFiscalMunicipio))
+                {
+                    ResultView.AvisosImpeditivos.Add("Informe o Município do Receptor da Nota Fiscal");
+                }
+
+                if (string.IsNullOrWhiteSpace(AtualizarAtendimento.NotaFiscalUF))
+                {
+                    ResultView.AvisosImpeditivos.Add("Informe a UF do Receptor da Nota Fiscal");
+                }
+                else if (!LocalizacaoHelper.IsUF(AtualizarAtendimento.NotaFiscalUF))
+                {
+                    ResultView.AvisosImpeditivos.Add(
+                        $"Unidade Federativa do Receptor da Nota Fiscal inválida: {AtualizarAtendimento.NotaFiscalUF}");
+                }
+
+                #endregion Endereço do Receptor da Nota Fiscal
+
+                #region Contatos do Receptor da Nota Fiscal
+
+                if (string.IsNullOrWhiteSpace(AtualizarAtendimento.NotaFiscalTelefone))
+                {
+                    ResultView.AvisosImpeditivos.Add("Informe o Número do Telefone/Celular do Receptor da Nota Fiscal");
+                }
+                else if (!ContactHelper.IsTelephone(AtualizarAtendimento.NotaFiscalTelefone) &&
+                         !ContactHelper.IsCellphone(AtualizarAtendimento.NotaFiscalTelefone))
+                {
+                    ResultView.AvisosImpeditivos.Add(
+                        $"Número do Telefone/Celular do Receptor da Nota Fiscal inválido: {AtualizarAtendimento.NotaFiscalTelefone}");
+                }
+
+                if (string.IsNullOrWhiteSpace(AtualizarAtendimento.NotaFiscalDDD))
+                {
+                    ResultView.AvisosImpeditivos.Add("Informe o DDD do Telefone/Celular do Receptor da Nota Fiscal");
+                }
+                else if (!ContactHelper.IsDDD(AtualizarAtendimento.NotaFiscalDDD))
+                {
+                    ResultView.AvisosImpeditivos.Add(
+                        $"DDD do Número do Telefone/Celular do Receptor da Nota Fiscal inválido: {AtualizarAtendimento.NotaFiscalDDD}");
+                }
+
+                if (!string.IsNullOrWhiteSpace(AtualizarAtendimento.NotaFiscalEmail) &&
+                    !EmailHelper.IsEmail(AtualizarAtendimento.NotaFiscalEmail))
+                {
+                    ResultView.AvisosImpeditivos.Add(
+                        $"E-mail do Receptor da Nota Fiscal inválido: {AtualizarAtendimento.NotaFiscalEmail}");
+                }
+
+                #endregion Contatos do Receptor da Nota Fiscal
+
+                #region Inscrição Municipal do Tomador do Serviço
+
+                if (!string.IsNullOrWhiteSpace(AtualizarAtendimento.NotaFiscalDocumento) &&
+                    DocumentHelper.IsCNPJ(AtualizarAtendimento.NotaFiscalDocumento))
+                {
+                    // Informar a Inscrição Municipal do Tomador do Serviço do Receptor da Nota Fiscal só é obrigatorio
+                    // caso o Cliente esteja cadastrado na regra do Faturamento "ATENDINSCRICMUNIC".
+
+                    FaturamentoRegraModel FaturamentoRegra = await _context.FaturamentoRegra
+                        .Include(x => x.FaturamentoRegraTipo)
+                        .Where(x => x.ClienteId == Grv.ClienteId &&
+                                    x.FaturamentoRegraTipo.Codigo ==
+                                    FaturamentoRegraTipoEnum.ObrigatorioInformarInscricaoMunicipal)
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync();
+
+                    if (FaturamentoRegra != null)
+                    {
+                        ResultView.AvisosImpeditivos.Add(
+                            "Ao informar o CNPJ do Receptor da Nota Fiscal é preciso informar a Inscrição Municipal do Tomador do Serviço");
+                    }
+                }
+
+                #endregion Inscrição Municipal do Tomador do Serviço
+            }
+
+            #endregion Nota Fiscal
+
+            #region Forma de Pagamento
+
+            TipoMeioCobrancaModel TipoMeioCobranca = await _context.TipoMeioCobranca
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.TipoMeioCobrancaId == AtualizarAtendimento.IdentificadorTipoMeioCobranca);
+
+            if (TipoMeioCobranca == null)
+            {
+                ResultView.AvisosImpeditivos.Add(
+                    $"Forma de Pagamento inexistente: {AtualizarAtendimento.IdentificadorTipoMeioCobranca}");
+            }
+            else if (TipoMeioCobranca.Alias == TipoMeioCobrancaAliasEnum.PixEstatico &&
+                     Grv.Cliente.FlagPossuiPixEstatico == "N")
+            {
+                ResultView.AvisosImpeditivos.Add(
+                    "Este Cliente não está configurado para emitir a Forma de Pagamento PIX Estático");
+            }
+            else if (TipoMeioCobranca.Alias == TipoMeioCobrancaAliasEnum.PixDinamico &&
+                     Grv.Cliente.FlagPossuiPixDinamico == "N")
+            {
+                ResultView.AvisosImpeditivos.Add(
+                    "Este Cliente não está configurado para emitir a Forma de Pagamento PIX Dinâmico");
+            }
+
+            #endregion Forma de Pagamento
+
+            if (ResultView.AvisosImpeditivos.Count > 0)
+            {
+                ResultView.HtmlStatusCode = HtmlStatusCodeEnum.BadRequest;
+            }
+            else
+            {
+                ResultView.HtmlStatusCode = HtmlStatusCodeEnum.Ok;
+            }
+
+            return ResultView;
+        }
+
 
         // TODO: Este método não está finalizado
         public async Task<MensagemDTO> CheckInformacoesParaPagamentoAsync(PagamentoParameters Atendimento)
@@ -671,7 +1061,8 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                         .Faturar(ParametrosCalculoFaturamento, out CalculoDiarias);
 
 
-                    CreateFotoResponsavel(Atendimento.AtendimentoId, AtendimentoInput);
+                    CreateFotoResponsavel(Atendimento.AtendimentoId, AtendimentoInput.IdentificadorUsuario,
+                        AtendimentoInput.ResponsavelFoto);
 
                     UpdateStatusERP(ParametrosCalculoFaturamento.ClienteDeposito, Faturamento, Atendimento);
 
@@ -767,6 +1158,240 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             return ResultView;
         }
 
+        public async Task<MensagemDTO> AtualizarAtendimentoAsync(
+            AtualizarAtendimentoParameters AtendimentoInput)
+        {
+            MensagemDTO ResultView = new();
+            #region Consultas
+
+            GrvModel Grv = await _context.Grv
+                .Include(x => x.Atendimento)
+                .Include(x => x.Cliente)
+                .Include(x => x.Deposito)
+                .Where(x => x.GrvId == AtendimentoInput.IdentificadorProcesso)
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
+            // FaturamentoModel faturamento = await _context.Faturamento.AsTracking().
+            // DateTime DataHoraPorDeposito = new DepositoService(_context)
+            //     .GetDataHoraPorDeposito(Grv.DepositoId);
+
+            var permitirEmissao = await _context.FaturamentoRegra
+                .AnyAsync(x =>
+                    x.ClienteId == Grv.ClienteId && x.DepositoId == Grv.DepositoId &&
+                    x.FaturamentoRegraTipoId == 11);
+
+            #endregion Consultas
+
+
+            #region Dados do Atendimento
+
+            Grv.Atendimento.GrvId = AtendimentoInput.IdentificadorProcesso;
+            Grv.Atendimento.QualificacaoResponsavelId = AtendimentoInput.IdentificadorQualificacaoResponsavel;
+            Grv.Atendimento.UsuarioCadastroId = AtendimentoInput.IdentificadorUsuario;
+            Grv.Atendimento.DataHoraInicioAtendimento = AtendimentoInput.DataHoraInicioAtendimento;
+            Grv.Atendimento.ResponsavelNome = AtendimentoInput.ResponsavelNome.ToUpperTrim();
+            Grv.Atendimento.ResponsavelDocumento = AtendimentoInput.ResponsavelDocumento.Replace(".", "")
+                .Replace("/", "")
+                .Replace("-", "");
+            Grv.Atendimento.ResponsavelCnh = AtendimentoInput.ResponsavelCNH;
+            Grv.Atendimento.ResponsavelEndereco = AtendimentoInput.ResponsavelEndereco.ToUpperTrim();
+            Grv.Atendimento.ResponsavelNumero = AtendimentoInput.ResponsavelNumero.ToUpperTrim();
+            Grv.Atendimento.ResponsavelComplemento = AtendimentoInput.ResponsavelComplemento.ToUpperTrim();
+            Grv.Atendimento.ResponsavelBairro = AtendimentoInput.ResponsavelBairro.ToUpperTrim();
+            Grv.Atendimento.ResponsavelMunicipio = AtendimentoInput.ResponsavelMunicipio.ToUpperTrim();
+            Grv.Atendimento.ResponsavelUF = AtendimentoInput.ResponsavelUF.ToUpperTrim();
+            Grv.Atendimento.ResponsavelCEP = AtendimentoInput.ResponsavelCEP.Replace("-", "");
+            Grv.Atendimento.ResponsavelDDD = AtendimentoInput.ResponsavelDDD;
+            Grv.Atendimento.ResponsavelTelefone = AtendimentoInput.ResponsavelTelefone.Replace("-", "");
+            Grv.Atendimento.ProprietarioNome = AtendimentoInput.ProprietarioNome.ToUpperTrim();
+            Grv.Atendimento.ProprietarioTipoDocumentoId = AtendimentoInput.IdentificadorProprietarioTipoDocumento;
+            Grv.Atendimento.ProprietarioDocumento = AtendimentoInput.ProprietarioDocumento;
+            Grv.Atendimento.ProprietarioEndereco = AtendimentoInput.ProprietarioEndereco.ToUpperTrim();
+            Grv.Atendimento.ProprietarioNumero = AtendimentoInput.ProprietarioNumero.ToUpperTrim();
+            Grv.Atendimento.ProprietarioComplemento = AtendimentoInput.ProprietarioComplemento.ToUpperTrim();
+            Grv.Atendimento.ProprietarioBairro = AtendimentoInput.ProprietarioBairro.ToUpperTrim();
+            Grv.Atendimento.ProprietarioMunicipio = AtendimentoInput.ProprietarioMunicipio.ToUpperTrim();
+            Grv.Atendimento.ProprietarioUF = AtendimentoInput.ProprietarioUF.ToUpperTrim();
+            Grv.Atendimento.ProprietarioCEP = AtendimentoInput.ProprietarioCEP.Replace("-", "");
+            Grv.Atendimento.ProprietarioDDD = AtendimentoInput.ProprietarioDDD;
+            Grv.Atendimento.ProprietarioTelefone = AtendimentoInput.ProprietarioTelefone.Replace("-", "");
+            Grv.Atendimento.FormaLiberacao = AtendimentoInput.FormaLiberacao.ToUpperTrim();
+            Grv.Atendimento.FormaLiberacaoCNH = AtendimentoInput.FormaLiberacaoCNH;
+            Grv.Atendimento.FormaLiberacaoCPF = AtendimentoInput.FormaLiberacaoCPF.Replace(".", "").Replace(";", "")
+                .Replace("-", "");
+            Grv.Atendimento.FormaLiberacaoNome = AtendimentoInput.FormaLiberacaoNome.ToUpperTrim();
+            Grv.Atendimento.FormaLiberacaoPlaca = AtendimentoInput.FormaLiberacaoPlaca.Replace("-", "").ToUpperTrim();
+            if (Grv.Cliente.FlagEmissaoNotaFiscal == "S" && permitirEmissao)
+            {
+                Grv.Atendimento.NotaFiscalNome = AtendimentoInput.NotaFiscalNome.ToUpperTrim();
+                Grv.Atendimento.NotaFiscalDocumento = AtendimentoInput.NotaFiscalDocumento.Replace(".", "")
+                    .Replace("/", "")
+                    .Replace("-", "");
+                Grv.Atendimento.NotaFiscalEndereco = AtendimentoInput.NotaFiscalEndereco.ToUpperTrim();
+                Grv.Atendimento.NotaFiscalNumero = AtendimentoInput.NotaFiscalNumero.ToUpperTrim();
+                Grv.Atendimento.NotaFiscalComplemento = AtendimentoInput.NotaFiscalComplemento.ToUpperTrim();
+                Grv.Atendimento.NotaFiscalBairro = AtendimentoInput.NotaFiscalBairro.ToUpperTrim();
+                Grv.Atendimento.NotaFiscalMunicipio = AtendimentoInput.NotaFiscalMunicipio.ToUpperTrim();
+                Grv.Atendimento.NotaFiscalUF = AtendimentoInput.NotaFiscalUF.ToUpperTrim();
+                Grv.Atendimento.NotaFiscalCEP = AtendimentoInput.NotaFiscalCEP.Replace("-", "");
+                Grv.Atendimento.NotaFiscalDDD = AtendimentoInput.NotaFiscalDDD;
+                Grv.Atendimento.NotaFiscalTelefone = AtendimentoInput.NotaFiscalTelefone.Replace("-", "");
+                Grv.Atendimento.NotaFiscalEmail = AtendimentoInput.NotaFiscalEmail.ToLowerTrim();
+                Grv.Atendimento.NotaFiscalInscricaoMunicipal =
+                    AtendimentoInput.NotaFiscalInscricaoMunicipal.ToUpperTrim();
+            }
+
+            #endregion Dados do Atendimento
+
+            // CalculoFaturamentoParametroModel ParametrosCalculoFaturamento =
+            //     await ConfigParametrosCalculoFaturamentoAsync(Grv, AtendimentoInput.IdentificadorTipoMeioCobranca,
+            //         AtendimentoInput.IdentificadorUsuario, DataHoraPorDeposito, AtendimentoInput.Descontos);
+
+            // AtendimentoCadastroDTO ResultView = new();
+
+            // FaturamentoModel Faturamento = new();
+
+            // CalculoDiariasModel CalculoDiarias = new();
+
+            using (IDbContextTransaction transaction = _context.Database.BeginTransaction())
+            {
+                try
+                {
+                    _context.SaveChanges();
+                    // Faturamento = new FaturamentoService(_context)
+                    // .Faturar(ParametrosCalculoFaturamento, out CalculoDiarias);
+                    CreateFotoResponsavel(Grv.Atendimento.AtendimentoId, AtendimentoInput.IdentificadorUsuario,
+                        AtendimentoInput.ResponsavelFoto);
+
+                    // UpdateStatusERP(ParametrosCalculoFaturamento.ClienteDeposito, Faturamento, AtendimentoIn);
+
+                    // CreateLiberacaoLeilao(ParametrosCalculoFaturamento);
+
+                    // UpdateGrv(ParametrosCalculoFaturamento);
+
+                    _context.SaveChanges();
+
+                    if (AtendimentoInput.IdentificadorTipoMeioCobranca == 12)
+                    {
+                        // CreateLiberacaoEspecial(Grv.Atendimento.Faturamento, AtendimentoInput.LiberacaoEspecial);
+                        // _context.Faturamento
+                        //     .Where(x => x.FaturamentoId == Faturamento.FaturamentoId)
+                        //     .Update(x => new FaturamentoModel()
+                        //     {
+                        //         Status = "P",
+                        //         UsuarioAlteracaoId = AtendimentoInput.LiberacaoEspecial.IdUsuarioCadastro,
+                        //         DataPrazoRetiradaVeiculo = DateTime.Now.AddDays(1),
+                        //         ValorPagamento = AtendimentoInput.LiberacaoEspecial.Valor,
+                        //         DataPagamento = DateTime.Now
+                        //     });
+                        // _context.Atendimento
+                        //     .Where(x => x.AtendimentoId == Faturamento.AtendimentoId)
+                        //     .Update(x => new AtendimentoModel()
+                        //     {
+                        //         FormaLiberacaoNome = Faturamento.Atendimento.ResponsavelNome,
+                        //         FormaLiberacaoCNH = Faturamento.Atendimento.ResponsavelCnh,
+                        //         FormaLiberacaoCPF = Faturamento.Atendimento.ResponsavelDocumento,
+                        //         FormaLiberacao = "C",
+                        //         UsuarioAlteracaoId = AtendimentoInput.LiberacaoEspecial.IdUsuarioCadastro,
+                        //         FlagPagamentoFinanciado = "N"
+                        //     });
+                        // _context.Grv
+                        //     .Where(x => x.GrvId == Faturamento.Atendimento.GrvId)
+                        //     .Update(x => new GrvModel()
+                        //     {
+                        //         StatusOperacaoId = "U",
+                        //         DataAlteracao = DateTime.Now,
+                        //         UsuarioAlteracaoId = AtendimentoInput.LiberacaoEspecial.IdUsuarioCadastro
+                        //     });
+                    }
+
+                    _context.SaveChanges();
+                    transaction.Commit();
+
+                    // ResultView.IdentificadorAtendimento = Atendimento.AtendimentoId;
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+
+                    ResultView = MensagemViewHelper.SetInternalServerError(ex);
+
+                    return ResultView;
+                }
+            }
+
+            List<TabelaGenericaModel> ListagemTipoCobranca = await new TabelaGenericaService(_context)
+                .ListAsync("FAT_TIPO_COBRANCA");
+
+            // ResultView.Faturamento = _mapper.Map<FaturamentoCadastroDTO>(Faturamento);
+
+            // ResultView.Faturamento.ListagemServico =
+            //     _mapper.Map<List<FaturamentoCadastroComposicaoDTO>>(Faturamento.ListagemFaturamentoComposicao);
+
+            FaturamentoServicoTipoVeiculoModel FaturamentoServicoTipoVeiculo = new();
+
+            // foreach (var item in ResultView.Faturamento.ListagemServico)
+            // {
+            //     FaturamentoServicoTipoVeiculo = _context.FaturamentoServicoTipoVeiculo
+            //         .Include(x => x.FaturamentoServicoAssociado)
+            //         .AsNoTracking()
+            //         .FirstOrDefault(x =>
+            //             x.FaturamentoServicoTipoVeiculoId == item.IdentificadorFaturamentoServicoTipoVeiculo);
+            //
+            //     item.DescricaoTipoServico = ListagemTipoCobranca.Where(x => x.ValorCadastro == item.TipoServico)
+            //         .FirstOrDefault().Descricao;
+            //
+            //     item.NomeServico = FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.Descricao;
+            //
+            //     item.DataVigenciaInicial =
+            //         FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.DataVigenciaInicial;
+            //
+            //     item.DataVigenciaFinal = FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.DataVigenciaFinal;
+            // }
+
+            // TODO:
+            // GerarFormaPagamento(ParametrosCalculoFaturamento);
+
+            ResultView = MensagemViewHelper.SetCreateSuccess();
+
+            return ResultView;
+        }
+
+
+        private async void AtualizarLiberacaoEspecial(int idFaturamento, LiberacaoEspecialParameters parameters)
+        {
+            #region Validação
+
+            if (parameters.DataEmissaoDocumento < DateTime.Today)
+                throw new Exception("Data não pode ser menor que hoje");
+
+            #endregion Validação
+
+            #region Consultar
+
+            LiberacaoEspecialModel liberacaoEspecial = await _context.LiberacaoEspecial
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.IdGrv == parameters.IdGrv);
+
+            #endregion
+            // PERGUNTAR SOBRE O PORQUE N TEM ID DO USUARIO ALTERAÇÃO
+            liberacaoEspecial.IdLiberacaoEspecialTipo = parameters.IdLiberacaoEspecialTipo;
+            liberacaoEspecial.IdUsuarioCadastro = parameters.IdUsuarioCadastro;
+            liberacaoEspecial.NumeroDocumento = parameters.NumeroDocumento.ToUpper();
+            liberacaoEspecial.TipoDocumento = parameters.TipoDocumento.ToUpper();
+            liberacaoEspecial.NumeroProcesso = parameters.NumeroProcesso.ToUpper();
+            liberacaoEspecial.OrgaoEmissor = parameters.OrgaoEmissor.ToUpper();
+            liberacaoEspecial.PortadorNome = parameters.PortadorNome.ToUpper();
+            liberacaoEspecial.PortadorCargo = parameters.PortadorCargo.ToUpper();
+            liberacaoEspecial.PortadorMatricula = parameters.PortadorMatricula.ToUpper();
+            liberacaoEspecial.SignatarioNomeDocumento = parameters.SignatarioNomeDocumento.ToUpper();
+            liberacaoEspecial.SignatarioMatricula = parameters.SignatarioMatricula.ToUpper();
+            liberacaoEspecial.SignatarioTitulo = parameters.SignatarioTitulo.ToUpper();
+            liberacaoEspecial.DataEmissaoDocumento = parameters.DataEmissaoDocumento.Date;
+           // await  _context.LiberacaoEspecial.UpdateAsync();
+            
+        }
+
         private void CreateLiberacaoEspecial(int idFaturamento, LiberacaoEspecialParameters parameters)
         {
             #region Validação
@@ -798,13 +1423,13 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             _context.LiberacaoEspecial.Add(liberacaoEspecial);
         }
 
-        private void CreateFotoResponsavel(int AtendimentoId, AtendimentoParameters AtendimentoInput)
+        private void CreateFotoResponsavel(int AtendimentoId, int UsuarioId, byte[] ResponsavelFoto)
         {
-            if (AtendimentoInput.ResponsavelFoto != null)
+            if (ResponsavelFoto != null)
             {
                 new BucketService(_context, _httpClientFactory)
                     .SendFile(BucketNomeTabelaOrigemEnum.AtendimentoFotoResponsavel, AtendimentoId,
-                        AtendimentoInput.IdentificadorUsuario, AtendimentoInput.ResponsavelFoto);
+                        UsuarioId, ResponsavelFoto);
             }
         }
 
@@ -959,6 +1584,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             var errors = new List<string>();
 
             #region Consultar
+
             var atendimento = await _context.Atendimento
                 .Include(x => x.Grv)
                 .AsNoTracking()
@@ -967,7 +1593,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 .AnyAsync(x =>
                     x.ClienteId == atendimento.Grv.ClienteId && x.DepositoId == atendimento.Grv.DepositoId &&
                     x.FaturamentoRegraTipoId == 11);
-            
+
             bool exists = await _context.SaidaReparo
                 .AsNoTracking()
                 .AnyAsync(x => x.AtendimentoId == parameters.IdentificadorAtendimento);

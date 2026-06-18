@@ -68,9 +68,55 @@ namespace WebZi.Plataform.API.Controllers
             }
         }
 
+        [HttpPut("Atualizar")]
+        public async Task<ActionResult<MensagemDTO>> Atualizar(AtualizarAtendimentoParameters parameters)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            MensagemDTO ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<AtendimentoService>()
+                    .CheckInformacoesParaAtualizarAsync(parameters);
+
+                if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+                {
+                    return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+                }
+            }
+            catch (Exception ex)
+            {
+                ResultView = MensagemViewHelper.SetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<AtendimentoService>()
+                    .AtualizarAtendimentoAsync(parameters);
+            }
+            catch (Exception ex)
+            {
+                ResultView = MensagemViewHelper.SetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+
+            return ResultView;
+        }
+
+
         [HttpGet("SelecionarFotoResponsavel")]
         // TODO: [Authorize]
-        public async Task<ActionResult<ImageListDTO>> SelecionarFotoResponsavel(int IdentificadorAtendimento, int IdentificadorUsuario)
+        public async Task<ActionResult<ImageListDTO>> SelecionarFotoResponsavel(int IdentificadorAtendimento,
+            int IdentificadorUsuario)
         {
             if (!ModelState.IsValid)
             {
@@ -97,7 +143,8 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("SelecionarPorIdentificador")]
         // TODO: [Authorize]
-        public async Task<ActionResult<AtendimentoDTO>> SelecionarPorIdentificador(int IdentificadorAtendimento, int IdentificadorUsuario)
+        public async Task<ActionResult<AtendimentoDTO>> SelecionarPorIdentificador(int IdentificadorAtendimento,
+            int IdentificadorUsuario)
         {
             if (!ModelState.IsValid)
             {
@@ -124,7 +171,8 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("SelecionarPorProcesso")]
         // TODO: [Authorize]
-        public async Task<ActionResult<AtendimentoDTO>> SelecionarPorProcesso(string NumeroProcesso, string CodigoProduto, int IdentificadorCliente, int IdentificadorDeposito, int IdentificadorUsuario)
+        public async Task<ActionResult<AtendimentoDTO>> SelecionarPorProcesso(string NumeroProcesso,
+            string CodigoProduto, int IdentificadorCliente, int IdentificadorDeposito, int IdentificadorUsuario)
         {
             if (!ModelState.IsValid)
             {
@@ -137,7 +185,8 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<AtendimentoService>()
-                    .GetByProcessoAsync(NumeroProcesso, CodigoProduto, IdentificadorCliente, IdentificadorDeposito, IdentificadorUsuario);
+                    .GetByProcessoAsync(NumeroProcesso, CodigoProduto, IdentificadorCliente, IdentificadorDeposito,
+                        IdentificadorUsuario);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -152,7 +201,8 @@ namespace WebZi.Plataform.API.Controllers
         [HttpPost("ValidarInformacoesParaCadastro")]
         [IgnoreAntiforgeryToken]
         // TODO: [Authorize]
-        public async Task<ActionResult<MensagemDTO>> ValidarInformacoesParaCadastro([FromBody] AtendimentoParameters Atendimento)
+        public async Task<ActionResult<MensagemDTO>> ValidarInformacoesParaCadastro(
+            [FromBody] AtendimentoParameters Atendimento)
         {
             if (!ModelState.IsValid)
             {
@@ -194,8 +244,10 @@ namespace WebZi.Plataform.API.Controllers
                 return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
             }
         }
+
         [HttpPut("AtualizarPrevisaoRetorno")]
-        public async Task<ActionResult<MensagemDTO>> AtualizarSaidaParaReparo(SaidaParaReparoUpdateParameters parameters)
+        public async Task<ActionResult<MensagemDTO>> AtualizarSaidaParaReparo(
+            SaidaParaReparoUpdateParameters parameters)
         {
             MensagemDTO ResultView = new();
             try
