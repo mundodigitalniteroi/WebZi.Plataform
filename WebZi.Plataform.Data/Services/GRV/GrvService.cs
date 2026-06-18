@@ -178,12 +178,13 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 .FirstOrDefaultAsync(x => x.GrvId == GrvPersistencia.IdentificadorGrv);
 
             var possuiPermissaoEdicao = await _context.PerfilAcessoUsuario
+                .AsNoTracking()
                 .AnyAsync(x => x.UsuarioId == GrvPersistencia.IdentificadorUsuario
-                               && x.PerfilAcessoId == 81
-                               // && x.PerfilAcessoId == 79 // AMBIENTE DE HOMOLOG
-                               && _context.SistemaPerfilAcessoSubModulos
-                                   // .Any(s => s.IdPerfilAcesso == 79 && s.IdSubModulo == 163)); // AMBIENTE DE HOMOLOG 
-                                   .Any(s => s.IdPerfilAcesso == 81 && s.IdSubModulo == 164));
+                                              && x.PerfilAcessoId == 81
+                                              // && x.PerfilAcessoId == 79 // AMBIENTE DE HOMOLOG
+                                              && _context.SistemaPerfilAcessoSubModulos
+                                                  // .Any(s => s.IdPerfilAcesso == 79 && s.IdSubModulo == 163)); // AMBIENTE DE HOMOLOG 
+                                                  .Any(s => s.IdPerfilAcesso == 81 && s.IdSubModulo == 164));
 
             if (!possuiPermissaoEdicao)
                 return MensagemViewHelper.SetBadRequest(

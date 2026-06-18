@@ -478,18 +478,38 @@ namespace WebZi.Plataform.Data.Services.Atendimento
         public async Task<MensagemDTO> CheckInformacoesParaAtualizarAsync(
             AtualizarAtendimentoParameters AtualizarAtendimento)
         {
-            if (AtualizarAtendimento.IdentificadorTipoMeioCobranca <= 0)
-            {
-                return MensagemViewHelper.SetBadRequest("Identificador da Forma de Pagamento inválido");
-            }
+            MensagemDTO ResultView = new MensagemDTO();
+            List<string> Erros = new List<string>();
 
-            MensagemDTO ResultView = new GrvService(_context)
+            var validandoGrv = new GrvService(_context)
                 .ValidateInputGrv(AtualizarAtendimento.IdentificadorProcesso,
                     AtualizarAtendimento.IdentificadorUsuario);
-
-            if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+            var permitirEdicao = await _context.PerfilAcessoUsuario
+                .AsNoTracking()
+                .AnyAsync(x => x.UsuarioId == AtualizarAtendimento.IdentificadorUsuario
+                               && x.PerfilAcessoId == 80
+                               // && x.PerfilAcessoId == 82 // prod
+                               && _context.SistemaPerfilAcessoSubModulos
+                                   // .Any(s => s.IdPerfilAcesso == 82 && s.IdSubModulo == 164)); // prod
+                                   .Any(s => s.IdPerfilAcesso == 80 && s.IdSubModulo == 165));
+            if (!permitirEdicao)
             {
-                return ResultView;
+                Erros.Add("Não possui permissão para edição do atendimento");
+            }
+
+            if (AtualizarAtendimento.IdentificadorTipoMeioCobranca <= 0)
+            {
+                Erros.Add("Identificador da Forma de Pagamento inválido");
+            }
+
+            if (validandoGrv.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+            {
+                Erros.AddRange(validandoGrv.Erros);
+            }
+
+            if (Erros.Count > 0)
+            {
+                return MensagemViewHelper.SetBadRequest(Erros);
             }
 
             #region Consultas
@@ -1049,13 +1069,13 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             CalculoDiariasModel CalculoDiarias = new();
 
-            using (IDbContextTransaction transaction = _context.Database.BeginTransaction())
+            await using (var transaction = await _context.Database.BeginTransactionAsync())
             {
                 try
                 {
                     _context.Atendimento.Add(Atendimento);
 
-                    _context.SaveChanges();
+                    await _context.SaveChangesAsync();
 
                     Faturamento = new FaturamentoService(_context)
                         .Faturar(ParametrosCalculoFaturamento, out CalculoDiarias);
@@ -1070,14 +1090,13 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
                     UpdateGrv(ParametrosCalculoFaturamento);
 
-                    _context.SaveChanges();
-
+                    await _context.SaveChangesAsync();
                     if (AtendimentoInput.IdentificadorTipoMeioCobranca == 12)
                     {
-                        CreateLiberacaoEspecial(Faturamento.FaturamentoId, AtendimentoInput.LiberacaoEspecial);
-                        _context.Faturamento
+                        await CreateLiberacaoEspecial(Faturamento.FaturamentoId, AtendimentoInput.LiberacaoEspecial);
+                        await _context.Faturamento
                             .Where(x => x.FaturamentoId == Faturamento.FaturamentoId)
-                            .Update(x => new FaturamentoModel()
+                            .UpdateAsync(x => new FaturamentoModel()
                             {
                                 Status = "P",
                                 UsuarioAlteracaoId = AtendimentoInput.LiberacaoEspecial.IdUsuarioCadastro,
@@ -1085,9 +1104,9 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                                 ValorPagamento = AtendimentoInput.LiberacaoEspecial.Valor,
                                 DataPagamento = DateTime.Now
                             });
-                        _context.Atendimento
+                        await _context.Atendimento
                             .Where(x => x.AtendimentoId == Faturamento.AtendimentoId)
-                            .Update(x => new AtendimentoModel()
+                            .UpdateAsync(x => new AtendimentoModel()
                             {
                                 FormaLiberacaoNome = Faturamento.Atendimento.ResponsavelNome,
                                 FormaLiberacaoCNH = Faturamento.Atendimento.ResponsavelCnh,
@@ -1096,9 +1115,9 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                                 UsuarioAlteracaoId = AtendimentoInput.LiberacaoEspecial.IdUsuarioCadastro,
                                 FlagPagamentoFinanciado = "N"
                             });
-                        _context.Grv
+                        await _context.Grv
                             .Where(x => x.GrvId == Faturamento.Atendimento.GrvId)
-                            .Update(x => new GrvModel()
+                            .UpdateAsync(x => new GrvModel()
                             {
                                 StatusOperacaoId = "U",
                                 DataAlteracao = DateTime.Now,
@@ -1106,14 +1125,14 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                             });
                     }
 
-                    _context.SaveChanges();
-                    transaction.Commit();
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
 
                     ResultView.IdentificadorAtendimento = Atendimento.AtendimentoId;
                 }
                 catch (Exception ex)
                 {
-                    transaction.Rollback();
+                    await transaction.RollbackAsync();
 
                     ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
 
@@ -1162,6 +1181,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             AtualizarAtendimentoParameters AtendimentoInput)
         {
             MensagemDTO ResultView = new();
+
             #region Consultas
 
             GrvModel Grv = await _context.Grv
@@ -1253,11 +1273,11 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             // CalculoDiariasModel CalculoDiarias = new();
 
-            using (IDbContextTransaction transaction = _context.Database.BeginTransaction())
+            await using (var transaction = await _context.Database.BeginTransactionAsync())
             {
                 try
                 {
-                    _context.SaveChanges();
+                    await _context.SaveChangesAsync();
                     // Faturamento = new FaturamentoService(_context)
                     // .Faturar(ParametrosCalculoFaturamento, out CalculoDiarias);
                     CreateFotoResponsavel(Grv.Atendimento.AtendimentoId, AtendimentoInput.IdentificadorUsuario,
@@ -1269,96 +1289,37 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
                     // UpdateGrv(ParametrosCalculoFaturamento);
 
-                    _context.SaveChanges();
+                    await _context.SaveChangesAsync();
 
                     if (AtendimentoInput.IdentificadorTipoMeioCobranca == 12)
                     {
-                        // CreateLiberacaoEspecial(Grv.Atendimento.Faturamento, AtendimentoInput.LiberacaoEspecial);
-                        // _context.Faturamento
-                        //     .Where(x => x.FaturamentoId == Faturamento.FaturamentoId)
-                        //     .Update(x => new FaturamentoModel()
-                        //     {
-                        //         Status = "P",
-                        //         UsuarioAlteracaoId = AtendimentoInput.LiberacaoEspecial.IdUsuarioCadastro,
-                        //         DataPrazoRetiradaVeiculo = DateTime.Now.AddDays(1),
-                        //         ValorPagamento = AtendimentoInput.LiberacaoEspecial.Valor,
-                        //         DataPagamento = DateTime.Now
-                        //     });
-                        // _context.Atendimento
-                        //     .Where(x => x.AtendimentoId == Faturamento.AtendimentoId)
-                        //     .Update(x => new AtendimentoModel()
-                        //     {
-                        //         FormaLiberacaoNome = Faturamento.Atendimento.ResponsavelNome,
-                        //         FormaLiberacaoCNH = Faturamento.Atendimento.ResponsavelCnh,
-                        //         FormaLiberacaoCPF = Faturamento.Atendimento.ResponsavelDocumento,
-                        //         FormaLiberacao = "C",
-                        //         UsuarioAlteracaoId = AtendimentoInput.LiberacaoEspecial.IdUsuarioCadastro,
-                        //         FlagPagamentoFinanciado = "N"
-                        //     });
-                        // _context.Grv
-                        //     .Where(x => x.GrvId == Faturamento.Atendimento.GrvId)
-                        //     .Update(x => new GrvModel()
-                        //     {
-                        //         StatusOperacaoId = "U",
-                        //         DataAlteracao = DateTime.Now,
-                        //         UsuarioAlteracaoId = AtendimentoInput.LiberacaoEspecial.IdUsuarioCadastro
-                        //     });
+                        AtualizarLiberacaoEspecial(AtendimentoInput.LiberacaoEspecial);
+                        await _context.Faturamento
+                            .Where(x => x.AtendimentoId == Grv.Atendimento.AtendimentoId)
+                            .UpdateAsync(x => new FaturamentoModel()
+                            {
+                                UsuarioAlteracaoId = AtendimentoInput.LiberacaoEspecial.IdUsuarioCadastro,
+                                DataAlteracao = DateTime.UtcNow.Add(TimeSpan.FromHours(-3))
+                            });
                     }
 
-                    _context.SaveChanges();
-                    transaction.Commit();
-
-                    // ResultView.IdentificadorAtendimento = Atendimento.AtendimentoId;
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
                 }
                 catch (Exception ex)
                 {
-                    transaction.Rollback();
-
+                    await transaction.RollbackAsync();
                     ResultView = MensagemViewHelper.SetInternalServerError(ex);
-
                     return ResultView;
                 }
             }
 
-            List<TabelaGenericaModel> ListagemTipoCobranca = await new TabelaGenericaService(_context)
-                .ListAsync("FAT_TIPO_COBRANCA");
-
-            // ResultView.Faturamento = _mapper.Map<FaturamentoCadastroDTO>(Faturamento);
-
-            // ResultView.Faturamento.ListagemServico =
-            //     _mapper.Map<List<FaturamentoCadastroComposicaoDTO>>(Faturamento.ListagemFaturamentoComposicao);
-
-            FaturamentoServicoTipoVeiculoModel FaturamentoServicoTipoVeiculo = new();
-
-            // foreach (var item in ResultView.Faturamento.ListagemServico)
-            // {
-            //     FaturamentoServicoTipoVeiculo = _context.FaturamentoServicoTipoVeiculo
-            //         .Include(x => x.FaturamentoServicoAssociado)
-            //         .AsNoTracking()
-            //         .FirstOrDefault(x =>
-            //             x.FaturamentoServicoTipoVeiculoId == item.IdentificadorFaturamentoServicoTipoVeiculo);
-            //
-            //     item.DescricaoTipoServico = ListagemTipoCobranca.Where(x => x.ValorCadastro == item.TipoServico)
-            //         .FirstOrDefault().Descricao;
-            //
-            //     item.NomeServico = FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.Descricao;
-            //
-            //     item.DataVigenciaInicial =
-            //         FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.DataVigenciaInicial;
-            //
-            //     item.DataVigenciaFinal = FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.DataVigenciaFinal;
-            // }
-
-            // TODO:
-            // GerarFormaPagamento(ParametrosCalculoFaturamento);
-
-            ResultView = MensagemViewHelper.SetCreateSuccess();
-
+            ResultView = MensagemViewHelper.SetUpdateSuccess();
             return ResultView;
         }
 
 
-        private async void AtualizarLiberacaoEspecial(int idFaturamento, LiberacaoEspecialParameters parameters)
+        private async Task AtualizarLiberacaoEspecial(LiberacaoEspecialParameters parameters)
         {
             #region Validação
 
@@ -1367,32 +1328,34 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             #endregion Validação
 
-            #region Consultar
-
-            LiberacaoEspecialModel liberacaoEspecial = await _context.LiberacaoEspecial
-                .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.IdGrv == parameters.IdGrv);
-
-            #endregion
-            // PERGUNTAR SOBRE O PORQUE N TEM ID DO USUARIO ALTERAÇÃO
-            liberacaoEspecial.IdLiberacaoEspecialTipo = parameters.IdLiberacaoEspecialTipo;
-            liberacaoEspecial.IdUsuarioCadastro = parameters.IdUsuarioCadastro;
-            liberacaoEspecial.NumeroDocumento = parameters.NumeroDocumento.ToUpper();
-            liberacaoEspecial.TipoDocumento = parameters.TipoDocumento.ToUpper();
-            liberacaoEspecial.NumeroProcesso = parameters.NumeroProcesso.ToUpper();
-            liberacaoEspecial.OrgaoEmissor = parameters.OrgaoEmissor.ToUpper();
-            liberacaoEspecial.PortadorNome = parameters.PortadorNome.ToUpper();
-            liberacaoEspecial.PortadorCargo = parameters.PortadorCargo.ToUpper();
-            liberacaoEspecial.PortadorMatricula = parameters.PortadorMatricula.ToUpper();
-            liberacaoEspecial.SignatarioNomeDocumento = parameters.SignatarioNomeDocumento.ToUpper();
-            liberacaoEspecial.SignatarioMatricula = parameters.SignatarioMatricula.ToUpper();
-            liberacaoEspecial.SignatarioTitulo = parameters.SignatarioTitulo.ToUpper();
-            liberacaoEspecial.DataEmissaoDocumento = parameters.DataEmissaoDocumento.Date;
-           // await  _context.LiberacaoEspecial.UpdateAsync();
-            
+            try
+            {
+                await _context.LiberacaoEspecial
+                    .AsTracking()
+                    .Where(x => x.IdGrv == parameters.IdGrv)
+                    .UpdateAsync(x => new LiberacaoEspecialModel()
+                    {
+                        IdLiberacaoEspecialTipo = parameters.IdLiberacaoEspecialTipo,
+                        NumeroDocumento = parameters.NumeroDocumento.ToUpper(),
+                        TipoDocumento = parameters.TipoDocumento.ToUpper(),
+                        NumeroProcesso = parameters.NumeroProcesso.ToUpper(),
+                        OrgaoEmissor = parameters.OrgaoEmissor.ToUpper(),
+                        PortadorNome = parameters.PortadorNome.ToUpper(),
+                        PortadorCargo = parameters.PortadorCargo.ToUpper(),
+                        PortadorMatricula = parameters.PortadorMatricula.ToUpper(),
+                        SignatarioNomeDocumento = parameters.SignatarioNomeDocumento.ToUpper(),
+                        SignatarioMatricula = parameters.SignatarioMatricula.ToUpper(),
+                        SignatarioTitulo = parameters.SignatarioTitulo.ToUpper(),
+                        DataEmissaoDocumento = parameters.DataEmissaoDocumento.Date,
+                    });
+            }
+            catch (Exception e)
+            {
+                throw new DbUpdateException(e.Message);
+            }
         }
 
-        private void CreateLiberacaoEspecial(int idFaturamento, LiberacaoEspecialParameters parameters)
+        private async Task CreateLiberacaoEspecial(int idFaturamento, LiberacaoEspecialParameters parameters)
         {
             #region Validação
 
@@ -1420,7 +1383,14 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 DataEmissaoDocumento = parameters.DataEmissaoDocumento.Date,
                 DataLiberacao = DateTime.Now
             };
-            _context.LiberacaoEspecial.Add(liberacaoEspecial);
+            try
+            {
+                await _context.LiberacaoEspecial.AddAsync(liberacaoEspecial);
+            }
+            catch (Exception e)
+            {
+                throw new(e.Message);
+            }
         }
 
         private void CreateFotoResponsavel(int AtendimentoId, int UsuarioId, byte[] ResponsavelFoto)
