@@ -6,6 +6,7 @@ namespace WebZi.Plataform.Domain.ViewModel.Atendimento
     {
         [Required(ErrorMessage = "Propriedade obrigatória")]
         public int IdentificadorAtendimento { get; set; }
+
         [Required(ErrorMessage = "Propriedade obrigatória")]
         public int IdentificadorProcesso { get; set; }
 
@@ -104,9 +105,9 @@ namespace WebZi.Plataform.Domain.ViewModel.Atendimento
 
         public string NotaFiscalInscricaoMunicipal { get; set; }
 
-        public DateTime DataHoraInicioAtendimento { get; set; }
+        // public DateTime DataHoraInicioAtendimento { get; set; }
 
-        public List<DescontoParameters> Descontos { get; set; }
+        // public List<DescontoParameters> Descontos { get; set; }
         public LiberacaoEspecialParameters? LiberacaoEspecial { get; set; }
     }
 }

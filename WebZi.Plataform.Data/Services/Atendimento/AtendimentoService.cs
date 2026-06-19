@@ -497,10 +497,10 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 Erros.Add("Não possui permissão para edição do atendimento");
             }
 
-            if (AtualizarAtendimento.IdentificadorTipoMeioCobranca <= 0)
-            {
-                Erros.Add("Identificador da Forma de Pagamento inválido");
-            }
+            // if (AtualizarAtendimento.IdentificadorTipoMeioCobranca <= 0)
+            // {
+            //     Erros.Add("Identificador da Forma de Pagamento inválido");
+            // }
 
             if (validandoGrv.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
             {
@@ -847,27 +847,27 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             #region Forma de Pagamento
 
-            TipoMeioCobrancaModel TipoMeioCobranca = await _context.TipoMeioCobranca
-                .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.TipoMeioCobrancaId == AtualizarAtendimento.IdentificadorTipoMeioCobranca);
+            // TipoMeioCobrancaModel TipoMeioCobranca = await _context.TipoMeioCobranca
+            //     .AsNoTracking()
+            //     .FirstOrDefaultAsync(x => x.TipoMeioCobrancaId == AtualizarAtendimento.IdentificadorTipoMeioCobranca);
 
-            if (TipoMeioCobranca == null)
-            {
-                ResultView.AvisosImpeditivos.Add(
-                    $"Forma de Pagamento inexistente: {AtualizarAtendimento.IdentificadorTipoMeioCobranca}");
-            }
-            else if (TipoMeioCobranca.Alias == TipoMeioCobrancaAliasEnum.PixEstatico &&
-                     Grv.Cliente.FlagPossuiPixEstatico == "N")
-            {
-                ResultView.AvisosImpeditivos.Add(
-                    "Este Cliente não está configurado para emitir a Forma de Pagamento PIX Estático");
-            }
-            else if (TipoMeioCobranca.Alias == TipoMeioCobrancaAliasEnum.PixDinamico &&
-                     Grv.Cliente.FlagPossuiPixDinamico == "N")
-            {
-                ResultView.AvisosImpeditivos.Add(
-                    "Este Cliente não está configurado para emitir a Forma de Pagamento PIX Dinâmico");
-            }
+            // if (TipoMeioCobranca == null)
+            // {
+            //     ResultView.AvisosImpeditivos.Add(
+            //         $"Forma de Pagamento inexistente: {AtualizarAtendimento.IdentificadorTipoMeioCobranca}");
+            // }
+            //  if (TipoMeioCobranca.Alias == TipoMeioCobrancaAliasEnum.PixEstatico &&
+            //          Grv.Cliente.FlagPossuiPixEstatico == "N")
+            // {
+            //     ResultView.AvisosImpeditivos.Add(
+            //         "Este Cliente não está configurado para emitir a Forma de Pagamento PIX Estático");
+            // }
+            // else if (TipoMeioCobranca.Alias == TipoMeioCobrancaAliasEnum.PixDinamico &&
+            //          Grv.Cliente.FlagPossuiPixDinamico == "N")
+            // {
+            //     ResultView.AvisosImpeditivos.Add(
+            //         "Este Cliente não está configurado para emitir a Forma de Pagamento PIX Dinâmico");
+            // }
 
             #endregion Forma de Pagamento
 
@@ -1184,20 +1184,18 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             #region Consultas
 
-            GrvModel Grv = await _context.Grv
-                .Include(x => x.Atendimento)
-                .Include(x => x.Cliente)
-                .Include(x => x.Deposito)
-                .Where(x => x.GrvId == AtendimentoInput.IdentificadorProcesso)
-                .AsNoTracking()
+            AtendimentoModel Atendimento = await _context.Atendimento
+                .Include(x => x.Grv)
+                .ThenInclude(x => x.Cliente)
+                .Include(x => x.Grv)
+                .ThenInclude(x => x.Deposito)
+                .Where(x => x.AtendimentoId == AtendimentoInput.IdentificadorAtendimento)
+                .AsTracking()
                 .FirstOrDefaultAsync();
-            // FaturamentoModel faturamento = await _context.Faturamento.AsTracking().
-            // DateTime DataHoraPorDeposito = new DepositoService(_context)
-            //     .GetDataHoraPorDeposito(Grv.DepositoId);
 
             var permitirEmissao = await _context.FaturamentoRegra
                 .AnyAsync(x =>
-                    x.ClienteId == Grv.ClienteId && x.DepositoId == Grv.DepositoId &&
+                    x.ClienteId == Atendimento.Grv.ClienteId && x.DepositoId == Atendimento.Grv.DepositoId &&
                     x.FaturamentoRegraTipoId == 11);
 
             #endregion Consultas
@@ -1205,104 +1203,76 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             #region Dados do Atendimento
 
-            Grv.Atendimento.GrvId = AtendimentoInput.IdentificadorProcesso;
-            Grv.Atendimento.QualificacaoResponsavelId = AtendimentoInput.IdentificadorQualificacaoResponsavel;
-            Grv.Atendimento.UsuarioCadastroId = AtendimentoInput.IdentificadorUsuario;
-            Grv.Atendimento.DataHoraInicioAtendimento = AtendimentoInput.DataHoraInicioAtendimento;
-            Grv.Atendimento.ResponsavelNome = AtendimentoInput.ResponsavelNome.ToUpperTrim();
-            Grv.Atendimento.ResponsavelDocumento = AtendimentoInput.ResponsavelDocumento.Replace(".", "")
+            Atendimento.GrvId = AtendimentoInput.IdentificadorProcesso;
+            Atendimento.QualificacaoResponsavelId = AtendimentoInput.IdentificadorQualificacaoResponsavel;
+            Atendimento.UsuarioCadastroId = AtendimentoInput.IdentificadorUsuario;
+            Atendimento.ResponsavelNome = AtendimentoInput.ResponsavelNome.ToUpperTrim();
+            Atendimento.ResponsavelDocumento = AtendimentoInput.ResponsavelDocumento.Replace(".", "")
                 .Replace("/", "")
                 .Replace("-", "");
-            Grv.Atendimento.ResponsavelCnh = AtendimentoInput.ResponsavelCNH;
-            Grv.Atendimento.ResponsavelEndereco = AtendimentoInput.ResponsavelEndereco.ToUpperTrim();
-            Grv.Atendimento.ResponsavelNumero = AtendimentoInput.ResponsavelNumero.ToUpperTrim();
-            Grv.Atendimento.ResponsavelComplemento = AtendimentoInput.ResponsavelComplemento.ToUpperTrim();
-            Grv.Atendimento.ResponsavelBairro = AtendimentoInput.ResponsavelBairro.ToUpperTrim();
-            Grv.Atendimento.ResponsavelMunicipio = AtendimentoInput.ResponsavelMunicipio.ToUpperTrim();
-            Grv.Atendimento.ResponsavelUF = AtendimentoInput.ResponsavelUF.ToUpperTrim();
-            Grv.Atendimento.ResponsavelCEP = AtendimentoInput.ResponsavelCEP.Replace("-", "");
-            Grv.Atendimento.ResponsavelDDD = AtendimentoInput.ResponsavelDDD;
-            Grv.Atendimento.ResponsavelTelefone = AtendimentoInput.ResponsavelTelefone.Replace("-", "");
-            Grv.Atendimento.ProprietarioNome = AtendimentoInput.ProprietarioNome.ToUpperTrim();
-            Grv.Atendimento.ProprietarioTipoDocumentoId = AtendimentoInput.IdentificadorProprietarioTipoDocumento;
-            Grv.Atendimento.ProprietarioDocumento = AtendimentoInput.ProprietarioDocumento;
-            Grv.Atendimento.ProprietarioEndereco = AtendimentoInput.ProprietarioEndereco.ToUpperTrim();
-            Grv.Atendimento.ProprietarioNumero = AtendimentoInput.ProprietarioNumero.ToUpperTrim();
-            Grv.Atendimento.ProprietarioComplemento = AtendimentoInput.ProprietarioComplemento.ToUpperTrim();
-            Grv.Atendimento.ProprietarioBairro = AtendimentoInput.ProprietarioBairro.ToUpperTrim();
-            Grv.Atendimento.ProprietarioMunicipio = AtendimentoInput.ProprietarioMunicipio.ToUpperTrim();
-            Grv.Atendimento.ProprietarioUF = AtendimentoInput.ProprietarioUF.ToUpperTrim();
-            Grv.Atendimento.ProprietarioCEP = AtendimentoInput.ProprietarioCEP.Replace("-", "");
-            Grv.Atendimento.ProprietarioDDD = AtendimentoInput.ProprietarioDDD;
-            Grv.Atendimento.ProprietarioTelefone = AtendimentoInput.ProprietarioTelefone.Replace("-", "");
-            Grv.Atendimento.FormaLiberacao = AtendimentoInput.FormaLiberacao.ToUpperTrim();
-            Grv.Atendimento.FormaLiberacaoCNH = AtendimentoInput.FormaLiberacaoCNH;
-            Grv.Atendimento.FormaLiberacaoCPF = AtendimentoInput.FormaLiberacaoCPF.Replace(".", "").Replace(";", "")
+            Atendimento.ResponsavelCnh = AtendimentoInput.ResponsavelCNH;
+            Atendimento.ResponsavelEndereco = AtendimentoInput.ResponsavelEndereco.ToUpperTrim();
+            Atendimento.ResponsavelNumero = AtendimentoInput.ResponsavelNumero.ToUpperTrim();
+            Atendimento.ResponsavelComplemento = AtendimentoInput.ResponsavelComplemento.ToUpperTrim();
+            Atendimento.ResponsavelBairro = AtendimentoInput.ResponsavelBairro.ToUpperTrim();
+            Atendimento.ResponsavelMunicipio = AtendimentoInput.ResponsavelMunicipio.ToUpperTrim();
+            Atendimento.ResponsavelUF = AtendimentoInput.ResponsavelUF.ToUpperTrim();
+            Atendimento.ResponsavelCEP = AtendimentoInput.ResponsavelCEP.Replace("-", "");
+            Atendimento.ResponsavelDDD = AtendimentoInput.ResponsavelDDD ?? "";
+            Atendimento.ResponsavelTelefone = AtendimentoInput.ResponsavelTelefone?.Replace("-", "") ?? "";
+            Atendimento.ProprietarioNome = AtendimentoInput.ProprietarioNome.ToUpperTrim();
+            Atendimento.ProprietarioTipoDocumentoId = AtendimentoInput.IdentificadorProprietarioTipoDocumento;
+            Atendimento.ProprietarioDocumento = AtendimentoInput.ProprietarioDocumento;
+            Atendimento.ProprietarioEndereco = AtendimentoInput.ProprietarioEndereco.ToUpperTrim();
+            Atendimento.ProprietarioNumero = AtendimentoInput.ProprietarioNumero.ToUpperTrim();
+            Atendimento.ProprietarioComplemento = AtendimentoInput.ProprietarioComplemento.ToUpperTrim();
+            Atendimento.ProprietarioBairro = AtendimentoInput.ProprietarioBairro.ToUpperTrim();
+            Atendimento.ProprietarioMunicipio = AtendimentoInput.ProprietarioMunicipio.ToUpperTrim();
+            Atendimento.ProprietarioUF = AtendimentoInput.ProprietarioUF.ToUpperTrim();
+            Atendimento.ProprietarioCEP = AtendimentoInput.ProprietarioCEP.Replace("-", "");
+            Atendimento.ProprietarioDDD = AtendimentoInput.ProprietarioDDD;
+            Atendimento.ProprietarioTelefone = AtendimentoInput.ProprietarioTelefone.Replace("-", "");
+            Atendimento.FormaLiberacao = AtendimentoInput.FormaLiberacao.ToUpperTrim();
+            Atendimento.FormaLiberacaoCNH = AtendimentoInput.FormaLiberacaoCNH;
+            Atendimento.FormaLiberacaoCPF = AtendimentoInput.FormaLiberacaoCPF.Replace(".", "").Replace(";", "")
                 .Replace("-", "");
-            Grv.Atendimento.FormaLiberacaoNome = AtendimentoInput.FormaLiberacaoNome.ToUpperTrim();
-            Grv.Atendimento.FormaLiberacaoPlaca = AtendimentoInput.FormaLiberacaoPlaca.Replace("-", "").ToUpperTrim();
-            if (Grv.Cliente.FlagEmissaoNotaFiscal == "S" && permitirEmissao)
+            Atendimento.FormaLiberacaoNome = AtendimentoInput.FormaLiberacaoNome.ToUpperTrim();
+            Atendimento.FormaLiberacaoPlaca = AtendimentoInput.FormaLiberacaoPlaca.Replace("-", "").ToUpperTrim();
+            if (Atendimento.Grv.Cliente.FlagEmissaoNotaFiscal == "S" && permitirEmissao)
             {
-                Grv.Atendimento.NotaFiscalNome = AtendimentoInput.NotaFiscalNome.ToUpperTrim();
-                Grv.Atendimento.NotaFiscalDocumento = AtendimentoInput.NotaFiscalDocumento.Replace(".", "")
+                Atendimento.NotaFiscalNome = AtendimentoInput.NotaFiscalNome.ToUpperTrim();
+                Atendimento.NotaFiscalDocumento = AtendimentoInput.NotaFiscalDocumento.Replace(".", "")
                     .Replace("/", "")
                     .Replace("-", "");
-                Grv.Atendimento.NotaFiscalEndereco = AtendimentoInput.NotaFiscalEndereco.ToUpperTrim();
-                Grv.Atendimento.NotaFiscalNumero = AtendimentoInput.NotaFiscalNumero.ToUpperTrim();
-                Grv.Atendimento.NotaFiscalComplemento = AtendimentoInput.NotaFiscalComplemento.ToUpperTrim();
-                Grv.Atendimento.NotaFiscalBairro = AtendimentoInput.NotaFiscalBairro.ToUpperTrim();
-                Grv.Atendimento.NotaFiscalMunicipio = AtendimentoInput.NotaFiscalMunicipio.ToUpperTrim();
-                Grv.Atendimento.NotaFiscalUF = AtendimentoInput.NotaFiscalUF.ToUpperTrim();
-                Grv.Atendimento.NotaFiscalCEP = AtendimentoInput.NotaFiscalCEP.Replace("-", "");
-                Grv.Atendimento.NotaFiscalDDD = AtendimentoInput.NotaFiscalDDD;
-                Grv.Atendimento.NotaFiscalTelefone = AtendimentoInput.NotaFiscalTelefone.Replace("-", "");
-                Grv.Atendimento.NotaFiscalEmail = AtendimentoInput.NotaFiscalEmail.ToLowerTrim();
-                Grv.Atendimento.NotaFiscalInscricaoMunicipal =
+                Atendimento.NotaFiscalEndereco = AtendimentoInput.NotaFiscalEndereco.ToUpperTrim();
+                Atendimento.NotaFiscalNumero = AtendimentoInput.NotaFiscalNumero.ToUpperTrim();
+                Atendimento.NotaFiscalComplemento = AtendimentoInput.NotaFiscalComplemento.ToUpperTrim();
+                Atendimento.NotaFiscalBairro = AtendimentoInput.NotaFiscalBairro.ToUpperTrim();
+                Atendimento.NotaFiscalMunicipio = AtendimentoInput.NotaFiscalMunicipio.ToUpperTrim();
+                Atendimento.NotaFiscalUF = AtendimentoInput.NotaFiscalUF.ToUpperTrim();
+                Atendimento.NotaFiscalCEP = AtendimentoInput.NotaFiscalCEP.Replace("-", "");
+                Atendimento.NotaFiscalDDD = AtendimentoInput.NotaFiscalDDD;
+                Atendimento.NotaFiscalTelefone = AtendimentoInput.NotaFiscalTelefone.Replace("-", "");
+                Atendimento.NotaFiscalEmail = AtendimentoInput.NotaFiscalEmail.ToLowerTrim();
+                Atendimento.NotaFiscalInscricaoMunicipal =
                     AtendimentoInput.NotaFiscalInscricaoMunicipal.ToUpperTrim();
             }
 
             #endregion Dados do Atendimento
 
-            // CalculoFaturamentoParametroModel ParametrosCalculoFaturamento =
-            //     await ConfigParametrosCalculoFaturamentoAsync(Grv, AtendimentoInput.IdentificadorTipoMeioCobranca,
-            //         AtendimentoInput.IdentificadorUsuario, DataHoraPorDeposito, AtendimentoInput.Descontos);
-
-            // AtendimentoCadastroDTO ResultView = new();
-
-            // FaturamentoModel Faturamento = new();
-
-            // CalculoDiariasModel CalculoDiarias = new();
-
             await using (var transaction = await _context.Database.BeginTransactionAsync())
             {
                 try
                 {
-                    await _context.SaveChangesAsync();
-                    // Faturamento = new FaturamentoService(_context)
-                    // .Faturar(ParametrosCalculoFaturamento, out CalculoDiarias);
-                    CreateFotoResponsavel(Grv.Atendimento.AtendimentoId, AtendimentoInput.IdentificadorUsuario,
+                    CreateFotoResponsavel(Atendimento.AtendimentoId, AtendimentoInput.IdentificadorUsuario,
                         AtendimentoInput.ResponsavelFoto);
-
-                    // UpdateStatusERP(ParametrosCalculoFaturamento.ClienteDeposito, Faturamento, AtendimentoIn);
-
-                    // CreateLiberacaoLeilao(ParametrosCalculoFaturamento);
-
-                    // UpdateGrv(ParametrosCalculoFaturamento);
-
-                    await _context.SaveChangesAsync();
 
                     if (AtendimentoInput.IdentificadorTipoMeioCobranca == 12)
                     {
                         AtualizarLiberacaoEspecial(AtendimentoInput.LiberacaoEspecial);
-                        await _context.Faturamento
-                            .Where(x => x.AtendimentoId == Grv.Atendimento.AtendimentoId)
-                            .UpdateAsync(x => new FaturamentoModel()
-                            {
-                                UsuarioAlteracaoId = AtendimentoInput.LiberacaoEspecial.IdUsuarioCadastro,
-                                DataAlteracao = DateTime.UtcNow.Add(TimeSpan.FromHours(-3))
-                            });
                     }
 
+                    _context.Update(Atendimento);
                     await _context.SaveChangesAsync();
                     await transaction.CommitAsync();
                 }
