@@ -785,9 +785,13 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.TipoLiberacaoId == Parameters.IdentificadorTipoLiberacao);
 
+            
             if (Parameters.IdentificadorTipoLiberacao <= 0)
                 return MensagemViewHelper.SetBadRequest("Precisa ter um tipo de liberação");
 
+            if(TipoLiberacao is null)
+                return MensagemViewHelper.SetBadRequest("Não existe esse tipo de liberação");
+            
             GrvModel Grv = await _context.Grv
                 .Include(x => x.StatusOperacao)
                 .AsNoTracking()

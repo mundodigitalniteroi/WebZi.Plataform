@@ -100,7 +100,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<AtendimentoService>()
-                    .AtualizarAtendimentoAsync(parameters);
+                    .UpdateAtendimentoAsync(parameters);
             }
             catch (Exception ex)
             {

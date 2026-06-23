@@ -11,7 +11,7 @@ namespace WebZi.Plataform.Domain.ViewModel.Atendimento
         public int IdentificadorProcesso { get; set; }
 
         [Required(ErrorMessage = "Propriedade obrigatória")]
-        public byte IdentificadorTipoMeioCobranca { get; set; }
+        public byte? IdentificadorTipoMeioCobranca { get; set; }
 
         [Required(ErrorMessage = "Propriedade obrigatória")]
         public byte IdentificadorQualificacaoResponsavel { get; set; }
@@ -108,6 +108,6 @@ namespace WebZi.Plataform.Domain.ViewModel.Atendimento
         // public DateTime DataHoraInicioAtendimento { get; set; }
 
         // public List<DescontoParameters> Descontos { get; set; }
-        public LiberacaoEspecialParameters? LiberacaoEspecial { get; set; }
+        public AtualizarLiberacaoEspecialParameters? LiberacaoEspecial { get; set; }
     }
 }

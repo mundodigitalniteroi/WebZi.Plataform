@@ -8,7 +8,10 @@ namespace WebZi.Plataform.Data.Mappings.Liberacao
     {
         public void Configure(EntityTypeBuilder<LiberacaoEspecialModel> builder)
         {
-            builder.ToTable("tb_dep_liberacao_especial", "dbo")
+            builder.ToTable("tb_dep_liberacao_especial", "dbo", t =>
+                {
+                    t.HasTrigger("tr_log_upd_liberacao_especial");
+                })
                 .HasKey(x => x.IdLiberacaoEspecial);
 
             builder.Property(e => e.IdLiberacaoEspecial)

@@ -714,12 +714,17 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             #region Nota Fiscal
 
-            var permitirEmissao = await _context.FaturamentoRegra
-                .AnyAsync(x =>
-                    x.ClienteId == Grv.ClienteId && x.DepositoId == Grv.DepositoId &&
-                    x.FaturamentoRegraTipoId == 11);
+            var permiteEdicaoNf =  await _context.PerfilAcessoUsuario
+                .AsNoTracking()
+                .AnyAsync(x => x.UsuarioId == AtualizarAtendimento.IdentificadorUsuario
+                               && x.PerfilAcessoId == 81 // AMBIENTE DE HOMOLOG
+                               // && x.PerfilAcessoId == 79 
+                               && _context.SistemaPerfilAcessoSubModulos
+                                   // .Any(s => s.IdPerfilAcesso == 79 && s.IdSubModulo == 163)); 
+                                   .Any(s => s.IdPerfilAcesso == 81 && s.IdSubModulo == 167)); // AMBIENTE DE HOMOLOG
 
-            if (Grv.Cliente.FlagEmissaoNotaFiscal == "S" && permitirEmissao)
+            
+            if (permiteEdicaoNf)
             {
                 #region Receptor da Nota Fiscal
 
@@ -1177,7 +1182,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             return ResultView;
         }
 
-        public async Task<MensagemDTO> AtualizarAtendimentoAsync(
+        public async Task<MensagemDTO> UpdateAtendimentoAsync(
             AtualizarAtendimentoParameters AtendimentoInput)
         {
             MensagemDTO ResultView = new();
@@ -1193,11 +1198,17 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 .AsTracking()
                 .FirstOrDefaultAsync();
 
-            var permitirEmissao = await _context.FaturamentoRegra
-                .AnyAsync(x =>
-                    x.ClienteId == Atendimento.Grv.ClienteId && x.DepositoId == Atendimento.Grv.DepositoId &&
-                    x.FaturamentoRegraTipoId == 11);
-
+            var permiteEdicaoNf =  await _context.PerfilAcessoUsuario
+                    .AsNoTracking()
+                    .AnyAsync(x => x.UsuarioId == AtendimentoInput.IdentificadorUsuario
+                                   && x.PerfilAcessoId == 81 // AMBIENTE DE HOMOLOG
+                                   // && x.PerfilAcessoId == 79 
+                                   && _context.SistemaPerfilAcessoSubModulos
+                                       // .Any(s => s.IdPerfilAcesso == 79 && s.IdSubModulo == 163)); 
+                                       .Any(s => s.IdPerfilAcesso == 81 && s.IdSubModulo == 167)); // AMBIENTE DE HOMOLOG
+                
+            
+            
             #endregion Consultas
 
 
@@ -1238,7 +1249,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 .Replace("-", "");
             Atendimento.FormaLiberacaoNome = AtendimentoInput.FormaLiberacaoNome.ToUpperTrim();
             Atendimento.FormaLiberacaoPlaca = AtendimentoInput.FormaLiberacaoPlaca.Replace("-", "").ToUpperTrim();
-            if (Atendimento.Grv.Cliente.FlagEmissaoNotaFiscal == "S" && permitirEmissao)
+            if (permiteEdicaoNf)
             {
                 Atendimento.NotaFiscalNome = AtendimentoInput.NotaFiscalNome.ToUpperTrim();
                 Atendimento.NotaFiscalDocumento = AtendimentoInput.NotaFiscalDocumento.Replace(".", "")
@@ -1269,7 +1280,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
                     if (AtendimentoInput.IdentificadorTipoMeioCobranca == 12)
                     {
-                        AtualizarLiberacaoEspecial(AtendimentoInput.LiberacaoEspecial);
+                        await UpdateLiberacaoEspecial(AtendimentoInput.LiberacaoEspecial);
                     }
 
                     _context.Update(Atendimento);
@@ -1289,35 +1300,51 @@ namespace WebZi.Plataform.Data.Services.Atendimento
         }
 
 
-        private async Task AtualizarLiberacaoEspecial(LiberacaoEspecialParameters parameters)
+        private async Task UpdateLiberacaoEspecial(AtualizarLiberacaoEspecialParameters parameters)
         {
-            #region Validação
 
-            if (parameters.DataEmissaoDocumento < DateTime.Today)
-                throw new Exception("Data não pode ser menor que hoje");
-
-            #endregion Validação
-
+            var libEspecial = await _context.LiberacaoEspecial
+                .AsTracking()
+                .FirstOrDefaultAsync(x => x.IdGrv == parameters.IdGrv);
             try
             {
-                await _context.LiberacaoEspecial
-                    .AsTracking()
-                    .Where(x => x.IdGrv == parameters.IdGrv)
-                    .UpdateAsync(x => new LiberacaoEspecialModel()
-                    {
-                        IdLiberacaoEspecialTipo = parameters.IdLiberacaoEspecialTipo,
-                        NumeroDocumento = parameters.NumeroDocumento.ToUpper(),
-                        TipoDocumento = parameters.TipoDocumento.ToUpper(),
-                        NumeroProcesso = parameters.NumeroProcesso.ToUpper(),
-                        OrgaoEmissor = parameters.OrgaoEmissor.ToUpper(),
-                        PortadorNome = parameters.PortadorNome.ToUpper(),
-                        PortadorCargo = parameters.PortadorCargo.ToUpper(),
-                        PortadorMatricula = parameters.PortadorMatricula.ToUpper(),
-                        SignatarioNomeDocumento = parameters.SignatarioNomeDocumento.ToUpper(),
-                        SignatarioMatricula = parameters.SignatarioMatricula.ToUpper(),
-                        SignatarioTitulo = parameters.SignatarioTitulo.ToUpper(),
-                        DataEmissaoDocumento = parameters.DataEmissaoDocumento.Date,
-                    });
+                if (libEspecial != null)
+                {
+                    libEspecial.IdLiberacaoEspecialTipo = parameters.IdLiberacaoEspecialTipo;
+                    libEspecial.NumeroDocumento = parameters.NumeroDocumento.ToUpper();
+                    libEspecial.TipoDocumento = parameters.TipoDocumento.ToUpper();
+                    libEspecial.NumeroProcesso = parameters.NumeroProcesso.ToUpper();
+                    libEspecial.OrgaoEmissor = parameters.OrgaoEmissor.ToUpper();
+                    libEspecial.PortadorNome = parameters.PortadorNome.ToUpper();
+                    libEspecial.PortadorCargo = parameters.PortadorCargo.ToUpper();
+                    libEspecial.PortadorMatricula = parameters.PortadorMatricula.ToUpper();
+                    libEspecial.SignatarioNomeDocumento = parameters.SignatarioNomeDocumento.ToUpper();
+                    libEspecial.SignatarioMatricula = parameters.SignatarioMatricula.ToUpper();
+                    libEspecial.SignatarioTitulo = parameters.SignatarioTitulo.ToUpper();
+                    libEspecial.DataEmissaoDocumento = parameters.DataEmissaoDocumento.Date;
+                    _context.Update(libEspecial);
+                    return;
+                }
+                LiberacaoEspecialModel liberacaoEspecial = new()
+                {
+                    IdGrv = parameters.IdGrv,
+                    IdFaturamento = parameters.IdFaturamento.Value,
+                    IdLiberacaoEspecialTipo = parameters.IdLiberacaoEspecialTipo,
+                    IdUsuarioCadastro = parameters.IdUsuarioCadastro.Value,
+                    NumeroDocumento = parameters.NumeroDocumento.ToUpper(),
+                    TipoDocumento = parameters.TipoDocumento.ToUpper(),
+                    NumeroProcesso = parameters.NumeroProcesso.ToUpper(),
+                    OrgaoEmissor = parameters.OrgaoEmissor.ToUpper(),
+                    PortadorNome = parameters.PortadorNome.ToUpper(),
+                    PortadorCargo = parameters.PortadorCargo.ToUpper(),
+                    PortadorMatricula = parameters.PortadorMatricula.ToUpper(),
+                    SignatarioNomeDocumento = parameters.SignatarioNomeDocumento.ToUpper(),
+                    SignatarioMatricula = parameters.SignatarioMatricula.ToUpper(),
+                    SignatarioTitulo = parameters.SignatarioTitulo.ToUpper(),
+                    DataEmissaoDocumento = parameters.DataEmissaoDocumento.Date,
+                    DataLiberacao = DateTime.Now
+                };
+                await _context.LiberacaoEspecial.AddAsync(liberacaoEspecial);
             }
             catch (Exception e)
             {

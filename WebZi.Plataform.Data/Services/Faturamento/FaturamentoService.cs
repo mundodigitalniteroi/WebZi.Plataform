@@ -1909,15 +1909,15 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 .FirstOrDefaultAsync(x => x.FaturamentoId == identificadorFaturamento);
 
             var notas = await _context.Nfe
-                .Where(tdn =>
-                    tdn.GrvId == Faturamento.Atendimento.GrvId &&
-                    !_context.Nfe.Any(subconsulta =>
-                        subconsulta.GrvId == tdn.GrvId &&
-                        subconsulta.NfeComplementarId == tdn.NfeId))
-                .Select(tdn => new
+                .Where(x =>
+                    x.GrvId == Faturamento.Atendimento.GrvId &&
+                    !_context.Nfe.Any(sb =>
+                        sb.GrvId == x.GrvId &&
+                        sb.NfeComplementarId == x.NfeId))
+                .Select(model => new
                 {
-                    Nfe = tdn,
-                    Composicoes = tdn.NfeFaturamentoComposicao
+                    Nfe = model,
+                    Composicoes = model.NfeFaturamentoComposicao
                         .Select(nfc => new
                         {
                             Valor = nfc.FaturamentoComposicao != null
