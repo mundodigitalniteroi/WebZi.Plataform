@@ -1399,22 +1399,27 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 erros.Add(MensagemPadraoEnum.IdentificadorDepositoInvalido);
             }
 
+            DateTime DataHoraPorDeposito = DateTime.MinValue;
+
+            if (model.IdentificadorDeposito > 0)
+            {
+                DataHoraPorDeposito = new DepositoService(_context)
+                    .GetDataHoraPorDeposito(model.IdentificadorDeposito);
+            }
             var now = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-3)).DateTime;
-            //
+          
             if (model?.DataHoraInicialParaCalculo > now)
             {
                 erros.Add("A Data/Hora Inicial para o Cálculo não pode ser maior do que a Data/Hora atual");
             }
-
-            if (model?.DataHoraFinalParaCalculo > Grv.DataHoraGuarda)
+            if (DataHoraPorDeposito != DateTime.MinValue && model?.DataHoraFinalParaCalculo > DataHoraPorDeposito)
             {
-                erros.Add("A Data/Hora Final para o Cálculo não pode ser maior do que a Data/Hora atual");
+                erros.Add("A Data/Hora Final para o Cálculo não pode ser maior do que a Data/Hora do Depósito");
             }
-
             if (model?.DataHoraFinalParaCalculo > model?.DataHoraInicialParaCalculo)
             {
                 erros.Add(
-                    "A Data/Hora Final para o Cálculo não pode ser maior do que a Data/Hora Inicial para o Cálculo");
+                    "A Data/Hora Final para o Cálculo não pode ser menor do que a Data/Hora Inicial para o Cálculo");
             }
 
             if (model.DataHoraFinalParaCalculo == null || model.DataHoraFinalParaCalculo == DateTime.MinValue)
@@ -1498,14 +1503,11 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             #region Aplicação das Configurações
 
-            DateTime DataHoraPorDeposito = new DepositoService(_context)
-                .GetDataHoraPorDeposito(model.IdentificadorDeposito);
-
             CalculoFaturamentoParametroModel ParametrosCalculoFaturamento = new()
             {
-                DataHoraInicialParaCalculo = model.DataHoraInicialParaCalculo,
+                DataHoraInicialParaCalculo = model.DataHoraFinalParaCalculo,
 
-                DataHoraFinalParaCalculo = model.DataHoraFinalParaCalculo,
+                DataHoraFinalParaCalculo = model.DataHoraInicialParaCalculo,
 
                 DataHoraPorDeposito = DataHoraPorDeposito,
 

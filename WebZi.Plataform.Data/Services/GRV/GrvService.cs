@@ -2178,7 +2178,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             #endregion
 
             var result = await query
-                .OrderBy(x => Convert.ToInt64(x.NumeroFormularioGrv))
+                .OrderByDescending(x => x.DataCadastro)
                 .Take(100)
                 .AsNoTracking()
                 .ToListAsync();

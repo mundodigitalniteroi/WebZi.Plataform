@@ -10,7 +10,7 @@ namespace WebZi.Plataform.Domain.ViewModel.Atendimento
         [Required(ErrorMessage = "Propriedade obrigatória")]
         public int IdentificadorProcesso { get; set; }
 
-        [Required(ErrorMessage = "Propriedade obrigatória")]
+        // [Required(ErrorMessage = "Propriedade obrigatória")]
         public byte? IdentificadorTipoMeioCobranca { get; set; }
 
         [Required(ErrorMessage = "Propriedade obrigatória")]
