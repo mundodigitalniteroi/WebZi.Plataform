@@ -487,11 +487,11 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             var permitirEdicao = await _context.PerfilAcessoUsuario
                 .AsNoTracking()
                 .AnyAsync(x => x.UsuarioId == AtualizarAtendimento.IdentificadorUsuario
-                               && x.PerfilAcessoId == 80
-                               // && x.PerfilAcessoId == 82 // prod
+                               // && x.PerfilAcessoId == 80
+                               && x.PerfilAcessoId == 82 // prod
                                && _context.SistemaPerfilAcessoSubModulos
-                                   // .Any(s => s.IdPerfilAcesso == 82 && s.IdSubModulo == 164)); // prod
-                                   .Any(s => s.IdPerfilAcesso == 80 && s.IdSubModulo == 165));
+                                   .Any(s => s.IdPerfilAcesso == 82 && s.IdSubModulo == 165)); // prod
+                                   // .Any(s => s.IdPerfilAcesso == 80 && s.IdSubModulo == 165));
             if (!permitirEdicao)
             {
                 Erros.Add("Não possui permissão para edição do atendimento");
