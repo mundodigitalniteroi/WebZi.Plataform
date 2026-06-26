@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using WebZi.Plataform.CrossCutting.Web;
@@ -68,6 +69,7 @@ namespace WebZi.Plataform.API.Controllers
             }
         }
 
+
         [HttpPut("Atualizar")]
         public async Task<ActionResult<MensagemDTO>> Atualizar(AtualizarAtendimentoParameters parameters)
         {
@@ -101,6 +103,42 @@ namespace WebZi.Plataform.API.Controllers
                 ResultView = await _provider
                     .GetService<AtendimentoService>()
                     .UpdateAtendimentoAsync(parameters);
+            }
+            catch (Exception ex)
+            {
+                ResultView = MensagemViewHelper.SetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+
+            return ResultView;
+        }
+
+        [HttpDelete("Excluir")]
+        public async Task<ActionResult<MensagemDTO>> ExcluirAtendimento(
+            [MaxLength(14, ErrorMessage = "Não pode ser menor ou maior que 14 caracteres")]
+            string NumeroProcesso,
+            int UsuarioId, 
+            int ClienteId
+        )
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            MensagemDTO ResultView = new();
+
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<AtendimentoService>()
+                    .DeleteAtendimentoAsync(NumeroProcesso, UsuarioId, ClienteId);
+                if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+                {
+                    return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+                }
             }
             catch (Exception ex)
             {

@@ -1,9 +1,11 @@
-﻿using System.Net.Security;
+﻿using System.ComponentModel.DataAnnotations;
+using System.Net.Security;
 using AutoMapper;
 using Castle.Components.DictionaryAdapter.Xml;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using System.Threading.Tasks;
+using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using WebZi.Plataform.CrossCutting.Contacts;
@@ -34,6 +36,7 @@ using WebZi.Plataform.Domain.Models.Liberacao;
 using WebZi.Plataform.Domain.Models.Pessoa.Documento;
 using WebZi.Plataform.Domain.Models.Sistema;
 using WebZi.Plataform.Domain.Models.Usuario;
+using WebZi.Plataform.Domain.Models.WebServices.Boleto;
 using WebZi.Plataform.Domain.Options;
 using WebZi.Plataform.Domain.Services.GRV;
 using WebZi.Plataform.Domain.Services.Usuario;
@@ -488,10 +491,10 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 .AsNoTracking()
                 .AnyAsync(x => x.UsuarioId == AtualizarAtendimento.IdentificadorUsuario
                                // && x.PerfilAcessoId == 80
-                               && x.PerfilAcessoId == 82 // prod
+                               && x.PerfilAcessoId == 84 // prod
                                && _context.SistemaPerfilAcessoSubModulos
-                                   .Any(s => s.IdPerfilAcesso == 82 && s.IdSubModulo == 165)); // prod
-                                   // .Any(s => s.IdPerfilAcesso == 80 && s.IdSubModulo == 165));
+                                   .Any(s => s.IdPerfilAcesso == 84 && s.IdSubModulo == 165)); // prod
+                                // .Any(s => s.IdPerfilAcesso == 80 && s.IdSubModulo == 165));
             if (!permitirEdicao)
             {
                 Erros.Add("Não possui permissão para edição do atendimento");
@@ -714,7 +717,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             #region Nota Fiscal
 
-            var permiteEdicaoNf =  await _context.PerfilAcessoUsuario
+            var permiteEdicaoNf = await _context.PerfilAcessoUsuario
                 .AsNoTracking()
                 .AnyAsync(x => x.UsuarioId == AtualizarAtendimento.IdentificadorUsuario
                                && x.PerfilAcessoId == 81 // AMBIENTE DE HOMOLOG
@@ -723,7 +726,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                                    // .Any(s => s.IdPerfilAcesso == 79 && s.IdSubModulo == 163)); 
                                    .Any(s => s.IdPerfilAcesso == 81 && s.IdSubModulo == 167)); // AMBIENTE DE HOMOLOG
 
-            
+
             if (permiteEdicaoNf)
             {
                 #region Receptor da Nota Fiscal
@@ -1198,17 +1201,10 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 .AsTracking()
                 .FirstOrDefaultAsync();
 
-            var permiteEdicaoNf =  await _context.PerfilAcessoUsuario
-                    .AsNoTracking()
-                    .AnyAsync(x => x.UsuarioId == AtendimentoInput.IdentificadorUsuario
-                                   && x.PerfilAcessoId == 81 // AMBIENTE DE HOMOLOG
-                                   // && x.PerfilAcessoId == 79 
-                                   && _context.SistemaPerfilAcessoSubModulos
-                                       // .Any(s => s.IdPerfilAcesso == 79 && s.IdSubModulo == 163)); 
-                                       .Any(s => s.IdPerfilAcesso == 81 && s.IdSubModulo == 167)); // AMBIENTE DE HOMOLOG
-                
-            
-            
+            var permitirEmissao = await _context.FaturamentoRegra
+                .AnyAsync(x =>
+                    x.ClienteId == Atendimento.Grv.ClienteId && x.DepositoId == Atendimento.Grv.DepositoId &&
+                    x.FaturamentoRegraTipoId == 11);
             #endregion Consultas
 
 
@@ -1249,7 +1245,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 .Replace("-", "");
             Atendimento.FormaLiberacaoNome = AtendimentoInput.FormaLiberacaoNome.ToUpperTrim();
             Atendimento.FormaLiberacaoPlaca = AtendimentoInput.FormaLiberacaoPlaca.Replace("-", "").ToUpperTrim();
-            if (permiteEdicaoNf)
+            if (permitirEmissao)
             {
                 Atendimento.NotaFiscalNome = AtendimentoInput.NotaFiscalNome.ToUpperTrim();
                 Atendimento.NotaFiscalDocumento = AtendimentoInput.NotaFiscalDocumento.Replace(".", "")
@@ -1302,7 +1298,6 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
         private async Task UpdateLiberacaoEspecial(AtualizarLiberacaoEspecialParameters parameters)
         {
-
             var libEspecial = await _context.LiberacaoEspecial
                 .AsTracking()
                 .FirstOrDefaultAsync(x => x.IdGrv == parameters.IdGrv);
@@ -1325,6 +1320,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                     _context.Update(libEspecial);
                     return;
                 }
+
                 LiberacaoEspecialModel liberacaoEspecial = new()
                 {
                     IdGrv = parameters.IdGrv,
@@ -1495,6 +1491,144 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             };
 
             return ParametrosCalculoFaturamento;
+        }
+
+        public async Task<MensagemDTO> DeleteAtendimentoAsync(
+            string NumeroProcesso,
+            int UsuarioId,
+            int ClienteId
+        )
+        {
+            // UsuarioPermissaoModel UsuarioPermissao = await _context.UsuarioPermissao
+            //     .Include(x => x.TipoPermissao)
+            //     .AsNoTracking()
+            //     .FirstOrDefaultAsync(x => x.UsuarioId == UsuarioId
+            //                               && x.TipoPermissao.Codigo == "EXCLUSAOATENDIMENTOS");
+
+            var permiteExclusao = await _context.PerfilAcessoUsuario
+                .AsNoTracking()
+                .AnyAsync(x => x.UsuarioId == UsuarioId
+                               // && x.PerfilAcessoId == 80
+                               && x.PerfilAcessoId == 84 // prod
+                               && _context.SistemaPerfilAcessoSubModulos
+                                   // .Any(s => s.IdPerfilAcesso == 80 && s.IdSubModulo == 166)); //
+                                   .Any(s => s.IdPerfilAcesso == 84 && s.IdSubModulo == 166)); //
+            
+            // if (UsuarioPermissao == null)
+            // {
+            //     return MensagemViewHelper.SetUnauthorized("Usuário não possui permissão para excluir Processos");
+            // }
+            
+            if (!permiteExclusao)
+            {
+                return MensagemViewHelper.SetUnauthorized("Usuário não possui permissão para excluir Processos");
+            }
+            
+            if (string.IsNullOrWhiteSpace(NumeroProcesso))
+            {
+                return MensagemViewHelper.SetBadRequest("Precisa por o numero do processo");
+            }
+
+            GrvModel Grv = await _context.Grv
+                .Include(x => x.StatusOperacao)
+                .Include(x => x.ListagemCondutorDocumento)
+                .Include(x => x.Atendimento)
+                    .ThenInclude(x => x.SaidaParaReparo)
+                .Include(x => x.Liberacao)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.NumeroFormularioGrv == NumeroProcesso && x.ClienteId == ClienteId);
+
+            if (Grv == null)
+            {
+                return MensagemViewHelper.SetNotFound(MensagemPadraoEnum.NaoEncontradoGrv);
+            }
+
+            if (new[] { "M", "P", "G", "V", "1", "3", "7"}.Contains(Grv.StatusOperacaoId))
+            {
+                return MensagemViewHelper.SetBadRequest(
+                    $"O Status atual deste Processo não permite a exclusão. Status atual: {Grv.StatusOperacao.Descricao}");
+            }
+
+            List<FaturamentoModel> Faturamentos = null;
+            bool SaidaParaReparo = false;
+            if (Grv.Atendimento != null)
+            {
+                Faturamentos = _context.Faturamento
+                    .Include(x => x.ListagemBoleto)
+                    .Where(x => x.AtendimentoId == Grv.Atendimento.AtendimentoId)
+                    .AsNoTracking()
+                    .ToList();
+            }
+            if (Grv.Atendimento?.SaidaParaReparo is not null)
+            {
+                SaidaParaReparo = await _context.SaidaReparo
+                    .AsNoTracking()
+                    .AnyAsync(x => x.AtendimentoId == Grv.Atendimento.AtendimentoId);
+            }
+            
+            await using (IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync())
+            {
+                try
+                {
+                    if (SaidaParaReparo)
+                    {
+                        await _context.SaidaReparo
+                            .Where(x => x.AtendimentoId == Grv.Atendimento.AtendimentoId)
+                            .ExecuteDeleteAsync();
+                    }
+                    
+                    await _context.Database.ExecuteSqlRawAsync(
+                        "EXEC VoltarProcesso @numero_grv = @numero_grv, @id_cliente = @id_cliente",
+                        new SqlParameter("@numero_grv", NumeroProcesso),
+                        new SqlParameter("@id_cliente", ClienteId)
+                    );
+                    await transaction.CommitAsync();
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+
+                    return MensagemViewHelper.SetInternalServerError(ex);
+                }
+            }
+
+            new BucketService(_context, _httpClientFactory)
+                .DeleteFiles(BucketNomeTabelaOrigemEnum.FotoVeiculoGRV, Grv.GrvId);
+
+            new BucketService(_context, _httpClientFactory)
+                .DeleteFiles(BucketNomeTabelaOrigemEnum.FotoVeiculoGGV, Grv.GrvId);
+
+            if (Grv.ListagemCondutorDocumento?.Count > 0)
+            {
+                new BucketService(_context, _httpClientFactory)
+                    .DeleteFiles(BucketNomeTabelaOrigemEnum.DocumentoCondutor, Grv.ListagemCondutorDocumento
+                        .Select(x => x.CondutorDocumentoId)
+                        .ToList());
+            }
+
+            if (Grv.Atendimento != null)
+            {
+                new BucketService(_context, _httpClientFactory)
+                    .DeleteFiles(BucketNomeTabelaOrigemEnum.AtendimentoFotoResponsavel, Grv.Atendimento.AtendimentoId);
+
+                if (Faturamentos?.Count > 0)
+                {
+                    foreach (FaturamentoModel Faturamento in Faturamentos)
+                    {
+                        if (Faturamento.ListagemBoleto?.Count > 0)
+                        {
+                            foreach (BoletoModel FaturamentoBoleto in Faturamento.ListagemBoleto)
+                            {
+                                new BucketService(_context, _httpClientFactory)
+                                    .DeleteFiles(BucketNomeTabelaOrigemEnum.Boleto,
+                                        FaturamentoBoleto.FaturamentoBoletoId);
+                            }
+                        }
+                    }
+                }
+            }
+
+            return MensagemViewHelper.SetOk("Processo excluído com sucesso");
         }
 
         public async Task<AtendimentoDTO> GetByIdAsync(int AtendimentoId, int UsuarioId)
