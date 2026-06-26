@@ -494,7 +494,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                                && x.PerfilAcessoId == 84 // prod
                                && _context.SistemaPerfilAcessoSubModulos
                                    .Any(s => s.IdPerfilAcesso == 84 && s.IdSubModulo == 165)); // prod
-                                // .Any(s => s.IdPerfilAcesso == 80 && s.IdSubModulo == 165));
+            // .Any(s => s.IdPerfilAcesso == 80 && s.IdSubModulo == 165));
             if (!permitirEdicao)
             {
                 Erros.Add("Não possui permissão para edição do atendimento");
@@ -1205,6 +1205,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 .AnyAsync(x =>
                     x.ClienteId == Atendimento.Grv.ClienteId && x.DepositoId == Atendimento.Grv.DepositoId &&
                     x.FaturamentoRegraTipoId == 11);
+
             #endregion Consultas
 
 
@@ -1212,7 +1213,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             Atendimento.GrvId = AtendimentoInput.IdentificadorProcesso;
             Atendimento.QualificacaoResponsavelId = AtendimentoInput.IdentificadorQualificacaoResponsavel;
-            Atendimento.UsuarioCadastroId = AtendimentoInput.IdentificadorUsuario;
+            Atendimento.UsuarioAlteracaoId = AtendimentoInput.IdentificadorUsuario;
             Atendimento.ResponsavelNome = AtendimentoInput.ResponsavelNome.ToUpperTrim();
             Atendimento.ResponsavelDocumento = AtendimentoInput.ResponsavelDocumento.Replace(".", "")
                 .Replace("/", "")
@@ -1264,6 +1265,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 Atendimento.NotaFiscalInscricaoMunicipal =
                     AtendimentoInput.NotaFiscalInscricaoMunicipal.ToUpperTrim();
             }
+            Atendimento.DataAlteracao = DateTime.Now;
 
             #endregion Dados do Atendimento
 
@@ -1513,17 +1515,17 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                                && _context.SistemaPerfilAcessoSubModulos
                                    // .Any(s => s.IdPerfilAcesso == 80 && s.IdSubModulo == 166)); //
                                    .Any(s => s.IdPerfilAcesso == 84 && s.IdSubModulo == 166)); //
-            
+
             // if (UsuarioPermissao == null)
             // {
             //     return MensagemViewHelper.SetUnauthorized("Usuário não possui permissão para excluir Processos");
             // }
-            
+
             if (!permiteExclusao)
             {
                 return MensagemViewHelper.SetUnauthorized("Usuário não possui permissão para excluir Processos");
             }
-            
+
             if (string.IsNullOrWhiteSpace(NumeroProcesso))
             {
                 return MensagemViewHelper.SetBadRequest("Precisa por o numero do processo");
@@ -1533,7 +1535,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 .Include(x => x.StatusOperacao)
                 .Include(x => x.ListagemCondutorDocumento)
                 .Include(x => x.Atendimento)
-                    .ThenInclude(x => x.SaidaParaReparo)
+                .ThenInclude(x => x.SaidaParaReparo)
                 .Include(x => x.Liberacao)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.NumeroFormularioGrv == NumeroProcesso && x.ClienteId == ClienteId);
@@ -1543,7 +1545,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 return MensagemViewHelper.SetNotFound(MensagemPadraoEnum.NaoEncontradoGrv);
             }
 
-            if (new[] { "M", "P", "G", "V", "1", "3", "7"}.Contains(Grv.StatusOperacaoId))
+            if (new[] { "M", "P", "G", "V", "1", "3", "7" }.Contains(Grv.StatusOperacaoId))
             {
                 return MensagemViewHelper.SetBadRequest(
                     $"O Status atual deste Processo não permite a exclusão. Status atual: {Grv.StatusOperacao.Descricao}");
@@ -1559,13 +1561,14 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                     .AsNoTracking()
                     .ToList();
             }
+
             if (Grv.Atendimento?.SaidaParaReparo is not null)
             {
                 SaidaParaReparo = await _context.SaidaReparo
                     .AsNoTracking()
                     .AnyAsync(x => x.AtendimentoId == Grv.Atendimento.AtendimentoId);
             }
-            
+
             await using (IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync())
             {
                 try
@@ -1576,7 +1579,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                             .Where(x => x.AtendimentoId == Grv.Atendimento.AtendimentoId)
                             .ExecuteDeleteAsync();
                     }
-                    
+
                     await _context.Database.ExecuteSqlRawAsync(
                         "EXEC VoltarProcesso @numero_grv = @numero_grv, @id_cliente = @id_cliente",
                         new SqlParameter("@numero_grv", NumeroProcesso),
