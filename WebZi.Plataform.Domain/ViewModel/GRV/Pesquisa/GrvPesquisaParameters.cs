@@ -4,10 +4,10 @@ namespace WebZi.Plataform.Domain.ViewModel.GRV.Pesquisa
 {
     public class GrvPesquisaParameters
     {
-        [Required(ErrorMessage = "Propriedade obrigatória")]
-        public List<string> ListagemCodigoProduto { get; set; } = new();
+        // [Required(ErrorMessage = "Propriedade obrigatória")]
+        public List<string>? ListagemCodigoProduto { get; set; }
 
-        public List<string> ListagemStatusOperacao { get; set; } = new();
+        public List<string> ListagemStatusOperacao { get; set; }
 
         public string NumeroProcesso { get; set; }
 

@@ -595,7 +595,7 @@ namespace WebZi.Plataform.Data.Services.GGV
                 }
             }
 
-            using (IDbContextTransaction transaction = _context.Database.BeginTransaction())
+            using (IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync())
             {
                 try
                 {
@@ -613,13 +613,13 @@ namespace WebZi.Plataform.Data.Services.GGV
                     //     }
                     // }
 
-                    _context.SaveChanges();
+                    await _context.SaveChangesAsync();
 
-                    transaction.Commit();
+                    await transaction.CommitAsync();
                 }
                 catch (Exception ex)
                 {
-                    transaction.Rollback();
+                    await transaction.RollbackAsync();
 
                     ResultView = MensagemViewHelper.SetInternalServerError(ex);
 

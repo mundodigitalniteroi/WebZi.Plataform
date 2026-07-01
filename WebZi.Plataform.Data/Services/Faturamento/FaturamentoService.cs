@@ -1203,9 +1203,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                             && x.DepositoId == Grv.DepositoId
                             && x.TipoVeiculoId == Grv.TipoVeiculoId
                             && x.FaturamentoProdutoId == Grv.FaturamentoProdutoId
-                            && (new[] { "DEP", "DRF" }.Contains(Grv.FaturamentoProdutoId)
-                                ? x.FlagCobrarGGV == "S"
-                                : true)
+                            && (!new[] { "DEP", "DRF" }.Contains(Grv.FaturamentoProdutoId) || x.FlagCobrarGGV == "S")
                             && x.DataVigenciaFinal == null)
                 .AsNoTracking()
                 .ToList();
@@ -1333,7 +1331,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
         {
             #region Consulta
 
-            GrvModel Grv = null;
+            GrvModel Grv;
 
             if (model.IdentificadorProcesso > 0)
             {
@@ -1356,8 +1354,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     .AsNoTracking()
                     .OrderByDescending(x => x.DataHoraRemocao)
                     .FirstOrDefaultAsync(x => !model.Placa.IsNullOrWhiteSpace() ? x.Placa == model.Placa :
-                        true
-                        && !model.Chassi.IsNullOrWhiteSpace() ? x.Chassi == model.Chassi : true);
+                        model.Chassi.IsNullOrWhiteSpace() || x.Chassi == model.Chassi);
             }
 
             #endregion

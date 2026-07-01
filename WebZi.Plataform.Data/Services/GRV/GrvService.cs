@@ -180,11 +180,11 @@ namespace WebZi.Plataform.Domain.Services.GRV
             var possuiPermissaoEdicao = await _context.PerfilAcessoUsuario
                 .AsNoTracking()
                 .AnyAsync(x => x.UsuarioId == GrvPersistencia.IdentificadorUsuario
-                                              && x.PerfilAcessoId == 81
-                                              // && x.PerfilAcessoId == 79 // AMBIENTE DE HOMOLOG
-                                              && _context.SistemaPerfilAcessoSubModulos
-                                                  // .Any(s => s.IdPerfilAcesso == 79 && s.IdSubModulo == 163)); // AMBIENTE DE HOMOLOG 
-                                                  .Any(s => s.IdPerfilAcesso == 81 && s.IdSubModulo == 164));
+                               && x.PerfilAcessoId == 81
+                               // && x.PerfilAcessoId == 79 // AMBIENTE DE HOMOLOG
+                               && _context.SistemaPerfilAcessoSubModulos
+                                   // .Any(s => s.IdPerfilAcesso == 79 && s.IdSubModulo == 163)); // AMBIENTE DE HOMOLOG 
+                                   .Any(s => s.IdPerfilAcesso == 81 && s.IdSubModulo == 164));
 
             if (!possuiPermissaoEdicao)
                 return MensagemViewHelper.SetBadRequest(
@@ -208,7 +208,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             grv.MarcaModeloId = GrvPersistencia.IdentificadorMarcaModelo;
             grv.MotivoApreensaoId = GrvPersistencia.IdentificadorMotivoApreensao;
             grv.NumeroFormularioGrv = GrvPersistencia.NumeroProcesso;
-            grv.FaturamentoProdutoId = GrvPersistencia.CodigoProduto;
+            grv.FaturamentoProdutoId =  GrvPersistencia.IdentificadorMotivoApreensao == 4 ? "DRF" : GrvPersistencia.CodigoProduto;
             grv.MatriculaAutoridadeResponsavel =
                 GrvPersistencia.MatriculaAutoridadeResponsavel.ToUpperTrim().ToNullIfEmpty();
             grv.NomeAutoridadeResponsavel = GrvPersistencia.NomeAutoridadeResponsavel.ToUpperTrim().ToNullIfEmpty();
@@ -336,10 +336,10 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (GrvPersistencia.ListagemLacre?.Count > 0)
             {
-                var identificadoresEntrada = GrvPersistencia.ListagemLacre
-                    .Where(x => x.IdentificadorLacre.HasValue)
-                    .Select(x => x.IdentificadorLacre.Value)
-                    .ToList();
+                // var identificadoresEntrada = GrvPersistencia.ListagemLacre
+                //     .Where(x => x.IdentificadorLacre.HasValue)
+                //     .Select(x => x.IdentificadorLacre.Value)
+                //     .ToList();
 
                 // var lacresParaRemover = grv.ListagemLacre
                 //     .Where(l => !identificadoresEntrada.Contains(l.LacreId) && l.LacreId > 0)
@@ -380,7 +380,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                     }
                     else
                     {
-                        if (!grv.ListagemLacre.Any(l => l.Lacre == lacreValue))
+                        if (grv.ListagemLacre.All(l => l.Lacre != lacreValue))
                         {
                             grv.ListagemLacre.Add(new LacreModel
                             {
@@ -401,8 +401,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
             {
                 // Remover equipamentos que não estão na entrada
                 var equipamentosRemover = grv.ListagemCondutorEquipamentoOpcional
-                    .Where(e => !GrvPersistencia.ListagemEquipamentoOpcional.Any(i =>
-                        i.IdentificadorEquipamentoOpcional == e.EquipamentoOpcionalId))
+                    .Where(e => GrvPersistencia.ListagemEquipamentoOpcional.All(i =>
+                        i.IdentificadorEquipamentoOpcional != e.EquipamentoOpcionalId))
                     .ToList();
 
                 foreach (var remover in equipamentosRemover)
@@ -466,7 +466,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             }
 
 
-            using (IDbContextTransaction transaction = _context.Database.BeginTransaction())
+            using (IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync())
             {
                 try
                 {
@@ -479,7 +479,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                             .UpdateDRFAGrv(GrvPersistencia);
                         if (result.Erros?.Count > 0)
                         {
-                            transaction.Rollback();
+                            await transaction.RollbackAsync();
                             ResultView = result;
                             return ResultView;
                         }
@@ -512,12 +512,12 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
                     _context.Grv.Update(grv);
 
-                    _context.SaveChanges();
-                    transaction.Commit();
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
                 }
                 catch (Exception ex)
                 {
-                    transaction.Rollback();
+                    await transaction.RollbackAsync();
 
                     ResultView = MensagemViewHelper.SetInternalServerError(ex);
 
@@ -571,7 +571,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
         public async Task<ResultadoCadastroGrvDTO> CreateGrv(GrvParameters GrvPersistencia)
         {
-            GrvModel Grv = new()
+            GrvModel grv = new()
             {
                 ClienteId = GrvPersistencia.IdentificadorCliente,
 
@@ -595,7 +595,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
                 NumeroFormularioGrv = GrvPersistencia.NumeroProcesso,
 
-                FaturamentoProdutoId = GrvPersistencia.CodigoProduto,
+                FaturamentoProdutoId = GrvPersistencia.IdentificadorMotivoApreensao == 4 ? "DRF" : GrvPersistencia.CodigoProduto,
 
                 MatriculaAutoridadeResponsavel =
                     GrvPersistencia.MatriculaAutoridadeResponsavel.ToUpperTrim().ToNullIfEmpty(),
@@ -666,15 +666,15 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
                 Condutor = _mapper.Map<CondutorModel>(GrvPersistencia.Condutor)
             };
-
-            Grv.Condutor.Email = Grv.Condutor.Email
+            
+            grv.Condutor.Email = grv.Condutor.Email
                 .ToLowerTrim()
                 .ToNullIfEmpty();
 
-            TabelaGenericaModel AssinaturaCondutor = new TabelaGenericaService(_context)
-                .GetById(GrvPersistencia.Condutor.IdentificadorAssinaturaCondutor);
+            TabelaGenericaModel AssinaturaCondutor = await new TabelaGenericaService(_context)
+                .GetByIdAsync(GrvPersistencia.Condutor.IdentificadorAssinaturaCondutor);
 
-            Grv.Condutor.StatusAssinaturaCondutor = AssinaturaCondutor.ValorCadastro;
+            grv.Condutor.StatusAssinaturaCondutor = AssinaturaCondutor.ValorCadastro;
 
             var (numeroFormulario, mensagem) =
                 CreateNumeroProcesso(GrvPersistencia.IdentificadorCliente, GrvPersistencia.NumeroProcesso);
@@ -687,15 +687,15 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
                 if (Endereco.Mensagem.Erros.Count < 0 && Endereco != null)
                 {
-                    Grv.EnderecoLocalizacaoVeiculoCEPId = Endereco.IdentificadorCEP;
+                    grv.EnderecoLocalizacaoVeiculoCEPId = Endereco.IdentificadorCEP;
 
-                    Grv.EnderecoLocalizacaoVeiculoLogradouro = Endereco.Logradouro;
+                    grv.EnderecoLocalizacaoVeiculoLogradouro = Endereco.Logradouro;
 
-                    Grv.EnderecoLocalizacaoVeiculoBairro = Endereco.Bairro;
+                    grv.EnderecoLocalizacaoVeiculoBairro = Endereco.Bairro;
 
-                    Grv.EnderecoLocalizacaoVeiculoMunicipio = Endereco.MunicipioPtbr;
+                    grv.EnderecoLocalizacaoVeiculoMunicipio = Endereco.MunicipioPtbr;
 
-                    Grv.EnderecoLocalizacaoVeiculoUF = Endereco.UF;
+                    grv.EnderecoLocalizacaoVeiculoUF = Endereco.UF;
                 }
             }
 
@@ -708,7 +708,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 GrvPersistencia.ListagemEnquadramentoInfracao
                     .ForEach(x => x.NumeroInfracao = x.NumeroInfracao.ToUpperTrim().ToNullIfEmpty());
 
-                Grv.ListagemEnquadramentoInfracao = _mapper
+                grv.ListagemEnquadramentoInfracao = _mapper
                     .Map<List<EnquadramentoInfracaoGrvModel>>(GrvPersistencia.ListagemEnquadramentoInfracao);
             }
 
@@ -719,11 +719,11 @@ namespace WebZi.Plataform.Domain.Services.GRV
                     .OrderBy(x => x)
                     .ToList();
 
-                Grv.ListagemLacre = new List<LacreModel>();
+                grv.ListagemLacre = new List<LacreModel>();
 
                 foreach (string item in GrvPersistencia.ListagemLacre)
                 {
-                    Grv.ListagemLacre.Add(new LacreModel
+                    grv.ListagemLacre.Add(new LacreModel
                         { UsuarioCadastroId = GrvPersistencia.IdentificadorUsuario, Lacre = item });
                 }
             }
@@ -731,7 +731,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             if (GrvPersistencia.ListagemEquipamentoOpcional?.Count > 0 &&
                 GrvPersistencia.ListagemEquipamentoOpcional is not null)
             {
-                Grv.ListagemCondutorEquipamentoOpcional = new List<CondutorEquipamentoOpcionalModel>();
+                grv.ListagemCondutorEquipamentoOpcional = new List<CondutorEquipamentoOpcionalModel>();
 
                 CondutorEquipamentoOpcionalModel CondutorEquipamentoOpcional = new();
 
@@ -753,7 +753,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                         CondutorEquipamentoOpcional.CodigoAvaria = item.IdentificadorTipoAvaria;
                     }
 
-                    Grv.ListagemCondutorEquipamentoOpcional.Add(CondutorEquipamentoOpcional);
+                    grv.ListagemCondutorEquipamentoOpcional.Add(CondutorEquipamentoOpcional);
                 }
             }
 
@@ -765,37 +765,37 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (ClienteDeposito.FlagCadastrarGrvComStatusOperacaoBloqueado == "S")
             {
-                Grv.StatusOperacaoId = "B";
+                grv.StatusOperacaoId = "B";
             }
 
             ResultadoCadastroGrvDTO ResultView = new();
 
-            using (IDbContextTransaction transaction = _context.Database.BeginTransaction())
+            using (IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync())
             {
                 _context.SetUserContextInfo(GrvPersistencia.IdentificadorUsuario);
                 try
                 {
                     if (mensagem != null)
                     {
-                        transaction.Rollback();
+                        await transaction.RollbackAsync();
                         ResultView.Mensagem = mensagem;
                         return ResultView;
                     }
 
-                    Grv.NumeroFormularioGrv = numeroFormulario;
+                    grv.NumeroFormularioGrv = numeroFormulario;
 
-                    _context.Grv.Add(Grv);
+                    _context.Grv.Add(grv);
 
-                    _context.SaveChanges();
+                    await _context.SaveChangesAsync();
 
                     if (GrvPersistencia.IdentificadorMotivoApreensao == 4)
                     {
                         var result = await _provider
                             .GetService<DRFAService>()
-                            .CreateDRFAGrv(Grv.GrvId, GrvPersistencia);
+                            .CreateDRFAGrv(grv.GrvId, GrvPersistencia);
                         if (result.Erros?.Count > 0)
                         {
-                            transaction.Rollback();
+                            await transaction.RollbackAsync();
                             ResultView.Mensagem = result;
                             return ResultView;
                         }
@@ -805,7 +805,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                     {
                         ClienteCodigoIdentificacaoModel ClienteCodigoIdentificacao = new()
                         {
-                            GrvId = Grv.GrvId,
+                            GrvId = grv.GrvId,
 
                             UsuarioCadastroId = GrvPersistencia.IdentificadorUsuario,
 
@@ -814,17 +814,17 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
                         _context.ClienteCodigoIdentificacao.Add(ClienteCodigoIdentificacao);
 
-                        _context.SaveChanges();
+                        await _context.SaveChangesAsync();
                     }
 
-                    ResultView.IdentificadorProcesso = Grv.GrvId;
-                    ResultView.NumeroFormularioProcesso = Grv.NumeroFormularioGrv;
+                    ResultView.IdentificadorProcesso = grv.GrvId;
+                    ResultView.NumeroFormularioProcesso = grv.NumeroFormularioGrv;
 
-                    transaction.Commit();
+                    await transaction.CommitAsync();
                 }
                 catch (Exception ex)
                 {
-                    transaction.Rollback();
+                    await transaction.RollbackAsync();
 
                     ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
 
@@ -834,41 +834,41 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (GrvPersistencia.ListagemDocumentoCondutor?.Count > 0)
             {
-                CreateDocumentosCondutor(Grv.GrvId, Grv.UsuarioCadastroId, GrvPersistencia.ListagemDocumentoCondutor);
+                CreateDocumentosCondutor(grv.GrvId, grv.UsuarioCadastroId, GrvPersistencia.ListagemDocumentoCondutor);
             }
 
             if (GrvPersistencia.ListagemFoto?.Count > 0)
             {
                 new BucketService(_context, _httpClientFactory)
-                    .SendFiles(BucketNomeTabelaOrigemEnum.FotoVeiculoGRV, Grv.GrvId, Grv.UsuarioCadastroId,
+                    .SendFiles(BucketNomeTabelaOrigemEnum.FotoVeiculoGRV, grv.GrvId, grv.UsuarioCadastroId,
                         GrvPersistencia.ListagemFoto);
             }
 
             if (GrvPersistencia.DRFA?.ArquivoDoRegistroDoRouboFurto is not null)
             {
                 new BucketService(_context, _httpClientFactory)
-                    .SendFile(BucketNomeTabelaOrigemEnum.DRFAArquivoDeRouboFurto, Grv.GrvId, Grv.UsuarioCadastroId,
+                    .SendFile(BucketNomeTabelaOrigemEnum.DRFAArquivoDeRouboFurto, grv.GrvId, grv.UsuarioCadastroId,
                         GrvPersistencia.DRFA?.ArquivoDoRegistroDoRouboFurto);
             }
 
             if (GrvPersistencia.DRFA?.RegistroRecuperacao?.ArquivoDeRecuperacao is not null)
             {
                 new BucketService(_context, _httpClientFactory)
-                    .SendFile(BucketNomeTabelaOrigemEnum.DRFAArquivoRegistroRecuperacao, Grv.GrvId,
-                        Grv.UsuarioCadastroId, GrvPersistencia.DRFA.RegistroRecuperacao.ArquivoDeRecuperacao);
+                    .SendFile(BucketNomeTabelaOrigemEnum.DRFAArquivoRegistroRecuperacao, grv.GrvId,
+                        grv.UsuarioCadastroId, GrvPersistencia.DRFA.RegistroRecuperacao.ArquivoDeRecuperacao);
             }
 
             if (GrvPersistencia.ImagemAssinaturaAgente != null)
             {
                 new BucketService(_context, _httpClientFactory)
-                    .SendFile(BucketNomeTabelaOrigemEnum.AssinaturaAgente, Grv.GrvId, Grv.UsuarioCadastroId,
+                    .SendFile(BucketNomeTabelaOrigemEnum.AssinaturaAgente, grv.GrvId, grv.UsuarioCadastroId,
                         GrvPersistencia.ImagemAssinaturaAgente);
             }
 
             if (GrvPersistencia.ImagemAssinaturaCondutor != null)
             {
                 new BucketService(_context, _httpClientFactory)
-                    .SendFile(BucketNomeTabelaOrigemEnum.AssinaturaCondutor, Grv.GrvId, Grv.UsuarioCadastroId,
+                    .SendFile(BucketNomeTabelaOrigemEnum.AssinaturaCondutor, grv.GrvId, grv.UsuarioCadastroId,
                         GrvPersistencia.ImagemAssinaturaCondutor);
             }
 
@@ -887,7 +887,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
                 if (numero.Length > maxLength)
                     return (null, MensagemViewHelper.SetBadRequest(MensagemPadraoEnum.NumeroProcessoInvalido));
-                if (!NumberHelper.IsNumber(numero) || Convert.ToInt64(numero) <= 0)
+                if (!numero.IsNumber() || Convert.ToInt64(numero) <= 0)
                     return (null, MensagemViewHelper.SetBadRequest(MensagemPadraoEnum.NumeroProcessoInvalido));
 
                 bool exists = _context.Grv.Any(x => x.NumeroFormularioGrv == numero);
@@ -2025,33 +2025,36 @@ namespace WebZi.Plataform.Domain.Services.GRV
         {
             List<string> erros = new();
 
-            if (GrvPesquisa.ListagemCodigoProduto?.Count == 0)
+            // if (GrvPesquisa.ListagemCodigoProduto?.Count == 0)
+            // {
+            //     erros.Add("Informe ao menos um Código do Produto");
+            // }
+            // else
+            // {
+            // if (GrvPesquisa.ListagemCodigoProduto.Where(string.IsNullOrWhiteSpace).ToList().Count > 0)
+            // {
+            // erros.Add("Na listagem do Código do Produto, existem itens vazios");
+            // }
+            // else
+            // {
+            if ( GrvPesquisa.ListagemCodigoProduto != null && GrvPesquisa.ListagemCodigoProduto.Where(string.IsNullOrWhiteSpace).ToList().Count > 0)
             {
-                erros.Add("Informe ao menos um Código do Produto");
-            }
-            else
-            {
-                if (GrvPesquisa.ListagemCodigoProduto.Where(string.IsNullOrWhiteSpace).ToList().Count > 0)
-                {
-                    erros.Add("Na listagem do Código do Produto, existem itens vazios");
-                }
-                else
-                {
-                    List<string> Produtos = await _context.FaturamentoProduto
-                        .Select(x => x.FaturamentoProdutoId)
-                        .AsNoTracking()
-                        .ToListAsync();
+                List<string> Produtos = await _context.FaturamentoProduto
+                    .Select(x => x.FaturamentoProdutoId)
+                    .AsNoTracking()
+                    .ToListAsync();
 
-                    foreach (string Codigo in GrvPesquisa.ListagemCodigoProduto)
+                foreach (string Codigo in GrvPesquisa.ListagemCodigoProduto)
+                {
+                    if (Produtos.FirstOrDefault(x => x == Codigo.ToUpperTrim().ToNullIfEmpty()) == null)
                     {
-                        if (Produtos.FirstOrDefault(x => x == Codigo.ToUpperTrim().ToNullIfEmpty()) == null)
-                        {
-                            erros.Add($"{MensagemPadraoEnum.NaoEncontradoFaturamentoProduto}: {Codigo}");
-                        }
+                        erros.Add($"{MensagemPadraoEnum.NaoEncontradoFaturamentoProduto}: {Codigo}");
                     }
                 }
             }
 
+            // }
+            // }
             if (GrvPesquisa.ListagemStatusOperacao?.Any() == true)
             {
                 List<string> StatusOperacoes = await _context.StatusOperacao
