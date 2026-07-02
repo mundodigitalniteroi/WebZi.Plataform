@@ -1,8 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WebZi.Plataform.Data.Helper;
+using WebZi.Plataform.Data.Services.Usuario;
+using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.DTO.Usuario;
-using WebZi.Plataform.Domain.Services.Usuario;
 using WebZi.Plataform.Domain.ViewModel.Usuario;
 
 namespace WebZi.Plataform.API.Controllers
@@ -74,9 +75,11 @@ namespace WebZi.Plataform.API.Controllers
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
         }
+
         [HttpGet("SelecionarPorLoginOuUsername")]
         // TODO: [Authorize]
-        public async Task<ActionResult<UsuarioPorNomeOuLoginListDTO>> SelecionarPorLoginOuUsername(string Login, string Username)
+        public async Task<ActionResult<UsuarioPorNomeOuLoginListDTO>> SelecionarPorLoginOuUsername(string Login,
+            string Username)
         {
             if (!ModelState.IsValid)
             {
@@ -126,6 +129,112 @@ namespace WebZi.Plataform.API.Controllers
                 ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
+
+        [HttpPost("GerarCodigoMfa")]
+        public async Task<ActionResult<MensagemDTO>> GerarCodigoMfa(GerarCodigoMfaParameters parameters)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            MensagemDTO ResultView = new();
+            // var userId = User.GetUserId();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<UsuarioService>()
+                    .GenerateMfaCode(parameters.UsuarioId);
+
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView = MensagemViewHelper.SetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+        }
+
+        [HttpPost("ConfirmarCodigoMfa")]
+        public async Task<ActionResult<MensagemDTO>> ConfirmarCodigoMfa(ConfirmarCodigoMfaParameters request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            MensagemDTO ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<UsuarioService>()
+                    .ValidMfaCode(request);
+
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView = MensagemViewHelper.SetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+        }
+
+        [HttpPatch("AtivarMfa")]
+        public async Task<ActionResult<MensagemDTO>> AtivarMfa([FromQuery] int userId)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            MensagemDTO ResultView = new();
+            // var userId = User.GetUserId();
+            try
+            {
+                ResultView = await _provider
+                    .GetService<UsuarioService>()
+                    .ActivateMfa(userId);
+
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView = MensagemViewHelper.SetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+        }
+
+        [HttpPatch("DesativarMfa")]
+        public async Task<ActionResult<MensagemDTO>> DesativarMfa([FromQuery] int userId)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            MensagemDTO ResultView = new();
+            // var userId = User.GetUserId();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<UsuarioService>()
+                    .DeactivateMfa(userId);
+
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView = MensagemViewHelper.SetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
             }
         }
     }

@@ -7,7 +7,7 @@ public class AuthMfaCodesModel
     public string CodeHash { get; set; }
     public DateTime ExpiresAt { get; set; }
     public int Attempts { get; set; }
-    public int Validated { get; set; }
+    public bool Validated { get; set; }
     public DateTime CreatedAt { get; set; }
 
     public UsuarioModel Usuario { get; set; } = null!;

@@ -32,7 +32,7 @@ namespace WebZi.Plataform.CrossCutting.Strings
             using var rng = RandomNumberGenerator.Create();
             rng.GetBytes(buffer);
             var valor = BitConverter.ToUInt32(buffer.ToArray(), 0) % (uint)max;
-            return valor.ToString(new string('0', max));
+            return valor.ToString(new string('0', tamanho));
         }
 
         [GeneratedRegex("[^\\d]")]

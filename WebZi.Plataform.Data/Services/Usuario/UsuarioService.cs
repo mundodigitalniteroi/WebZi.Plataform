@@ -1,18 +1,16 @@
-﻿using AutoMapper;
-using Microsoft.Data.SqlClient;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
-using System.Data;
+﻿using System.Data;
 using System.IdentityModel.Tokens.Jwt;
-using System.Runtime.InteropServices.JavaScript;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using AutoMapper;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using WebZi.Plataform.CrossCutting.Contacts;
-using WebZi.Plataform.CrossCutting.Number;
 using WebZi.Plataform.CrossCutting.Strings;
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
@@ -22,12 +20,12 @@ using WebZi.Plataform.Domain.DTO.Pessoa;
 using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.DTO.Usuario;
 using WebZi.Plataform.Domain.Enums;
-using WebZi.Plataform.Domain.Models.Documento;
 using WebZi.Plataform.Domain.Models.Pessoa.Contato;
 using WebZi.Plataform.Domain.Models.Usuario;
-using Z.EntityFramework.Plus;
+using WebZi.Plataform.Domain.Options;
+using WebZi.Plataform.Domain.ViewModel.Usuario;
 
-namespace WebZi.Plataform.Domain.Services.Usuario
+namespace WebZi.Plataform.Data.Services.Usuario
 {
     public class UsuarioService
     {
@@ -35,7 +33,9 @@ namespace WebZi.Plataform.Domain.Services.Usuario
         private readonly IMapper _mapper;
         private readonly IConfiguration _configuration;
         private readonly IServiceProvider _provider;
-private readonly IOptions<>
+        private readonly IOptions<JwtOptions> _options;
+
+      
         public UsuarioService(AppDbContext context)
         {
             _context = context;
@@ -52,6 +52,24 @@ private readonly IOptions<>
             _context = context;
             _mapper = mapper;
             _configuration = configuration;
+        }
+
+        public UsuarioService(AppDbContext context, IMapper mapper, IConfiguration configuration,
+            IOptions<JwtOptions> options)
+        {
+            _context = context;
+            _mapper = mapper;
+            _configuration = configuration;
+            _options = options;
+        }
+        public UsuarioService(AppDbContext context, IMapper mapper, IConfiguration configuration,
+            IOptions<JwtOptions> options, IServiceProvider  provider)
+        {
+            _context = context;
+            _mapper = mapper;
+            _configuration = configuration;
+            _options = options;
+            _provider = provider;
         }
 
         private async Task<UsuarioDTO> GetAsync(int UsuarioId, string Login, string Password)
@@ -318,7 +336,6 @@ private readonly IOptions<>
             user.DataAlteracao = DateTime.UtcNow.Add(TimeSpan.FromHours(-3));
             try
             {
-                _context.Usuario.Update(user);
                 await _context.SaveChangesAsync();
                 return MensagemViewHelper.SetUpdateSuccess();
             }
@@ -344,7 +361,6 @@ private readonly IOptions<>
             user.DataAlteracao = DateTime.UtcNow.Add(TimeSpan.FromHours(-3));
             try
             {
-                _context.Usuario.Update(user);
                 await _context.SaveChangesAsync();
                 return MensagemViewHelper.SetUpdateSuccess();
             }
@@ -358,34 +374,88 @@ private readonly IOptions<>
         public async Task<MensagemDTO> GenerateMfaCode(int usuarioId)
         {
             MensagemDTO ResultView = new();
+
+            var exists = _context.Usuario.Any(x => x.UsuarioId == usuarioId);
+            if (!exists)
+                return MensagemViewHelper.SetNotFound("Usuario não encontrado");
+
             var telefone = await _provider
                 .GetService<PessoaService>()
                 .GetPessoaTelefoneByIdAsync(usuarioId);
 
-            if (string.IsNullOrWhiteSpace(telefone) || !ContactHelper.IsTelephone(telefone))
+            if (string.IsNullOrWhiteSpace(telefone))
                 return MensagemViewHelper.SetNotFound();
             var codigo = StringHelper.GenerateNumericCode(6);
-            var expiresAt = DateTime.UtcNow.AddMinutes(3);
-
-            var codeHash = GenerateSha256Hex($"enable:{usuarioId}:{codigo}:{}");
+            var expiresAt = DateTime.UtcNow.AddHours(-3).AddMinutes(3);
+            string message = $"🔒 *Webzi Segurança*\n\n" +
+                             $"Seu código de acesso é: *{codigo}*\n\n" +
+                             $"Este código expira em 3 minutos.\n" +
+                             $"Não compartilhe este código.";
+            var codeHash = GenerateSha256Hex($"enable:{usuarioId}:{codigo}:{_options.Value.Secret}");
 
             var result = await RegistrarMfaCodeAsync(usuarioId, codeHash, expiresAt);
-
-            if (result.Erros.Count > 0)
+            if (result.AvisosImpeditivos.Count > 0)
             {
                 return result;
             }
 
+            try
+            {
+                await _provider.GetService<WhatsAppService>().SendTextMessageAsync(telefone,
+                    message);
+            }
+            catch (Exception e)
+            {
+                ResultView = MensagemViewHelper.SetBadRequest($"[Envio da Mensagem]: {e.Message}");
+                return ResultView;
+            }
+
+            return MensagemViewHelper.SetCreateSuccess();
+        }
+
+        public async Task<MensagemDTO> ValidMfaCode(ConfirmarCodigoMfaParameters request)
+        {
+            var codeHash = GenerateSha256Hex($"enable:{request.UsuarioId}:{request.Codigo}:{_options.Value.Secret}");
+            var result = await SearchMfaCode(request.UsuarioId, codeHash);
             return result;
         }
 
-        public async Task<MensagemDTO> RegistrarMfaCodeAsync(int usuarioId, string codeHash, DateTime expiresAt)
+        private async Task<MensagemDTO> SearchMfaCode(int usuarioId, string codeHash)
         {
-            if (usuarioId <= 0)
-                return MensagemViewHelper.SetBadRequest();
-            if (codeHash.Length <= 0)
-                return MensagemViewHelper.SetBadRequest();
-            if (expiresAt < DateTime.UtcNow)
+            var exists = await _context.AuthMfaCodes
+                .AsTracking()
+                .OrderByDescending(x => x.CreatedAt)
+                .FirstOrDefaultAsync(x => x.UsuarioId == usuarioId);
+            if (exists == null)
+                return MensagemViewHelper.SetNotFound();
+            if (exists.Validated)
+                return MensagemViewHelper.SetOk();
+            if (exists.Attempts >= 5)
+                return MensagemViewHelper.SetBadRequest("Passou limite de tentativas");
+            var now = DateTime.UtcNow.AddHours(-3);
+            if (exists.ExpiresAt <= now)
+            {
+                exists.Attempts++;
+                await _context.SaveChangesAsync();
+                return MensagemViewHelper.SetBadRequest("Tempo expirado");
+            }
+
+            if (exists.CodeHash != codeHash)
+            {
+                exists.Attempts++;
+                await _context.SaveChangesAsync();
+                return MensagemViewHelper.SetBadRequest("Codigo incorreto");
+            }
+
+            exists.Attempts++;
+            exists.Validated = true;
+            var result = await _context.SaveChangesAsync();
+            return result <= 0 ? MensagemViewHelper.SetBadRequest("Problema atualizar") : MensagemViewHelper.SetOk();
+        }
+
+        private async Task<MensagemDTO> RegistrarMfaCodeAsync(int usuarioId, string codeHash, DateTime expiresAt)
+        {
+            if (usuarioId <= 0 || codeHash.Length <= 0 || expiresAt < DateTime.UtcNow.AddHours(-3))
                 return MensagemViewHelper.SetBadRequest();
 
             AuthMfaCodesModel auth = new()
@@ -393,14 +463,14 @@ private readonly IOptions<>
                 CodeHash = codeHash,
                 Attempts = 1,
                 ExpiresAt = expiresAt,
-                CreatedAt = DateTime.UtcNow.Add(TimeSpan.FromHours(-3)),
+                CreatedAt = DateTime.UtcNow.AddHours(-3),
                 UsuarioId = usuarioId
             };
 
             await _context.AuthMfaCodes.AddAsync(auth);
             var result = await _context.SaveChangesAsync();
-            if (result < 1)
-                MensagemViewHelper.SetBadRequest("Cadastro incompleto");
+            if (result <= 0)
+                MensagemViewHelper.SetBadRequest("Erro ao registrar mfa code");
             return MensagemViewHelper.SetCreateSuccess();
         }
 

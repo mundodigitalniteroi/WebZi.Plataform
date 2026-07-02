@@ -20,6 +20,7 @@ using WebZi.Plataform.Data.Services.DRFA;
 using WebZi.Plataform.Data.Services.Faturamento;
 using WebZi.Plataform.Data.Services.Localizacao;
 using WebZi.Plataform.Data.Services.Sistema;
+using WebZi.Plataform.Data.Services.Usuario;
 using WebZi.Plataform.Data.Services.WebServices;
 using WebZi.Plataform.Domain.DTO.Deposito;
 using WebZi.Plataform.Domain.DTO.Generic;
@@ -44,7 +45,6 @@ using WebZi.Plataform.Domain.Models.Sistema;
 using WebZi.Plataform.Domain.Models.Usuario;
 using WebZi.Plataform.Domain.Models.Veiculo;
 using WebZi.Plataform.Domain.Models.WebServices.Boleto;
-using WebZi.Plataform.Domain.Services.Usuario;
 using WebZi.Plataform.Domain.ViewModel.GGV;
 using WebZi.Plataform.Domain.ViewModel.GRV.Cadastro;
 using WebZi.Plataform.Domain.ViewModel.GRV.Pesquisa;
@@ -208,7 +208,9 @@ namespace WebZi.Plataform.Domain.Services.GRV
             grv.MarcaModeloId = GrvPersistencia.IdentificadorMarcaModelo;
             grv.MotivoApreensaoId = GrvPersistencia.IdentificadorMotivoApreensao;
             grv.NumeroFormularioGrv = GrvPersistencia.NumeroProcesso;
-            grv.FaturamentoProdutoId =  GrvPersistencia.IdentificadorMotivoApreensao == 4 ? "DRF" : GrvPersistencia.CodigoProduto;
+            grv.FaturamentoProdutoId = GrvPersistencia.IdentificadorMotivoApreensao == 4
+                ? "DRF"
+                : GrvPersistencia.CodigoProduto;
             grv.MatriculaAutoridadeResponsavel =
                 GrvPersistencia.MatriculaAutoridadeResponsavel.ToUpperTrim().ToNullIfEmpty();
             grv.NomeAutoridadeResponsavel = GrvPersistencia.NomeAutoridadeResponsavel.ToUpperTrim().ToNullIfEmpty();
@@ -595,7 +597,9 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
                 NumeroFormularioGrv = GrvPersistencia.NumeroProcesso,
 
-                FaturamentoProdutoId = GrvPersistencia.IdentificadorMotivoApreensao == 4 ? "DRF" : GrvPersistencia.CodigoProduto,
+                FaturamentoProdutoId = GrvPersistencia.IdentificadorMotivoApreensao == 4
+                    ? "DRF"
+                    : GrvPersistencia.CodigoProduto,
 
                 MatriculaAutoridadeResponsavel =
                     GrvPersistencia.MatriculaAutoridadeResponsavel.ToUpperTrim().ToNullIfEmpty(),
@@ -666,7 +670,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
                 Condutor = _mapper.Map<CondutorModel>(GrvPersistencia.Condutor)
             };
-            
+
             grv.Condutor.Email = grv.Condutor.Email
                 .ToLowerTrim()
                 .ToNullIfEmpty();
@@ -2037,7 +2041,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
             // }
             // else
             // {
-            if ( GrvPesquisa.ListagemCodigoProduto != null && GrvPesquisa.ListagemCodigoProduto.Where(string.IsNullOrWhiteSpace).ToList().Count > 0)
+            if (GrvPesquisa.ListagemCodigoProduto != null &&
+                GrvPesquisa.ListagemCodigoProduto.Where(string.IsNullOrWhiteSpace).ToList().Count > 0)
             {
                 List<string> Produtos = await _context.FaturamentoProduto
                     .Select(x => x.FaturamentoProdutoId)

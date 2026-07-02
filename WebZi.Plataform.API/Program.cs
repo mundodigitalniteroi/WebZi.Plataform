@@ -65,6 +65,8 @@ static void ConfigureServices(WebApplicationBuilder builder)
 
     IConfiguration config = builder.Configuration;
     builder.Services.Configure<WSNfseOptions>(config.GetSection("WSNFSE"));
+    builder.Services.Configure<EvolutionOptions>(config.GetSection("EvolutionApi"));
+    builder.Services.Configure<JwtOptions>(config.GetSection("Jwt"));
     builder.Services
         .AddAuthentication(options =>
         {

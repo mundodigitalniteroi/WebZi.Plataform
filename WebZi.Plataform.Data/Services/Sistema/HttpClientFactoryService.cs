@@ -63,6 +63,7 @@ namespace WebZi.Plataform.Data.Services.Sistema
 
             return JsonConvert.DeserializeObject<T>(json);
         }
+       
 
         public T PostBasicAuth<T>(string url, string username, string password, object obj) where T : class
         {

@@ -31,7 +31,7 @@ public class AuthMfaCodesMap : IEntityTypeConfiguration<AuthMfaCodesModel>
         
         builder.Property(x => x.Validated)
             .HasColumnName("validated")
-            .HasDefaultValue(0)
+            .HasDefaultValue(false)
             .IsRequired();
 
         builder.Property(x => x.CreatedAt)

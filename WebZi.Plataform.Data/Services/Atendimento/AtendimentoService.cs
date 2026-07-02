@@ -20,6 +20,7 @@ using WebZi.Plataform.Data.Services.Deposito;
 using WebZi.Plataform.Data.Services.Faturamento;
 using WebZi.Plataform.Data.Services.Leilao;
 using WebZi.Plataform.Data.Services.Sistema;
+using WebZi.Plataform.Data.Services.Usuario;
 using WebZi.Plataform.Data.Services.WebServices;
 using WebZi.Plataform.Domain.DTO.Atendimento;
 using WebZi.Plataform.Domain.DTO.Faturamento.Cadastro;
@@ -39,7 +40,6 @@ using WebZi.Plataform.Domain.Models.Usuario;
 using WebZi.Plataform.Domain.Models.WebServices.Boleto;
 using WebZi.Plataform.Domain.Options;
 using WebZi.Plataform.Domain.Services.GRV;
-using WebZi.Plataform.Domain.Services.Usuario;
 using WebZi.Plataform.Domain.ViewModel.Atendimento;
 using WebZi.Plataform.Domain.ViewModel.Pagamento;
 using Z.EntityFramework.Plus;
@@ -1281,7 +1281,6 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                         await UpdateLiberacaoEspecial(AtendimentoInput.LiberacaoEspecial);
                     }
 
-                    _context.Update(Atendimento);
                     await _context.SaveChangesAsync();
                     await transaction.CommitAsync();
                 }
@@ -1319,7 +1318,6 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                     libEspecial.SignatarioMatricula = parameters.SignatarioMatricula.ToUpper();
                     libEspecial.SignatarioTitulo = parameters.SignatarioTitulo.ToUpper();
                     libEspecial.DataEmissaoDocumento = parameters.DataEmissaoDocumento.Date;
-                    _context.Update(libEspecial);
                     return;
                 }
 

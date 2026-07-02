@@ -18,11 +18,11 @@ using WebZi.Plataform.Data.Services.Pessoa;
 using WebZi.Plataform.Data.Services.Report;
 using WebZi.Plataform.Data.Services.Servico;
 using WebZi.Plataform.Data.Services.Sistema;
+using WebZi.Plataform.Data.Services.Usuario;
 using WebZi.Plataform.Data.Services.Veiculo;
 using WebZi.Plataform.Data.Services.Vistorias;
 using WebZi.Plataform.Data.Services.WebServices;
 using WebZi.Plataform.Domain.Services.GRV;
-using WebZi.Plataform.Domain.Services.Usuario;
 
 namespace WebZi.Plataform.Data.Services
 {
@@ -96,6 +96,7 @@ namespace WebZi.Plataform.Data.Services
             services.AddScoped<ClienteDepositoService>();
             services.AddScoped<AutoridadeDivisoesService>();
             services.AddScoped<DRFAService>();
+            services.AddScoped<WhatsAppService>();
             #region WebServices
             services.AddScoped<DetranAlagoasService>();
 
