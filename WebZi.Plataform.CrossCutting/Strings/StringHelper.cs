@@ -1,4 +1,6 @@
 ﻿using System.Globalization;
+using System.Runtime.InteropServices.JavaScript;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -14,6 +16,23 @@ namespace WebZi.Plataform.CrossCutting.Strings
         public static string AddCharToRight(string input, char Caracter, int lenght)
         {
             return !input.IsNullOrWhiteSpace() && input.Length < lenght ? input.PadRight(lenght, Caracter) : input;
+        }
+
+        public static string GenerateNumericCode(int tamanho)
+        {
+            if (tamanho <= 0)
+            {
+                return string.Empty;
+            }
+
+            var max = 1;
+            for (var i = 0; i < tamanho; ++i)
+                max *= 10;
+            var buffer = new Span<byte>(new byte[4]);
+            using var rng = RandomNumberGenerator.Create();
+            rng.GetBytes(buffer);
+            var valor = BitConverter.ToUInt32(buffer.ToArray(), 0) % (uint)max;
+            return valor.ToString(new string('0', max));
         }
 
         [GeneratedRegex("[^\\d]")]

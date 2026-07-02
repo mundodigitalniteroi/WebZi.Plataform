@@ -5,17 +5,27 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.Data;
 using System.IdentityModel.Tokens.Jwt;
+using System.Runtime.InteropServices.JavaScript;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using WebZi.Plataform.CrossCutting.Contacts;
+using WebZi.Plataform.CrossCutting.Number;
+using WebZi.Plataform.CrossCutting.Strings;
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
+using WebZi.Plataform.Data.Services.Pessoa;
 using WebZi.Plataform.Domain.DTO.Pessoa;
+using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.DTO.Usuario;
 using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Documento;
 using WebZi.Plataform.Domain.Models.Pessoa.Contato;
 using WebZi.Plataform.Domain.Models.Usuario;
+using Z.EntityFramework.Plus;
 
 namespace WebZi.Plataform.Domain.Services.Usuario
 {
@@ -24,7 +34,8 @@ namespace WebZi.Plataform.Domain.Services.Usuario
         private readonly AppDbContext _context;
         private readonly IMapper _mapper;
         private readonly IConfiguration _configuration;
-
+        private readonly IServiceProvider _provider;
+private readonly IOptions<>
         public UsuarioService(AppDbContext context)
         {
             _context = context;
@@ -59,7 +70,8 @@ namespace WebZi.Plataform.Domain.Services.Usuario
             }
             else if (string.IsNullOrWhiteSpace(Login) && !string.IsNullOrWhiteSpace(Password))
             {
-                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Ao informar a Senha do Usuário, é preciso informar o Login");
+                ResultView.Mensagem =
+                    MensagemViewHelper.SetBadRequest("Ao informar a Senha do Usuário, é preciso informar o Login");
 
                 return ResultView;
             }
@@ -130,7 +142,8 @@ namespace WebZi.Plataform.Domain.Services.Usuario
             if (result.PessoaId != null)
             {
                 resultTiposContatos = await _context.TipoPessoaContatos
-                    .Where(x => x.PessoaId == result.PessoaId.Value && x.TiposContatos != null && x.TiposContatos.FlagAtivo == 'S')
+                    .Where(x => x.PessoaId == result.PessoaId.Value && x.TiposContatos != null &&
+                                x.TiposContatos.FlagAtivo == 'S')
                     .Include(x => x.TiposContatos)
                     .OrderBy(x => x.Descricao)
                     .AsNoTracking()
@@ -149,29 +162,29 @@ namespace WebZi.Plataform.Domain.Services.Usuario
 
             ResultView.Mensagem = MensagemViewHelper.SetFound();
 
-             
-                //var ListagemUsuarioClienteDeposito = await _context.ViewUsuarioClienteDeposito
-                //    .Where(x => x.UsuarioId == UsuarioId)
-                //    .Select(x => new { x.ClienteId, x.DepositoId })
-                //    .AsNoTracking()
-                //    .ToListAsync();
 
-                //if (ListagemUsuarioClienteDeposito?.Count > 0)
-                //{
-                //    ListagemUsuarioClienteDeposito = ListagemUsuarioClienteDeposito
-                //        .OrderBy(x => x.ClienteId)
-                //        .ThenBy(x => x.DepositoId)
-                //        .ToList();
+            //var ListagemUsuarioClienteDeposito = await _context.ViewUsuarioClienteDeposito
+            //    .Where(x => x.UsuarioId == UsuarioId)
+            //    .Select(x => new { x.ClienteId, x.DepositoId })
+            //    .AsNoTracking()
+            //    .ToListAsync();
 
-                //    foreach (var item in ListagemUsuarioClienteDeposito)
-                //    {
-                //        ResultView.ListagemClienteDepositoAssociado.Add(new UsuarioClienteDepositoDTO { IdentificadorCliente = item.ClienteId, IdentificadorDeposito = item.DepositoId });
-                //    }
-                //}
-                //else
-                //{
-                //    ResultView.Mensagem.AvisosInformativos.Add("Atenção. Este Usuário não possui associação com Cliente e Depósito");
-                //}
+            //if (ListagemUsuarioClienteDeposito?.Count > 0)
+            //{
+            //    ListagemUsuarioClienteDeposito = ListagemUsuarioClienteDeposito
+            //        .OrderBy(x => x.ClienteId)
+            //        .ThenBy(x => x.DepositoId)
+            //        .ToList();
+
+            //    foreach (var item in ListagemUsuarioClienteDeposito)
+            //    {
+            //        ResultView.ListagemClienteDepositoAssociado.Add(new UsuarioClienteDepositoDTO { IdentificadorCliente = item.ClienteId, IdentificadorDeposito = item.DepositoId });
+            //    }
+            //}
+            //else
+            //{
+            //    ResultView.Mensagem.AvisosInformativos.Add("Atenção. Este Usuário não possui associação com Cliente e Depósito");
+            //}
 
             return ResultView;
         }
@@ -194,20 +207,22 @@ namespace WebZi.Plataform.Domain.Services.Usuario
             var usuarios = await _context.Usuario
                 .Include(p => p.Pessoa)
                 .AsNoTracking()
-                .Where(x => 
-                      (!string.IsNullOrWhiteSpace(login) && x.Login == login) ||
-                      (!string.IsNullOrWhiteSpace(username) && x.Pessoa.Nome == username))
+                .Where(x =>
+                    (!string.IsNullOrWhiteSpace(login) && x.Login == login) ||
+                    (!string.IsNullOrWhiteSpace(username) && x.Pessoa.Nome == username))
                 .ToListAsync();
 
-            if(usuarios is null || usuarios.Count <= 0)
+            if (usuarios is null || usuarios.Count <= 0)
             {
                 result.Mensagem = MensagemViewHelper.SetNotFound("Nenhum usuário encontrado");
                 return result;
             }
+
             result.Listagem = _mapper.Map<List<UsuarioPorNomeOuLoginDTO>>(usuarios);
             result.Mensagem = MensagemViewHelper.SetFound(usuarios.Count);
             return result;
         }
+
         public async Task<UsuarioDTO> GetByIdAsync(int UsuarioId)
         {
             return await GetAsync(UsuarioId, string.Empty, string.Empty);
@@ -253,8 +268,8 @@ namespace WebZi.Plataform.Domain.Services.Usuario
             return await _context.ViewUsuarioClienteDeposito
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.UsuarioId == UsuarioId
-                                       && x.ClienteId == ClienteId
-                                       && x.DepositoId == DepositoId) != null;
+                                          && x.ClienteId == ClienteId
+                                          && x.DepositoId == DepositoId) != null;
         }
 
         private string GenerateJwtToken(UsuarioDTO usuario, string username)
@@ -286,6 +301,119 @@ namespace WebZi.Plataform.Domain.Services.Usuario
 
             var tokenHandler = new JwtSecurityTokenHandler();
             return tokenHandler.WriteToken(token);
+        }
+
+        public async Task<MensagemDTO> ActivateMfa(int usuarioId)
+        {
+            MensagemDTO ResultView = new();
+            var user = await _context.Usuario.FirstOrDefaultAsync(x => x.UsuarioId == usuarioId);
+
+            if (user is null)
+            {
+                ResultView = MensagemViewHelper.SetNotFound();
+                return ResultView;
+            }
+
+            user.FlagMfa = 'S';
+            user.DataAlteracao = DateTime.UtcNow.Add(TimeSpan.FromHours(-3));
+            try
+            {
+                _context.Usuario.Update(user);
+                await _context.SaveChangesAsync();
+                return MensagemViewHelper.SetUpdateSuccess();
+            }
+            catch (Exception e)
+            {
+                ResultView = MensagemViewHelper.SetBadRequest();
+                return ResultView;
+            }
+        }
+
+        public async Task<MensagemDTO> DeactivateMfa(int usuarioId)
+        {
+            MensagemDTO ResultView = new();
+            var user = await _context.Usuario.FirstOrDefaultAsync(x => x.UsuarioId == usuarioId);
+
+            if (user is null)
+            {
+                ResultView = MensagemViewHelper.SetNotFound();
+                return ResultView;
+            }
+
+            user.FlagMfa = 'N';
+            user.DataAlteracao = DateTime.UtcNow.Add(TimeSpan.FromHours(-3));
+            try
+            {
+                _context.Usuario.Update(user);
+                await _context.SaveChangesAsync();
+                return MensagemViewHelper.SetUpdateSuccess();
+            }
+            catch (Exception e)
+            {
+                ResultView = MensagemViewHelper.SetBadRequest();
+                return ResultView;
+            }
+        }
+
+        public async Task<MensagemDTO> GenerateMfaCode(int usuarioId)
+        {
+            MensagemDTO ResultView = new();
+            var telefone = await _provider
+                .GetService<PessoaService>()
+                .GetPessoaTelefoneByIdAsync(usuarioId);
+
+            if (string.IsNullOrWhiteSpace(telefone) || !ContactHelper.IsTelephone(telefone))
+                return MensagemViewHelper.SetNotFound();
+            var codigo = StringHelper.GenerateNumericCode(6);
+            var expiresAt = DateTime.UtcNow.AddMinutes(3);
+
+            var codeHash = GenerateSha256Hex($"enable:{usuarioId}:{codigo}:{}");
+
+            var result = await RegistrarMfaCodeAsync(usuarioId, codeHash, expiresAt);
+
+            if (result.Erros.Count > 0)
+            {
+                return result;
+            }
+
+            return result;
+        }
+
+        public async Task<MensagemDTO> RegistrarMfaCodeAsync(int usuarioId, string codeHash, DateTime expiresAt)
+        {
+            if (usuarioId <= 0)
+                return MensagemViewHelper.SetBadRequest();
+            if (codeHash.Length <= 0)
+                return MensagemViewHelper.SetBadRequest();
+            if (expiresAt < DateTime.UtcNow)
+                return MensagemViewHelper.SetBadRequest();
+
+            AuthMfaCodesModel auth = new()
+            {
+                CodeHash = codeHash,
+                Attempts = 1,
+                ExpiresAt = expiresAt,
+                CreatedAt = DateTime.UtcNow.Add(TimeSpan.FromHours(-3)),
+                UsuarioId = usuarioId
+            };
+
+            await _context.AuthMfaCodes.AddAsync(auth);
+            var result = await _context.SaveChangesAsync();
+            if (result < 1)
+                MensagemViewHelper.SetBadRequest("Cadastro incompleto");
+            return MensagemViewHelper.SetCreateSuccess();
+        }
+
+        private string GenerateSha256Hex(string input)
+        {
+            using var sha = SHA256.Create();
+            var bytes = Encoding.UTF8.GetBytes(input);
+            var hash = sha.ComputeHash(bytes);
+            var sb = new StringBuilder(hash.Length * 2);
+            foreach (var x in hash)
+                sb.Append(x.ToString("x2"));
+
+            return sb.ToString();
         }
     }
 }

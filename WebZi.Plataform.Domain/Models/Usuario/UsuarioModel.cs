@@ -18,8 +18,7 @@ namespace WebZi.Plataform.Domain.Models.Usuario
 
         public string Login { get; set; }
 
-        [DataType(DataType.Password)]
-        public string Senha1 { get; set; }
+        [DataType(DataType.Password)] public string Senha1 { get; set; }
 
         public string Senha2 { get; set; }
 
@@ -56,6 +55,7 @@ namespace WebZi.Plataform.Domain.Models.Usuario
         public byte? TipoOperadorId { get; set; }
 
         public int? FuncionarioId { get; set; }
+        public char FlagMfa { get; set; }
         public int? NumeroFormularioGrvSequencia { get; set; }
 
         public virtual PessoaModel Pessoa { get; set; }

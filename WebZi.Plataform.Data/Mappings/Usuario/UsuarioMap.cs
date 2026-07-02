@@ -128,6 +128,15 @@ namespace WebZi.Plataform.Data.Mappings.Usuario
                 .HasMaxLength(32)
                 .IsUnicode(false)
                 .HasColumnName("senha_android");
+
+
+            builder.Property(e => e.FlagMfa)
+                .IsRequired()
+                .HasMaxLength(1)
+                .IsUnicode(false)
+                .IsFixedLength()
+                .HasColumnName("flag_mfa");
+
             builder.Property(x => x.NumeroFormularioGrvSequencia)
                 .IsUnicode(false)
                 .HasColumnName("numero_formulario_grv_sequencia");

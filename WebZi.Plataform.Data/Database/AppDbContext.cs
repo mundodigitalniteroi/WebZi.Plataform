@@ -217,6 +217,7 @@ namespace WebZi.Plataform.Data.Database
         public DbSet<TipoVeiculoModel> TipoVeiculo { get; set; }
 
         public DbSet<UsuarioModel> Usuario { get; set; }
+        public DbSet<AuthMfaCodesModel> AuthMfaCodes { get; set; }
         public DbSet<SistemaPerfilAcessoModel> PerfilAcesso { get; set; }
         public DbSet<SistemaModulosModel> SistemaModulos { get; set; }
         public DbSet<SistemaSubModulosModel> SistemaSubModulos { get; set; }

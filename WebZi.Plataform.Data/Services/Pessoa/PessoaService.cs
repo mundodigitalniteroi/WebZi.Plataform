@@ -23,6 +23,13 @@ namespace WebZi.Plataform.Data.Services.Pessoa
             _mapper = mapper;
         }
 
+        public async Task<string> GetPessoaTelefoneByIdAsync(int pessoaId)
+            => await _context.TipoPessoaContatos
+                .Include(x => x.Pessoa)
+                .Where(x => x.PessoaId == pessoaId && x.TipoContatoId == 1 && x.FlagContatoPrincipal == 'S')
+                .Select(x => x.Descricao)
+                .FirstOrDefaultAsync();
+
         public async Task<TipoDocumentoIdentificacaoListDTO> ListTipoDocumentoIdentificacaoAsync()
         {
             TipoDocumentoIdentificacaoListDTO ResultView = new();
@@ -35,8 +42,8 @@ namespace WebZi.Plataform.Data.Services.Pessoa
             {
                 ResultView.Listagem = _mapper
                     .Map<List<TipoDocumentoIdentificacaoDTO>>(result
-                    .OrderBy(x => x.Codigo)
-                    .ToList());
+                        .OrderBy(x => x.Codigo)
+                        .ToList());
 
                 ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
             }
@@ -48,13 +55,14 @@ namespace WebZi.Plataform.Data.Services.Pessoa
             return ResultView;
         }
 
-        public async Task<TipoDocumentoIdentificacaoSimplificadoListDTO> ListTipoDocumentoIdentificacaoSimplificadoAsync()
+        public async Task<TipoDocumentoIdentificacaoSimplificadoListDTO>
+            ListTipoDocumentoIdentificacaoSimplificadoAsync()
         {
             TipoDocumentoIdentificacaoSimplificadoListDTO ResultView = new();
 
             List<TipoDocumentoIdentificacaoModel> result = await _context.TipoDocumentoIdentificacao
                 .Where(x => x.FlagAtivo == "S"
-                         && x.FlagPrincipal == "S")
+                            && x.FlagPrincipal == "S")
                 .AsNoTracking()
                 .ToListAsync();
 
@@ -62,8 +70,8 @@ namespace WebZi.Plataform.Data.Services.Pessoa
             {
                 ResultView.Listagem = _mapper
                     .Map<List<TipoDocumentoIdentificacaoSimplificadoDTO>>(result
-                    .OrderBy(x => x.Codigo)
-                    .ToList());
+                        .OrderBy(x => x.Codigo)
+                        .ToList());
 
                 ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
             }
