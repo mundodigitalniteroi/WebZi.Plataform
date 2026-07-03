@@ -6,6 +6,7 @@ using WebZi.Plataform.Data.Services.Banco.PIX;
 using WebZi.Plataform.Data.Services.Cliente;
 using WebZi.Plataform.Data.Services.ClienteDeposito;
 using WebZi.Plataform.Data.Services.Deposito;
+using WebZi.Plataform.Data.Services.DetranHub;
 using WebZi.Plataform.Data.Services.Documento;
 using WebZi.Plataform.Data.Services.DRFA;
 using WebZi.Plataform.Data.Services.Empresa;
@@ -97,6 +98,7 @@ namespace WebZi.Plataform.Data.Services
             services.AddScoped<AutoridadeDivisoesService>();
             services.AddScoped<DRFAService>();
             services.AddScoped<WhatsAppService>();
+            services.AddScoped<DetranHubService>();
             #region WebServices
             services.AddScoped<DetranAlagoasService>();
 

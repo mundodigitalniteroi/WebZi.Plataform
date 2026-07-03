@@ -84,6 +84,27 @@ namespace WebZi.Plataform.Data.Services.Sistema
 
             return JsonConvert.DeserializeObject<T>(json);
         }
+        public T PostWithApiKey<T>(string url, string apiKey, object obj) where T : class
+        {
+            return Task.Run(async () => await PostWithApiKeyAsync<T>(url, apiKey, obj)).Result;
+        }
+        public async Task<T> PostWithApiKeyAsync<T>(string url, string apiKey, object obj) where T : class
+        {
+            using HttpClient client = _httpClientFactory.CreateClient();
+            client.DefaultRequestHeaders.Add("X-API-Key", apiKey);
+            using StringContent stringContent = new(JsonHelper.Serialize(obj), Encoding.UTF8, "application/json");
+
+            using HttpResponseMessage result = await client.PostAsync(url, stringContent);
+
+            if (!result.IsSuccessStatusCode)
+            {
+                throw new Exception(((int)result.StatusCode).ToString());
+            }
+
+            string json = await result.Content.ReadAsStringAsync();
+
+            return JsonConvert.DeserializeObject<T>(json);
+        }
 
         public T PostBearerAuth<T>(string url, string accessToken, object obj) where T : class
         {
