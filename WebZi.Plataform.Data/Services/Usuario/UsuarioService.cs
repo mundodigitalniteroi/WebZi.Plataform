@@ -431,20 +431,20 @@ namespace WebZi.Plataform.Data.Services.Usuario
             if (exists.Validated)
                 return MensagemViewHelper.SetOk();
             if (exists.Attempts >= 5)
-                return MensagemViewHelper.SetBadRequest("Passou limite de tentativas");
+                return MensagemViewHelper.SetBadRequest("Limite de tentativas excedido.");
             var now = DateTime.UtcNow.AddHours(-3);
             if (exists.ExpiresAt <= now)
             {
                 exists.Attempts++;
                 await _context.SaveChangesAsync();
-                return MensagemViewHelper.SetBadRequest("Tempo expirado");
+                return MensagemViewHelper.SetBadRequest("Tempo limite excedido.");
             }
 
             if (exists.CodeHash != codeHash)
             {
                 exists.Attempts++;
                 await _context.SaveChangesAsync();
-                return MensagemViewHelper.SetBadRequest("Codigo incorreto");
+                return MensagemViewHelper.SetBadRequest("Código inválido.");
             }
 
             exists.Attempts++;

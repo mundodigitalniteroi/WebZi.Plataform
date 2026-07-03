@@ -452,7 +452,7 @@ namespace WebZi.Plataform.Data.Services
                 .ForMember(d => d.Descricao, o => o.MapFrom(s => s.PerfilAcesso.Descricao));
 
             CreateMap<TiposContatoPessoaModel, TiposContatosPessoaDTO>()
-                .ForMember(d => d.TipoContaotId, o => o.MapFrom(s => s.TipoContatoId))
+                .ForMember(d => d.TipoContatoId, o => o.MapFrom(s => s.TipoContatoId))
                 .ForMember(d => d.TipoContato, o => o.MapFrom(s => s.TiposContatos.Descricao))
                 .ForMember(d => d.Contato, o => o.MapFrom(s => s.Descricao))
                 .ForMember(d => d.FlagContatoPrincipal, o => o.MapFrom(s => s.FlagContatoPrincipal));
