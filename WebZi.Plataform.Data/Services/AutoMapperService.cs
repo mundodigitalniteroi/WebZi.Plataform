@@ -24,6 +24,9 @@ using WebZi.Plataform.Domain.DTO.Veiculo;
 using WebZi.Plataform.Domain.DTO.Vistoria;
 using WebZi.Plataform.Domain.DTO.WebServices.DetranRio;
 using WebZi.Plataform.Domain.DTO.WebServices.Nfse;
+using WebZi.Plataform.CrossCutting.Web;
+using WebZi.Plataform.Domain.DTO.DetranHub;
+using WebZi.Plataform.Domain.DTO.DetranHub.Mensagem;
 using WebZi.Plataform.Domain.Models.Atendimento;
 using WebZi.Plataform.Domain.Models.Banco;
 using WebZi.Plataform.Domain.Models.Banco.PIX.Dinamico.Persistencia;
@@ -513,6 +516,33 @@ namespace WebZi.Plataform.Data.Services
                 .ForMember(dest => dest.EnquadramentoInfracaoId,
                     from => from.MapFrom(src => src.IdentificadorEnquadramentoInfracao))
                 .ForMember(dest => dest.NumeroInfracao, from => from.MapFrom(src => src.NumeroInfracao));
+
+            CreateMap<ConsultarPorPlacaOuChassiDTO, ConsultarDetranHubResponse>()
+                .ForMember(dest => dest.Sucesso, opt => opt.MapFrom(src => src.Mensagem != null && src.Mensagem.HtmlStatusCode == HtmlStatusCodeEnum.Ok))
+                .ForMember(dest => dest.Fonte, opt => opt.Ignore())
+                .ForMember(dest => dest.CodigoHttpOrigem, opt => opt.MapFrom(src => src.Mensagem != null ? (int)src.Mensagem.HtmlStatusCode : 0))
+                .ForMember(dest => dest.QuantidadeRegistros, opt => opt.MapFrom(src => src.Mensagem != null ? src.Mensagem.QuantidadeRegistros : 0))
+                .ForMember(dest => dest.Mensagens, opt => opt.MapFrom(src => src.Mensagem != null ? new MensagemDetranHubResponse
+                {
+                    Informativos = src.Mensagem.AvisosInformativos,
+                    Alertas = src.Mensagem.Alertas,
+                    Impeditivas = src.Mensagem.AvisosImpeditivos,
+                    Erros = src.Mensagem.Erros
+                } : null))
+                .ForMember(dest => dest.Consulta, opt => opt.Ignore())
+                .ForMember(dest => dest.Veiculo, opt => opt.MapFrom(src => src.Veiculo));
+
+            CreateMap<ConsultarDetranHubResponse, ConsultarPorPlacaOuChassiDTO>()
+                .ForMember(dest => dest.Veiculo, opt => opt.MapFrom(src => src.Veiculo))
+                .ForMember(dest => dest.Mensagem, opt => opt.MapFrom(src => new MensagemDTO
+                {
+                    HtmlStatusCode = (HtmlStatusCodeEnum)src.CodigoHttpOrigem,
+                    QuantidadeRegistros = src.QuantidadeRegistros,
+                    AvisosInformativos = src.Mensagens != null ? src.Mensagens.Informativos : new List<string>(),
+                    Alertas = src.Mensagens != null ? src.Mensagens.Alertas : new List<string>(),
+                    AvisosImpeditivos = src.Mensagens != null ? src.Mensagens.Impeditivas : new List<string>(),
+                    Erros = src.Mensagens != null ? src.Mensagens.Erros : new List<string>()
+                }));
         }
     }
 }

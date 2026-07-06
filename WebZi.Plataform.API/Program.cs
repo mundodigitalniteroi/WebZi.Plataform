@@ -67,6 +67,7 @@ static void ConfigureServices(WebApplicationBuilder builder)
     builder.Services.Configure<WSNfseOptions>(config.GetSection("WSNFSE"));
     builder.Services.Configure<EvolutionOptions>(config.GetSection("EvolutionApi"));
     builder.Services.Configure<JwtOptions>(config.GetSection("Jwt"));
+    builder.Services.Configure<DetranHubOptions>(config.GetSection("DetranHub"));
     builder.Services
         .AddAuthentication(options =>
         {
