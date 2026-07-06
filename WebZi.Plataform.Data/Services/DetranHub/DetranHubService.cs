@@ -1,9 +1,12 @@
 using AutoMapper;
+using Microsoft.Extensions.Options;
 using WebZi.Plataform.CrossCutting.Veiculo;
+using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Sistema;
 using WebZi.Plataform.Domain.DTO.DetranHub;
 using WebZi.Plataform.Domain.Models.Banco.PIX.Dinamico.Geracao.Retorno;
+using WebZi.Plataform.Domain.Options;
 using WebZi.Plataform.Domain.ViewModel.DetranHub;
 
 namespace WebZi.Plataform.Data.Services.DetranHub;
@@ -12,17 +15,24 @@ public class DetranHubService
 {
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IMapper _mapper;
+    private readonly IOptions<DetranHubOptions> _options;
 
     public DetranHubService(IHttpClientFactory httpClientFactory, IMapper mapper)
     {
         _httpClientFactory = httpClientFactory;
         _mapper = mapper;
     }
+    public DetranHubService(IHttpClientFactory httpClientFactory, IMapper mapper, IOptions<DetranHubOptions> options)
+    {
+        _httpClientFactory = httpClientFactory;
+        _mapper = mapper;
+        _options = options;
+    }
 
     public async Task<ConsultarPorPlacaOuChassiDTO> SearchToPlateOrChassi(string Placa, string Chassi)
     {
         ConsultarPorPlacaOuChassiDTO ResultView = new();
-
+        
         var placa = !string.IsNullOrWhiteSpace(Placa);
         var chassi = !string.IsNullOrWhiteSpace(Chassi);
         if (placa && chassi)
@@ -56,8 +66,8 @@ public class DetranHubService
         {
             ConsltarRetorno = new HttpClientFactoryService(_httpClientFactory)
                 .PostWithApiKey<ConsultarDetranHubResponse>(
-                    "https://api.detranhub.gestordepatios.app.br/api/v1/veiculos/consultar",
-                    "863YWf9Pawk6EMIV0bHHwc6EC3BwVdTF", ConsultarParametros);
+                    _options.Value.BaseUrl,
+                    _options.Value.ApiKey, ConsultarParametros);
         }
         catch (Exception ex)
         {
