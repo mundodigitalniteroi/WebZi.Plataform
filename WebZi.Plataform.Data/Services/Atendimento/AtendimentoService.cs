@@ -13,12 +13,14 @@ using WebZi.Plataform.CrossCutting.Date;
 using WebZi.Plataform.CrossCutting.Documents;
 using WebZi.Plataform.CrossCutting.Localizacao;
 using WebZi.Plataform.CrossCutting.Strings;
+using WebZi.Plataform.CrossCutting.Veiculo;
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Deposito;
 using WebZi.Plataform.Data.Services.Faturamento;
 using WebZi.Plataform.Data.Services.Leilao;
+using WebZi.Plataform.Data.Services.LiberacaoEspecial;
 using WebZi.Plataform.Data.Services.Sistema;
 using WebZi.Plataform.Data.Services.Usuario;
 using WebZi.Plataform.Data.Services.WebServices;
@@ -1023,16 +1025,6 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
                 ProprietarioTelefone = AtendimentoInput.ProprietarioTelefone.Replace("-", ""),
 
-                FormaLiberacao = AtendimentoInput.FormaLiberacao.ToUpperTrim(),
-
-                FormaLiberacaoCNH = AtendimentoInput.FormaLiberacaoCNH,
-
-                FormaLiberacaoCPF = AtendimentoInput.FormaLiberacaoCPF.Replace(".", "").Replace("/", "")
-                    .Replace("-", ""),
-
-                FormaLiberacaoNome = AtendimentoInput.FormaLiberacaoNome.ToUpperTrim(),
-
-                FormaLiberacaoPlaca = AtendimentoInput.FormaLiberacaoPlaca.Replace("-", "").ToUpperTrim(),
             };
 
             if (Grv.Cliente.FlagEmissaoNotaFiscal == "S" && permitirEmissao)
@@ -1097,41 +1089,6 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                     CreateLiberacaoLeilao(ParametrosCalculoFaturamento);
 
                     UpdateGrv(ParametrosCalculoFaturamento);
-
-                    await _context.SaveChangesAsync();
-                    if (AtendimentoInput.IdentificadorTipoMeioCobranca == 12)
-                    {
-                        await CreateLiberacaoEspecial(Faturamento.FaturamentoId, AtendimentoInput.LiberacaoEspecial);
-                        await _context.Faturamento
-                            .Where(x => x.FaturamentoId == Faturamento.FaturamentoId)
-                            .UpdateAsync(x => new FaturamentoModel()
-                            {
-                                Status = "P",
-                                UsuarioAlteracaoId = AtendimentoInput.LiberacaoEspecial.IdUsuarioCadastro,
-                                DataPrazoRetiradaVeiculo = DateTime.Now.AddDays(1),
-                                ValorPagamento = AtendimentoInput.LiberacaoEspecial.Valor,
-                                DataPagamento = DateTime.Now
-                            });
-                        await _context.Atendimento
-                            .Where(x => x.AtendimentoId == Faturamento.AtendimentoId)
-                            .UpdateAsync(x => new AtendimentoModel()
-                            {
-                                FormaLiberacaoNome = Faturamento.Atendimento.ResponsavelNome,
-                                FormaLiberacaoCNH = Faturamento.Atendimento.ResponsavelCnh,
-                                FormaLiberacaoCPF = Faturamento.Atendimento.ResponsavelDocumento,
-                                FormaLiberacao = "C",
-                                UsuarioAlteracaoId = AtendimentoInput.LiberacaoEspecial.IdUsuarioCadastro,
-                                FlagPagamentoFinanciado = "N"
-                            });
-                        await _context.Grv
-                            .Where(x => x.GrvId == Faturamento.Atendimento.GrvId)
-                            .UpdateAsync(x => new GrvModel()
-                            {
-                                StatusOperacaoId = "U",
-                                DataAlteracao = DateTime.Now,
-                                UsuarioAlteracaoId = AtendimentoInput.LiberacaoEspecial.IdUsuarioCadastro
-                            });
-                    }
 
                     await _context.SaveChangesAsync();
                     await transaction.CommitAsync();
@@ -1345,44 +1302,6 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             catch (Exception e)
             {
                 throw new DbUpdateException(e.Message);
-            }
-        }
-
-        private async Task CreateLiberacaoEspecial(int idFaturamento, LiberacaoEspecialParameters parameters)
-        {
-            #region Validação
-
-            if (parameters.DataEmissaoDocumento < DateTime.Today)
-                throw new Exception("Data não pode ser menor que hoje");
-
-            #endregion Validação
-
-            LiberacaoEspecialModel liberacaoEspecial = new()
-            {
-                IdGrv = parameters.IdGrv,
-                IdFaturamento = idFaturamento,
-                IdLiberacaoEspecialTipo = parameters.IdLiberacaoEspecialTipo,
-                IdUsuarioCadastro = parameters.IdUsuarioCadastro,
-                NumeroDocumento = parameters.NumeroDocumento.ToUpper(),
-                TipoDocumento = parameters.TipoDocumento.ToUpper(),
-                NumeroProcesso = parameters.NumeroProcesso.ToUpper(),
-                OrgaoEmissor = parameters.OrgaoEmissor.ToUpper(),
-                PortadorNome = parameters.PortadorNome.ToUpper(),
-                PortadorCargo = parameters.PortadorCargo.ToUpper(),
-                PortadorMatricula = parameters.PortadorMatricula.ToUpper(),
-                SignatarioNomeDocumento = parameters.SignatarioNomeDocumento.ToUpper(),
-                SignatarioMatricula = parameters.SignatarioMatricula.ToUpper(),
-                SignatarioTitulo = parameters.SignatarioTitulo.ToUpper(),
-                DataEmissaoDocumento = parameters.DataEmissaoDocumento.Date,
-                DataLiberacao = DateTime.Now
-            };
-            try
-            {
-                await _context.LiberacaoEspecial.AddAsync(liberacaoEspecial);
-            }
-            catch (Exception e)
-            {
-                throw new(e.Message);
             }
         }
 
@@ -1683,7 +1602,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             MensagemDTO ResultView = new GrvService(_context).ValidateInputGrv(parameters.IdentificadorProcesso,
                 parameters.IdentificadorUsuario);
 
-            var errors = new List<string>();
+            var Erros = new List<string>();
 
             #region Consultar
 
@@ -1696,31 +1615,66 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                     x.ClienteId == atendimento.Grv.ClienteId && x.DepositoId == atendimento.Grv.DepositoId &&
                     x.FaturamentoRegraTipoId == 11);
 
+            
+            TipoLiberacaoModel TipoLiberacao = await _context
+                .TipoLiberacao
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.TipoLiberacaoId == parameters.IdentificadorTipoLiberacao);
+
+            if (parameters.IdentificadorTipoLiberacao <= 0)
+                return MensagemViewHelper.SetBadRequest("Precisa ter um tipo de liberação");
+            
             bool exists = await _context.SaidaReparo
                 .AsNoTracking()
                 .AnyAsync(x => x.AtendimentoId == parameters.IdentificadorAtendimento);
 
             #endregion
 
+            
+            if (TipoLiberacao is null)
+                return MensagemViewHelper.SetBadRequest("Não existe esse tipo de liberação");
+            
             if (atendimento is null)
-                errors.Add("Atendimento não identificado");
+                return MensagemViewHelper.SetNotFound("Atendimento não identificado");
 
             if (exists)
-                errors.Add("Já está cadastrado");
+                return MensagemViewHelper.SetCreateSuccess("Já está cadastrado");
 
             if (parameters.DataSaida > atendimento.Grv.DataHoraGuarda)
-                errors.Add("A Data da Saída não pode ser maior do que a Data da guarda");
+                Erros.Add("A Data da Saída não pode ser maior do que a Data da guarda");
 
             if (parameters.DataSaida > parameters.DataPrevisaoRetorno)
-                errors.Add("A Data da Saída não pode ser maior do que a Data da Previão de Retorno");
+                Erros.Add("A Data da Saída não pode ser maior do que a Data da Previão de Retorno");
 
-
-            if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+            if (parameters.IdentificadorTipoLiberacao == 1)
             {
-                ResultView.AvisosImpeditivos.AddRange(errors);
-                return ResultView;
+                if (parameters.FormaLiberacao is null)
+                    Erros.Add("Forma de Liberação precisa ser preenchida");
+                if (!string.IsNullOrWhiteSpace(parameters.FormaLiberacao?.FormaLiberacaoPlaca) &&
+                    !parameters.FormaLiberacao.FormaLiberacaoPlaca.IsPlaca())
+                    Erros.Add("Placa inválida");
+                if (!string.IsNullOrWhiteSpace(parameters.FormaLiberacao?.FormaLiberacaoCnh) &&
+                    !parameters.FormaLiberacao.FormaLiberacaoCnh.IsCNH())
+                    Erros.Add("CNH inválido");
+                if (!string.IsNullOrWhiteSpace(parameters.FormaLiberacao?.FormaLiberacaoCpf) &&
+                    !parameters.FormaLiberacao.FormaLiberacaoCpf.IsCPF())
+                    Erros.Add("CPF inválido");
             }
 
+            if (parameters.IdentificadorTipoLiberacao == 2)
+            {
+                if (parameters.LiberacaoEspecial is null)
+                    Erros.Add("Liberação Especial precisa ser preenchida");
+            }
+
+            if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+                Erros.Add("Grv incorreto");
+
+            if (Erros.Count > 0)
+            {
+                ResultView = MensagemViewHelper.SetBadRequest(Erros);
+                return ResultView;
+            }
             AtendimentoSaidaParaReparoModel saidaReparo = new()
             {
                 AtendimentoId = parameters.IdentificadorAtendimento,
@@ -1744,6 +1698,28 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                             DataAlteracao = DateTime.Now,
                             UsuarioAlteracaoId = parameters.IdentificadorUsuario
                         });
+                    
+                    if (parameters.IdentificadorTipoLiberacao == 1)
+                    {
+                        await _context.Atendimento
+                            .Where(x => x.AtendimentoId == parameters.IdentificadorAtendimento)
+                            .UpdateAsync(x => new AtendimentoModel()
+                            {
+                                FormaLiberacao = parameters.FormaLiberacao.FormaLiberacao,
+                                FormaLiberacaoNome = parameters.FormaLiberacao.FormaLiberacaoNome,
+                                FormaLiberacaoCNH = parameters.FormaLiberacao.FormaLiberacaoCnh,
+                                FormaLiberacaoCPF = parameters.FormaLiberacao.FormaLiberacaoCpf,
+                                FormaLiberacaoPlaca = parameters.FormaLiberacao.FormaLiberacaoPlaca,
+                                DataAlteracao = DateTime.Now
+                            });
+                    }
+                    
+                    if (parameters.IdentificadorTipoLiberacao == 2)
+                    {
+                        await _provider.GetService<LiberacaoEspecialService>()
+                            .CreateLiberacaoEspecialAsync(parameters.LiberacaoEspecial, DateTime.MinValue);
+                    }
+                    
                     if (_options.Value.Enable && permitirEmissao)
                     {
                         await _provider.GetService<WSNfseService>()
@@ -1755,7 +1731,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 }
                 catch (Exception ex)
                 {
-                    _transaction.Rollback();
+                    await _transaction.RollbackAsync();
                     ResultView = MensagemViewHelper.SetInternalServerError(ex);
                     return ResultView;
                 }

@@ -25,7 +25,7 @@ namespace WebZi.Plataform.API.Controllers
         [HttpPost("EntregaSimplificada")]
         // TODO: [Authorize]
         [IgnoreAntiforgeryToken]
-        public async Task<ActionResult<MensagemDTO>> EntregaSimplificada([FromBody] EntregaSimplificadaParameters Parameters)
+        public async Task<ActionResult<MensagemDTO>> EntregaSimplificada([FromBody] EntregaParameters Parameters)
         {
             if (!ModelState.IsValid)
             {
@@ -53,7 +53,7 @@ namespace WebZi.Plataform.API.Controllers
         [HttpPost("Entrega")]
         // TODO: [Authorize]
         [IgnoreAntiforgeryToken]
-        public async Task<ActionResult<MensagemDTO>> Entrega([FromBody] EntregaSimplificadaParameters Parameters)
+        public async Task<ActionResult<MensagemDTO>> Entrega([FromBody] EntregaParameters Parameters)
         {
             if (!ModelState.IsValid)
             {

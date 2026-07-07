@@ -12,7 +12,7 @@ namespace WebZi.Plataform.Domain.ViewModel.Atendimento
 
         [Required(ErrorMessage = "Propriedade obrigatória")]
         public byte IdentificadorQualificacaoResponsavel { get; set; }
-
+        
         [Required(ErrorMessage = "Propriedade obrigatória")]
         public int IdentificadorUsuario { get; set; }
 

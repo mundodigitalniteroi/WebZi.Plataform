@@ -14,6 +14,7 @@ using WebZi.Plataform.Data.Services.Faturamento;
 using WebZi.Plataform.Data.Services.GGV;
 using WebZi.Plataform.Data.Services.Leilao;
 using WebZi.Plataform.Data.Services.Liberacao;
+using WebZi.Plataform.Data.Services.LiberacaoEspecial;
 using WebZi.Plataform.Data.Services.Localizacao;
 using WebZi.Plataform.Data.Services.Pessoa;
 using WebZi.Plataform.Data.Services.Report;
@@ -99,6 +100,8 @@ namespace WebZi.Plataform.Data.Services
             services.AddScoped<DRFAService>();
             services.AddScoped<WhatsAppService>();
             services.AddScoped<DetranHubService>();
+            services.AddScoped<LiberacaoEspecialService>();
+            
             #region WebServices
             services.AddScoped<DetranAlagoasService>();
 

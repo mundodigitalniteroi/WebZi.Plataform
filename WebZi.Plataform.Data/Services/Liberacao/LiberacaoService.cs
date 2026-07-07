@@ -21,6 +21,7 @@ using WebZi.Plataform.Data.Services.Atendimento;
 using WebZi.Plataform.Data.Services.Cliente;
 using WebZi.Plataform.Data.Services.Deposito;
 using WebZi.Plataform.Data.Services.Faturamento;
+using WebZi.Plataform.Data.Services.LiberacaoEspecial;
 using WebZi.Plataform.Data.Services.Localizacao;
 using WebZi.Plataform.Data.Services.Report;
 using WebZi.Plataform.Data.Services.WebServices;
@@ -621,7 +622,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
             return ResultView;
         }
 
-        public async Task<MensagemDTO> EntregaSimplificadaAsync(EntregaSimplificadaParameters Parameters)
+        public async Task<MensagemDTO> EntregaSimplificadaAsync(EntregaParameters Parameters)
         {
             MensagemDTO ResultView = new GrvService(_context)
                 .ValidateInputGrv(Parameters.IdentificadorProcesso, Parameters.IdentificadorUsuario);
@@ -753,28 +754,39 @@ namespace WebZi.Plataform.Data.Services.Liberacao
             return MensagemViewHelper.SetCreateSuccess();
         }
 
-        public async Task<MensagemDTO> EntregaAsync(EntregaSimplificadaParameters Parameters)
+        public async Task<MensagemDTO> EntregaAsync(EntregaParameters Parameters)
         {
             MensagemDTO ResultView = new GrvService(_context)
                 .ValidateInputGrv(Parameters.IdentificadorProcesso, Parameters.IdentificadorUsuario);
 
-            List<string> Errors = new List<string>();
-            if (!string.IsNullOrWhiteSpace(Parameters.FormaLiberacao.FormaLiberacaoPlaca) &&
-                !Parameters.FormaLiberacao.FormaLiberacaoPlaca.IsPlaca())
-                Errors.Add("Placa inválida");
-            if (!string.IsNullOrWhiteSpace(Parameters.FormaLiberacao.FormaLiberacaoCnh) &&
-                !Parameters.FormaLiberacao.FormaLiberacaoCnh.IsCNH())
-                Errors.Add("CNH inválido");
-            if (!string.IsNullOrWhiteSpace(Parameters.FormaLiberacao.FormaLiberacaoCpf) &&
-                !Parameters.FormaLiberacao.FormaLiberacaoCpf.IsCPF())
-                Errors.Add("CPF inválido");
+            List<string> Erros = new List<string>();
+            if (Parameters.IdentificadorTipoLiberacao == 1)
+            {
+                if (Parameters.FormaLiberacao is null)
+                    Erros.Add("Forma de Liberação precisa ser preenchida");
+                if (!string.IsNullOrWhiteSpace(Parameters.FormaLiberacao.FormaLiberacaoPlaca) &&
+                    !Parameters.FormaLiberacao.FormaLiberacaoPlaca.IsPlaca())
+                    Erros.Add("Placa inválida");
+                if (!string.IsNullOrWhiteSpace(Parameters.FormaLiberacao.FormaLiberacaoCnh) &&
+                    !Parameters.FormaLiberacao.FormaLiberacaoCnh.IsCNH())
+                    Erros.Add("CNH inválido");
+                if (!string.IsNullOrWhiteSpace(Parameters.FormaLiberacao.FormaLiberacaoCpf) &&
+                    !Parameters.FormaLiberacao.FormaLiberacaoCpf.IsCPF())
+                    Erros.Add("CPF inválido");
+            }
+
+            if (Parameters.IdentificadorTipoLiberacao == 2)
+            {
+                if (Parameters.LiberacaoEspecial is null)
+                    Erros.Add("Liberação Especial precisa ser preenchida");
+            }
 
             if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
-                Errors.Add("Grv incorreto");
+                Erros.Add("Grv incorreto");
 
-            if (Errors.Count > 0)
+            if (Erros.Count > 0)
             {
-                ResultView = MensagemViewHelper.SetBadRequest(Errors);
+                ResultView = MensagemViewHelper.SetBadRequest(Erros);
                 return ResultView;
             }
 
@@ -784,13 +796,13 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.TipoLiberacaoId == Parameters.IdentificadorTipoLiberacao);
 
-            
+
             if (Parameters.IdentificadorTipoLiberacao <= 0)
                 return MensagemViewHelper.SetBadRequest("Precisa ter um tipo de liberação");
 
-            if(TipoLiberacao is null)
+            if (TipoLiberacao is null)
                 return MensagemViewHelper.SetBadRequest("Não existe esse tipo de liberação");
-            
+
             GrvModel Grv = await _context.Grv
                 .Include(x => x.StatusOperacao)
                 .AsNoTracking()
@@ -800,7 +812,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                 .AnyAsync(x =>
                     x.ClienteId == Grv.ClienteId && x.DepositoId == Grv.DepositoId &&
                     x.FaturamentoRegraTipoId == 11);
-            
+
             if (Grv.StatusOperacao.StatusOperacaoId != "T" && Grv.StatusOperacao.StatusOperacaoId != "U" &&
                 Grv.StatusOperacao.StatusOperacaoId != "R")
             {
@@ -855,22 +867,25 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                     await _context.SaveChangesAsync();
 
 
-                    await _context.Atendimento
-                        .Where(x => x.AtendimentoId == Parameters.IdentificadorAtendimento)
-                        .UpdateAsync(x => new AtendimentoModel()
-                        {
-                            FormaLiberacao = Parameters.FormaLiberacao.FormaLiberacao,
-                            FormaLiberacaoNome = Parameters.FormaLiberacao.FormaLiberacaoNome,
-                            FormaLiberacaoCNH = Parameters.FormaLiberacao.FormaLiberacaoCnh,
-                            FormaLiberacaoCPF = Parameters.FormaLiberacao.FormaLiberacaoCpf,
-                            FormaLiberacaoPlaca = Parameters.FormaLiberacao.FormaLiberacaoPlaca,
-                        });
-
-                    if (Parameters.IdentificadorTipoLiberacao == 2)
+                    if (!Grv.StatusOperacaoId.Equals("R") && Parameters.IdentificadorTipoLiberacao == 1)
                     {
-                        await _context.LiberacaoEspecial
-                            .Where(x => x.IdGrv == Parameters.IdentificadorProcesso)
-                            .UpdateAsync(x => new LiberacaoEspecialModel() { DataLiberacao = Liberacao.DataCadastro });
+                        await _context.Atendimento
+                            .Where(x => x.AtendimentoId == Parameters.IdentificadorAtendimento)
+                            .UpdateAsync(x => new AtendimentoModel()
+                            {
+                                FormaLiberacao = Parameters.FormaLiberacao.FormaLiberacao,
+                                FormaLiberacaoNome = Parameters.FormaLiberacao.FormaLiberacaoNome,
+                                FormaLiberacaoCNH = Parameters.FormaLiberacao.FormaLiberacaoCnh,
+                                FormaLiberacaoCPF = Parameters.FormaLiberacao.FormaLiberacaoCpf,
+                                FormaLiberacaoPlaca = Parameters.FormaLiberacao.FormaLiberacaoPlaca,
+                                DataAlteracao = DateTime.Now
+                            });
+                    }
+
+                    if (!Grv.StatusOperacaoId.Equals("R") && Parameters.IdentificadorTipoLiberacao == 2)
+                    {
+                        await _provider.GetService<LiberacaoEspecialService>()
+                            .CreateLiberacaoEspecialAsync(Parameters.LiberacaoEspecial, Liberacao.DataCadastro);
                     }
 
                     if (Grv.StatusOperacaoId.Equals("R"))
@@ -885,11 +900,14 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                         await _context.SaidaReparo
                             .AsTracking()
                             .Where(x => x.Id == Parameters.IdentificadorSaidaReparo)
-                            .UpdateAsync(x => new Domain.Models.Atendimento.AtendimentoSaidaParaReparoModel
+                            .UpdateAsync(x => new AtendimentoSaidaParaReparoModel
                             {
                                 DataRetorno = DateTime.Now,
                                 IdUsuario = Parameters.IdentificadorUsuario
                             });
+                        await _context.LiberacaoEspecial
+                            .Where(x => x.IdGrv == Parameters.IdentificadorProcesso)
+                            .UpdateAsync(x => new LiberacaoEspecialModel() { DataLiberacao = Liberacao.DataCadastro });
                     }
 
                     if (_options.Value.Enable && permitirEmissao)

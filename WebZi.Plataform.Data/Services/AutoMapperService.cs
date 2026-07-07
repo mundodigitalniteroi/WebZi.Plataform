@@ -303,6 +303,7 @@ namespace WebZi.Plataform.Data.Services
                 .ForMember(dest => dest.CodigoProduto, from => from.MapFrom(src => src.FaturamentoProdutoId));
 
             CreateMap<LiberacaoEspecialModel, LiberacaoEspecialDTO>();
+            CreateMap<TipoLiberacaoEspecialModel, TipoLiberacaoEspecialDTO>();
             CreateMap<EquipamentoOpcionalModel, EquipamentoOpcionalDTO>()
                 .ForMember(dest => dest.IdentificadorEquipamentoOpcional,
                     opt => opt.MapFrom(src => src.EquipamentoOpcionalId))
