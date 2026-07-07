@@ -571,6 +571,56 @@ namespace WebZi.Plataform.Domain.Services.GRV
             return ResultView;
         }
 
+        public async Task<MensagemDTO> UpdateStatusToUAsync(int grvId, int usuarioId)
+        {
+            MensagemDTO ResultView = ValidateInputGrv(grvId, usuarioId);
+
+            if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+            {
+                return ResultView;
+            }
+
+            GrvModel grv = await _context.Grv
+                .Include(x => x.StatusOperacao)
+                .AsTracking()
+                .FirstOrDefaultAsync(x => x.GrvId == grvId);
+
+            if (grv == null)
+            {
+                return MensagemViewHelper.SetNotFound(MensagemPadraoEnum.NaoEncontradoGrv);
+            }
+
+            if (grv.StatusOperacaoId == "U")
+            {
+                return MensagemViewHelper.SetBadRequest("O GRV já está com o status U.");
+            }
+
+            using (IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync())
+            {
+                try
+                {
+                    _context.SetUserContextInfo(usuarioId);
+
+                    grv.StatusOperacaoId = "U";
+                    grv.UsuarioAlteracaoId = usuarioId;
+                    grv.DataAlteracao = DateTime.UtcNow;
+
+                    _context.Grv.Update(grv);
+
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+
+                    return MensagemViewHelper.SetInternalServerError(ex);
+                }
+            }
+
+            return MensagemViewHelper.SetUpdateSuccess();
+        }
+
         public async Task<ResultadoCadastroGrvDTO> CreateGrv(GrvParameters GrvPersistencia)
         {
             GrvModel grv = new()

@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Reflection;
 using WebZi.Plataform.CrossCutting.Configuration;
@@ -348,6 +348,7 @@ namespace WebZi.Plataform.Data.Database
         public DbSet<LiberacaoModel> Liberacao { get; set; }
 
         public DbSet<LiberacaoEspecialModel> LiberacaoEspecial { get; set; }
+        public DbSet<TipoLiberacaoEspecialModel> TipoLiberacaoEspecial { get; set; }
         public DbSet<TipoCobrancaLegalModel> TipoCobrancaLegal { get; set; }
 
         public DbSet<TipoLiberacaoModel> TipoLiberacao { get; set; }

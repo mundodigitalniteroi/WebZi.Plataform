@@ -24,6 +24,9 @@ using WebZi.Plataform.Domain.Services.GRV;
 using WebZi.Plataform.Data.Services.ClienteDeposito;
 using WebZi.Plataform.Data.Services;
 using WebZi.Plataform.Data.Services.AutoridadeDivisoes;
+using WebZi.Plataform.Data.Services.Liberacao;
+using WebZi.Plataform.Data.Services.LiberacaoEspecial;
+using WebZi.Plataform.Domain.DTO.Liberacao;
 
 namespace WebZi.Plataform.API.Controllers
 {
@@ -92,6 +95,35 @@ namespace WebZi.Plataform.API.Controllers
             }
         }
 
+        
+        [HttpGet("ListarTipoLiberacaoEspecial")]
+        // TODO: [Authorize]
+        public async Task<ActionResult<TipoLiberacaoEspecialListDTO>> ListarTipoLiberacaoEspecial(int identificadorUsuario)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            TipoLiberacaoEspecialListDTO ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<LiberacaoEspecialService>()
+                    .ListTipoLiberacaoAsync(identificadorUsuario);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
+        
+        
         [HttpGet("ListarAutoridadeResponsavel")]
         // TODO: [Authorize]
         public async Task<ActionResult<AutoridadeResponsavelListDTO>> ListarAutoridadeResponsavel(int? identificadorDeposito, string? UF, string? nomeAutoridade, int skip, int take)

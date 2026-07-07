@@ -8,6 +8,7 @@ using WebZi.Plataform.Domain.DTO.Atendimento;
 using WebZi.Plataform.Domain.DTO.Generic;
 using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.ViewModel.Atendimento;
+using WebZi.Plataform.Domain.Services.GRV;
 
 namespace WebZi.Plataform.API.Controllers
 {
@@ -179,6 +180,37 @@ namespace WebZi.Plataform.API.Controllers
             }
         }
 
+        [HttpPatch("AtualizarStatusLS")]
+        public async Task<ActionResult<MensagemDTO>> AtualizarStatusLS(AtualizarStatusLEParameters parameters)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            MensagemDTO ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<GrvService>()
+                    .UpdateStatusToUAsync((int)parameters.IdentificadorProcesso, (int)parameters.IdentificadorUsuario);
+
+                if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+                {
+                    return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+                }
+            }
+            catch (Exception ex)
+            {
+                ResultView = MensagemViewHelper.SetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+
+            return ResultView;
+        }
+        
         [HttpGet("SelecionarPorIdentificador")]
         // TODO: [Authorize]
         public async Task<ActionResult<AtendimentoDTO>> SelecionarPorIdentificador(int IdentificadorAtendimento,
