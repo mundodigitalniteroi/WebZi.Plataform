@@ -27,6 +27,7 @@ using WebZi.Plataform.Domain.DTO.WebServices.Nfse;
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Domain.DTO.DetranHub;
 using WebZi.Plataform.Domain.DTO.DetranHub.Mensagem;
+using WebZi.Plataform.Domain.DTO.DetranHub.ResponseAPI;
 using WebZi.Plataform.Domain.Models.Atendimento;
 using WebZi.Plataform.Domain.Models.Banco;
 using WebZi.Plataform.Domain.Models.Banco.PIX.Dinamico.Persistencia;
@@ -544,6 +545,64 @@ namespace WebZi.Plataform.Data.Services
                     AvisosImpeditivos = src.Mensagens != null ? src.Mensagens.Impeditivas : new List<string>(),
                     Erros = src.Mensagens != null ? src.Mensagens.Erros : new List<string>()
                 }));
+
+            CreateMap<VeiculoDetranHubResponse, DetranRioVeiculoDTO>()
+                .ForMember(dest => dest.IdentificadorVeiculo, opt => opt.MapFrom(src => src.IdentificadorVeiculo ?? 0))
+                .ForMember(dest => dest.AnoFabricacao, opt => opt.MapFrom(src => (short?)src.AnoFabricacao))
+                .ForMember(dest => dest.AnoModelo, opt => opt.MapFrom(src => (short?)src.AnoModelo))
+                .ForMember(dest => dest.AnoUltimaLicenca, opt => opt.MapFrom(src => (short?)src.AnoUltimaLicenca))
+                .ForMember(dest => dest.CapacidadeCarga, opt => opt.MapFrom(src => src.CapacidadeCarga))
+                .ForMember(dest => dest.CapacidadePassageiros, opt => opt.MapFrom(src => (byte?)src.CapacidadePassageiros))
+                .ForMember(dest => dest.Chassi, opt => opt.MapFrom(src => src.Chassi))
+                .ForMember(dest => dest.ChassiRemarcado, opt => opt.MapFrom(src => src.ChassiRemarcado == true ? "S" : src.ChassiRemarcado == false ? "N" : null))
+                .ForMember(dest => dest.Classificacao, opt => opt.MapFrom(src => src.Classificacao))
+                .ForMember(dest => dest.CodigoCategoria, opt => opt.MapFrom(src => src.CategoriaCodigo))
+                .ForMember(dest => dest.DescricaoCategoria, opt => opt.MapFrom(src => src.CategoriaDescricao))
+                .ForMember(dest => dest.InformacaoRoubo, opt => opt.MapFrom(src => src.InformacaoRoubo))
+                .ForMember(dest => dest.PesoBrutoTotal, opt => opt.MapFrom(src => src.PesoBrutoTotal.HasValue ? src.PesoBrutoTotal.Value.ToString() : null))
+                .ForMember(dest => dest.Placa, opt => opt.MapFrom(src => src.Placa))
+                .ForMember(dest => dest.Renavam, opt => opt.MapFrom(src => src.Renavam))
+                .ForMember(dest => dest.RestricaoEstelionato, opt => opt.MapFrom(src => src.RestricaoEstelionato))
+                .ForMember(dest => dest.Uf, opt => opt.MapFrom(src => src.Uf))
+                .ForMember(dest => dest.Cor, opt => opt.MapFrom(src => src.CorCodigo != null || src.CorPrimaria != null || src.CorSecundaria != null ? new CorDTO
+                {
+                    IdentificadorCor = ParseInt(src.CorCodigo),
+                    Cor = src.CorPrimaria,
+                    CorSecundaria = src.CorSecundaria
+                } : null))
+                .ForMember(dest => dest.MarcaModelo, opt => opt.MapFrom(src => src.MarcaModeloCodigo != null || src.MarcaModelo != null ? new MarcaModeloDTO
+                {
+                    IdentificadorMarcaModelo = ParseInt(src.MarcaModeloCodigo),
+                    MarcaModelo = src.MarcaModelo
+                } : null))
+                .ForMember(dest => dest.TipoVeiculo, opt => opt.MapFrom(src => src.TipoVeiculoCodigo != null || src.TipoVeiculo != null ? new TipoVeiculoDTO
+                {
+                    IdentificadorTipoVeiculo = ParseByte(src.TipoVeiculoCodigo),
+                    Descricao = src.TipoVeiculo
+                } : new()))
+                .ForMember(dest => dest.ListagemRestricao, opt => opt.MapFrom(src => src.Restricoes));
+
+            CreateMap<RestricaoDetranHubResponse, DetranRioVeiculoRestricaoDTO>()
+                .ForMember(dest => dest.IdentificadorRestricao, opt => opt.MapFrom(src => ParseInt(src.Codigo)))
+                .ForMember(dest => dest.TipoRestricao, opt => opt.MapFrom(src => src.Tipo))
+                .ForMember(dest => dest.TipoRestricaoDescricao, opt => opt.MapFrom(src => src.Tipo))
+                .ForMember(dest => dest.CodigoRestricao, opt => opt.MapFrom(src => ParseByte(src.Codigo)))
+                .ForMember(dest => dest.Restricao, opt => opt.MapFrom(src => src.Descricao))
+                .ForMember(dest => dest.DetranRioVeiculoOrigemRestricao, opt => opt.MapFrom(src => new DetranRioVeiculoOrigemRestricaoDTO
+                {
+                    IdentificadorOrigemRestricao = 0,
+                    Descricao = src.Tipo
+                }));
+        }
+
+        private static int ParseInt(string value)
+        {
+            return int.TryParse(value, out int result) ? result : 0;
+        }
+
+        private static byte ParseByte(string value)
+        {
+            return byte.TryParse(value, out byte result) ? result : (byte)0;
         }
     }
 }

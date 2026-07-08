@@ -1,3 +1,5 @@
+using WebZi.Plataform.Domain.DTO.DetranHub.ResponseAPI;
+
 namespace WebZi.Plataform.Domain.DTO.DetranHub;
 
 public class ConsultaDetalhesResponse

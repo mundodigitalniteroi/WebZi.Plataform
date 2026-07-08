@@ -760,7 +760,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                 .ValidateInputGrv(Parameters.IdentificadorProcesso, Parameters.IdentificadorUsuario);
 
             List<string> Erros = new List<string>();
-            if (Parameters.IdentificadorTipoLiberacao == 1)
+            if (Parameters.IdentificadorTipoLiberacao == 1  && Parameters.IdentificadorSaidaReparo == null)
             {
                 if (Parameters.FormaLiberacao is null)
                     Erros.Add("Forma de Liberação precisa ser preenchida");
@@ -775,7 +775,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                     Erros.Add("CPF inválido");
             }
 
-            if (Parameters.IdentificadorTipoLiberacao == 2)
+            if (Parameters.IdentificadorTipoLiberacao == 2 && Parameters.IdentificadorSaidaReparo == null)
             {
                 if (Parameters.LiberacaoEspecial is null)
                     Erros.Add("Liberação Especial precisa ser preenchida");
@@ -885,7 +885,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                     if (!Grv.StatusOperacaoId.Equals("R") && Parameters.IdentificadorTipoLiberacao == 2)
                     {
                         await _provider.GetService<LiberacaoEspecialService>()
-                            .CreateLiberacaoEspecialAsync(Parameters.LiberacaoEspecial, Liberacao.DataCadastro);
+                            .CreateLiberacaoEspecialAsync(Parameters.LiberacaoEspecial, Liberacao.DataCadastro, false);
                     }
 
                     if (Grv.StatusOperacaoId.Equals("R"))
@@ -927,7 +927,8 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                             .Where(x => x.GrvId == Parameters.IdentificadorProcesso)
                             .UpdateAsync(x => new GrvModel()
                             {
-                                LiberacaoId = Liberacao.LiberacaoId, StatusOperacaoId = "E",
+                                LiberacaoId = Liberacao.LiberacaoId, 
+                                StatusOperacaoId = "E",
                                 UsuarioAlteracaoId = Parameters.IdentificadorUsuario
                             });
                     }

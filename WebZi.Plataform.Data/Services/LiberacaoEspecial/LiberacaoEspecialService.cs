@@ -63,7 +63,7 @@ public class LiberacaoEspecialService
         return ResultView;
     }
     
-    public async Task<MensagemDTO> CreateLiberacaoEspecialAsync(LiberacaoEspecialParameters parameters, DateTime dataLiberacao)
+    public async Task<MensagemDTO> CreateLiberacaoEspecialAsync(LiberacaoEspecialParameters parameters, DateTime dataLiberacao, bool saidaParaReparo)
     {
         #region Validação
 
@@ -108,7 +108,7 @@ public class LiberacaoEspecialService
                 .Where(x => x.GrvId == parameters.IdentificadorProcesso)
                 .UpdateAsync(x => new GrvModel()
                 {
-                    StatusOperacaoId = "U",
+                    StatusOperacaoId = saidaParaReparo ? "R" : "E",
                     DataAlteracao = DateTime.Now,
                     UsuarioAlteracaoId = parameters.IdentificadorUsuario
                 });
@@ -120,4 +120,54 @@ public class LiberacaoEspecialService
             return MensagemViewHelper.SetBadRequest(e.Message);
         }
     }
+           public async Task UpdateLiberacaoEspecialAsync(AtualizarLiberacaoEspecialParameters parameters)
+        {
+            var libEspecial = await _context.LiberacaoEspecial
+                .AsTracking()
+                .FirstOrDefaultAsync(x => x.IdGrv == parameters.IdGrv);
+            try
+            {
+                if (libEspecial != null)
+                {
+                    libEspecial.IdLiberacaoEspecialTipo = parameters.IdLiberacaoEspecialTipo;
+                    libEspecial.NumeroDocumento = parameters.NumeroDocumento.ToUpper();
+                    libEspecial.TipoDocumento = parameters.TipoDocumento.ToUpper();
+                    libEspecial.NumeroProcesso = parameters.NumeroProcesso.ToUpper();
+                    libEspecial.OrgaoEmissor = parameters.OrgaoEmissor.ToUpper();
+                    libEspecial.PortadorNome = parameters.PortadorNome.ToUpper();
+                    libEspecial.PortadorCargo = parameters.PortadorCargo.ToUpper();
+                    libEspecial.PortadorMatricula = parameters.PortadorMatricula.ToUpper();
+                    libEspecial.SignatarioNomeDocumento = parameters.SignatarioNomeDocumento.ToUpper();
+                    libEspecial.SignatarioMatricula = parameters.SignatarioMatricula.ToUpper();
+                    libEspecial.SignatarioTitulo = parameters.SignatarioTitulo.ToUpper();
+                    libEspecial.DataEmissaoDocumento = parameters.DataEmissaoDocumento.Date;
+                    return;
+                }
+
+                LiberacaoEspecialModel liberacaoEspecial = new()
+                {
+                    IdGrv = parameters.IdGrv,
+                    IdFaturamento = parameters.IdFaturamento.Value,
+                    IdLiberacaoEspecialTipo = parameters.IdLiberacaoEspecialTipo,
+                    IdUsuarioCadastro = parameters.IdUsuarioCadastro.Value,
+                    NumeroDocumento = parameters.NumeroDocumento.ToUpper(),
+                    TipoDocumento = parameters.TipoDocumento.ToUpper(),
+                    NumeroProcesso = parameters.NumeroProcesso.ToUpper(),
+                    OrgaoEmissor = parameters.OrgaoEmissor.ToUpper(),
+                    PortadorNome = parameters.PortadorNome.ToUpper(),
+                    PortadorCargo = parameters.PortadorCargo.ToUpper(),
+                    PortadorMatricula = parameters.PortadorMatricula.ToUpper(),
+                    SignatarioNomeDocumento = parameters.SignatarioNomeDocumento.ToUpper(),
+                    SignatarioMatricula = parameters.SignatarioMatricula.ToUpper(),
+                    SignatarioTitulo = parameters.SignatarioTitulo.ToUpper(),
+                    DataEmissaoDocumento = parameters.DataEmissaoDocumento.Date,
+                    DataLiberacao = DateTime.Now
+                };
+                await _context.LiberacaoEspecial.AddAsync(liberacaoEspecial);
+            }
+            catch (Exception e)
+            {
+                throw new DbUpdateException(e.Message);
+            }
+        }
 }

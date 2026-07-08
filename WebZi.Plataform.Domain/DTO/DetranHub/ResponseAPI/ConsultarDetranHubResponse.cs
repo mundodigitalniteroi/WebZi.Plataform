@@ -1,4 +1,5 @@
 ﻿using WebZi.Plataform.Domain.DTO.DetranHub.Mensagem;
+using WebZi.Plataform.Domain.DTO.DetranHub.ResponseAPI;
 
 namespace WebZi.Plataform.Domain.DTO.DetranHub;
 

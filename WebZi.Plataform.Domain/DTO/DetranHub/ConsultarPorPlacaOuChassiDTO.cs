@@ -1,4 +1,5 @@
-﻿using WebZi.Plataform.Domain.DTO.Sistema;
+﻿using WebZi.Plataform.Domain.DTO.DetranHub.ResponseAPI;
+using WebZi.Plataform.Domain.DTO.Sistema;
 
 namespace WebZi.Plataform.Domain.DTO.DetranHub;
 

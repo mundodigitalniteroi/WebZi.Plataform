@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.Net.Security;
 using AutoMapper;
 using Castle.Components.DictionaryAdapter.Xml;
@@ -1024,7 +1024,11 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 ProprietarioDDD = AtendimentoInput.ProprietarioDDD,
 
                 ProprietarioTelefone = AtendimentoInput.ProprietarioTelefone.Replace("-", ""),
-
+                FormaLiberacao = null,
+                FormaLiberacaoCNH = null,
+                FormaLiberacaoCPF = null,
+                FormaLiberacaoNome = null,
+                FormaLiberacaoPlaca = null
             };
 
             if (Grv.Cliente.FlagEmissaoNotaFiscal == "S" && permitirEmissao)
@@ -1222,6 +1226,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 Atendimento.NotaFiscalInscricaoMunicipal =
                     AtendimentoInput.NotaFiscalInscricaoMunicipal.ToUpperTrim();
             }
+
             Atendimento.DataAlteracao = DateTime.Now;
 
             #endregion Dados do Atendimento
@@ -1235,7 +1240,8 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
                     if (AtendimentoInput.IdentificadorTipoMeioCobranca == 12)
                     {
-                        await UpdateLiberacaoEspecial(AtendimentoInput.LiberacaoEspecial);
+                        await _provider.GetService<LiberacaoEspecialService>()
+                            .UpdateLiberacaoEspecialAsync(AtendimentoInput.LiberacaoEspecial);
                     }
 
                     await _context.SaveChangesAsync();
@@ -1253,57 +1259,6 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             return ResultView;
         }
 
-
-        private async Task UpdateLiberacaoEspecial(AtualizarLiberacaoEspecialParameters parameters)
-        {
-            var libEspecial = await _context.LiberacaoEspecial
-                .AsTracking()
-                .FirstOrDefaultAsync(x => x.IdGrv == parameters.IdGrv);
-            try
-            {
-                if (libEspecial != null)
-                {
-                    libEspecial.IdLiberacaoEspecialTipo = parameters.IdLiberacaoEspecialTipo;
-                    libEspecial.NumeroDocumento = parameters.NumeroDocumento.ToUpper();
-                    libEspecial.TipoDocumento = parameters.TipoDocumento.ToUpper();
-                    libEspecial.NumeroProcesso = parameters.NumeroProcesso.ToUpper();
-                    libEspecial.OrgaoEmissor = parameters.OrgaoEmissor.ToUpper();
-                    libEspecial.PortadorNome = parameters.PortadorNome.ToUpper();
-                    libEspecial.PortadorCargo = parameters.PortadorCargo.ToUpper();
-                    libEspecial.PortadorMatricula = parameters.PortadorMatricula.ToUpper();
-                    libEspecial.SignatarioNomeDocumento = parameters.SignatarioNomeDocumento.ToUpper();
-                    libEspecial.SignatarioMatricula = parameters.SignatarioMatricula.ToUpper();
-                    libEspecial.SignatarioTitulo = parameters.SignatarioTitulo.ToUpper();
-                    libEspecial.DataEmissaoDocumento = parameters.DataEmissaoDocumento.Date;
-                    return;
-                }
-
-                LiberacaoEspecialModel liberacaoEspecial = new()
-                {
-                    IdGrv = parameters.IdGrv,
-                    IdFaturamento = parameters.IdFaturamento.Value,
-                    IdLiberacaoEspecialTipo = parameters.IdLiberacaoEspecialTipo,
-                    IdUsuarioCadastro = parameters.IdUsuarioCadastro.Value,
-                    NumeroDocumento = parameters.NumeroDocumento.ToUpper(),
-                    TipoDocumento = parameters.TipoDocumento.ToUpper(),
-                    NumeroProcesso = parameters.NumeroProcesso.ToUpper(),
-                    OrgaoEmissor = parameters.OrgaoEmissor.ToUpper(),
-                    PortadorNome = parameters.PortadorNome.ToUpper(),
-                    PortadorCargo = parameters.PortadorCargo.ToUpper(),
-                    PortadorMatricula = parameters.PortadorMatricula.ToUpper(),
-                    SignatarioNomeDocumento = parameters.SignatarioNomeDocumento.ToUpper(),
-                    SignatarioMatricula = parameters.SignatarioMatricula.ToUpper(),
-                    SignatarioTitulo = parameters.SignatarioTitulo.ToUpper(),
-                    DataEmissaoDocumento = parameters.DataEmissaoDocumento.Date,
-                    DataLiberacao = DateTime.Now
-                };
-                await _context.LiberacaoEspecial.AddAsync(liberacaoEspecial);
-            }
-            catch (Exception e)
-            {
-                throw new DbUpdateException(e.Message);
-            }
-        }
 
         private void CreateFotoResponsavel(int AtendimentoId, int UsuarioId, byte[] ResponsavelFoto)
         {
@@ -1615,7 +1570,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                     x.ClienteId == atendimento.Grv.ClienteId && x.DepositoId == atendimento.Grv.DepositoId &&
                     x.FaturamentoRegraTipoId == 11);
 
-            
+
             TipoLiberacaoModel TipoLiberacao = await _context
                 .TipoLiberacao
                 .AsNoTracking()
@@ -1623,17 +1578,17 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             if (parameters.IdentificadorTipoLiberacao <= 0)
                 return MensagemViewHelper.SetBadRequest("Precisa ter um tipo de liberação");
-            
+
             bool exists = await _context.SaidaReparo
                 .AsNoTracking()
                 .AnyAsync(x => x.AtendimentoId == parameters.IdentificadorAtendimento);
 
             #endregion
 
-            
+
             if (TipoLiberacao is null)
                 return MensagemViewHelper.SetBadRequest("Não existe esse tipo de liberação");
-            
+
             if (atendimento is null)
                 return MensagemViewHelper.SetNotFound("Atendimento não identificado");
 
@@ -1675,6 +1630,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 ResultView = MensagemViewHelper.SetBadRequest(Erros);
                 return ResultView;
             }
+
             AtendimentoSaidaParaReparoModel saidaReparo = new()
             {
                 AtendimentoId = parameters.IdentificadorAtendimento,
@@ -1698,7 +1654,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                             DataAlteracao = DateTime.Now,
                             UsuarioAlteracaoId = parameters.IdentificadorUsuario
                         });
-                    
+
                     if (parameters.IdentificadorTipoLiberacao == 1)
                     {
                         await _context.Atendimento
@@ -1713,13 +1669,13 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                                 DataAlteracao = DateTime.Now
                             });
                     }
-                    
+
                     if (parameters.IdentificadorTipoLiberacao == 2)
                     {
                         await _provider.GetService<LiberacaoEspecialService>()
-                            .CreateLiberacaoEspecialAsync(parameters.LiberacaoEspecial, DateTime.MinValue);
+                            .CreateLiberacaoEspecialAsync(parameters.LiberacaoEspecial, new DateTime(1900, 1, 1), true);
                     }
-                    
+
                     if (_options.Value.Enable && permitirEmissao)
                     {
                         await _provider.GetService<WSNfseService>()

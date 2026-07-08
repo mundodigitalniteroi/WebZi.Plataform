@@ -48,16 +48,6 @@ namespace WebZi.Plataform.Domain.ViewModel.Atendimento
 
         public string ProprietarioDocumento { get; set; }
 
-        public string FormaLiberacao { get; set; }
-
-        public string FormaLiberacaoNome { get; set; }
-
-        public string FormaLiberacaoCNH { get; set; }
-
-        public string FormaLiberacaoCPF { get; set; }
-
-        public string FormaLiberacaoPlaca { get; set; }
-
         public string ProprietarioEndereco { get; set; }
 
         public string ProprietarioNumero { get; set; }
