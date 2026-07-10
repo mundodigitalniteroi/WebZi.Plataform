@@ -1,6 +1,6 @@
 ﻿using WebZi.Plataform.Domain.DTO.Sistema;
 
-namespace WebZi.Plataform.Domain.DTO.WebServices.Nfse
+namespace WebZi.Plataform.Domain.DTO.WebServices.Nfe
 {
     public class NfeDTO
     {

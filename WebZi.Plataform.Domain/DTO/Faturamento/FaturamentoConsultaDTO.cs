@@ -3,6 +3,7 @@ using WebZi.Plataform.Domain.DTO.Faturamento.Simulacao;
 using WebZi.Plataform.Domain.DTO.Liberacao;
 using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.DTO.WebServices.DetranRio;
+using WebZi.Plataform.Domain.DTO.WebServices.Nfe;
 using WebZi.Plataform.Domain.DTO.WebServices.Nfse;
 
 namespace WebZi.Plataform.Domain.DTO.Faturamento

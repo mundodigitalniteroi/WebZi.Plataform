@@ -1,4 +1,5 @@
 ﻿using WebZi.Plataform.Domain.DTO.Sistema;
+using WebZi.Plataform.Domain.DTO.WebServices.Nfe;
 
 namespace WebZi.Plataform.Domain.DTO.WebServices.Nfse
 {

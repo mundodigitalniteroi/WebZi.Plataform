@@ -5,7 +5,9 @@ using WebZi.Plataform.Data.Services.Pessoa;
 using WebZi.Plataform.Data.Services.WebServices;
 using WebZi.Plataform.Domain.DTO.Pessoa;
 using WebZi.Plataform.Domain.DTO.Sistema;
+using WebZi.Plataform.Domain.DTO.WebServices.Nfe;
 using WebZi.Plataform.Domain.DTO.WebServices.Nfse;
+using WebZi.Plataform.Domain.ViewModel.NFe;
 
 namespace WebZi.Plataform.API.Controllers;
 
@@ -88,6 +90,57 @@ public class NfeController : ControllerBase
             ResultView = await _provider
                 .GetService<WSNfseService>()
                 .CreateNfseAsync(grvId, usuarioId);
+
+            return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+        }
+        catch (Exception ex)
+        {
+            ResultView = MensagemViewHelper.SetInternalServerError(ex);
+
+            return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+        }
+    }
+    [HttpGet("ConsultarJsonNfe")]
+    public async Task<ActionResult<NfeJsonEnvioDTO>> ConsultarJsonNfe(long nfeid)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        NfeJsonEnvioDTO ResultView = new();
+
+        try
+        {
+            ResultView = await _provider
+                .GetService<WSNfseService>()
+                .GetJsonNfeAsync(nfeid);
+
+            return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+        }
+        catch (Exception ex)
+        {
+            ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+
+            return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+        }
+    }
+    
+    [HttpPut("AtualizarDadosNotaFiscal")]
+    public async Task<ActionResult<MensagemDTO>> AtualizarDadosNotaFiscal(AtualizarDadosNFeParameters parameters)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        MensagemDTO ResultView = new();
+
+        try
+        {
+            ResultView = await _provider
+                .GetService<WSNfseService>()
+                .UpdateNFeAsync(parameters);
 
             return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
         }

@@ -28,6 +28,7 @@ using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Domain.DTO.DetranHub;
 using WebZi.Plataform.Domain.DTO.DetranHub.Mensagem;
 using WebZi.Plataform.Domain.DTO.DetranHub.ResponseAPI;
+using WebZi.Plataform.Domain.DTO.WebServices.Nfe;
 using WebZi.Plataform.Domain.Models.Atendimento;
 using WebZi.Plataform.Domain.Models.Banco;
 using WebZi.Plataform.Domain.Models.Banco.PIX.Dinamico.Persistencia;
