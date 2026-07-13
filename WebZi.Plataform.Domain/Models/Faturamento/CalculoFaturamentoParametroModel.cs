@@ -21,6 +21,7 @@ namespace WebZi.Plataform.Domain.Models.Faturamento
         public int UsuarioCadastroId { get; set; }
 
         public bool IsComboio { get; set; }
+        public bool IsLeilaoStatus { get; set; }
 
         public string StatusOperacaoId { get; set; }
 

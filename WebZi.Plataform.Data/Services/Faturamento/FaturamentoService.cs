@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using System.Data;
@@ -406,57 +406,6 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             #endregion Selecionar o Atendimento
 
-            #region Selecionar os Serviços cadastrados no GRV
-
-            List<ViewFaturamentoServicoGrvModel> FaturamentoServicosGrvs = new();
-
-            if (!ParametrosCalculoFaturamento.FaturarSemGrv)
-            {
-                FaturamentoServicosGrvs = _context.ViewFaturamentoServicoGrv
-                    .Where(x => x.GrvId == ParametrosCalculoFaturamento.GrvId &&
-                                x.FaturamentoProdutoId == ParametrosCalculoFaturamento.FaturamentoProdutoId &&
-                                x.FlagTributacao == "N" &&
-                                (x.FlagRealizarCobranca == null || x.FlagRealizarCobranca == "S") &&
-                                (x.FlagCobrarGGV == "N" || (x.FlagCobrarGGV == "S" && x.Valor > 0)))
-                    .AsNoTracking()
-                    .ToList();
-
-                if (FaturamentoServicosGrvs?.Count == 0)
-                {
-                    throw new Exception("Não foi encontrado Serviço associado à este Processo");
-                }
-            }
-
-            #endregion Selecionar os Serviços cadastrados no GRV
-
-            #region Selecionar todos os Serviços associados ao CLIDEP, incluindo os com a Vigência finalizada
-
-            List<ViewFaturamentoServicoAssociadoVeiculoModel> FaturamentoServicosAssociadosVeiculos = _context
-                .ViewFaturamentoServicoAssociadoVeiculo
-                .Where(x => x.ClienteId == ParametrosCalculoFaturamento.ClienteDeposito.ClienteId &&
-                            x.DepositoId == ParametrosCalculoFaturamento.ClienteDeposito.DepositoId &&
-                            x.TipoVeiculoId == ParametrosCalculoFaturamento.TipoVeiculoId &&
-                            x.FaturamentoProdutoId == ParametrosCalculoFaturamento.FaturamentoProdutoId &&
-                            x.DataVigenciaFinal == null)
-                .AsNoTracking()
-                .ToList();
-
-            if (FaturamentoServicosAssociadosVeiculos?.Count == 0)
-            {
-                throw new Exception(
-                    "Não foi encontrado Serviço associado ao Cliente + Depósito + Tipo de Veículo + Produto");
-            }
-
-            if (ParametrosCalculoFaturamento.FaturarSemGrv)
-            {
-                FaturamentoServicosGrvs = _mapper
-                    .Map<List<ViewFaturamentoServicoGrvModel>>(FaturamentoServicosAssociadosVeiculos
-                        .Where(x => x.DataVigenciaFinal == null)
-                        .ToList());
-            }
-
-            #endregion Selecionar todos os Serviços associados ao CLIDEP, incluindo os com a Vigência finalizada
-
             #region Verificação de Faturamentos anteriores
 
             // Faturamento.Status:
@@ -519,6 +468,59 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             }
 
             #endregion Verificação de Faturamentos anteriores
+
+
+            #region Selecionar os Serviços cadastrados no GRV
+
+            List<ViewFaturamentoServicoGrvModel> FaturamentoServicosGrvs = new();
+
+            if (!ParametrosCalculoFaturamento.FaturarSemGrv && (!ParametrosCalculoFaturamento.IsLeilaoStatus || UltimoFaturamento != null))
+            {
+                FaturamentoServicosGrvs = _context.ViewFaturamentoServicoGrv
+                    .Where(x => x.GrvId == ParametrosCalculoFaturamento.GrvId &&
+                                x.FaturamentoProdutoId == ParametrosCalculoFaturamento.FaturamentoProdutoId &&
+                                x.FlagTributacao == "N" &&
+                                (x.FlagRealizarCobranca == null || x.FlagRealizarCobranca == "S") &&
+                                (x.FlagCobrarGGV == "N" || (x.FlagCobrarGGV == "S" && x.Valor > 0)))
+                    .AsNoTracking()
+                    .ToList();
+
+                if (FaturamentoServicosGrvs?.Count == 0)
+                {
+                    throw new Exception("Não foi encontrado Serviço associado à este Processo");
+                }
+            }
+
+            #endregion Selecionar os Serviços cadastrados no GRV
+
+            #region Selecionar todos os Serviços associados ao CLIDEP, incluindo os com a Vigência finalizada
+
+            List<ViewFaturamentoServicoAssociadoVeiculoModel> FaturamentoServicosAssociadosVeiculos = _context
+                .ViewFaturamentoServicoAssociadoVeiculo
+                .Where(x => x.ClienteId == ParametrosCalculoFaturamento.ClienteDeposito.ClienteId &&
+                            x.DepositoId == ParametrosCalculoFaturamento.ClienteDeposito.DepositoId &&
+                            x.TipoVeiculoId == ParametrosCalculoFaturamento.TipoVeiculoId &&
+                            x.FaturamentoProdutoId == ParametrosCalculoFaturamento.FaturamentoProdutoId &&
+                            x.DataVigenciaFinal == null)
+                .AsNoTracking()
+                .ToList();
+
+            if (FaturamentoServicosAssociadosVeiculos?.Count == 0)
+            {
+                throw new Exception(
+                    "Não foi encontrado Serviço associado ao Cliente + Depósito + Tipo de Veículo + Produto");
+            }
+
+            if (ParametrosCalculoFaturamento.FaturarSemGrv)
+            {
+                FaturamentoServicosGrvs = _mapper
+                    .Map<List<ViewFaturamentoServicoGrvModel>>(FaturamentoServicosAssociadosVeiculos
+                        .Where(x => x.DataVigenciaFinal == null)
+                        .ToList());
+            }
+
+            #endregion Selecionar todos os Serviços associados ao CLIDEP, incluindo os com a Vigência finalizada
+
 
             #region Cálculo das Diárias
 
@@ -1354,8 +1356,10 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     .Include(x => x.StatusOperacao)
                     .AsNoTracking()
                     .OrderByDescending(x => x.DataHoraRemocao)
-                    .FirstOrDefaultAsync(x => !model.Placa.IsNullOrWhiteSpace() ? x.Placa == model.Placa :
-                        model.Chassi.IsNullOrWhiteSpace() || x.Chassi == model.Chassi);
+                    .FirstOrDefaultAsync(x =>
+                        !model.Placa.IsNullOrWhiteSpace()
+                            ? x.Placa == model.Placa
+                            : model.Chassi.IsNullOrWhiteSpace() || x.Chassi == model.Chassi);
             }
 
             #endregion
@@ -1367,7 +1371,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 .AnyAsync(x =>
                     x.ClienteId == Grv.ClienteId && x.DepositoId == Grv.DepositoId &&
                     x.FaturamentoRegraTipoId == 11);
-            
+
             if (model.IdentificadorProcesso <= 0 && model.Placa.IsNullOrWhiteSpace() &&
                 model.Chassi.IsNullOrWhiteSpace())
             {
@@ -1404,16 +1408,19 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 DataHoraPorDeposito = new DepositoService(_context)
                     .GetDataHoraPorDeposito(model.IdentificadorDeposito);
             }
+
             var now = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-3)).DateTime;
-          
+
             if (model?.DataHoraInicialParaCalculo > now)
             {
                 erros.Add("A Data/Hora Inicial para o Cálculo não pode ser maior do que a Data/Hora atual");
             }
+
             if (DataHoraPorDeposito != DateTime.MinValue && model?.DataHoraFinalParaCalculo > DataHoraPorDeposito)
             {
                 erros.Add("A Data/Hora Final para o Cálculo não pode ser maior do que a Data/Hora do Depósito");
             }
+
             if (model?.DataHoraFinalParaCalculo > model?.DataHoraInicialParaCalculo)
             {
                 erros.Add(
@@ -1456,7 +1463,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 return ResultView;
             }
 
-            if (new[] { "E", "3", "7" }.Contains(Grv.StatusOperacaoId))
+            if (Grv.StatusOperacaoId.Equals('E'))
             {
                 ResultView.Mensagem = MensagemViewHelper.SetBadRequest(
                     $"O Status atual deste Processo não permite a execução da Simulação. " +
@@ -1517,6 +1524,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
                 StatusOperacaoId = "V",
 
+                IsLeilaoStatus = new[] { "1", "3", "7" }.Contains(Grv.StatusOperacaoId),
+                
                 FaturamentoProdutoId = ResultView.Produto.CodigoProduto,
 
                 GrvId = Grv.GrvId,
@@ -1945,9 +1954,10 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             var podeEmitirNota = await _context.FaturamentoRegra
                 .AnyAsync(x =>
-                    x.ClienteId == Faturamento.Atendimento.Grv.ClienteId && x.DepositoId == Faturamento.Atendimento.Grv.DepositoId &&
+                    x.ClienteId == Faturamento.Atendimento.Grv.ClienteId &&
+                    x.DepositoId == Faturamento.Atendimento.Grv.DepositoId &&
                     x.FaturamentoRegraTipoId == 11);
-            
+
             #endregion Consultas
 
             ResultView.Faturamento = _mapper.Map<SimulacaoFaturamentoDTO>(Faturamento);
@@ -2047,7 +2057,9 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                         if (item.Composicoes != null && item.Composicoes.Any())
                         {
                             nfDto.Valor = item.Composicoes.Sum(x => x.Valor);
-                            nfDto.Servico = item.Composicoes.Count > 1 ? "Vários" : item.Composicoes.FirstOrDefault()?.Servico;
+                            nfDto.Servico = item.Composicoes.Count > 1
+                                ? "Vários"
+                                : item.Composicoes.FirstOrDefault()?.Servico;
                         }
 
                         notasDto.Add(nfDto);
