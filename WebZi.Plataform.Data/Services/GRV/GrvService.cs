@@ -647,9 +647,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
                 NumeroFormularioGrv = GrvPersistencia.NumeroProcesso,
 
-                FaturamentoProdutoId = GrvPersistencia.IdentificadorMotivoApreensao == 4
-                    ? "DRF"
-                    : GrvPersistencia.CodigoProduto,
+                FaturamentoProdutoId = GrvPersistencia.CodigoProduto,
 
                 MatriculaAutoridadeResponsavel =
                     GrvPersistencia.MatriculaAutoridadeResponsavel.ToUpperTrim().ToNullIfEmpty(),
