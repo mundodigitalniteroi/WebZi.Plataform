@@ -59,6 +59,7 @@ namespace WebZi.Plataform.Data.Services.DRFA
                     GrvId = GrvId,
                     TipoRegistroId = drfa.TipoRegistroId,
                     OrgaoEmissorId = drfa.OrgaoEmissorId,
+                    AutoridadeDivisaoId = drfa.DivisaoId,
                     UsuarioCadastroId = grv.IdentificadorUsuario,
                     UsuarioAlteracaoId = grv.IdentificadorUsuario,
                     AutoridadeDivisaoComplemento = drfa.ComplementoDivisao.ToUpperTrim().ToNullIfEmpty(),
@@ -76,7 +77,7 @@ namespace WebZi.Plataform.Data.Services.DRFA
                 };
         
                 _context.DRFA.Add(result);
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
         
                 if (drfa.FlagRegistroRecuperacao == 'S')
                 {
@@ -274,7 +275,7 @@ namespace WebZi.Plataform.Data.Services.DRFA
             return ResultView;
         }
         
-        public MensagemDTO UpdateDRFAGrv(GrvAtualizarParameters Grv)
+        public async Task<MensagemDTO> UpdateDRFAGrv(GrvAtualizarParameters Grv)
         {
             MensagemDTO ResultView = new();
         
@@ -331,7 +332,7 @@ namespace WebZi.Plataform.Data.Services.DRFA
                     return ResultView;
                 }
             }
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             ResultView = MensagemViewHelper.SetUpdateSuccess();
             return ResultView;
         }

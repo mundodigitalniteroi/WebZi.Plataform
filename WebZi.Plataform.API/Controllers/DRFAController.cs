@@ -19,56 +19,55 @@ namespace WebZi.Plataform.API.Controllers
             _provider = provider;
         }
 
-        // [HttpGet("SelecionarDRFAPorIdentificador")]
-        // // TODO: [Authorize]
-        // public async Task<ActionResult<DRFADTO>> SelecionarDRFAPorIdentificador(int IdentificadorProcesso)
-        // {
-        //     if (!ModelState.IsValid)
-        //     {
-        //         return BadRequest(ModelState);
-        //     }
-        //
-        //     DRFADTO ResultView = new();
-        //
-        //     try
-        //     {
-        //         ResultView = await _provider
-        //             .GetService<DRFAService>()
-        //             .GetDRFAAsync(IdentificadorProcesso);
-        //
-        //         return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-        //     }
-        //     catch (Exception ex)
-        //     {
-        //         ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
-        //
-        //         return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-        //     }
-        // }
-        //
-        // [HttpGet("ListaArquivos")]
-        // public async Task<ActionResult<ListArquivosDRFADTO>> ListaArquivos(int IdentificadorProcesso, int IdentificadorUsuario)
-        // {
-        //     if (!ModelState.IsValid)
-        //     {
-        //         return BadRequest(ModelState);
-        //     }
-        //     ListArquivosDRFADTO ResultView = new();
-        //     try
-        //     {
-        //         ResultView = await _provider
-        //             .GetService<DRFAService>()
-        //             .GetArquivos(IdentificadorProcesso, IdentificadorUsuario);
-        //
-        //         return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-        //     }
-        //     catch (Exception ex)
-        //     {
-        //         ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
-        //
-        //         return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-        //     }
-        // }
+        [HttpGet("SelecionarDRFAPorIdentificador")]
+        public async Task<ActionResult<DRFADTO>> SelecionarDRFAPorIdentificador(int IdentificadorProcesso)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+        
+            DRFADTO ResultView = new();
+        
+            try
+            {
+                ResultView = await _provider
+                    .GetService<DRFAService>()
+                    .GetDRFAAsync(IdentificadorProcesso);
+        
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+        
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
+        
+        [HttpGet("ListaArquivos")]
+        public async Task<ActionResult<ListArquivosDRFADTO>> ListaArquivos(int IdentificadorProcesso, int IdentificadorUsuario)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            ListArquivosDRFADTO ResultView = new();
+            try
+            {
+                ResultView = await _provider
+                    .GetService<DRFAService>()
+                    .GetArquivos(IdentificadorProcesso, IdentificadorUsuario);
+        
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+        
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
 
     }
 }

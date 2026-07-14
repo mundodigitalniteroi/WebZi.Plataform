@@ -476,7 +476,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
                     if (GrvPersistencia.IdentificadorMotivoApreensao == 4)
                     {
-                        var result = _provider
+                        var result = await _provider
                             .GetService<DRFAService>()
                             .UpdateDRFAGrv(GrvPersistencia);
                         if (result.Erros?.Count > 0)
