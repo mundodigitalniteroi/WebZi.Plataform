@@ -20,6 +20,6 @@ namespace WebZi.Plataform.Domain.ViewModel.Reboque
         public string? Renavam { get; set; }
         public string? Marca { get; set; }
         public string? Modelo { get; set; }
-        public int Ano { get; set; }
+        public int? Ano { get; set; }
     }
 }

@@ -2838,7 +2838,10 @@ namespace WebZi.Plataform.Domain.Services.GRV
             {
                 ResultView.AvisosImpeditivos.Add("Autoridade Responsável não encontrada");
             }
-            else if (AutoridadeResponsavel.OrgaoEmissor.UF != Cliente.Endereco.UF)
+            else if (!string.Equals(
+                         AutoridadeResponsavel.OrgaoEmissor.UF?.Trim(),
+                         Cliente.Endereco.UF?.Trim(),
+                         StringComparison.OrdinalIgnoreCase))
             {
                 ResultView.AvisosImpeditivos.Add(
                     $"A Autoridade Responsável ({AutoridadeResponsavel.OrgaoEmissor.UF}) informada não pertence a mesma Unidade Federativa do cadastro do Cliente {Cliente.Nome} ({Cliente.Endereco.UF})");
@@ -3061,7 +3064,30 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (grv is not null && grv.StatusOperacaoId != "E")
             {
-                ResultView.AvisosImpeditivos.Add("Esse Grv já existe");
+                bool isPlacaDuplicada = !string.IsNullOrWhiteSpace(GrvPersistencia.Placa) &&
+                                        string.Equals(grv.Placa, GrvPersistencia.Placa,
+                                            StringComparison.OrdinalIgnoreCase);
+                bool isChassiDuplicado = !string.IsNullOrWhiteSpace(GrvPersistencia.Chassi) &&
+                                         string.Equals(grv.Chassi, GrvPersistencia.Chassi,
+                                             StringComparison.OrdinalIgnoreCase);
+
+                if (isPlacaDuplicada && isChassiDuplicado)
+                {
+                    ResultView.AvisosImpeditivos.Add("Esse GRV já existe (Placa e Chassi já cadastrados)");
+                }
+                else if (isPlacaDuplicada)
+                {
+                    ResultView.AvisosImpeditivos.Add("Esse GRV já existe (Placa já cadastrada)");
+                }
+                else if (isChassiDuplicado)
+                {
+                    ResultView.AvisosImpeditivos.Add("Esse GRV já existe (Chassi já cadastrado)");
+                }
+                else
+                {
+                    ResultView.AvisosImpeditivos.Add("Esse GRV já existe");
+                }
+
                 ResultView.AvisosInformativos.Add($"{grv.NumeroFormularioGrv}");
             }
 

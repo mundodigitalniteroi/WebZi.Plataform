@@ -212,7 +212,7 @@ namespace WebZi.Plataform.Data.Services.Servico
 
             List<ReboqueModel> result = await _context.Reboque
                 .Where(x => x.ClienteId == ClienteId
-                    && x.DepositoId == DepositoId)
+                    && x.DepositoId == DepositoId && x.FlagAtivo == "S")
                 .AsNoTracking()
                 .ToListAsync();
 
@@ -324,7 +324,7 @@ namespace WebZi.Plataform.Data.Services.Servico
             }
 
             List<ReboquistaModel> result = await _context.Reboquista
-                .Where(x => x.ClienteId == ClienteId && x.DepositoId == DepositoId)
+                .Where(x => x.ClienteId == ClienteId && x.DepositoId == DepositoId && x.FlagAtivo == "S")
                 .AsNoTracking()
                 .ToListAsync();
 
