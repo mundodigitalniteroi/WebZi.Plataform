@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Liberacao;
+using WebZi.Plataform.Domain.DTO.Liberacao;
 using WebZi.Plataform.Domain.DTO.Report;
 using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.ViewModel.Liberacao;
@@ -129,6 +130,31 @@ namespace WebZi.Plataform.API.Controllers
             }
         }
 
+        [HttpGet("ConsultaLiberacao")]
+        public async Task<ActionResult<GrvConsultaLiberacaoDTO>> ConsultaLiberacao(string Placa, string Chassi, string NumeroProcesso)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            GrvConsultaLiberacaoDTO ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<LiberacaoService>()
+                    .ConsultaGrvLiberadoAsync(Placa, Chassi, NumeroProcesso);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
         [HttpGet("ValidarGuiaAutorizacaoRetiradaVeiculo")]
         // TODO: [Authorize]
         public async Task<ActionResult<ValidacaoGuiaAutorizacaoRetiradaVeiculoDTO>> ValidarGuiaAutorizacaoRetiradaVeiculo(string Input, int IdentificadorUsuario)

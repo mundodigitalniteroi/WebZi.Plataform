@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using WebZi.Plataform.CrossCutting.Sistema;
 
 namespace WebZi.Plataform.CrossCutting.Date
@@ -125,9 +125,23 @@ namespace WebZi.Plataform.CrossCutting.Date
             return string.Format("{0:" + NormalizeDateTimeFormat(outputDateTimeFormat) + "}", inputDateTime);
         }
 
+        public static string FormatDateTime(DateTime? inputDateTime, string outputDateTimeFormat = "dd/MM/yyyy")
+        {
+            return inputDateTime.HasValue
+                ? string.Format("{0:" + NormalizeDateTimeFormat(outputDateTimeFormat) + "}", inputDateTime.Value)
+                : string.Empty;
+        }
+
         public static string FormatDateTime(DateTime inputDateTime, DateTimeFormat outputDateTimeFormat = DateTimeFormat.Date)
         {
             return string.Format("{0:" + EnumHelper.GetStringValue(outputDateTimeFormat) + "}", inputDateTime);
+        }
+
+        public static string FormatDateTime(DateTime? inputDateTime, DateTimeFormat outputDateTimeFormat = DateTimeFormat.Date)
+        {
+            return inputDateTime.HasValue
+                ? string.Format("{0:" + EnumHelper.GetStringValue(outputDateTimeFormat) + "}", inputDateTime.Value)
+                : string.Empty;
         }
 
         public static string FormatDateTime(string inputDateTime, string outputDateTimeFormat = "dd/MM/yyyy")

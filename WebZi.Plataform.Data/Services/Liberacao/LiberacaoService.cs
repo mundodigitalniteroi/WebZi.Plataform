@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -26,6 +26,7 @@ using WebZi.Plataform.Data.Services.Localizacao;
 using WebZi.Plataform.Data.Services.Report;
 using WebZi.Plataform.Data.Services.WebServices;
 using WebZi.Plataform.Domain.DTO.Generic;
+using WebZi.Plataform.Domain.DTO.Liberacao;
 using WebZi.Plataform.Domain.DTO.Report;
 using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.DTO.Usuario;
@@ -754,13 +755,76 @@ namespace WebZi.Plataform.Data.Services.Liberacao
             return MensagemViewHelper.SetCreateSuccess();
         }
 
+        public async Task<GrvConsultaLiberacaoDTO> ConsultaGrvLiberadoAsync(string Placa, string Chassi,
+            string NumeroProcesso)
+        {
+            GrvConsultaLiberacaoDTO ResultView = new();
+
+            var erros = new List<string>();
+
+            #region Validação
+
+            if (!string.IsNullOrEmpty(NumeroProcesso) && NumeroProcesso.Length > 14)
+                erros.Add("Numero Processo Inválida.");
+
+            if (!string.IsNullOrEmpty(Placa) && !Placa.IsPlaca())
+                erros.Add("Placa Inválida.");
+
+            if (!string.IsNullOrEmpty(Chassi) && !Chassi.IsChassi())
+                erros.Add("Chassi Inválida.");
+
+            if (string.IsNullOrEmpty(Placa) && string.IsNullOrEmpty(Chassi) && string.IsNullOrEmpty(NumeroProcesso))
+                erros.Add("É necessário informar os valores para realizar a consulta.");
+
+            if (erros.Count > 0)
+            {
+                ResultView.Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.BadRequest;
+                ResultView.Mensagem.AvisosImpeditivos.AddRange(erros);
+                return ResultView;
+            }
+
+            #endregion
+
+            #region Consulta
+
+            var query = _context.Grv
+                .Include(x => x.Liberacao)
+                .Where(x => new[] { "E", "7" }.Contains(x.StatusOperacaoId))
+                .AsNoTracking();
+
+            if (!string.IsNullOrEmpty(Placa))
+                query = query.Where(x => x.Placa == Placa);
+            if (!string.IsNullOrEmpty(Chassi))
+                query = query.Where(x => x.Chassi == Chassi);
+            if (!string.IsNullOrEmpty(NumeroProcesso))
+                query = query.Where(x => x.NumeroFormularioGrv == NumeroProcesso);
+
+            var grv = await query.FirstOrDefaultAsync();
+
+            #endregion
+
+            if (grv is null)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound();
+                return ResultView;
+            }
+
+            return new GrvConsultaLiberacaoDTO
+            {
+                Mensagem = MensagemViewHelper.SetFound(),
+                Status = grv.StatusOperacaoId,
+                DataLiberacao = DateTimeHelper.FormatDateTime(grv.Liberacao?.DataCadastro,
+                    DateTimeHelper.DateTimeFormat.DateTimeFormatted)
+            };
+        }
+
         public async Task<MensagemDTO> EntregaAsync(EntregaParameters Parameters)
         {
             MensagemDTO ResultView = new GrvService(_context)
                 .ValidateInputGrv(Parameters.IdentificadorProcesso, Parameters.IdentificadorUsuario);
 
             List<string> Erros = new List<string>();
-            if (Parameters.IdentificadorTipoLiberacao == 1  && Parameters.IdentificadorSaidaReparo == null)
+            if (Parameters.IdentificadorTipoLiberacao == 1 && Parameters.IdentificadorSaidaReparo == null)
             {
                 if (Parameters.FormaLiberacao is null)
                     Erros.Add("Forma de Liberação precisa ser preenchida");
@@ -927,7 +991,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                             .Where(x => x.GrvId == Parameters.IdentificadorProcesso)
                             .UpdateAsync(x => new GrvModel()
                             {
-                                LiberacaoId = Liberacao.LiberacaoId, 
+                                LiberacaoId = Liberacao.LiberacaoId,
                                 StatusOperacaoId = "E",
                                 UsuarioAlteracaoId = Parameters.IdentificadorUsuario
                             });
