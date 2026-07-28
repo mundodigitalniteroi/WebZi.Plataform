@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.GGV;
+using WebZi.Plataform.Data.Services.Usuario;
 using WebZi.Plataform.Domain.DTO.Generic;
 using WebZi.Plataform.Domain.DTO.GGV;
 using WebZi.Plataform.Domain.DTO.Sistema;
@@ -148,9 +149,35 @@ namespace WebZi.Plataform.API.Controllers
             }
         }
 
+        [HttpPost("VincularServicoAoGGV")]
+        public async Task<ActionResult<MensagemDTO>> VincularServicoAoGGV(int GrvId, int servicoGrvId, CancellationToken ct)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            MensagemDTO ResultView = new();
+            int? userId = User.GetUserId();
+            try
+            {
+                ResultView = await _provider
+                    .GetService<GgvService>()
+                    .AddServiceAssociationAsync(GrvId, userId!.Value, servicoGrvId, ct);
+
+                return StatusCode((int)HtmlStatusCodeEnum.Ok, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView = MensagemViewHelper.SetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            } 
+        }
+        
         [HttpDelete("DesvincularServicoAssociadoGgv")]
         public async Task<ActionResult<MensagemDTO>> DesvincularServicoAssociadoGgv(int GrvId, int UsuarioId,
-            int servicoGrvId)
+            int servicoGrvId, CancellationToken ct)
         {
             if (!ModelState.IsValid)
             {
@@ -162,7 +189,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<GgvService>()
-                    .DeleteGgvServiceAssociationAsync(GrvId, UsuarioId, servicoGrvId);
+                    .DeleteServiceAssociationAsync(GrvId, UsuarioId, servicoGrvId, ct);
 
                 return StatusCode((int)HtmlStatusCodeEnum.Ok, ResultView);
             }

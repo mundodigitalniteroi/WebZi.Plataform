@@ -242,9 +242,12 @@ namespace WebZi.Plataform.API.Controllers
             }
         }
 
+        [HttpPost("Vincular")]
+        
+        
         [HttpPost("Simulacao")]
         [IgnoreAntiforgeryToken]
-        public async Task<ActionResult<SimulacaoDTO>> Simular([FromBody] SimulacaoParameters Parametros)
+        public async Task<ActionResult<SimulacaoDTO>> Simular([FromBody] SimulacaoParameters Parametros, CancellationToken ct)
         {
             if (!ModelState.IsValid)
             {
@@ -257,7 +260,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<FaturamentoService>()
-                    .SimularAsync(Parametros);
+                    .SimularAsync(Parametros, ct);
 
                 ResultView.DataHoraSimulacao = DateTime.Now;
 
@@ -273,7 +276,7 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("Consultar")]
         [IgnoreAntiforgeryToken]
-        public async Task<ActionResult<FaturamentoConsultaDTO>> Consultar(int identificadorFaturamento, int identificadorUsuario)
+        public async Task<ActionResult<FaturamentoConsultaDTO>> Consultar(int identificadorFaturamento, int identificadorUsuario, CancellationToken ct)
         {
             if (!ModelState.IsValid)
             {
@@ -286,7 +289,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<FaturamentoService>()
-                    .ConsultarFaturamentoAsync(identificadorFaturamento, identificadorUsuario);
+                    .ConsultarFaturamentoAsync(identificadorFaturamento, identificadorUsuario, ct);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }

@@ -181,7 +181,7 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpPatch("AtualizarStatusLS")]
-        public async Task<ActionResult<MensagemDTO>> AtualizarStatusLS(AtualizarStatusLEParameters parameters)
+        public async Task<ActionResult<MensagemDTO>> AtualizarStatusLS(AtualizarStatusLEParameters parameters, CancellationToken ct)
         {
             if (!ModelState.IsValid)
             {
@@ -194,7 +194,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<GrvService>()
-                    .UpdateStatusToUAsync((int)parameters.IdentificadorProcesso, (int)parameters.IdentificadorUsuario);
+                    .UpdateStatusToUAsync(parameters.IdentificadorProcesso, parameters.IdentificadorUsuario, ct);
 
                 if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
                 {

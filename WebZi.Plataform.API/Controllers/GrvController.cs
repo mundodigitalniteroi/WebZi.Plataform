@@ -34,7 +34,7 @@ namespace WebZi.Plataform.API.Controllers
         [HttpPost("Cadastrar")]
         // TODO: [Authorize]
         [IgnoreAntiforgeryToken]
-        public async Task<ActionResult<ResultadoCadastroGrvDTO>> Cadastrar([FromBody] GrvParameters Grv)
+        public async Task<ActionResult<ResultadoCadastroGrvDTO>> Cadastrar([FromBody] GrvParameters Grv, CancellationToken ct)
         {
             if (!ModelState.IsValid)
             {
@@ -47,7 +47,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView.Mensagem = await _provider
                     .GetService<GrvService>()
-                    .CheckInformacoesPersistenciaAsync(Grv);
+                    .CheckInformacoesPersistenciaAsync(Grv, ct);
 
                 if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
                 {
@@ -70,7 +70,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<GrvService>()
-                    .CreateGrv(Grv);
+                    .CreateGrv(Grv, ct);
 
                 if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
                 {
@@ -90,7 +90,7 @@ namespace WebZi.Plataform.API.Controllers
         [HttpPut("Atualizar")]
         // TODO: [Authorize]
         [IgnoreAntiforgeryToken]
-        public async Task<ActionResult<MensagemDTO>> Atualizar([FromBody] GrvAtualizarParameters Grv)
+        public async Task<ActionResult<MensagemDTO>> Atualizar([FromBody] GrvAtualizarParameters Grv, CancellationToken ct)
         {
             if (!ModelState.IsValid)
             {
@@ -103,7 +103,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<GrvService>()
-                    .UpdateGrv(Grv);
+                    .UpdateGrv(Grv, ct);
 
                 if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
                 {
@@ -661,7 +661,7 @@ namespace WebZi.Plataform.API.Controllers
         [HttpPost("ValidarInformacoesParaCadastro")]
         [IgnoreAntiforgeryToken]
         // TODO: [Authorize]
-        public async Task<ActionResult<MensagemDTO>> ValidarInformacoesParaCadastro([FromBody] GrvParameters Grv)
+        public async Task<ActionResult<MensagemDTO>> ValidarInformacoesParaCadastro([FromBody] GrvParameters Grv, CancellationToken ct)
         {
             if (!ModelState.IsValid)
             {
@@ -674,7 +674,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<GrvService>()
-                    .CheckInformacoesPersistenciaAsync(Grv);
+                    .CheckInformacoesPersistenciaAsync(Grv, ct);
 
                 return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
             }

@@ -29,6 +29,8 @@ namespace WebZi.Plataform.Domain.DTO.Report
         public string DadosPermanencia { get; set; }
 
         public string DadosAutorizadaRetiradaVeiculoEm { get; set; }
+        
+        public string DadosDaRetiradaDoVeiculo { get; set; }
 
         public string VeiculoTipo { get; set; }
 

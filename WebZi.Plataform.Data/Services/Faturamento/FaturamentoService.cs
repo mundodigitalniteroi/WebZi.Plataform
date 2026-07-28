@@ -474,7 +474,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             List<ViewFaturamentoServicoGrvModel> FaturamentoServicosGrvs = new();
 
-            if (!ParametrosCalculoFaturamento.FaturarSemGrv && (!ParametrosCalculoFaturamento.IsLeilaoStatus || UltimoFaturamento != null))
+            if (!ParametrosCalculoFaturamento.FaturarSemGrv &&
+                (!ParametrosCalculoFaturamento.IsLeilaoStatus || UltimoFaturamento != null))
             {
                 FaturamentoServicosGrvs = _context.ViewFaturamentoServicoGrv
                     .Where(x => x.GrvId == ParametrosCalculoFaturamento.GrvId &&
@@ -1330,7 +1331,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             return ResultView;
         }
 
-        public async Task<SimulacaoDTO> SimularAsync(SimulacaoParameters model)
+        public async Task<SimulacaoDTO> SimularAsync(SimulacaoParameters model, CancellationToken ct)
         {
             #region Consulta
 
@@ -1359,7 +1360,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     .FirstOrDefaultAsync(x =>
                         !model.Placa.IsNullOrWhiteSpace()
                             ? x.Placa == model.Placa
-                            : model.Chassi.IsNullOrWhiteSpace() || x.Chassi == model.Chassi);
+                            : model.Chassi.IsNullOrWhiteSpace() || x.Chassi == model.Chassi, ct);
             }
 
             #endregion
@@ -1370,7 +1371,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             var podeEmitirNota = await _context.FaturamentoRegra
                 .AnyAsync(x =>
                     x.ClienteId == Grv.ClienteId && x.DepositoId == Grv.DepositoId &&
-                    x.FaturamentoRegraTipoId == 11);
+                    x.FaturamentoRegraTipoId == 11, cancellationToken: ct);
 
             if (model.IdentificadorProcesso <= 0 && model.Placa.IsNullOrWhiteSpace() &&
                 model.Chassi.IsNullOrWhiteSpace())
@@ -1525,7 +1526,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 StatusOperacaoId = "V",
 
                 IsLeilaoStatus = new[] { "1", "3", "7" }.Contains(Grv.StatusOperacaoId),
-                
+
                 FaturamentoProdutoId = ResultView.Produto.CodigoProduto,
 
                 GrvId = Grv.GrvId,
@@ -1577,6 +1578,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.DataVigenciaInicial;
 
                 Servico.DataVigenciaFinal = FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.DataVigenciaFinal;
+
             }
 
             ResultView.IdentificadorProcesso = Grv.GrvId;
@@ -1871,7 +1873,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
         }
 
         public async Task<FaturamentoConsultaDTO> ConsultarFaturamentoAsync(int identificadorFaturamento,
-            int identificadorUsuario)
+            int identificadorUsuario, CancellationToken ct)
         {
             #region Validações dos parâmetros
 
@@ -1915,9 +1917,9 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 .Include(x => x.Atendimento)
                 .ThenInclude(x => x.SaidaParaReparo)
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.FaturamentoId == identificadorFaturamento);
+                .FirstOrDefaultAsync(x => x.FaturamentoId == identificadorFaturamento, cancellationToken: ct);
 
-            var notas = await _context.Nfe
+            var notas = await EntityFrameworkQueryableExtensions.ToListAsync(_context.Nfe
                 .Where(x =>
                     x.GrvId == Faturamento.Atendimento.GrvId &&
                     !_context.Nfe.Any(sb =>
@@ -1945,8 +1947,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                         })
                         .ToList()
                 })
-                .AsNoTracking()
-                .ToListAsync();
+                .AsNoTracking(), cancellationToken: ct);
 
             LiberacaoEspecialModel liberacaoEspecial = _context.LiberacaoEspecial
                 .AsNoTracking()
@@ -1956,7 +1957,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 .AnyAsync(x =>
                     x.ClienteId == Faturamento.Atendimento.Grv.ClienteId &&
                     x.DepositoId == Faturamento.Atendimento.Grv.DepositoId &&
-                    x.FaturamentoRegraTipoId == 11);
+                    x.FaturamentoRegraTipoId == 11, cancellationToken: ct);
 
             #endregion Consultas
 
@@ -2026,7 +2027,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                             x.IdentificadorNota != null &&
                             nfeIdentificadoresComErro.Contains(x.IdentificadorNota.ToString()))
                         .AsNoTracking()
-                        .ToListAsync();
+                        .ToListAsync(cancellationToken: ct);
 
                     erroPorIdentificadorNota = errosNfe
                         .Where(x => x.IdentificadorNota.HasValue)

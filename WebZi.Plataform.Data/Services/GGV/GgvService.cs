@@ -27,6 +27,7 @@ using WebZi.Plataform.Domain.Models.Veiculo;
 using WebZi.Plataform.Domain.Models.Vistoria;
 using WebZi.Plataform.Domain.Services.GRV;
 using WebZi.Plataform.Domain.ViewModel.GGV;
+using WebZi.Plataform.Domain.Views.Faturamento;
 
 namespace WebZi.Plataform.Data.Services.GGV
 {
@@ -754,8 +755,66 @@ namespace WebZi.Plataform.Data.Services.GGV
             return MensagemViewHelper.SetDeleteSuccess("Foto(s) excluída(s) com sucesso");
         }
 
-        public async Task<MensagemDTO> DeleteGgvServiceAssociationAsync(int GrvId, int UsuarioId,
-            int faturamentoServicoGrvId)
+        public async Task<MensagemDTO> AddServiceAssociationAsync(int GrvId, int UsuarioId,
+            int faturamentoServicoGrvId, CancellationToken ct)
+        {
+            if (faturamentoServicoGrvId <= 0)
+            {
+                return MensagemViewHelper.SetBadRequest("Informe os Identificadores dos Serviços");
+            }
+
+            MensagemDTO ResultView = new GrvService(_context).ValidateInputGrv(GrvId, UsuarioId);
+
+            if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+            {
+                return ResultView;
+            }
+
+            var grv = await _context.Grv.AsNoTracking()
+                .FirstOrDefaultAsync(x => x.GrvId == GrvId, cancellationToken: ct);
+
+            ViewFaturamentoServicoAssociadoVeiculoModel servicos = await _context
+                .ViewFaturamentoServicoAssociadoVeiculo
+                .FirstOrDefaultAsync(x => x.FaturamentoServicoTipoVeiculoId == faturamentoServicoGrvId,
+                    cancellationToken: ct);
+
+            if()
+            
+            
+            FaturamentoServicoGrvModel servicoAssociado = await _context.FaturamentoServicoGrv
+                .AsTracking()
+                .FirstOrDefaultAsync(x => x.GrvId == GrvId && x.FaturamentoServicoGrvId == faturamentoServicoGrvId,
+                    cancellationToken: ct);
+
+            if (servicoAssociado is not null)
+            {
+                return MensagemViewHelper.SetFound(
+                    "Serviço ja vinculado a esse Processo");
+            }
+
+            using (IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync(ct))
+            {
+                try
+                {
+                    await _context.FaturamentoServicoGrv.AddAsync(Servico, ct);
+
+                    await _context.SaveChangesAsync(ct);
+
+                    await transaction.CommitAsync(ct);
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync(ct);
+
+                    return MensagemViewHelper.SetInternalServerError(ex);
+                }
+            }
+
+            return MensagemViewHelper.SetDeleteSuccess("Serviço(s) removido(s) com sucesso");
+        }
+
+        public async Task<MensagemDTO> DeleteServiceAssociationAsync(int GrvId, int UsuarioId,
+            int faturamentoServicoGrvId, CancellationToken ct)
         {
             if (faturamentoServicoGrvId <= 0)
             {
@@ -771,7 +830,8 @@ namespace WebZi.Plataform.Data.Services.GGV
 
             FaturamentoServicoGrvModel Servico = await _context.FaturamentoServicoGrv
                 .AsTracking()
-                .FirstOrDefaultAsync(x => x.GrvId == GrvId && x.FaturamentoServicoGrvId == faturamentoServicoGrvId);
+                .FirstOrDefaultAsync(x => x.GrvId == GrvId && x.FaturamentoServicoGrvId == faturamentoServicoGrvId,
+                    cancellationToken: ct);
 
             if (Servico is null)
             {
@@ -779,19 +839,19 @@ namespace WebZi.Plataform.Data.Services.GGV
                     "Nenhum serviço encontrado para exclusão ou os serviços não pertencem a este Processo");
             }
 
-            using (IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync())
+            using (IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync(ct))
             {
                 try
                 {
                     _context.FaturamentoServicoGrv.Remove(Servico);
 
-                    await _context.SaveChangesAsync();
+                    await _context.SaveChangesAsync(ct);
 
-                    await transaction.CommitAsync();
+                    await transaction.CommitAsync(ct);
                 }
                 catch (Exception ex)
                 {
-                    await transaction.RollbackAsync();
+                    await transaction.RollbackAsync(ct);
 
                     return MensagemViewHelper.SetInternalServerError(ex);
                 }
