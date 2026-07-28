@@ -3062,7 +3062,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                          x.Chassi == GrvPersistencia.Chassi)
                     ));
 
-            if (grv is not null && grv.StatusOperacaoId != "E")
+            if (grv is not null && grv.StatusOperacaoId != "E" && grv.StatusOperacaoId != "7")
             {
                 bool isPlacaDuplicada = !string.IsNullOrWhiteSpace(GrvPersistencia.Placa) &&
                                         string.Equals(grv.Placa, GrvPersistencia.Placa,
