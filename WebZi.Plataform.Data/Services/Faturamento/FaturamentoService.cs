@@ -1364,86 +1364,9 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             #endregion
 
-            #region Validações dos parâmetros
-
-            List<string> erros = new();
-            var podeEmitirNota = await _context.FaturamentoRegra
-                .AnyAsync(x =>
-                    x.ClienteId == Grv.ClienteId && x.DepositoId == Grv.DepositoId &&
-                    x.FaturamentoRegraTipoId == 11);
-
-            if (model.IdentificadorProcesso <= 0 && model.Placa.IsNullOrWhiteSpace() &&
-                model.Chassi.IsNullOrWhiteSpace())
-            {
-                erros.Add("Informe o Identificador do Processo, Placa ou Chassi");
-            }
-
-            if (model.IdentificadorProcesso <= 0)
-            {
-                if (!model.Placa.IsNullOrWhiteSpace() && !model.Placa.IsPlaca())
-                {
-                    erros.Add("Placa inválida");
-                }
-                else if (model.Placa.IsNullOrWhiteSpace() && (model.Chassi.Length < 6 || model.Chassi.Length > 24 ||
-                                                              (model.Chassi.Length == 17 && !model.Chassi.IsChassi())))
-                {
-                    erros.Add("Chassi inválido");
-                }
-            }
-
-            if (model.IdentificadorCliente <= 0)
-            {
-                erros.Add(MensagemPadraoEnum.IdentificadorClienteInvalido);
-            }
-
-            if (model.IdentificadorDeposito <= 0)
-            {
-                erros.Add(MensagemPadraoEnum.IdentificadorDepositoInvalido);
-            }
-
-            DateTime DataHoraPorDeposito = DateTime.MinValue;
-
-            if (model.IdentificadorDeposito > 0)
-            {
-                DataHoraPorDeposito = new DepositoService(_context)
-                    .GetDataHoraPorDeposito(model.IdentificadorDeposito);
-            }
-
-            var now = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-3)).DateTime;
-
-            if (model?.DataHoraInicialParaCalculo > now)
-            {
-                erros.Add("A Data/Hora Inicial para o Cálculo não pode ser maior do que a Data/Hora atual");
-            }
-
-            if (DataHoraPorDeposito != DateTime.MinValue && model?.DataHoraFinalParaCalculo > DataHoraPorDeposito)
-            {
-                erros.Add("A Data/Hora Final para o Cálculo não pode ser maior do que a Data/Hora do Depósito");
-            }
-
-            if (model?.DataHoraFinalParaCalculo > model?.DataHoraInicialParaCalculo)
-            {
-                erros.Add(
-                    "A Data/Hora Final para o Cálculo não pode ser menor do que a Data/Hora Inicial para o Cálculo");
-            }
-
-            if (model.DataHoraFinalParaCalculo == null || model.DataHoraFinalParaCalculo == DateTime.MinValue)
-                erros.Add(
-                    "Não pode ser feito atendimento sem ter feito o registro do GGV");
-
-
             SimulacaoDTO ResultView = new();
 
-            if (erros.Count > 0)
-            {
-                ResultView.Mensagem = MensagemViewHelper.SetBadRequest(erros);
-
-                return ResultView;
-            }
-
-            #endregion Validações dos parâmetros
-
-            #region Validações das Consultas
+            #region Validações do Processo GRV
 
             if (Grv == null)
             {
@@ -1463,19 +1386,117 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 return ResultView;
             }
 
-            if (Grv.StatusOperacaoId.Equals('E'))
+            if (Grv.StatusOperacaoId != "V")
             {
+                string descricaoStatus = Grv.StatusOperacao?.Descricao?.ToUpper();
                 ResultView.Mensagem = MensagemViewHelper.SetBadRequest(
                     $"O Status atual deste Processo não permite a execução da Simulação. " +
-                    $"Descrição do Status atual: {Grv.StatusOperacao.Descricao.ToUpper()}");
+                    $"Descrição do Status atual: {descricaoStatus}");
 
                 return ResultView;
             }
 
+            #endregion Validações do Processo GRV
+
+            #region Validações e Ajustes dos Parâmetros
+
+            List<string> erros = new();
+
+            if (model.IdentificadorCliente is <= 0 or null)
+            {
+                model.IdentificadorCliente = Grv.ClienteId;
+            }
+
+            if (model.IdentificadorDeposito is <= 0 or null)
+            {
+                model.IdentificadorDeposito = Grv.DepositoId;
+            }
+
+            var podeEmitirNota = await _context.FaturamentoRegra
+                .AnyAsync(x =>
+                    x.ClienteId == model.IdentificadorCliente && x.DepositoId == model.IdentificadorDeposito &&
+                    x.FaturamentoRegraTipoId == 11);
+
+            if (model.IdentificadorProcesso <= 0 && model.Placa.IsNullOrWhiteSpace() &&
+                model.Chassi.IsNullOrWhiteSpace())
+            {
+                erros.Add("Informe o Identificador do Processo, Placa ou Chassi");
+            }
+
+            if (model.IdentificadorProcesso is <= 0 or null)
+            {
+                if (!model.Placa.IsNullOrWhiteSpace() && !model.Placa.IsPlaca())
+                {
+                    erros.Add("Placa inválida");
+                }
+                else if (model.Placa.IsNullOrWhiteSpace() && (model.Chassi.Length < 6 || model.Chassi.Length > 24 ||
+                                                              (model.Chassi.Length == 17 && !model.Chassi.IsChassi())))
+                {
+                    erros.Add("Chassi inválido");
+                }
+            }
+
+            if (model.IdentificadorCliente is <= 0 or null)
+            {
+                erros.Add(MensagemPadraoEnum.IdentificadorClienteInvalido);
+            }
+
+            if (model.IdentificadorDeposito is <= 0 or null)
+            {
+                erros.Add(MensagemPadraoEnum.IdentificadorDepositoInvalido);
+            }
+
+            DateTime DataHoraPorDeposito = DateTime.MinValue;
+
+            if (model.IdentificadorDeposito > 0)
+            {
+                DataHoraPorDeposito = new DepositoService(_context)
+                    .GetDataHoraPorDeposito(model.IdentificadorDeposito.Value);
+            }
+
+            if (model.DataHoraInicialParaCalculo == DateTime.MinValue || model.DataHoraInicialParaCalculo == default)
+            {
+                model.DataHoraInicialParaCalculo = Grv.DataHoraGuarda ?? Grv.DataHoraRemocao;
+            }
+
+            if (model.DataHoraFinalParaCalculo == DateTime.MinValue || model.DataHoraFinalParaCalculo == default)
+            {
+                model.DataHoraFinalParaCalculo = DataHoraPorDeposito != DateTime.MinValue ? DataHoraPorDeposito : DateTime.Now;  
+            }
+
+            var now = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-3)).DateTime;
+
+            if (model.DataHoraFinalParaCalculo > now)
+            {
+                erros.Add("A Data/Hora Inicial para o Cálculo não pode ser maior do que a Data/Hora atual");
+            }
+
+            if (DataHoraPorDeposito != DateTime.MinValue && model.DataHoraInicialParaCalculo > DataHoraPorDeposito)
+            {
+                erros.Add("A Data/Hora Inicial para o Cálculo não pode ser maior do que a Data/Hora do Depósito");
+            }
+
+            if (model.DataHoraInicialParaCalculo > model.DataHoraFinalParaCalculo)
+            {
+                erros.Add(
+                    "A Data/Hora Final para o Cálculo não pode ser menor do que a Data/Hora Inicial para o Cálculo");
+            }
+
+            if (erros.Count > 0)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest(erros);
+
+                return ResultView;
+            }
+
+            #endregion Validações e Ajustes dos Parâmetros
+
+            #region Validações Adicionais
+
             ResultView.Produto = _mapper.Map<SimulacaoProdutoDTO>(Grv.FaturamentoProduto);
 
             ResultView.Mensagem = await new ClienteDepositoService(_context)
-                .ValidateClienteDepositoAsync(model.IdentificadorCliente, model.IdentificadorDeposito);
+                .ValidateClienteDepositoAsync(model.IdentificadorCliente.Value, model.IdentificadorDeposito.Value);
 
             DetranRioService DetranRioService = new(_context, _mapper);
 
@@ -1504,15 +1525,15 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 return ResultView;
             }
 
-            #endregion Validações das Consultas
+            #endregion Validações Adicionais
 
             #region Aplicação das Configurações
 
             CalculoFaturamentoParametroModel ParametrosCalculoFaturamento = new()
             {
-                DataHoraInicialParaCalculo = model.DataHoraFinalParaCalculo,
+                DataHoraInicialParaCalculo = model.DataHoraInicialParaCalculo.Value,
 
-                DataHoraFinalParaCalculo = model.DataHoraInicialParaCalculo,
+                DataHoraFinalParaCalculo = model.DataHoraFinalParaCalculo.Value ,
 
                 DataHoraPorDeposito = DataHoraPorDeposito,
 
