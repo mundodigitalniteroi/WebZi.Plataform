@@ -1580,7 +1580,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 .FirstOrDefaultAsync(x => x.GrvId == GrvId);
         }
 
-        public async Task<GrvViewModelList> GetByIdAsync(int GrvId, int UsuarioId)
+        public async Task<GrvViewModelList> GetByIdAsync(int GrvId, int UsuarioId, CancellationToken ct)
         {
             GrvViewModelList ResultView = new()
             {
@@ -1612,7 +1612,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             if (Grv.EnderecoLocalizacaoVeiculoCEPId.HasValue)
             {
                 var cep = await _context.CEP.AsNoTracking()
-                    .FirstOrDefaultAsync(c => c.CEPId == Grv.EnderecoLocalizacaoVeiculoCEPId);
+                    .FirstOrDefaultAsync(c => c.CEPId == Grv.EnderecoLocalizacaoVeiculoCEPId, cancellationToken: ct);
                 grvDTO.EnderecoLocalizacaoVeiculoCEP = cep?.CEP;
             }
 
@@ -1629,7 +1629,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             grvDTO.ListagemServicoGgv = (await _provider
                 .GetService<FaturamentoService>()
-                .ListServicoAssociadoGrvAsync(Grv.GrvId, UsuarioId)).Listagem;
+                .ListServicoAssociadoGrvAsync(Grv.GrvId, UsuarioId, ct)).Listagem;
 
             ResultView.Listagem.Add(grvDTO);
             ResultView.Mensagem = MensagemViewHelper.SetFound();
@@ -1638,7 +1638,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
         }
 
         public async Task<GrvViewModelList> GetByNumeroFormularioGrvAsync(string NumeroFormularioGrv,
-            string FaturamentoProdutoId, int ClienteId, int DepositoId, int UsuarioId)
+            string FaturamentoProdutoId, int ClienteId, int DepositoId, int UsuarioId, CancellationToken ct)
         {
             GrvViewModelList ResultView = new()
             {
@@ -1655,7 +1655,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 .FirstOrDefaultAsync(x => x.NumeroFormularioGrv == NumeroFormularioGrv
                                           && x.ClienteId == ClienteId
                                           && x.DepositoId == DepositoId
-                                          && x.FaturamentoProdutoId == FaturamentoProdutoId);
+                                          && x.FaturamentoProdutoId == FaturamentoProdutoId, cancellationToken: ct);
 
             if (Grv == null)
             {
@@ -1688,7 +1688,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             grvDTO.ListagemServicoGgv = (await _provider
                 .GetService<FaturamentoService>()
-                .ListServicoAssociadoGrvAsync(Grv.GrvId, UsuarioId)).Listagem;
+                .ListServicoAssociadoGrvAsync(Grv.GrvId, UsuarioId, ct)).Listagem;
 
             ResultView.Listagem.Add(grvDTO);
 

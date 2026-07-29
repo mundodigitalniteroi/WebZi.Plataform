@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace WebZi.Plataform.Domain.ViewModel.GGV
 {
@@ -17,5 +17,8 @@ namespace WebZi.Plataform.Domain.ViewModel.GGV
         // [Required(ErrorMessage = "Propriedade obrigatória")]
         // [MaxLength(12)]
         public string ValorTipoCobrancaInformado { get; set; }
+
+        [StringLength(5, ErrorMessage = "Tamanho máximo de 5 caracteres (HH:MM)")]
+        public string HoraMinuto { get; set; }
     }
 }

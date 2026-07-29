@@ -163,7 +163,7 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("ListarServicoAssociadoTipoVeiculo")]
         // TODO: [Authorize]
-        public async Task<ActionResult<ServicoAssociadoTipoVeiculoListDTO>> ListarServicoAssociadoTipoVeiculo(int IdentificadorProcesso, int IdentificadorUsuario)
+        public async Task<ActionResult<ServicoAssociadoTipoVeiculoListDTO>> ListarServicoAssociadoTipoVeiculo(int IdentificadorProcesso, int IdentificadorUsuario, CancellationToken ct)
         {
             if (!ModelState.IsValid)
             {
@@ -176,7 +176,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<FaturamentoService>()
-                    .ListServicoAssociadoTipoVeiculoAsync(IdentificadorProcesso, IdentificadorUsuario);
+                    .ListServicoAssociadoTipoVeiculoAsync(IdentificadorProcesso, IdentificadorUsuario, ct);
 
                 return StatusCode((int)HtmlStatusCodeEnum.Ok, ResultView);
             }
@@ -190,7 +190,7 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("ListarServicoAssociadoGrv")]
         // TODO: [Authorize]
-        public async Task<ActionResult<ServicoAssociadoTipoVeiculoListDTO>> ListarServicoAssociadoGrv(int IdentificadorProcesso, int IdentificadorUsuario)
+        public async Task<ActionResult<ServicoAssociadoTipoVeiculoListDTO>> ListarServicoAssociadoGrv(int IdentificadorProcesso, int IdentificadorUsuario, CancellationToken ct)
         {
             if (!ModelState.IsValid)
             {
@@ -203,7 +203,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<FaturamentoService>()
-                    .ListServicoAssociadoTipoVeiculoAsync(IdentificadorProcesso, IdentificadorUsuario);
+                    .ListServicoAssociadoTipoVeiculoAsync(IdentificadorProcesso, IdentificadorUsuario, ct);
 
                 return StatusCode((int)HtmlStatusCodeEnum.Ok, ResultView);
             }

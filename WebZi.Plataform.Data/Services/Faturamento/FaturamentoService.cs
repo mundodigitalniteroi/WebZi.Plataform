@@ -1183,7 +1183,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
         }
 
         public async Task<ServicoAssociadoTipoVeiculoListDTO> ListServicoAssociadoTipoVeiculoAsync(int GrvId,
-            int UsuarioId)
+            int UsuarioId, CancellationToken ct)
         {
             ServicoAssociadoTipoVeiculoListDTO ResultView = new();
 
@@ -1199,18 +1199,18 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             GrvModel Grv = await _context.Grv
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.GrvId == GrvId);
+                .FirstOrDefaultAsync(x => x.GrvId == GrvId, cancellationToken: ct);
 
-            List<ViewFaturamentoServicoAssociadoVeiculoModel> result = _context
+            List<ViewFaturamentoServicoAssociadoVeiculoModel> result = await _context
                 .ViewFaturamentoServicoAssociadoVeiculo
                 .Where(x => x.ClienteId == Grv.ClienteId
                             && x.DepositoId == Grv.DepositoId
                             && x.TipoVeiculoId == Grv.TipoVeiculoId
                             && x.FaturamentoProdutoId == Grv.FaturamentoProdutoId
-                            && (!new[] { "DEP", "DRF" }.Contains(Grv.FaturamentoProdutoId) || x.FlagCobrarGGV == "S")
+                            // && (!new[] { "DEP", "DRF" }.Contains(Grv.FaturamentoProdutoId) || x.FlagCobrarGGV == "S")
                             && x.DataVigenciaFinal == null)
                 .AsNoTracking()
-                .ToList();
+                .ToListAsync(cancellationToken: ct);
 
             if (result?.Count > 0)
             {
@@ -1263,7 +1263,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             return ResultView;
         }
 
-        public async Task<ServicoAssociadoGrvListDTO> ListServicoAssociadoGrvAsync(int GrvId, int UsuarioId)
+        public async Task<ServicoAssociadoGrvListDTO> ListServicoAssociadoGrvAsync(int GrvId, int UsuarioId, CancellationToken ct)
         {
             ServicoAssociadoGrvListDTO ResultView = new();
 
@@ -1281,16 +1281,20 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             //     .AsNoTracking()
             //     .FirstOrDefaultAsync(x => x.GrvId == GrvId);
 
-            List<FaturamentoServicoGrvModel> result = _context.FaturamentoServicoGrv
+            List<FaturamentoServicoGrvModel> result = await _context.FaturamentoServicoGrv
+                .Include(x => x.FaturamentoServicoTipoVeiculo)
+                    .ThenInclude(x => x.FaturamentoServicoAssociado)
+                        .ThenInclude(x => x.FaturamentoServicoTipo)
                 .Where(x => x.GrvId == GrvId)
                 .AsNoTracking()
-                .ToList();
+                .ToListAsync(cancellationToken: ct);
 
             if (result.Any())
             {
                 foreach (var item in result)
                 {
                     decimal valor = item.Valor / (item.QuantidadeDesconto ?? 1);
+                    string tipoCobranca = item.FaturamentoServicoTipoVeiculo?.FaturamentoServicoAssociado?.FaturamentoServicoTipo?.TipoCobranca;
 
                     ResultView.Listagem.Add(new()
                     {
@@ -1301,6 +1305,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                         ValorTotal = valor * (item.QuantidadeDesconto ?? 1),
                         Quantidade = item.QuantidadeDesconto ?? 1,
                         FlagRealizarCobranca = item.FlagRealizarCobranca,
+                        TipoCobranca = tipoCobranca,
+                        TempoTrabalhado = item.TempoTrabalhado
                     });
                 }
             }
@@ -1346,7 +1352,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     .Include(x => x.StatusOperacao)
                     .AsNoTracking()
                     .OrderByDescending(x => x.DataHoraRemocao)
-                    .FirstOrDefaultAsync(x => x.GrvId == model.IdentificadorProcesso);
+                    .FirstOrDefaultAsync(x => x.GrvId == model.IdentificadorProcesso, cancellationToken: ct);
             }
             else
             {
@@ -1428,7 +1434,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     "A Data/Hora Final para o Cálculo não pode ser menor do que a Data/Hora Inicial para o Cálculo");
             }
 
-            if (model.DataHoraFinalParaCalculo == null || model.DataHoraFinalParaCalculo == DateTime.MinValue)
+            if (Grv.StatusOperacaoId.Equals("G") && model.DataHoraFinalParaCalculo == null || model.DataHoraFinalParaCalculo == DateTime.MinValue)
                 erros.Add(
                     "Não pode ser feito atendimento sem ter feito o registro do GGV");
 

@@ -27,7 +27,7 @@ namespace WebZi.Plataform.API.Controllers
         [HttpPost("Cadastrar")]
         // TODO: [Authorize]
         [IgnoreAntiforgeryToken]
-        public async Task<ActionResult<MensagemDTO>> Cadastrar([FromBody] GgvParameters Ggv)
+        public async Task<ActionResult<MensagemDTO>> Cadastrar([FromBody] GgvParameters Ggv, CancellationToken ct)
         {
             if (!ModelState.IsValid)
             {
@@ -40,7 +40,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<GgvService>()
-                    .CreateGgvAsync(Ggv);
+                    .CreateGgvAsync(Ggv, ct);
 
                 if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
                 {
@@ -60,7 +60,7 @@ namespace WebZi.Plataform.API.Controllers
         [HttpPut("Atualizar")]
         // TODO: [Authorize]
         [IgnoreAntiforgeryToken]
-        public async Task<ActionResult<MensagemDTO>> Atualizar([FromBody] GgvParameters Ggv)
+        public async Task<ActionResult<MensagemDTO>> Atualizar([FromBody] GgvParameters Ggv, CancellationToken ct)
         {
             if (!ModelState.IsValid)
             {
@@ -74,7 +74,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<GgvService>()
-                    .UpdateGgvAsync(Ggv);
+                    .UpdateGgvAsync(Ggv, ct);
 
                 if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
                 {
@@ -150,7 +150,8 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpPost("VincularServicoAoGGV")]
-        public async Task<ActionResult<MensagemDTO>> VincularServicoAoGGV(int GrvId, int servicoGrvId, CancellationToken ct)
+        public async Task<ActionResult<MensagemDTO>> VincularServicoAoGGV(
+            [FromBody] AdicionarServicoAoGgvParameters parameters, CancellationToken ct)
         {
             if (!ModelState.IsValid)
             {
@@ -163,7 +164,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<GgvService>()
-                    .AddServiceAssociationAsync(GrvId, userId!.Value, servicoGrvId, ct);
+                    .AddServiceAssociationAsync(parameters, userId!.Value, ct);
 
                 return StatusCode((int)HtmlStatusCodeEnum.Ok, ResultView);
             }
@@ -172,9 +173,9 @@ namespace WebZi.Plataform.API.Controllers
                 ResultView = MensagemViewHelper.SetInternalServerError(ex);
 
                 return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
-            } 
+            }
         }
-        
+
         [HttpDelete("DesvincularServicoAssociadoGgv")]
         public async Task<ActionResult<MensagemDTO>> DesvincularServicoAssociadoGgv(int GrvId, int UsuarioId,
             int servicoGrvId, CancellationToken ct)
@@ -203,7 +204,8 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("ListarDadosMestres")]
         // TODO: [Authorize]
-        public async Task<ActionResult<DadosMestresDTO>> ListarDadosMestres(int GrvId, int UsuarioId)
+        public async Task<ActionResult<DadosMestresDTO>> ListarDadosMestres(int GrvId, int UsuarioId,
+            CancellationToken ct)
         {
             if (!ModelState.IsValid)
             {
@@ -216,7 +218,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<GgvService>()
-                    .ListDadosMestresAsync(GrvId, UsuarioId);
+                    .ListDadosMestresAsync(GrvId, UsuarioId, ct);
 
                 return StatusCode((int)HtmlStatusCodeEnum.Ok, ResultView);
             }

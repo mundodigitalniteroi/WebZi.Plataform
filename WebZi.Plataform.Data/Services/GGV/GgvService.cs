@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using WebZi.Plataform.CrossCutting.Number;
@@ -44,7 +44,7 @@ namespace WebZi.Plataform.Data.Services.GGV
             _httpClientFactory = httpClientFactory;
         }
 
-        public async Task<MensagemDTO> UpdateGgvAsync(GgvParameters GgvPersistencia)
+        public async Task<MensagemDTO> UpdateGgvAsync(GgvParameters GgvPersistencia, CancellationToken ct)
         {
             MensagemDTO ResultView = await ValidarInformacoesPersistenciaAsync(GgvPersistencia, true);
 
@@ -56,7 +56,7 @@ namespace WebZi.Plataform.Data.Services.GGV
             GrvModel Grv = await _context.Grv
                 .Include(x => x.Vistoria)
                 .Include(x => x.ListagemFaturamentoServicoGrv)
-                .FirstOrDefaultAsync(x => x.GrvId == GgvPersistencia.IdentificadorProcesso);
+                .FirstOrDefaultAsync(x => x.GrvId == GgvPersistencia.IdentificadorProcesso, cancellationToken: ct);
 
             DateTime DataHoraPorDeposito = new DepositoService(_context)
                 .GetDataHoraPorDeposito(Grv.DepositoId);
@@ -132,16 +132,18 @@ namespace WebZi.Plataform.Data.Services.GGV
 
                     Vistoria.ResumoVistoria = GgvPersistencia.Vistoria.ResumoVistoria.ToUpperTrim().ToNullIfEmpty();
 
-                    Vistoria.VistoriaStatusId = (await _context.VistoriaStatus
-                            .AsNoTracking()
-                            .FirstOrDefaultAsync(x =>
-                                x.VistoriaStatusId == (byte)GgvPersistencia.Vistoria.IdentificadorStatusVistoria))?
+                    Vistoria.VistoriaStatusId = (await EntityFrameworkQueryableExtensions.FirstOrDefaultAsync(_context
+                                .VistoriaStatus
+                                .AsNoTracking(), x =>
+                                x.VistoriaStatusId == (byte)GgvPersistencia.Vistoria.IdentificadorStatusVistoria,
+                            cancellationToken: ct))?
                         .VistoriaStatusId;
 
                     Vistoria.VistoriaSituacaoChassiId = (await _context.VistoriaSituacaoChassi
                             .AsNoTracking()
                             .FirstOrDefaultAsync(x =>
-                                x.VistoriaSituacaoChassiId == GgvPersistencia.Vistoria.IdentificadorSituacaoChassi))?
+                                    x.VistoriaSituacaoChassiId == GgvPersistencia.Vistoria.IdentificadorSituacaoChassi,
+                                cancellationToken: ct))?
                         .VistoriaSituacaoChassiId;
 
                     // VISTORIA_TIPO_DIRECAO
@@ -188,7 +190,7 @@ namespace WebZi.Plataform.Data.Services.GGV
                     .ThenInclude(x => x.FaturamentoServicoTipo)
                     .Where(x => ids.Contains(x.FaturamentoServicoTipoVeiculoId))
                     .AsNoTracking()
-                    .ToListAsync();
+                    .ToListAsync(cancellationToken: ct);
 
                 FaturamentoServicoTipoVeiculoModel FaturamentoServicoTipoVeiculo = new();
 
@@ -223,6 +225,12 @@ namespace WebZi.Plataform.Data.Services.GGV
                     FaturamentoServicoGrv.QuantidadeDesconto = item.Quantidade;
                     FaturamentoServicoGrv.FlagRealizarCobranca = item.FlagCobranca;
 
+                    if (string.IsNullOrWhiteSpace(item.ValorTipoCobrancaInformado) &&
+                        !string.IsNullOrWhiteSpace(item.HoraMinuto))
+                    {
+                        item.ValorTipoCobrancaInformado = item.HoraMinuto;
+                    }
+
                     switch (FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.FaturamentoServicoTipo
                                 .TipoCobranca)
                     {
@@ -239,14 +247,15 @@ namespace WebZi.Plataform.Data.Services.GGV
 
                         case "H":
 
-                            FaturamentoServicoGrv.TempoTrabalhado = item.ValorTipoCobrancaInformado;
+                            FaturamentoServicoGrv.TempoTrabalhado = item.HoraMinuto;
+                            FaturamentoServicoGrv.Valor = decimal.Parse(item.ValorTipoCobrancaInformado.Replace(".", ","));
 
                             break;
                     }
                 }
             }
 
-            using (IDbContextTransaction transaction = _context.Database.BeginTransaction())
+            using (IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync(ct))
             {
                 try
                 {
@@ -264,13 +273,13 @@ namespace WebZi.Plataform.Data.Services.GGV
                     //     }
                     // }
 
-                    _context.SaveChanges();
+                    await _context.SaveChangesAsync(ct);
 
-                    transaction.Commit();
+                    await transaction.CommitAsync(ct);
                 }
                 catch (Exception ex)
                 {
-                    transaction.Rollback();
+                    await transaction.RollbackAsync(ct);
 
                     ResultView = MensagemViewHelper.SetInternalServerError(ex);
 
@@ -310,7 +319,7 @@ namespace WebZi.Plataform.Data.Services.GGV
         }
 
 
-        public async Task<MensagemDTO> CreateGgvAsync(GgvParameters GgvPersistencia)
+        public async Task<MensagemDTO> CreateGgvAsync(GgvParameters GgvPersistencia, CancellationToken ct)
         {
             MensagemDTO ResultView = await ValidarInformacoesPersistenciaAsync(GgvPersistencia, false);
 
@@ -321,7 +330,7 @@ namespace WebZi.Plataform.Data.Services.GGV
 
             GrvModel Grv = await _context.Grv
                 .Include(x => x.ListagemFaturamentoServicoGrv)
-                .FirstOrDefaultAsync(x => x.GrvId == GgvPersistencia.IdentificadorProcesso);
+                .FirstOrDefaultAsync(x => x.GrvId == GgvPersistencia.IdentificadorProcesso, cancellationToken: ct);
 
             DateTime DataHoraPorDeposito = new DepositoService(_context)
                 .GetDataHoraPorDeposito(Grv.DepositoId);
@@ -485,13 +494,15 @@ namespace WebZi.Plataform.Data.Services.GGV
                     Vistoria.VistoriaStatusId = (await _context.VistoriaStatus
                             .AsNoTracking()
                             .FirstOrDefaultAsync(x =>
-                                x.VistoriaStatusId == (byte)GgvPersistencia.Vistoria.IdentificadorStatusVistoria))?
+                                    x.VistoriaStatusId == (byte)GgvPersistencia.Vistoria.IdentificadorStatusVistoria,
+                                cancellationToken: ct))?
                         .VistoriaStatusId;
 
                     Vistoria.VistoriaSituacaoChassiId = (await _context.VistoriaSituacaoChassi
                             .AsNoTracking()
                             .FirstOrDefaultAsync(x =>
-                                x.VistoriaSituacaoChassiId == GgvPersistencia.Vistoria.IdentificadorSituacaoChassi))?
+                                    x.VistoriaSituacaoChassiId == GgvPersistencia.Vistoria.IdentificadorSituacaoChassi,
+                                cancellationToken: ct))?
                         .VistoriaSituacaoChassiId;
 
                     // VISTORIA_TIPO_DIRECAO
@@ -538,7 +549,7 @@ namespace WebZi.Plataform.Data.Services.GGV
                     .ThenInclude(x => x.FaturamentoServicoTipo)
                     .Where(x => ids.Contains(x.FaturamentoServicoTipoVeiculoId))
                     .AsNoTracking()
-                    .ToListAsync();
+                    .ToListAsync(cancellationToken: ct);
 
                 FaturamentoServicoTipoVeiculoModel FaturamentoServicoTipoVeiculo = new();
 
@@ -573,6 +584,12 @@ namespace WebZi.Plataform.Data.Services.GGV
                     FaturamentoServicoGrv.QuantidadeDesconto = item.Quantidade;
                     FaturamentoServicoGrv.FlagRealizarCobranca = item.FlagCobranca;
 
+                    if (string.IsNullOrWhiteSpace(item.ValorTipoCobrancaInformado) &&
+                        !string.IsNullOrWhiteSpace(item.HoraMinuto))
+                    {
+                        item.ValorTipoCobrancaInformado = item.HoraMinuto;
+                    }
+
                     switch (FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.FaturamentoServicoTipo
                                 .TipoCobranca)
                     {
@@ -588,15 +605,15 @@ namespace WebZi.Plataform.Data.Services.GGV
                             break;
 
                         case "H":
-
-                            FaturamentoServicoGrv.TempoTrabalhado = item.ValorTipoCobrancaInformado;
+                            FaturamentoServicoGrv.TempoTrabalhado = item.HoraMinuto;
+                            decimal.Parse(item.ValorTipoCobrancaInformado.Replace(".", ","));
 
                             break;
                     }
                 }
             }
 
-            using (IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync())
+            using (IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync(ct))
             {
                 try
                 {
@@ -614,13 +631,13 @@ namespace WebZi.Plataform.Data.Services.GGV
                     //     }
                     // }
 
-                    await _context.SaveChangesAsync();
+                    await _context.SaveChangesAsync(ct);
 
-                    await transaction.CommitAsync();
+                    await transaction.CommitAsync(ct);
                 }
                 catch (Exception ex)
                 {
-                    await transaction.RollbackAsync();
+                    await transaction.RollbackAsync(ct);
 
                     ResultView = MensagemViewHelper.SetInternalServerError(ex);
 
@@ -755,35 +772,62 @@ namespace WebZi.Plataform.Data.Services.GGV
             return MensagemViewHelper.SetDeleteSuccess("Foto(s) excluída(s) com sucesso");
         }
 
-        public async Task<MensagemDTO> AddServiceAssociationAsync(int GrvId, int UsuarioId,
-            int faturamentoServicoGrvId, CancellationToken ct)
+        public async Task<MensagemDTO> AddServiceAssociationAsync(AdicionarServicoAoGgvParameters parameters,
+            int usuarioId, CancellationToken ct = default)
         {
-            if (faturamentoServicoGrvId <= 0)
+            if (parameters == null || parameters.IdentificadorServicoAssociadoTipoVeiculo <= 0)
             {
                 return MensagemViewHelper.SetBadRequest("Informe os Identificadores dos Serviços");
             }
 
-            MensagemDTO ResultView = new GrvService(_context).ValidateInputGrv(GrvId, UsuarioId);
+            MensagemDTO ResultView =
+                new GrvService(_context).ValidateInputGrv(parameters.IdentificadorProcesso, usuarioId);
 
+            var erros = new List<string>();
             if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
             {
                 return ResultView;
             }
 
             var grv = await _context.Grv.AsNoTracking()
-                .FirstOrDefaultAsync(x => x.GrvId == GrvId, cancellationToken: ct);
+                .FirstOrDefaultAsync(x => x.GrvId == parameters.IdentificadorProcesso, cancellationToken: ct);
 
             ViewFaturamentoServicoAssociadoVeiculoModel servicos = await _context
                 .ViewFaturamentoServicoAssociadoVeiculo
-                .FirstOrDefaultAsync(x => x.FaturamentoServicoTipoVeiculoId == faturamentoServicoGrvId,
+                .FirstOrDefaultAsync(
+                    x => x.FaturamentoServicoTipoVeiculoId == parameters.IdentificadorServicoAssociadoTipoVeiculo,
                     cancellationToken: ct);
 
-            if()
-            
-            
+            if (grv is null)
+                erros.Add("Processo GRV não encontrado");
+
+            if (servicos is null)
+                erros.Add("Serviço não encontrado");
+
+            if (string.IsNullOrWhiteSpace(parameters.ValorTipoCobrancaInformado) &&
+                !string.IsNullOrWhiteSpace(parameters.HoraMinuto))
+            {
+                parameters.ValorTipoCobrancaInformado = parameters.HoraMinuto;
+            }
+
+            if (servicos is not null && (servicos.TipoCobranca == "H" || servicos.TipoCobranca == TipoCobrancaFaturamentoEnum.Horas))
+            {
+                if (string.IsNullOrWhiteSpace(parameters.HoraMinuto) && string.IsNullOrWhiteSpace(parameters.ValorTipoCobrancaInformado))
+                {
+                    erros.Add("Informe o Tempo trabalhado");
+                }
+            }
+
+            if (erros.Count > 0)
+            {
+                return MensagemViewHelper.SetBadRequest(erros);
+            }
+
             FaturamentoServicoGrvModel servicoAssociado = await _context.FaturamentoServicoGrv
                 .AsTracking()
-                .FirstOrDefaultAsync(x => x.GrvId == GrvId && x.FaturamentoServicoGrvId == faturamentoServicoGrvId,
+                .FirstOrDefaultAsync(
+                    x => x.GrvId == parameters.IdentificadorProcesso && x.FaturamentoServicoTipoVeiculoId ==
+                        parameters.IdentificadorServicoAssociadoTipoVeiculo,
                     cancellationToken: ct);
 
             if (servicoAssociado is not null)
@@ -792,11 +836,42 @@ namespace WebZi.Plataform.Data.Services.GGV
                     "Serviço ja vinculado a esse Processo");
             }
 
+            var payload = new FaturamentoServicoGrvModel
+            {
+                GrvId = parameters.IdentificadorProcesso,
+                FaturamentoServicoTipoVeiculoId = servicos.FaturamentoServicoTipoVeiculoId,
+                QuantidadeDesconto = parameters.Quantidade,
+                FlagRealizarCobranca =
+                    !string.IsNullOrWhiteSpace(parameters.FlagCobranca) ? parameters.FlagCobranca : "S",
+                OrigemCadastro = "G"
+            };
+
+            if (servicos.TipoCobranca == "H" || servicos.TipoCobranca == TipoCobrancaFaturamentoEnum.Horas)
+            {
+                payload.TempoTrabalhado = !string.IsNullOrWhiteSpace(parameters.HoraMinuto)
+                    ? parameters.HoraMinuto
+                    : parameters.ValorTipoCobrancaInformado;
+
+                payload.Valor = !string.IsNullOrWhiteSpace(parameters.ValorTipoCobrancaInformado) &&
+                                decimal.TryParse(parameters.ValorTipoCobrancaInformado.Replace(".", ","),
+                                    out decimal valorInformadoH)
+                    ? valorInformadoH
+                    : servicos.PrecoPadrao;
+            }
+            else
+            {
+                payload.Valor = !string.IsNullOrWhiteSpace(parameters.ValorTipoCobrancaInformado) &&
+                                decimal.TryParse(parameters.ValorTipoCobrancaInformado.Replace(".", ","),
+                                    out decimal valorInformado)
+                    ? valorInformado
+                    : servicos.PrecoPadrao;
+            }
+
             using (IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync(ct))
             {
                 try
                 {
-                    await _context.FaturamentoServicoGrv.AddAsync(Servico, ct);
+                    await _context.FaturamentoServicoGrv.AddAsync(payload, ct);
 
                     await _context.SaveChangesAsync(ct);
 
@@ -810,7 +885,18 @@ namespace WebZi.Plataform.Data.Services.GGV
                 }
             }
 
-            return MensagemViewHelper.SetDeleteSuccess("Serviço(s) removido(s) com sucesso");
+            return MensagemViewHelper.SetCreateSuccess("Serviço associado com sucesso");
+        }
+
+        public async Task<MensagemDTO> AddServiceAssociationAsync(int GrvId, int UsuarioId,
+            int faturamentoServicoGrvId, string valorTipoCobrancaInformado = null, CancellationToken ct = default)
+        {
+            return await AddServiceAssociationAsync(new AdicionarServicoAoGgvParameters
+            {
+                IdentificadorProcesso = GrvId,
+                IdentificadorServicoAssociadoTipoVeiculo = faturamentoServicoGrvId,
+                ValorTipoCobrancaInformado = valorTipoCobrancaInformado
+            }, UsuarioId, ct);
         }
 
         public async Task<MensagemDTO> DeleteServiceAssociationAsync(int GrvId, int UsuarioId,
@@ -860,7 +946,7 @@ namespace WebZi.Plataform.Data.Services.GGV
             return MensagemViewHelper.SetDeleteSuccess("Serviço(s) removido(s) com sucesso");
         }
 
-        public async Task<DadosMestresDTO> ListDadosMestresAsync(int GrvId, int UsuarioId)
+        public async Task<DadosMestresDTO> ListDadosMestresAsync(int GrvId, int UsuarioId, CancellationToken ct)
         {
             TabelaGenericaService TabelaGenericaService = new(_context, _mapper);
 
@@ -892,7 +978,7 @@ namespace WebZi.Plataform.Data.Services.GGV
                     .ListToViewModelAsync("GGV_TIPO_CADASTRO_FOTO"),
 
                 ListagemServicoAssociadoVeiculo = await new FaturamentoService(_context)
-                    .ListServicoAssociadoTipoVeiculoAsync(GrvId, UsuarioId)
+                    .ListServicoAssociadoTipoVeiculoAsync(GrvId, UsuarioId, ct)
             };
 
             return DadosMestres;
@@ -1268,8 +1354,17 @@ namespace WebZi.Plataform.Data.Services.GGV
                                     }
                                     else
                                     {
-                                        item.ValorTipoCobrancaInformado =
-                                            item.ValorTipoCobrancaInformado.Replace(".", ",");
+                                        if (string.IsNullOrWhiteSpace(item.ValorTipoCobrancaInformado) &&
+                                            !string.IsNullOrWhiteSpace(item.HoraMinuto))
+                                        {
+                                            item.ValorTipoCobrancaInformado = item.HoraMinuto;
+                                        }
+
+                                        if (item.ValorTipoCobrancaInformado != null)
+                                        {
+                                            item.ValorTipoCobrancaInformado =
+                                                item.ValorTipoCobrancaInformado.Replace(".", ",");
+                                        }
 
                                         switch (FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado
                                                     .FaturamentoServicoTipo.TipoCobranca)
