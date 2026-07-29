@@ -1,8 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Sistema;
 using WebZi.Plataform.Domain.DTO.Generic;
+using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Bucket;
 using WebZi.Plataform.Domain.Models.Bucket.Work;
 using WebZi.Plataform.Domain.Models.Sistema;
@@ -20,12 +21,14 @@ namespace WebZi.Plataform.Data.Services.WebServices
             _httpClientFactory = httpClientFactory;
         }
 
-        public void SendFile(string CodigoTabelaOrigem, int TabelaOrigemId, int UsuarioCadastroId, byte[] File, string TipoCadastro = "")
+        public void SendFile(string CodigoTabelaOrigem, int TabelaOrigemId, int UsuarioCadastroId, byte[] File,
+            string TipoCadastro = "")
         {
             SendFiles(CodigoTabelaOrigem, TabelaOrigemId, UsuarioCadastroId, new() { File }, TipoCadastro);
         }
 
-        public void SendFiles(string CodigoTabelaOrigem, int TabelaOrigemId, int UsuarioCadastroId, List<byte[]> Files, string TipoCadastro = "")
+        public void SendFiles(string CodigoTabelaOrigem, int TabelaOrigemId, int UsuarioCadastroId, List<byte[]> Files,
+            string TipoCadastro = "")
         {
             ConfiguracaoModel Configuracao = _context.Configuracao
                 .AsNoTracking()
@@ -61,13 +64,14 @@ namespace WebZi.Plataform.Data.Services.WebServices
 
             HttpClientFactoryService HttpClientFactoryService = new(_httpClientFactory);
 
-            List<BucketArquivoRetornoModel> BucketArquivosRetorno = HttpClientFactoryService.PostBasicAuth<List<BucketArquivoRetornoModel>>
-            (
-                url: Configuracao.RepositorioArquivoUrl,
-                username: Configuracao.RepositorioArquivoUsername,
-                password: Configuracao.RepositorioArquivoPassword,
-                obj: ArquivosEnvio
-            ).ToList();
+            List<BucketArquivoRetornoModel> BucketArquivosRetorno = HttpClientFactoryService
+                .PostBasicAuth<List<BucketArquivoRetornoModel>>
+                (
+                    url: Configuracao.RepositorioArquivoUrl,
+                    username: Configuracao.RepositorioArquivoUsername,
+                    password: Configuracao.RepositorioArquivoPassword,
+                    obj: ArquivosEnvio
+                ).ToList();
 
             foreach (BucketArquivoRetornoModel BucketArquivoRetorno in BucketArquivosRetorno)
             {
@@ -96,7 +100,8 @@ namespace WebZi.Plataform.Data.Services.WebServices
             }
         }
 
-        public void SendFiles(string CodigoTabelaOrigem, int UsuarioCadastroId, List<BucketListaCadastroModel> Files, string TipoCadastro = "")
+        public void SendFiles(string CodigoTabelaOrigem, int UsuarioCadastroId, List<BucketListaCadastroModel> Files,
+            string TipoCadastro = "")
         {
             ConfiguracaoModel Configuracao = _context.Configuracao
                 .AsNoTracking()
@@ -131,13 +136,14 @@ namespace WebZi.Plataform.Data.Services.WebServices
                     NomeArquivoOriginal = NomeArquivo,
                 });
 
-                List<BucketArquivoRetornoModel> BucketArquivosRetorno = Service.PostBasicAuth<List<BucketArquivoRetornoModel>>
-                (
-                    url: Configuracao.RepositorioArquivoUrl,
-                    username: Configuracao.RepositorioArquivoUsername,
-                    password: Configuracao.RepositorioArquivoPassword,
-                    obj: ArquivosEnvio
-                ).ToList();
+                List<BucketArquivoRetornoModel> BucketArquivosRetorno = Service
+                    .PostBasicAuth<List<BucketArquivoRetornoModel>>
+                    (
+                        url: Configuracao.RepositorioArquivoUrl,
+                        username: Configuracao.RepositorioArquivoUsername,
+                        password: Configuracao.RepositorioArquivoPassword,
+                        obj: ArquivosEnvio
+                    ).ToList();
 
                 BucketArquivoModel BucketArquivo = new()
                 {
@@ -164,7 +170,8 @@ namespace WebZi.Plataform.Data.Services.WebServices
             }
         }
 
-        public void SendFiles(string CodigoTabelaOrigem, int TabelaOrigemId, int UsuarioCadastroId, List<BucketFileModel> Files)
+        public void SendFiles(string CodigoTabelaOrigem, int TabelaOrigemId, int UsuarioCadastroId,
+            List<BucketFileModel> Files)
         {
             ConfiguracaoModel Configuracao = _context.Configuracao
                 .AsNoTracking()
@@ -202,13 +209,14 @@ namespace WebZi.Plataform.Data.Services.WebServices
 
             HttpClientFactoryService Service = new(_httpClientFactory);
 
-            List<BucketArquivoRetornoModel> BucketArquivosRetorno = Service.PostBasicAuth<List<BucketArquivoRetornoModel>>
-            (
-                url: Configuracao.RepositorioArquivoUrl,
-                username: Configuracao.RepositorioArquivoUsername,
-                password: Configuracao.RepositorioArquivoPassword,
-                obj: ArquivosEnvio
-            ).ToList();
+            List<BucketArquivoRetornoModel> BucketArquivosRetorno = Service
+                .PostBasicAuth<List<BucketArquivoRetornoModel>>
+                (
+                    url: Configuracao.RepositorioArquivoUrl,
+                    username: Configuracao.RepositorioArquivoUsername,
+                    password: Configuracao.RepositorioArquivoPassword,
+                    obj: ArquivosEnvio
+                ).ToList();
 
             string TipoCadastro = string.Empty;
 
@@ -273,7 +281,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
             List<BucketArquivoModel> result = await _context.BucketArquivo
                 .Include(x => x.BucketNomeTabelaOrigem)
                 .Where(x => x.BucketNomeTabelaOrigem.Codigo == CodigoTabelaOrigem
-                         && x.TabelaOrigemId == TabelaOrigemId)
+                            && x.TabelaOrigemId == TabelaOrigemId)
                 .AsNoTracking()
                 .ToListAsync();
 
@@ -296,10 +304,22 @@ namespace WebZi.Plataform.Data.Services.WebServices
                         Imagem = await Service.DownloadFileAsync(BucketArquivo.Url),
 
                         TipoCadastro = BucketArquivo.TipoCadastro
-                    }); ;
+                    });
                 }
+            }
 
-                ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
+            if (ResultView.Listagem == null || ResultView.Listagem.Count == 0)
+            {
+                if (CodigoTabelaOrigem == BucketNomeTabelaOrigemEnum.FotoVeiculoGGV ||
+                    CodigoTabelaOrigem == BucketNomeTabelaOrigemEnum.FotoVeiculoGRV)
+                {
+                    ResultView.Listagem = await DownloadBinaryPhotosAsync(TabelaOrigemId);
+                }
+            }
+
+            if (ResultView.Listagem?.Count > 0)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetFound(ResultView.Listagem.Count);
             }
             else
             {
@@ -318,7 +338,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
                 erros.Add("Primeiro é necessário informar o Código Tabela de Origem");
             }
 
-            if (ListagemTabelaOrigemId?.Count == 0)
+            if (ListagemTabelaOrigemId == null || ListagemTabelaOrigemId.Count == 0)
             {
                 erros.Add("Primeiro é necessário informar os Identificadorer da Tabela de Origem");
             }
@@ -335,7 +355,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
             List<BucketArquivoModel> result = await _context.BucketArquivo
                 .Include(x => x.BucketNomeTabelaOrigem)
                 .Where(x => x.BucketNomeTabelaOrigem.Codigo == CodigoTabelaOrigem
-                         && ListagemTabelaOrigemId.Contains(x.TabelaOrigemId))
+                            && ListagemTabelaOrigemId.Contains(x.TabelaOrigemId))
                 .AsNoTracking()
                 .ToListAsync();
 
@@ -344,6 +364,8 @@ namespace WebZi.Plataform.Data.Services.WebServices
                 result = result
                     .OrderBy(x => x.RepositorioArquivoId)
                     .ToList();
+
+                ResultView.Listagem = new();
 
                 HttpClientFactoryService Service = new(_httpClientFactory);
 
@@ -358,8 +380,20 @@ namespace WebZi.Plataform.Data.Services.WebServices
                         TipoCadastro = BucketArquivo.TipoCadastro
                     });
                 }
+            }
 
-                ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
+            if (ResultView.Listagem == null || ResultView.Listagem.Count == 0)
+            {
+                if (CodigoTabelaOrigem == BucketNomeTabelaOrigemEnum.FotoVeiculoGGV ||
+                    CodigoTabelaOrigem == BucketNomeTabelaOrigemEnum.FotoVeiculoGRV)
+                {
+                    ResultView.Listagem = await DownloadBinaryPhotosAsync(ListagemTabelaOrigemId);
+                }
+            }
+
+            if (ResultView.Listagem?.Count > 0)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetFound(ResultView.Listagem.Count);
             }
             else
             {
@@ -367,6 +401,100 @@ namespace WebZi.Plataform.Data.Services.WebServices
             }
 
             return ResultView;
+        }
+
+        private async Task<List<ImageDTO>> DownloadBinaryPhotosAsync(int idGrv)
+        {
+            List<ImageDTO> listagem = new();
+
+            if (idGrv <= 0)
+            {
+                return listagem;
+            }
+
+
+            var fotosGgv = await _context.GgvFoto
+                .Where(x => x.IdGrv == idGrv)
+                .OrderByDescending(x => x.DataCadastro)
+                .AsNoTracking()
+                .ToListAsync();
+
+            if (fotosGgv?.Count > 0)
+            {
+                return fotosGgv.Select(x => new ImageDTO
+                {
+                    Identificador = x.IdGrv,
+                    Imagem = x.Foto,
+                    TipoCadastro = x.TipoFoto
+                }).ToList();
+            }
+            else
+            {
+                var fotosGrv = await _context.GrvFoto
+                    .Where(x => x.IdGrv == idGrv)
+                    .OrderByDescending(x => x.DataCadastro)
+                    .AsNoTracking()
+                    .ToListAsync();
+
+                if (fotosGrv?.Count > 0)
+                {
+                    return fotosGrv.Select(x => new ImageDTO
+                    {
+                        Identificador = x.IdGrv,
+                        Imagem = x.Foto,
+                        TipoCadastro = x.TipoFoto
+                    }).ToList();
+                }
+            }
+
+            return listagem;
+        }
+
+        private async Task<List<ImageDTO>> DownloadBinaryPhotosAsync(List<int> listagemGrvId)
+        {
+            List<ImageDTO> listagem = new();
+
+            if (listagemGrvId == null || listagemGrvId.Count == 0)
+            {
+                return listagem;
+            }
+
+            var fotosGgv = await _context.GgvFoto
+                .Where(x => listagemGrvId.Contains(x.IdGrv))
+                .OrderByDescending(x => x.DataCadastro)
+                .AsNoTracking()
+                .ToListAsync();
+
+            if (fotosGgv?.Count > 0)
+            {
+                return fotosGgv.Select(x => new ImageDTO
+                {
+                    Identificador = x.IdGrv,
+                    Imagem = x.Foto,
+                    TipoCadastro = x.TipoFoto
+                }).ToList();
+            }
+            else
+
+            {
+                var fotosGrv = await _context.GrvFoto
+                    .Where(x => listagemGrvId.Contains(x.IdGrv))
+                    .OrderByDescending(x => x.DataCadastro)
+                    .AsNoTracking()
+                    .ToListAsync();
+
+                if (fotosGrv?.Count > 0)
+                {
+                    return fotosGrv.Select(x => new ImageDTO
+                    {
+                        Identificador = x.IdGrv,
+                        Imagem = x.Foto,
+                        TipoCadastro = x.TipoFoto
+                    }).ToList();
+                }
+            }
+
+            return listagem;
         }
 
         public int DeleteFiles(string CodigoTabelaOrigem, List<int> ListagemId, bool isByRepositorioArquivoId = false)
