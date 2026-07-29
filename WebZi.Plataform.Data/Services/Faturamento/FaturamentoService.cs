@@ -1330,7 +1330,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             return ResultView;
         }
 
-        public async Task<SimulacaoDTO> SimularAsync(SimulacaoParameters model)
+        public async Task<SimulacaoDTO> SimularAsync(SimulacaoParameters model, CancellationToken ct)
         {
             #region Consulta
 
@@ -1345,7 +1345,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     .Include(x => x.StatusOperacao)
                     .AsNoTracking()
                     .OrderByDescending(x => x.DataHoraRemocao)
-                    .FirstOrDefaultAsync(x => x.GrvId == model.IdentificadorProcesso);
+                    .FirstOrDefaultAsync(x => x.GrvId == model.IdentificadorProcesso, cancellationToken: ct);
             }
             else
             {
@@ -1359,7 +1359,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     .FirstOrDefaultAsync(x =>
                         !model.Placa.IsNullOrWhiteSpace()
                             ? x.Placa == model.Placa
-                            : model.Chassi.IsNullOrWhiteSpace() || x.Chassi == model.Chassi);
+                            : model.Chassi.IsNullOrWhiteSpace() || x.Chassi == model.Chassi, cancellationToken: ct);
             }
 
             #endregion
@@ -1415,7 +1415,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             var podeEmitirNota = await _context.FaturamentoRegra
                 .AnyAsync(x =>
                     x.ClienteId == model.IdentificadorCliente && x.DepositoId == model.IdentificadorDeposito &&
-                    x.FaturamentoRegraTipoId == 11);
+                    x.FaturamentoRegraTipoId == 11, cancellationToken: ct);
 
             if (model.IdentificadorProcesso <= 0 && model.Placa.IsNullOrWhiteSpace() &&
                 model.Chassi.IsNullOrWhiteSpace())
@@ -1562,7 +1562,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     .ThenInclude(x => x.Endereco)
                     .AsNoTracking()
                     .FirstOrDefaultAsync(x =>
-                        x.ClienteId == model.IdentificadorCliente && x.DepositoId == model.IdentificadorDeposito)
+                        x.ClienteId == model.IdentificadorCliente && x.DepositoId == model.IdentificadorDeposito, cancellationToken: ct)
             };
 
             #endregion Aplicação das Configurações
@@ -1892,7 +1892,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
         }
 
         public async Task<FaturamentoConsultaDTO> ConsultarFaturamentoAsync(int identificadorFaturamento,
-            int identificadorUsuario)
+            int identificadorUsuario, CancellationToken ct)
         {
             #region Validações dos parâmetros
 
@@ -1936,7 +1936,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 .Include(x => x.Atendimento)
                 .ThenInclude(x => x.SaidaParaReparo)
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.FaturamentoId == identificadorFaturamento);
+                .FirstOrDefaultAsync(x => x.FaturamentoId == identificadorFaturamento, cancellationToken: ct);
 
             var notas = await _context.Nfe
                 .Where(x =>
@@ -1967,7 +1967,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                         .ToList()
                 })
                 .AsNoTracking()
-                .ToListAsync();
+                .ToListAsync(cancellationToken: ct);
 
             LiberacaoEspecialModel liberacaoEspecial = _context.LiberacaoEspecial
                 .AsNoTracking()
@@ -1977,7 +1977,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 .AnyAsync(x =>
                     x.ClienteId == Faturamento.Atendimento.Grv.ClienteId &&
                     x.DepositoId == Faturamento.Atendimento.Grv.DepositoId &&
-                    x.FaturamentoRegraTipoId == 11);
+                    x.FaturamentoRegraTipoId == 11, cancellationToken: ct);
 
             #endregion Consultas
 
@@ -2047,7 +2047,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                             x.IdentificadorNota != null &&
                             nfeIdentificadoresComErro.Contains(x.IdentificadorNota.ToString()))
                         .AsNoTracking()
-                        .ToListAsync();
+                        .ToListAsync(cancellationToken: ct);
 
                     erroPorIdentificadorNota = errosNfe
                         .Where(x => x.IdentificadorNota.HasValue)
