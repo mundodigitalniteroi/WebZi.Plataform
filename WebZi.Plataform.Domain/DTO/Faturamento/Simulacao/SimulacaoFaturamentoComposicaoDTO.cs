@@ -1,8 +1,12 @@
-﻿namespace WebZi.Plataform.Domain.DTO.Faturamento.Simulacao
+namespace WebZi.Plataform.Domain.DTO.Faturamento.Simulacao
 {
     public class SimulacaoFaturamentoComposicaoDTO
     {
+        public int? IdentificadorServicoGrv { get; set; }
+
         public int? IdentificadorFaturamentoServicoTipoVeiculo { get; set; }
+
+        public int? IdentificadorFaturamentoServicoAssociado { get; set; }
 
         public string TipoServico { get; set; }
 
@@ -18,10 +22,13 @@
 
         public decimal? QuantidadeServico { get; set; }
 
+        public string TempoTrabalhado { get; set; }
+
         public string TipoLancamento { get; set; }
 
         public decimal ValorTipoServico { get; set; }
         public decimal? ValorDesconto { get; set; }
         public decimal ValorFaturado { get; set; }
+        public string FlagServicoObrigatorio { get; set; } = "N";
     }
 }

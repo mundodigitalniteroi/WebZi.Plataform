@@ -474,7 +474,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             List<ViewFaturamentoServicoGrvModel> FaturamentoServicosGrvs = new();
 
-            if (!ParametrosCalculoFaturamento.FaturarSemGrv && (!ParametrosCalculoFaturamento.IsLeilaoStatus || UltimoFaturamento != null))
+            if (!ParametrosCalculoFaturamento.FaturarSemGrv &&
+                (!ParametrosCalculoFaturamento.IsLeilaoStatus || UltimoFaturamento != null))
             {
                 FaturamentoServicosGrvs = _context.ViewFaturamentoServicoGrv
                     .Where(x => x.GrvId == ParametrosCalculoFaturamento.GrvId &&
@@ -745,8 +746,14 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     FaturamentoComposicao.QuantidadeComposicao = Math.Round(
                         Convert.ToDecimal(TimeSpan.Parse(FaturamentoServicoGrv.TempoTrabalhado).TotalHours), 2);
 
+                    decimal precoUnitario = (FaturamentoServicoGrv.Valor.HasValue && FaturamentoServicoGrv.Valor.Value > 0)
+                        ? FaturamentoServicoGrv.Valor.Value
+                        : FaturamentoServicoGrv.PrecoPadrao;
+
+                    FaturamentoComposicao.ValorTipoComposicao = precoUnitario;
+
                     FaturamentoComposicao.ValorComposicao = Math.Round(
-                        FaturamentoServicoGrv.PrecoPadrao * FaturamentoComposicao.QuantidadeComposicao.Value, 2);
+                        precoUnitario * FaturamentoComposicao.QuantidadeComposicao.Value, 2);
 
                     FaturamentoComposicao.ValorFaturado = FaturamentoComposicao.ValorComposicao;
                 }
@@ -1182,7 +1189,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
         }
 
         public async Task<ServicoAssociadoTipoVeiculoListDTO> ListServicoAssociadoTipoVeiculoAsync(int GrvId,
-            int UsuarioId)
+            int UsuarioId, CancellationToken ct)
         {
             ServicoAssociadoTipoVeiculoListDTO ResultView = new();
 
@@ -1198,7 +1205,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             GrvModel Grv = await _context.Grv
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.GrvId == GrvId);
+                .FirstOrDefaultAsync(x => x.GrvId == GrvId, cancellationToken: ct);
 
             List<ViewFaturamentoServicoAssociadoVeiculoModel> result = _context
                 .ViewFaturamentoServicoAssociadoVeiculo
@@ -1262,7 +1269,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             return ResultView;
         }
 
-        public async Task<ServicoAssociadoGrvListDTO> ListServicoAssociadoGrvAsync(int GrvId, int UsuarioId)
+        public async Task<ServicoAssociadoGrvListDTO> ListServicoAssociadoGrvAsync(int GrvId, int UsuarioId,
+            CancellationToken ct)
         {
             ServicoAssociadoGrvListDTO ResultView = new();
 
@@ -1280,10 +1288,13 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             //     .AsNoTracking()
             //     .FirstOrDefaultAsync(x => x.GrvId == GrvId);
 
-            List<FaturamentoServicoGrvModel> result = _context.FaturamentoServicoGrv
+            List<FaturamentoServicoGrvModel> result = await _context.FaturamentoServicoGrv
+                .Include(x => x.FaturamentoServicoTipoVeiculo)
+                .ThenInclude(x => x.FaturamentoServicoAssociado)
+                .ThenInclude(x => x.FaturamentoServicoTipo)
                 .Where(x => x.GrvId == GrvId)
                 .AsNoTracking()
-                .ToList();
+                .ToListAsync(cancellationToken: ct);
 
             if (result.Any())
             {
@@ -1295,11 +1306,15 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     {
                         IdentificadorServicoGrv = item.FaturamentoServicoGrvId,
                         identificadorServicoAssociadoTipoVeiculo = item.FaturamentoServicoTipoVeiculoId,
+                        NomeServico = item.FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.Descricao,
                         GrvId = item.GrvId,
                         Valor = valor,
                         ValorTotal = valor * (item.QuantidadeDesconto ?? 1),
                         Quantidade = item.QuantidadeDesconto ?? 1,
+                        TempoTrabalhado = item.TempoTrabalhado,
                         FlagRealizarCobranca = item.FlagRealizarCobranca,
+                        TipoCobranca = item.FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado
+                            .FaturamentoServicoTipo.TipoCobranca
                     });
                 }
             }
@@ -1461,7 +1476,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             if (model.DataHoraFinalParaCalculo == DateTime.MinValue || model.DataHoraFinalParaCalculo == default)
             {
-                model.DataHoraFinalParaCalculo = DataHoraPorDeposito != DateTime.MinValue ? DataHoraPorDeposito : DateTime.Now;  
+                model.DataHoraFinalParaCalculo =
+                    DataHoraPorDeposito != DateTime.MinValue ? DataHoraPorDeposito : DateTime.Now;
             }
 
             var now = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-3)).DateTime;
@@ -1533,7 +1549,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             {
                 DataHoraInicialParaCalculo = model.DataHoraInicialParaCalculo.Value,
 
-                DataHoraFinalParaCalculo = model.DataHoraFinalParaCalculo.Value ,
+                DataHoraFinalParaCalculo = model.DataHoraFinalParaCalculo.Value,
 
                 DataHoraPorDeposito = DataHoraPorDeposito,
 
@@ -1546,7 +1562,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 StatusOperacaoId = "V",
 
                 IsLeilaoStatus = new[] { "1", "3", "7" }.Contains(Grv.StatusOperacaoId),
-                
+
                 FaturamentoProdutoId = ResultView.Produto.CodigoProduto,
 
                 GrvId = Grv.GrvId,
@@ -1562,7 +1578,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     .ThenInclude(x => x.Endereco)
                     .AsNoTracking()
                     .FirstOrDefaultAsync(x =>
-                        x.ClienteId == model.IdentificadorCliente && x.DepositoId == model.IdentificadorDeposito, cancellationToken: ct)
+                            x.ClienteId == model.IdentificadorCliente && x.DepositoId == model.IdentificadorDeposito,
+                        cancellationToken: ct)
             };
 
             #endregion Aplicação das Configurações
@@ -1579,15 +1596,33 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             ResultView.Faturamento.ListagemServico =
                 _mapper.Map<List<SimulacaoFaturamentoComposicaoDTO>>(Faturamento.ListagemFaturamentoComposicao);
 
+
             FaturamentoServicoTipoVeiculoModel FaturamentoServicoTipoVeiculo = new();
 
             foreach (var Servico in ResultView.Faturamento.ListagemServico)
             {
                 FaturamentoServicoTipoVeiculo = _context.FaturamentoServicoTipoVeiculo
                     .Include(x => x.FaturamentoServicoAssociado)
+                    .ThenInclude(x => x.FaturamentoServicoTipo)
+                    .Include(x => x.FaturamentoServicosGrvs)
                     .AsNoTracking()
                     .FirstOrDefault(x =>
                         x.FaturamentoServicoTipoVeiculoId == Servico.IdentificadorFaturamentoServicoTipoVeiculo);
+
+
+                var servicoGrv = FaturamentoServicoTipoVeiculo?.FaturamentoServicosGrvs
+                    ?.FirstOrDefault(x => x.GrvId == Grv.GrvId);
+
+                Servico.IdentificadorServicoGrv = servicoGrv?.FaturamentoServicoGrvId;
+                Servico.TempoTrabalhado = servicoGrv?.TempoTrabalhado;
+
+                if (Servico.TipoServico == TipoCobrancaFaturamentoEnum.Horas || Servico.TipoServico == "H")
+                {
+                    Servico.QuantidadeServico = null;
+                }
+
+                Servico.IdentificadorFaturamentoServicoAssociado =
+                    FaturamentoServicoTipoVeiculo?.FaturamentoServicoAssociadoId;
 
                 Servico.DescricaoTipoServico = ListagemTipoCobranca.Where(x => x.ValorCadastro == Servico.TipoServico)
                     .FirstOrDefault().Descricao;
@@ -1598,11 +1633,19 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.DataVigenciaInicial;
 
                 Servico.DataVigenciaFinal = FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.DataVigenciaFinal;
+
+                Servico.FlagServicoObrigatorio =
+                    FaturamentoServicoTipoVeiculo?.FaturamentoServicoAssociado?.FlagServicoObrigatorio == "S" ||
+                    FaturamentoServicoTipoVeiculo?.FaturamentoServicoAssociado?.FaturamentoServicoTipo
+                        ?.FlagServicoObrigatorio == "S"
+                        ? "S"
+                        : "N";
             }
 
             ResultView.IdentificadorProcesso = Grv.GrvId;
 
             ResultView.NumeroProcesso = Grv.NumeroFormularioGrv;
+            ResultView.StatusOperacaoId = Grv.StatusOperacaoId;
 
             ResultView.DataHoraRemocao = Grv.DataHoraRemocao;
 
@@ -1995,14 +2038,29 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             foreach (var Servico in ResultView.Faturamento.ListagemServico)
             {
-                FaturamentoServicoTipoVeiculo = _context.FaturamentoServicoTipoVeiculo
-                    .Include(x => x.FaturamentoServicoAssociado)
+                FaturamentoServicoTipoVeiculo = await _context.FaturamentoServicoTipoVeiculo
+                    .Include(x => x.FaturamentoServicoAssociado).ThenInclude(faturamentoServicoAssociadoModel =>
+                        faturamentoServicoAssociadoModel.FaturamentoServicoTipo).Include(x => x.FaturamentoServicosGrvs)
                     .AsNoTracking()
-                    .FirstOrDefault(x =>
-                        x.FaturamentoServicoTipoVeiculoId == Servico.IdentificadorFaturamentoServicoTipoVeiculo);
+                    .FirstOrDefaultAsync(x =>
+                            x.FaturamentoServicoTipoVeiculoId == Servico.IdentificadorFaturamentoServicoTipoVeiculo,
+                        cancellationToken: ct);
+                var servicoGrv = FaturamentoServicoTipoVeiculo?.FaturamentoServicosGrvs
+                    ?.FirstOrDefault(x => x.GrvId == Faturamento.Atendimento.Grv.GrvId);
+
+                Servico.IdentificadorServicoGrv = servicoGrv?.FaturamentoServicoGrvId;
+                Servico.TempoTrabalhado = servicoGrv?.TempoTrabalhado;
+
+                if (Servico.TipoServico == TipoCobrancaFaturamentoEnum.Horas || Servico.TipoServico == "H")
+                {
+                    Servico.QuantidadeServico = null;
+                }
+
+                Servico.IdentificadorFaturamentoServicoAssociado =
+                    FaturamentoServicoTipoVeiculo?.FaturamentoServicoAssociadoId;
 
                 Servico.DescricaoTipoServico = ListagemTipoCobranca.Where(x => x.ValorCadastro == Servico.TipoServico)
-                    .FirstOrDefault().Descricao;
+                    .FirstOrDefault()?.Descricao;
 
                 Servico.NomeServico = FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.Descricao;
 
@@ -2010,6 +2068,13 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.DataVigenciaInicial;
 
                 Servico.DataVigenciaFinal = FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.DataVigenciaFinal;
+
+                Servico.FlagServicoObrigatorio =
+                    FaturamentoServicoTipoVeiculo?.FaturamentoServicoAssociado?.FlagServicoObrigatorio == "S" ||
+                    FaturamentoServicoTipoVeiculo?.FaturamentoServicoAssociado?.FaturamentoServicoTipo
+                        ?.FlagServicoObrigatorio == "S"
+                        ? "S"
+                        : "N";
             }
 
             ResultView.IdentificadorFaturamento = Faturamento.FaturamentoId;

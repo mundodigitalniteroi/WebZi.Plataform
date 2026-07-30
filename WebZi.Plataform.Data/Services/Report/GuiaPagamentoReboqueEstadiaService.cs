@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using System.Text;
 using WebZi.Plataform.CrossCutting.Documents;
@@ -12,7 +12,9 @@ using WebZi.Plataform.Data.Services.Banco.PIX;
 using WebZi.Plataform.Data.Services.Cliente;
 using WebZi.Plataform.Data.Services.Deposito;
 using WebZi.Plataform.Data.Services.Localizacao;
+using WebZi.Plataform.Data.Services.Sistema;
 using WebZi.Plataform.Domain.DTO.Banco.PIX;
+using WebZi.Plataform.Domain.DTO.Faturamento.Simulacao;
 using WebZi.Plataform.Domain.DTO.Generic;
 using WebZi.Plataform.Domain.DTO.Report;
 using WebZi.Plataform.Domain.Enums;
@@ -21,6 +23,7 @@ using WebZi.Plataform.Domain.Models.Banco.PIX.Dinamico.Persistencia;
 using WebZi.Plataform.Domain.Models.Banco.PIX.Estatico;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.GRV;
+using WebZi.Plataform.Domain.Models.Sistema;
 using WebZi.Plataform.Domain.Models.Usuario;
 using WebZi.Plataform.Domain.Services.GRV;
 
@@ -106,7 +109,10 @@ namespace WebZi.Plataform.Data.Services.Report
             return GuiaPagamentoEstadiaReboque;
         }
 
-        private GuiaPagamentoReboqueEstadiaDTO FillComposicaoFaturamento(GuiaPagamentoReboqueEstadiaDTO GuiaPagamentoEstadiaReboque, FaturamentoModel Faturamento)
+        private async Task<GuiaPagamentoReboqueEstadiaDTO> FillComposicaoFaturamentoAsync(
+            GuiaPagamentoReboqueEstadiaDTO GuiaPagamentoEstadiaReboque,
+            FaturamentoModel Faturamento,
+            int GrvId)
         {
             decimal ValorDemaisServicos = 0;
             decimal ValorTotalDesconto = 0;
@@ -171,6 +177,55 @@ namespace WebZi.Plataform.Data.Services.Report
             {
                 GuiaPagamentoEstadiaReboque.ValorTotalDesconto = NumberHelper.FormatMoney(ValorTotalDesconto);
             }
+
+            GuiaPagamentoEstadiaReboque.ListagemServico =
+                _mapper.Map<List<SimulacaoFaturamentoComposicaoDTO>>(Faturamento.ListagemFaturamentoComposicao);
+
+            List<TabelaGenericaModel> ListagemTipoCobranca = await new TabelaGenericaService(_context)
+                .ListAsync("FAT_TIPO_COBRANCA");
+
+            foreach (var Servico in GuiaPagamentoEstadiaReboque.ListagemServico)
+            {
+                var faturamentoServicoTipoVeiculo = await _context.FaturamentoServicoTipoVeiculo
+                    .Include(x => x.FaturamentoServicoAssociado)
+                        .ThenInclude(faturamentoServicoAssociadoModel => faturamentoServicoAssociadoModel.FaturamentoServicoTipo)
+                    .Include(x => x.FaturamentoServicosGrvs)
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(x => x.FaturamentoServicoTipoVeiculoId == Servico.IdentificadorFaturamentoServicoTipoVeiculo);
+
+                var servicoGrv = faturamentoServicoTipoVeiculo?.FaturamentoServicosGrvs
+                    ?.FirstOrDefault(x => x.GrvId == GrvId);
+
+                Servico.IdentificadorServicoGrv = servicoGrv?.FaturamentoServicoGrvId;
+                Servico.TempoTrabalhado = servicoGrv?.TempoTrabalhado;
+
+                if (Servico.TipoServico == TipoCobrancaFaturamentoEnum.Horas || Servico.TipoServico == "H")
+                {
+                    Servico.QuantidadeServico = null;
+                }
+
+                Servico.IdentificadorFaturamentoServicoAssociado =
+                    faturamentoServicoTipoVeiculo?.FaturamentoServicoAssociadoId;
+
+                Servico.DescricaoTipoServico = ListagemTipoCobranca
+                    .FirstOrDefault(x => x.ValorCadastro == Servico.TipoServico)?.Descricao;
+
+                Servico.NomeServico = faturamentoServicoTipoVeiculo?.FaturamentoServicoAssociado?.Descricao;
+
+                if (faturamentoServicoTipoVeiculo?.FaturamentoServicoAssociado != null)
+                {
+                    Servico.DataVigenciaInicial = faturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.DataVigenciaInicial;
+                    Servico.DataVigenciaFinal = faturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.DataVigenciaFinal;
+                }
+
+                Servico.FlagServicoObrigatorio =
+                    faturamentoServicoTipoVeiculo?.FaturamentoServicoAssociado?.FlagServicoObrigatorio == "S" ||
+                    faturamentoServicoTipoVeiculo?.FaturamentoServicoAssociado?.FaturamentoServicoTipo
+                        ?.FlagServicoObrigatorio == "S"
+                        ? "S"
+                        : "N";
+            }
+
             return GuiaPagamentoEstadiaReboque;
         }
 
@@ -450,7 +505,7 @@ namespace WebZi.Plataform.Data.Services.Report
             GuiaPagamentoEstadiaReboque = FillFaturamento(GuiaPagamentoEstadiaReboque, Faturamento);
 
             // COMPOSIÇÃO DO FATURAMENTO
-            GuiaPagamentoEstadiaReboque = FillComposicaoFaturamento(GuiaPagamentoEstadiaReboque, Faturamento);
+            GuiaPagamentoEstadiaReboque = await FillComposicaoFaturamentoAsync(GuiaPagamentoEstadiaReboque, Faturamento, Grv.GrvId);
 
             // RODAPÉ
             GuiaPagamentoEstadiaReboque = FillRodape(GuiaPagamentoEstadiaReboque, UsuarioId);
@@ -639,7 +694,7 @@ namespace WebZi.Plataform.Data.Services.Report
             GuiaPagamentoEstadiaReboque = FillFaturamento(GuiaPagamentoEstadiaReboque, Faturamento);
 
             // COMPOSIÇÃO DO FATURAMENTO
-            GuiaPagamentoEstadiaReboque = FillComposicaoFaturamento(GuiaPagamentoEstadiaReboque, Faturamento);
+            GuiaPagamentoEstadiaReboque = await FillComposicaoFaturamentoAsync(GuiaPagamentoEstadiaReboque, Faturamento, Grv.GrvId);
 
             // RODAPÉ
             GuiaPagamentoEstadiaReboque = FillRodape(GuiaPagamentoEstadiaReboque, UsuarioId);

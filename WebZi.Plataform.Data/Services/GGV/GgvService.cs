@@ -247,8 +247,15 @@ namespace WebZi.Plataform.Data.Services.GGV
 
                         case "H":
 
-                            FaturamentoServicoGrv.TempoTrabalhado = item.HoraMinuto;
-                            FaturamentoServicoGrv.Valor = decimal.Parse(item.ValorTipoCobrancaInformado.Replace(".", ","));
+                            FaturamentoServicoGrv.TempoTrabalhado = !string.IsNullOrWhiteSpace(item.HoraMinuto)
+                                ? item.HoraMinuto
+                                : item.ValorTipoCobrancaInformado;
+
+                            FaturamentoServicoGrv.Valor = !string.IsNullOrWhiteSpace(item.ValorTipoCobrancaInformado) &&
+                                                          decimal.TryParse(item.ValorTipoCobrancaInformado.Replace(".", ","),
+                                                              out decimal valorInformadoUpdateH)
+                                ? valorInformadoUpdateH
+                                : FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.PrecoPadrao;
 
                             break;
                     }
@@ -605,8 +612,16 @@ namespace WebZi.Plataform.Data.Services.GGV
                             break;
 
                         case "H":
-                            FaturamentoServicoGrv.TempoTrabalhado = item.HoraMinuto;
-                            decimal.Parse(item.ValorTipoCobrancaInformado.Replace(".", ","));
+
+                            FaturamentoServicoGrv.TempoTrabalhado = !string.IsNullOrWhiteSpace(item.HoraMinuto)
+                                ? item.HoraMinuto
+                                : item.ValorTipoCobrancaInformado;
+
+                            FaturamentoServicoGrv.Valor = !string.IsNullOrWhiteSpace(item.ValorTipoCobrancaInformado) &&
+                                                          decimal.TryParse(item.ValorTipoCobrancaInformado.Replace(".", ","),
+                                                              out decimal valorInformadoCreateH)
+                                ? valorInformadoCreateH
+                                : FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.PrecoPadrao;
 
                             break;
                     }
@@ -810,9 +825,11 @@ namespace WebZi.Plataform.Data.Services.GGV
                 parameters.ValorTipoCobrancaInformado = parameters.HoraMinuto;
             }
 
-            if (servicos is not null && (servicos.TipoCobranca == "H" || servicos.TipoCobranca == TipoCobrancaFaturamentoEnum.Horas))
+            if (servicos is not null && (servicos.TipoCobranca == "H" ||
+                                         servicos.TipoCobranca == TipoCobrancaFaturamentoEnum.Horas))
             {
-                if (string.IsNullOrWhiteSpace(parameters.HoraMinuto) && string.IsNullOrWhiteSpace(parameters.ValorTipoCobrancaInformado))
+                if (string.IsNullOrWhiteSpace(parameters.HoraMinuto) &&
+                    string.IsNullOrWhiteSpace(parameters.ValorTipoCobrancaInformado))
                 {
                     erros.Add("Informe o Tempo trabalhado");
                 }
@@ -867,36 +884,97 @@ namespace WebZi.Plataform.Data.Services.GGV
                     : servicos.PrecoPadrao;
             }
 
-            using (IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync(ct))
-            {
-                try
-                {
-                    await _context.FaturamentoServicoGrv.AddAsync(payload, ct);
+            await _context.FaturamentoServicoGrv.AddAsync(payload, ct);
 
-                    await _context.SaveChangesAsync(ct);
-
-                    await transaction.CommitAsync(ct);
-                }
-                catch (Exception ex)
-                {
-                    await transaction.RollbackAsync(ct);
-
-                    return MensagemViewHelper.SetInternalServerError(ex);
-                }
-            }
-
+            await _context.SaveChangesAsync(ct);
             return MensagemViewHelper.SetCreateSuccess("Serviço associado com sucesso");
         }
 
-        public async Task<MensagemDTO> AddServiceAssociationAsync(int GrvId, int UsuarioId,
-            int faturamentoServicoGrvId, string valorTipoCobrancaInformado = null, CancellationToken ct = default)
+        public async Task<MensagemDTO> UpdateServiceAssociationAsync(AtualizarServicoAoGgvParameters parameters,
+            int usuarioId, CancellationToken ct = default)
         {
-            return await AddServiceAssociationAsync(new AdicionarServicoAoGgvParameters
+            if (parameters == null || parameters.IdentificadorServicoGrv <= 0)
             {
-                IdentificadorProcesso = GrvId,
-                IdentificadorServicoAssociadoTipoVeiculo = faturamentoServicoGrvId,
-                ValorTipoCobrancaInformado = valorTipoCobrancaInformado
-            }, UsuarioId, ct);
+                return MensagemViewHelper.SetBadRequest("Informe o Identificador do Serviço");
+            }
+
+            MensagemDTO ResultView =
+                new GrvService(_context).ValidateInputGrv(parameters.IdentificadorProcesso, usuarioId);
+
+            if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+            {
+                return ResultView;
+            }
+
+            FaturamentoServicoGrvModel servicoAssociado = await _context.FaturamentoServicoGrv
+                .Include(x => x.FaturamentoServicoTipoVeiculo)
+                    .ThenInclude(x => x.FaturamentoServicoAssociado)
+                        .ThenInclude(x => x.FaturamentoServicoTipo)
+                .AsTracking()
+                .FirstOrDefaultAsync(
+                    x => x.GrvId == parameters.IdentificadorProcesso && x.FaturamentoServicoGrvId == parameters.IdentificadorServicoGrv,
+                    cancellationToken: ct);
+
+            if (servicoAssociado is null)
+            {
+                return MensagemViewHelper.SetNotFound(
+                    "Serviço não encontrado para alteração ou não vinculado a este Processo");
+            }
+
+            var erros = new List<string>();
+
+            if (string.IsNullOrWhiteSpace(parameters.ValorTipoCobrancaInformado) &&
+                !string.IsNullOrWhiteSpace(parameters.HoraMinuto))
+            {
+                parameters.ValorTipoCobrancaInformado = parameters.HoraMinuto;
+            }
+
+            var tipoCobranca = servicoAssociado.FaturamentoServicoTipoVeiculo?.FaturamentoServicoAssociado?.FaturamentoServicoTipo?.TipoCobranca;
+            decimal precoPadrao = servicoAssociado.FaturamentoServicoTipoVeiculo?.FaturamentoServicoAssociado?.PrecoPadrao ?? 0;
+
+            if (tipoCobranca == "H" || tipoCobranca == TipoCobrancaFaturamentoEnum.Horas)
+            {
+                if (string.IsNullOrWhiteSpace(parameters.HoraMinuto) &&
+                    string.IsNullOrWhiteSpace(parameters.ValorTipoCobrancaInformado))
+                {
+                    erros.Add("Informe o Tempo trabalhado");
+                }
+            }
+
+            if (erros.Count > 0)
+            {
+                return MensagemViewHelper.SetBadRequest(erros);
+            }
+
+            servicoAssociado.QuantidadeDesconto = (parameters.Quantidade.HasValue && parameters.Quantidade.Value > 0)
+                ? parameters.Quantidade.Value
+                : 1;
+
+            if (tipoCobranca == "H" || tipoCobranca == TipoCobrancaFaturamentoEnum.Horas)
+            {
+                servicoAssociado.TempoTrabalhado = !string.IsNullOrWhiteSpace(parameters.HoraMinuto)
+                    ? parameters.HoraMinuto
+                    : parameters.ValorTipoCobrancaInformado;
+
+                servicoAssociado.Valor = !string.IsNullOrWhiteSpace(parameters.ValorTipoCobrancaInformado) &&
+                                decimal.TryParse(parameters.ValorTipoCobrancaInformado.Replace(".", ","),
+                                    out decimal valorInformadoH)
+                    ? valorInformadoH
+                    : precoPadrao;
+            }
+            else
+            {
+                servicoAssociado.Valor = !string.IsNullOrWhiteSpace(parameters.ValorTipoCobrancaInformado) &&
+                                decimal.TryParse(parameters.ValorTipoCobrancaInformado.Replace(".", ","),
+                                    out decimal valorInformado)
+                    ? valorInformado
+                    : precoPadrao;
+            }
+
+            _context.FaturamentoServicoGrv.Update(servicoAssociado);
+
+            await _context.SaveChangesAsync(ct);
+            return MensagemViewHelper.SetUpdateSuccess("Serviço associado alterado com sucesso");
         }
 
         public async Task<MensagemDTO> DeleteServiceAssociationAsync(int GrvId, int UsuarioId,
@@ -984,9 +1062,9 @@ namespace WebZi.Plataform.Data.Services.GGV
             return DadosMestres;
         }
 
-        public async Task<ListarImagemGgvDTO> ListFotosAsync(int GrvId, int UsuarioId)
+        public async Task<ImageListDTO> ListFotosAsync(int GrvId, int UsuarioId)
         {
-            ListarImagemGgvDTO ResultView = new()
+            ImageListDTO ResultView = new()
             {
                 Mensagem = new GrvService(_context).ValidateInputGrv(GrvId, UsuarioId)
             };
@@ -996,41 +1074,8 @@ namespace WebZi.Plataform.Data.Services.GGV
                 return ResultView;
             }
 
-            ImageListDTO fotos = await new BucketService(_context, _httpClientFactory)
+            return await new BucketService(_context, _httpClientFactory)
                 .DownloadFileAsync(BucketNomeTabelaOrigemEnum.FotoVeiculoGGV, GrvId);
-
-            if (fotos.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
-            {
-                ResultView.Mensagem = fotos.Mensagem;
-
-                return ResultView;
-            }
-
-            List<TabelaGenericaModel> ListagemTipoCadastroFoto = await new TabelaGenericaService(_context)
-                .ListAsync("GGV_TIPO_CADASTRO_FOTO");
-
-            ResultView.Listagem = fotos.Listagem.Select(x =>
-            {
-                TabelaGenericaModel tipoCadastro = ListagemTipoCadastroFoto
-                    .FirstOrDefault(t => t.ValorCadastro == x.TipoCadastro);
-
-                return new ImageGgvDTO
-                {
-                    Identificador = x.Identificador,
-
-                    Imagem = x.Imagem,
-
-                    Sigla = tipoCadastro?.Sigla.ToNullIfEmpty(),
-
-                    TipoCadastro = tipoCadastro?.Descricao.ToNullIfEmpty(),
-
-                    IdentificadorTipoCadastro = tipoCadastro?.TabelaGenericaId
-                };
-            }).ToList();
-
-            ResultView.Mensagem = fotos.Mensagem;
-
-            return ResultView;
         }
 
         public async Task<MensagemDTO> ValidarInformacoesPersistenciaAsync(GgvParameters GgvPersistencia,
@@ -1391,28 +1436,33 @@ namespace WebZi.Plataform.Data.Services.GGV
                                             // Horas
                                             case "H":
 
-                                                if (!NumberHelper.IsNumber(
-                                                        item.ValorTipoCobrancaInformado.RemoveString(":")))
+                                                string tempoHoras = !string.IsNullOrWhiteSpace(item.HoraMinuto)
+                                                    ? item.HoraMinuto
+                                                    : item.ValorTipoCobrancaInformado;
+
+                                                if (string.IsNullOrWhiteSpace(tempoHoras) ||
+                                                    !NumberHelper.IsNumber(tempoHoras.RemoveString(":")))
                                                 {
                                                     erros.Add(
-                                                        $"Valor do Tipo de Cobrança Horas inválido. Valor informado: {item.ValorTipoCobrancaInformado}. Informe no padrão HH:MM");
+                                                        $"Valor do Tipo de Cobrança Horas inválido. Valor informado: {tempoHoras ?? string.Empty}. Informe no padrão HH:MM");
                                                 }
                                                 else
                                                 {
-                                                    string[] aux = item.ValorTipoCobrancaInformado.Split(':');
+                                                    string[] aux = tempoHoras.Split(':');
 
                                                     if (aux.Length != 2)
                                                     {
                                                         erros.Add(
-                                                            $"Valor do Tipo de Cobrança Horas inválido. Valor informado: {item.ValorTipoCobrancaInformado}. Informe no padrão HH:MM");
+                                                            $"Valor do Tipo de Cobrança Horas inválido. Valor informado: {tempoHoras}. Informe no padrão HH:MM");
                                                     }
-                                                    else if (int.Parse(aux[0]) < 0 || int.Parse(aux[0]) > 23 ||
-                                                             int.Parse(aux[1]) < 0 || int.Parse(aux[1]) > 59)
+                                                    else if (!int.TryParse(aux[0], out int horas) ||
+                                                             !int.TryParse(aux[1], out int minutos) ||
+                                                             horas < 0 || horas > 23 || minutos < 0 || minutos > 59)
                                                     {
                                                         erros.Add(
-                                                            $"Valor do Tipo de Cobrança Horas inválido. Valor informado: {item.ValorTipoCobrancaInformado}. Informe no padrão HH:MM");
+                                                            $"Valor do Tipo de Cobrança Horas inválido. Valor informado: {tempoHoras}. Informe no padrão HH:MM");
                                                     }
-                                                    else if (int.Parse(aux[0]) == 0 && int.Parse(aux[1]) == 0)
+                                                    else if (horas == 0 && minutos == 0)
                                                     {
                                                         erros.Add($"Informe o Tempo trabalhado");
                                                     }

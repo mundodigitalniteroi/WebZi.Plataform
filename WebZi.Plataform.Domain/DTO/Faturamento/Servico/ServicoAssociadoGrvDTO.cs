@@ -4,6 +4,7 @@ namespace WebZi.Plataform.Domain.DTO.Faturamento.Servico
     {
         public int IdentificadorServicoGrv { get; set; }
         public int identificadorServicoAssociadoTipoVeiculo { get; set; }
+        public string NomeServico { get; set; }
         public int GrvId { get; set; }
         public decimal? Valor { get; set; }
         public int Quantidade { get; set; }

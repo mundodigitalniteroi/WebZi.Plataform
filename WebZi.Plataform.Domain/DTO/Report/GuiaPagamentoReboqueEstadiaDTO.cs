@@ -1,4 +1,5 @@
-﻿using WebZi.Plataform.Domain.DTO.Sistema;
+using WebZi.Plataform.Domain.DTO.Faturamento.Simulacao;
+using WebZi.Plataform.Domain.DTO.Sistema;
 
 namespace WebZi.Plataform.Domain.DTO.Report
 {
@@ -145,5 +146,7 @@ namespace WebZi.Plataform.Domain.DTO.Report
 
         // TODO: Verificar a necessidade dessa propriedade
         public string PixChave { get; set; }
+
+        public List<SimulacaoFaturamentoComposicaoDTO> ListagemServico { get; set; }
     }
 }

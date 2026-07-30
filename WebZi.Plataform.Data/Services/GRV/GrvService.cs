@@ -185,10 +185,10 @@ namespace WebZi.Plataform.Domain.Services.GRV
                                && _context.SistemaPerfilAcessoSubModulos
                                    // .Any(s => s.IdPerfilAcesso == 79 && s.IdSubModulo == 163)); // AMBIENTE DE HOMOLOG 
                                    .Any(s => s.IdPerfilAcesso == 81 && s.IdSubModulo == 164), cancellationToken: ct);
-
-            if (!possuiPermissaoEdicao)
-                return MensagemViewHelper.SetBadRequest(
-                    "O usuário não possui permissão para edição do GRV.");
+            //
+            // if (!possuiPermissaoEdicao)
+            //     return MensagemViewHelper.SetBadRequest(
+            //         "O usuário não possui permissão para edição do GRV.");
 
             #endregion Consulta
 
@@ -1957,7 +1957,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             }
 
             return await new BucketService(_context, _httpClientFactory)
-                .DownloadFileAsync("GRVFOTOSVEICCAD", GrvId);
+                .DownloadFileAsync(BucketNomeTabelaOrigemEnum.FotoVeiculoGRV, GrvId);
         }
 
         public async Task<GrvPesquisaDadosMestresDTO> ListItemPesquisaAsync(int UsuarioId)

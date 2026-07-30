@@ -176,6 +176,34 @@ namespace WebZi.Plataform.API.Controllers
             }
         }
 
+        [HttpPut("AlterarServicoAoGGV")]
+        [HttpPut("AtualizarServicoAssociadoGgv")]
+        public async Task<ActionResult<MensagemDTO>> AlterarServicoAoGGV(
+            [FromBody] AtualizarServicoAoGgvParameters parameters, CancellationToken ct)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            MensagemDTO ResultView = new();
+            int? userId = User.GetUserId();
+            try
+            {
+                ResultView = await _provider
+                    .GetService<GgvService>()
+                    .UpdateServiceAssociationAsync(parameters, userId!.Value, ct);
+
+                return StatusCode((int)HtmlStatusCodeEnum.Ok, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView = MensagemViewHelper.SetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+        }
+
         [HttpDelete("DesvincularServicoAssociadoGgv")]
         public async Task<ActionResult<MensagemDTO>> DesvincularServicoAssociadoGgv(int GrvId, int UsuarioId,
             int servicoGrvId, CancellationToken ct)
@@ -232,7 +260,7 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("ListarFotos")]
         // TODO: [Authorize]
-        public async Task<ActionResult<ListarImagemGgvDTO>> ListarFotos(int IdentificadorProcesso,
+        public async Task<ActionResult<ImageListDTO>> ListarFotos(int IdentificadorProcesso,
             int IdentificadorUsuario)
         {
             if (!ModelState.IsValid)
@@ -240,7 +268,7 @@ namespace WebZi.Plataform.API.Controllers
                 return BadRequest(ModelState);
             }
 
-            ListarImagemGgvDTO ResultView = new();
+            ImageListDTO ResultView = new();
 
             try
             {
