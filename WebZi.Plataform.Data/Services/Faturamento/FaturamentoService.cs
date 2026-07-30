@@ -474,8 +474,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             List<ViewFaturamentoServicoGrvModel> FaturamentoServicosGrvs = new();
 
-            if (!ParametrosCalculoFaturamento.FaturarSemGrv &&
-                (!ParametrosCalculoFaturamento.IsLeilaoStatus || UltimoFaturamento != null))
+            if (!ParametrosCalculoFaturamento.FaturarSemGrv && (!ParametrosCalculoFaturamento.IsLeilaoStatus || UltimoFaturamento != null))
             {
                 FaturamentoServicosGrvs = _context.ViewFaturamentoServicoGrv
                     .Where(x => x.GrvId == ParametrosCalculoFaturamento.GrvId &&
@@ -1183,7 +1182,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
         }
 
         public async Task<ServicoAssociadoTipoVeiculoListDTO> ListServicoAssociadoTipoVeiculoAsync(int GrvId,
-            int UsuarioId, CancellationToken ct)
+            int UsuarioId)
         {
             ServicoAssociadoTipoVeiculoListDTO ResultView = new();
 
@@ -1199,18 +1198,18 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             GrvModel Grv = await _context.Grv
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.GrvId == GrvId, cancellationToken: ct);
+                .FirstOrDefaultAsync(x => x.GrvId == GrvId);
 
-            List<ViewFaturamentoServicoAssociadoVeiculoModel> result = await _context
+            List<ViewFaturamentoServicoAssociadoVeiculoModel> result = _context
                 .ViewFaturamentoServicoAssociadoVeiculo
                 .Where(x => x.ClienteId == Grv.ClienteId
                             && x.DepositoId == Grv.DepositoId
                             && x.TipoVeiculoId == Grv.TipoVeiculoId
                             && x.FaturamentoProdutoId == Grv.FaturamentoProdutoId
-                            // && (!new[] { "DEP", "DRF" }.Contains(Grv.FaturamentoProdutoId) || x.FlagCobrarGGV == "S")
+                            && (!new[] { "DEP", "DRF" }.Contains(Grv.FaturamentoProdutoId) || x.FlagCobrarGGV == "S")
                             && x.DataVigenciaFinal == null)
                 .AsNoTracking()
-                .ToListAsync(cancellationToken: ct);
+                .ToList();
 
             if (result?.Count > 0)
             {
@@ -1263,7 +1262,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             return ResultView;
         }
 
-        public async Task<ServicoAssociadoGrvListDTO> ListServicoAssociadoGrvAsync(int GrvId, int UsuarioId, CancellationToken ct)
+        public async Task<ServicoAssociadoGrvListDTO> ListServicoAssociadoGrvAsync(int GrvId, int UsuarioId)
         {
             ServicoAssociadoGrvListDTO ResultView = new();
 
@@ -1281,20 +1280,16 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             //     .AsNoTracking()
             //     .FirstOrDefaultAsync(x => x.GrvId == GrvId);
 
-            List<FaturamentoServicoGrvModel> result = await _context.FaturamentoServicoGrv
-                .Include(x => x.FaturamentoServicoTipoVeiculo)
-                    .ThenInclude(x => x.FaturamentoServicoAssociado)
-                        .ThenInclude(x => x.FaturamentoServicoTipo)
+            List<FaturamentoServicoGrvModel> result = _context.FaturamentoServicoGrv
                 .Where(x => x.GrvId == GrvId)
                 .AsNoTracking()
-                .ToListAsync(cancellationToken: ct);
+                .ToList();
 
             if (result.Any())
             {
                 foreach (var item in result)
                 {
                     decimal valor = item.Valor / (item.QuantidadeDesconto ?? 1);
-                    string tipoCobranca = item.FaturamentoServicoTipoVeiculo?.FaturamentoServicoAssociado?.FaturamentoServicoTipo?.TipoCobranca;
 
                     ResultView.Listagem.Add(new()
                     {
@@ -1305,8 +1300,6 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                         ValorTotal = valor * (item.QuantidadeDesconto ?? 1),
                         Quantidade = item.QuantidadeDesconto ?? 1,
                         FlagRealizarCobranca = item.FlagRealizarCobranca,
-                        TipoCobranca = tipoCobranca,
-                        TempoTrabalhado = item.TempoTrabalhado
                     });
                 }
             }
@@ -1366,91 +1359,14 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     .FirstOrDefaultAsync(x =>
                         !model.Placa.IsNullOrWhiteSpace()
                             ? x.Placa == model.Placa
-                            : model.Chassi.IsNullOrWhiteSpace() || x.Chassi == model.Chassi, ct);
+                            : model.Chassi.IsNullOrWhiteSpace() || x.Chassi == model.Chassi, cancellationToken: ct);
             }
 
             #endregion
 
-            #region Validações dos parâmetros
-
-            List<string> erros = new();
-            var podeEmitirNota = await _context.FaturamentoRegra
-                .AnyAsync(x =>
-                    x.ClienteId == Grv.ClienteId && x.DepositoId == Grv.DepositoId &&
-                    x.FaturamentoRegraTipoId == 11, cancellationToken: ct);
-
-            if (model.IdentificadorProcesso <= 0 && model.Placa.IsNullOrWhiteSpace() &&
-                model.Chassi.IsNullOrWhiteSpace())
-            {
-                erros.Add("Informe o Identificador do Processo, Placa ou Chassi");
-            }
-
-            if (model.IdentificadorProcesso <= 0)
-            {
-                if (!model.Placa.IsNullOrWhiteSpace() && !model.Placa.IsPlaca())
-                {
-                    erros.Add("Placa inválida");
-                }
-                else if (model.Placa.IsNullOrWhiteSpace() && (model.Chassi.Length < 6 || model.Chassi.Length > 24 ||
-                                                              (model.Chassi.Length == 17 && !model.Chassi.IsChassi())))
-                {
-                    erros.Add("Chassi inválido");
-                }
-            }
-
-            if (model.IdentificadorCliente <= 0)
-            {
-                erros.Add(MensagemPadraoEnum.IdentificadorClienteInvalido);
-            }
-
-            if (model.IdentificadorDeposito <= 0)
-            {
-                erros.Add(MensagemPadraoEnum.IdentificadorDepositoInvalido);
-            }
-
-            DateTime DataHoraPorDeposito = DateTime.MinValue;
-
-            if (model.IdentificadorDeposito > 0)
-            {
-                DataHoraPorDeposito = new DepositoService(_context)
-                    .GetDataHoraPorDeposito(model.IdentificadorDeposito);
-            }
-
-            var now = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-3)).DateTime;
-
-            if (model?.DataHoraInicialParaCalculo > now)
-            {
-                erros.Add("A Data/Hora Inicial para o Cálculo não pode ser maior do que a Data/Hora atual");
-            }
-
-            if (DataHoraPorDeposito != DateTime.MinValue && model?.DataHoraFinalParaCalculo > DataHoraPorDeposito)
-            {
-                erros.Add("A Data/Hora Final para o Cálculo não pode ser maior do que a Data/Hora do Depósito");
-            }
-
-            if (model?.DataHoraFinalParaCalculo > model?.DataHoraInicialParaCalculo)
-            {
-                erros.Add(
-                    "A Data/Hora Final para o Cálculo não pode ser menor do que a Data/Hora Inicial para o Cálculo");
-            }
-
-            if (Grv.StatusOperacaoId.Equals("G") && model.DataHoraFinalParaCalculo == null || model.DataHoraFinalParaCalculo == DateTime.MinValue)
-                erros.Add(
-                    "Não pode ser feito atendimento sem ter feito o registro do GGV");
-
-
             SimulacaoDTO ResultView = new();
 
-            if (erros.Count > 0)
-            {
-                ResultView.Mensagem = MensagemViewHelper.SetBadRequest(erros);
-
-                return ResultView;
-            }
-
-            #endregion Validações dos parâmetros
-
-            #region Validações das Consultas
+            #region Validações do Processo GRV
 
             if (Grv == null)
             {
@@ -1470,19 +1386,117 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 return ResultView;
             }
 
-            if (Grv.StatusOperacaoId.Equals('E'))
+            if (Grv.StatusOperacaoId != "V")
             {
+                string descricaoStatus = Grv.StatusOperacao?.Descricao?.ToUpper();
                 ResultView.Mensagem = MensagemViewHelper.SetBadRequest(
                     $"O Status atual deste Processo não permite a execução da Simulação. " +
-                    $"Descrição do Status atual: {Grv.StatusOperacao.Descricao.ToUpper()}");
+                    $"Descrição do Status atual: {descricaoStatus}");
 
                 return ResultView;
             }
 
+            #endregion Validações do Processo GRV
+
+            #region Validações e Ajustes dos Parâmetros
+
+            List<string> erros = new();
+
+            if (model.IdentificadorCliente is <= 0 or null)
+            {
+                model.IdentificadorCliente = Grv.ClienteId;
+            }
+
+            if (model.IdentificadorDeposito is <= 0 or null)
+            {
+                model.IdentificadorDeposito = Grv.DepositoId;
+            }
+
+            var podeEmitirNota = await _context.FaturamentoRegra
+                .AnyAsync(x =>
+                    x.ClienteId == model.IdentificadorCliente && x.DepositoId == model.IdentificadorDeposito &&
+                    x.FaturamentoRegraTipoId == 11, cancellationToken: ct);
+
+            if (model.IdentificadorProcesso <= 0 && model.Placa.IsNullOrWhiteSpace() &&
+                model.Chassi.IsNullOrWhiteSpace())
+            {
+                erros.Add("Informe o Identificador do Processo, Placa ou Chassi");
+            }
+
+            if (model.IdentificadorProcesso is <= 0 or null)
+            {
+                if (!model.Placa.IsNullOrWhiteSpace() && !model.Placa.IsPlaca())
+                {
+                    erros.Add("Placa inválida");
+                }
+                else if (model.Placa.IsNullOrWhiteSpace() && (model.Chassi.Length < 6 || model.Chassi.Length > 24 ||
+                                                              (model.Chassi.Length == 17 && !model.Chassi.IsChassi())))
+                {
+                    erros.Add("Chassi inválido");
+                }
+            }
+
+            if (model.IdentificadorCliente is <= 0 or null)
+            {
+                erros.Add(MensagemPadraoEnum.IdentificadorClienteInvalido);
+            }
+
+            if (model.IdentificadorDeposito is <= 0 or null)
+            {
+                erros.Add(MensagemPadraoEnum.IdentificadorDepositoInvalido);
+            }
+
+            DateTime DataHoraPorDeposito = DateTime.MinValue;
+
+            if (model.IdentificadorDeposito > 0)
+            {
+                DataHoraPorDeposito = new DepositoService(_context)
+                    .GetDataHoraPorDeposito(model.IdentificadorDeposito.Value);
+            }
+
+            if (model.DataHoraInicialParaCalculo == DateTime.MinValue || model.DataHoraInicialParaCalculo == default)
+            {
+                model.DataHoraInicialParaCalculo = Grv.DataHoraGuarda ?? Grv.DataHoraRemocao;
+            }
+
+            if (model.DataHoraFinalParaCalculo == DateTime.MinValue || model.DataHoraFinalParaCalculo == default)
+            {
+                model.DataHoraFinalParaCalculo = DataHoraPorDeposito != DateTime.MinValue ? DataHoraPorDeposito : DateTime.Now;  
+            }
+
+            var now = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-3)).DateTime;
+
+            if (model.DataHoraFinalParaCalculo > now)
+            {
+                erros.Add("A Data/Hora Inicial para o Cálculo não pode ser maior do que a Data/Hora atual");
+            }
+
+            if (DataHoraPorDeposito != DateTime.MinValue && model.DataHoraInicialParaCalculo > DataHoraPorDeposito)
+            {
+                erros.Add("A Data/Hora Inicial para o Cálculo não pode ser maior do que a Data/Hora do Depósito");
+            }
+
+            if (model.DataHoraInicialParaCalculo > model.DataHoraFinalParaCalculo)
+            {
+                erros.Add(
+                    "A Data/Hora Final para o Cálculo não pode ser menor do que a Data/Hora Inicial para o Cálculo");
+            }
+
+            if (erros.Count > 0)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest(erros);
+
+                return ResultView;
+            }
+
+            #endregion Validações e Ajustes dos Parâmetros
+
+            #region Validações Adicionais
+
             ResultView.Produto = _mapper.Map<SimulacaoProdutoDTO>(Grv.FaturamentoProduto);
 
             ResultView.Mensagem = await new ClienteDepositoService(_context)
-                .ValidateClienteDepositoAsync(model.IdentificadorCliente, model.IdentificadorDeposito);
+                .ValidateClienteDepositoAsync(model.IdentificadorCliente.Value, model.IdentificadorDeposito.Value);
 
             DetranRioService DetranRioService = new(_context, _mapper);
 
@@ -1511,15 +1525,15 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 return ResultView;
             }
 
-            #endregion Validações das Consultas
+            #endregion Validações Adicionais
 
             #region Aplicação das Configurações
 
             CalculoFaturamentoParametroModel ParametrosCalculoFaturamento = new()
             {
-                DataHoraInicialParaCalculo = model.DataHoraFinalParaCalculo,
+                DataHoraInicialParaCalculo = model.DataHoraInicialParaCalculo.Value,
 
-                DataHoraFinalParaCalculo = model.DataHoraInicialParaCalculo,
+                DataHoraFinalParaCalculo = model.DataHoraFinalParaCalculo.Value ,
 
                 DataHoraPorDeposito = DataHoraPorDeposito,
 
@@ -1532,7 +1546,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 StatusOperacaoId = "V",
 
                 IsLeilaoStatus = new[] { "1", "3", "7" }.Contains(Grv.StatusOperacaoId),
-
+                
                 FaturamentoProdutoId = ResultView.Produto.CodigoProduto,
 
                 GrvId = Grv.GrvId,
@@ -1548,7 +1562,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     .ThenInclude(x => x.Endereco)
                     .AsNoTracking()
                     .FirstOrDefaultAsync(x =>
-                        x.ClienteId == model.IdentificadorCliente && x.DepositoId == model.IdentificadorDeposito)
+                        x.ClienteId == model.IdentificadorCliente && x.DepositoId == model.IdentificadorDeposito, cancellationToken: ct)
             };
 
             #endregion Aplicação das Configurações
@@ -1584,7 +1598,6 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.DataVigenciaInicial;
 
                 Servico.DataVigenciaFinal = FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.DataVigenciaFinal;
-
             }
 
             ResultView.IdentificadorProcesso = Grv.GrvId;
@@ -1925,7 +1938,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.FaturamentoId == identificadorFaturamento, cancellationToken: ct);
 
-            var notas = await EntityFrameworkQueryableExtensions.ToListAsync(_context.Nfe
+            var notas = await _context.Nfe
                 .Where(x =>
                     x.GrvId == Faturamento.Atendimento.GrvId &&
                     !_context.Nfe.Any(sb =>
@@ -1953,7 +1966,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                         })
                         .ToList()
                 })
-                .AsNoTracking(), cancellationToken: ct);
+                .AsNoTracking()
+                .ToListAsync(cancellationToken: ct);
 
             LiberacaoEspecialModel liberacaoEspecial = _context.LiberacaoEspecial
                 .AsNoTracking()

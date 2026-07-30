@@ -27,7 +27,7 @@ class Program
             IdentificadorDeposito = 1,
         };
 
-        var result = faturamentoService.SimularAsync(parametros).Result;
+        var result = faturamentoService.SimularAsync(parametros, CancellationToken.None).Result;
 
         //var result = _context.Empresa
         //    .Include(x => x.CEP)

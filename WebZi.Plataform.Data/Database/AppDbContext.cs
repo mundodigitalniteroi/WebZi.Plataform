@@ -192,6 +192,10 @@ namespace WebZi.Plataform.Data.Database
 
         public DbSet<GrvModel> Grv { get; set; }
 
+        public DbSet<GgvFotoModel> GgvFoto { get; set; }
+
+        public DbSet<GrvFotoModel> GrvFoto { get; set; }
+
         public DbSet<LacreModel> Lacre { get; set; }
 
         public DbSet<MarcaModeloModel> MarcaModelo { get; set; }
