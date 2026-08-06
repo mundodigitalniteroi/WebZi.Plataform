@@ -11,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using WebZi.Plataform.CrossCutting.Contacts;
+using WebZi.Plataform.CrossCutting.Date;
 using WebZi.Plataform.CrossCutting.Strings;
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
@@ -35,7 +36,7 @@ namespace WebZi.Plataform.Data.Services.Usuario
         private readonly IServiceProvider _provider;
         private readonly IOptions<JwtOptions> _options;
 
-      
+
         public UsuarioService(AppDbContext context)
         {
             _context = context;
@@ -62,8 +63,9 @@ namespace WebZi.Plataform.Data.Services.Usuario
             _configuration = configuration;
             _options = options;
         }
+
         public UsuarioService(AppDbContext context, IMapper mapper, IConfiguration configuration,
-            IOptions<JwtOptions> options, IServiceProvider  provider)
+            IOptions<JwtOptions> options, IServiceProvider provider)
         {
             _context = context;
             _mapper = mapper;
@@ -207,39 +209,71 @@ namespace WebZi.Plataform.Data.Services.Usuario
             return ResultView;
         }
 
-        public async Task<UsuarioPorNomeOuLoginListDTO> GetByUsernameOrLogin(string login, string username)
+        public async Task<UsuarioPorNomeOuLoginListDTO> ListAccessProfileAsync(int usuarioId,CancellationToken ct)
+        {
+            throw new NotImplementedException();
+        }
+        
+        public async Task<UsuarioPorNomeOuLoginListDTO> GetByUsernameOrLogin(
+            ConsultaPorNomeOuLoginParameters request,
+            CancellationToken ct)
         {
             UsuarioPorNomeOuLoginListDTO result = new();
 
-            if (string.IsNullOrWhiteSpace(login) && string.IsNullOrWhiteSpace(username))
+            if (string.IsNullOrWhiteSpace(request.Login) && string.IsNullOrWhiteSpace(request.Username))
             {
-                result.Mensagem = MensagemViewHelper
-                    .SetBadRequest("Informe o Login ou o Username");
+                result.Mensagem = MensagemViewHelper.SetBadRequest("Informe o Login ou o Username");
                 return result;
             }
 
-            login = login?.ToUpper().Trim();
-            username = username?.ToUpper().Trim();
+            var login = request.Login?.Trim();
+            var username = request.Username?.Trim();
 
+            var query = _context.Usuario
+                .AsNoTracking();
 
-            var usuarios = await _context.Usuario
-                .Include(p => p.Pessoa)
-                .AsNoTracking()
-                .Where(x =>
-                    (!string.IsNullOrWhiteSpace(login) && x.Login == login) ||
-                    (!string.IsNullOrWhiteSpace(username) && x.Pessoa.Nome == username))
-                .ToListAsync();
+            if (!string.IsNullOrEmpty(login))
+            {
+                query = query.Where(x => x.Login.Contains(login));
+            }
 
-            if (usuarios is null || usuarios.Count <= 0)
+            if (!string.IsNullOrEmpty(username))
+            {
+                query = query.Where(x => x.Pessoa.Nome.Contains(username));
+            }
+
+            if (!request.UsuariosInativos)
+            {
+                query = query.Where(x => x.FlagAtivo == "S");
+            }
+            
+            var limit = request.take.HasValue && request.take.Value > 0 ? request.take.Value : 20;
+            var offset = request.skip.HasValue && request.skip.Value >= 0 ? request.skip.Value : 0;
+
+            var usuarios = await query
+                .OrderByDescending(x => x.DataUltimoAcesso)
+                .Skip(offset)
+                .Take(limit)
+                .Select(x => new UsuarioPorNomeOuLoginDTO
+                {
+                    Login = x.Login,
+                    Nome = x.Pessoa.Nome,
+                    FlagAtivo = x.FlagAtivo,
+                    DataUltimoAcesso = DateTimeHelper.FormatDateTime(x.DataUltimoAcesso, DateTimeHelper.DateTimeFormat.DateTimeFormatted)
+                })
+                .ToListAsync(cancellationToken: ct);
+
+            if (usuarios is null || usuarios.Count == 0)
             {
                 result.Mensagem = MensagemViewHelper.SetNotFound("Nenhum usuário encontrado");
                 return result;
             }
 
-            result.Listagem = _mapper.Map<List<UsuarioPorNomeOuLoginDTO>>(usuarios);
+            result.Listagem = usuarios;
             result.Mensagem = MensagemViewHelper.SetFound(usuarios.Count);
             return result;
         }
+
 
         public async Task<UsuarioDTO> GetByIdAsync(int UsuarioId)
         {

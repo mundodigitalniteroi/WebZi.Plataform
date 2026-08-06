@@ -76,10 +76,9 @@ namespace WebZi.Plataform.API.Controllers
             }
         }
 
-        [HttpGet("SelecionarPorLoginOuUsername")]
+        [HttpPost("SelecionarPorLoginOuUsername")]
         // TODO: [Authorize]
-        public async Task<ActionResult<UsuarioPorNomeOuLoginListDTO>> SelecionarPorLoginOuUsername(string Login,
-            string Username)
+        public async Task<ActionResult<UsuarioPorNomeOuLoginListDTO>> SelecionarPorLoginOuUsername(ConsultaPorNomeOuLoginParameters request, CancellationToken ct)
         {
             if (!ModelState.IsValid)
             {
@@ -92,7 +91,34 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<UsuarioService>()
-                    .GetByUsernameOrLogin(Login, Username);
+                    .GetByUsernameOrLogin(request, ct);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
+        
+        [HttpGet("ListaPerfisDeAcesso")]
+        // TODO: [Authorize]
+        public async Task<ActionResult<UsuarioPorNomeOuLoginListDTO>> ListaPerfisDeAcesso(CancellationToken ct)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            UsuarioPorNomeOuLoginListDTO ResultView = new();
+            var userId = User.GetUserId();
+            try
+            {
+                ResultView = await _provider
+                    .GetService<UsuarioService>()
+                    .ListAccessProfileAsync(userId!.Value, ct);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
