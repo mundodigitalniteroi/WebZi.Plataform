@@ -197,8 +197,12 @@ namespace WebZi.Plataform.Data.Services.Usuario
 
             ResultView.Mensagem = MensagemViewHelper.SetFound();
 
-            var senhaInicialHash = GenerateSqlServerMd5Hash("INICIAL123");
-            if (result?.Senha1 == senhaInicialHash)
+            int? isSenhaInicial = _context.Database.SqlQueryRaw<int>(
+                "SELECT TOP 1 1 FROM dbo.tb_dep_usuarios WHERE id_usuario = @id AND senha1 = HASHBYTES('MD5', 'INICIAL123')",
+                new SqlParameter("@id", result.UsuarioId)
+            ).FirstOrDefault();
+
+            if (isSenhaInicial == 1)
             {
                 ResultView.Mensagem.AvisosInformativos.Add(
                     "Alterar Senha.");
@@ -773,7 +777,7 @@ namespace WebZi.Plataform.Data.Services.Usuario
             var novoUsuario = new UsuarioModel
             {
                 Login = loginNormalized,
-                Senha1 = GenerateSqlServerMd5Hash("INICIAL123"),
+                Senha1 = "INICIAL123",
                 PessoaId = parameters.identificadorPessoa,
                 Matricula = parameters.Matricula,
                 FlagAtivo = "S",
@@ -790,6 +794,10 @@ namespace WebZi.Plataform.Data.Services.Usuario
                 await _context.SaveChangesAsync(ct);
 
                 var newUserId = novoUsuario.UsuarioId;
+
+                await _context.Database.ExecuteSqlInterpolatedAsync(
+                    $"UPDATE dbo.tb_dep_usuarios SET senha1 = HASHBYTES('MD5', 'INICIAL123') WHERE id_usuario = {newUserId}",
+                    ct);
 
                 if (parameters.PerfisDeAcesso.Count > 0)
                 {
@@ -1021,15 +1029,11 @@ namespace WebZi.Plataform.Data.Services.Usuario
                 return ResultView;
             }
 
-            var senhaHash = GenerateSqlServerMd5Hash("INICIAL123");
+            var dataAlteracao = DateTime.UtcNow.AddHours(-3);
 
-            var rowsAffected = await _context.Usuario
-                .Where(x => x.Login == parameters.Login)
-                .ExecuteUpdateAsync(s => s
-                        .SetProperty(u => u.Senha1, senhaHash)
-                        .SetProperty(u => u.UsuarioAlteracaoId, usuarioId)
-                        .SetProperty(u => u.DataAlteracao, DateTime.UtcNow.AddHours(-3)),
-                    ct);
+            var rowsAffected = await _context.Database.ExecuteSqlInterpolatedAsync(
+                $"UPDATE dbo.tb_dep_usuarios SET senha1 = HASHBYTES('MD5', 'INICIAL123'), id_usuario_alteracao = {usuarioId}, data_alteracao = {dataAlteracao} WHERE login = {parameters.Login}",
+                ct);
 
             if (rowsAffected == 0)
             {
@@ -1047,14 +1051,12 @@ namespace WebZi.Plataform.Data.Services.Usuario
             MensagemDTO ResultView = new();
 
             var loginNormalized = parameters.Login.ToUpperTrim();
-            var senhaHash = GenerateSqlServerMd5Hash(parameters.Senha.Trim());
+            var novaSenha = parameters.Senha.Trim();
+            var dataAlteracao = DateTime.UtcNow.AddHours(-3);
 
-            var result = await _context.Usuario
-                .Where(x => x.Login == loginNormalized)
-                .ExecuteUpdateAsync(s => s
-                        .SetProperty(u => u.Senha1, senhaHash)
-                        .SetProperty(u => u.DataAlteracao, DateTime.UtcNow.AddHours(-3)),
-                    ct);
+            var result = await _context.Database.ExecuteSqlInterpolatedAsync(
+                $"UPDATE dbo.tb_dep_usuarios SET senha1 = HASHBYTES('MD5', {novaSenha}), data_alteracao = {dataAlteracao} WHERE login = {loginNormalized}",
+                ct);
 
             if (result == 0)
             {
