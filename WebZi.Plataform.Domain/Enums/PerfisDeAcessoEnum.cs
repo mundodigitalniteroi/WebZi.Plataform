@@ -3,6 +3,6 @@
 public enum PerfisDeAcessoEnum
 {
     GerenciarUsuariosHomolog = 82,
-    GerenciarUsuariosProd = 83,
+    GerenciarUsuariosProd = 83
     
 }

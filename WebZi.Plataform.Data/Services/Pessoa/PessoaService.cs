@@ -98,7 +98,7 @@ public class PessoaService
                            && x.PerfilAcessoId == (int)PerfisDeAcessoEnum.GerenciarUsuariosHomolog
                            && _context.SistemaPerfilAcessoSubModulos
                                .Any(s => s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.GerenciarUsuariosHomolog
-                                         && s.IdSubModulo == (int)SubModuloEnum.GerenciarUsuariosHomolog),
+                                         && s.IdSubModulo == (int)SubModuloEnum.ConsultarPessoaHomolog),
                 cancellationToken: ct);
 
         if (possuiPermissao)

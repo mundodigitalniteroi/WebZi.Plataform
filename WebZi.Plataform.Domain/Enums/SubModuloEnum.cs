@@ -2,6 +2,10 @@
 
 public enum SubModuloEnum
 {
-    GerenciarUsuariosHomolog = 168,
-    GerenciarUsuariosProd = 169
+    VerPerfisDeAcessoHomolog = 168,
+    CadastrarUsuarioHomolog = 169 ,
+    EditarUsuarioHomolog = 170 ,
+    ResetarSenhaDoUsuarioHomolog = 171,
+    ConsultarPessoaHomolog = 172
+    
 }

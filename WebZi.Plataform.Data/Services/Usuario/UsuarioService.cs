@@ -1,4 +1,4 @@
-﻿using System.Data;
+using System.Data;
 using System.IdentityModel.Tokens.Jwt;
 using System.Runtime.Serialization;
 using System.Security.Claims;
@@ -29,6 +29,9 @@ using WebZi.Plataform.Domain.Models.Pessoa.Contato;
 using WebZi.Plataform.Domain.Models.Usuario;
 using WebZi.Plataform.Domain.Options;
 using WebZi.Plataform.Domain.ViewModel.Usuario;
+using WebZi.Plataform.Domain.ViewModel.Usuario.CadastroUsuario;
+using WebZi.Plataform.Domain.ViewModel.Usuario.AtualizarUsuario;
+using WebZi.Plataform.Domain.ViewModel.Usuario.CadastrarSenha;
 
 namespace WebZi.Plataform.Data.Services.Usuario
 {
@@ -155,6 +158,14 @@ namespace WebZi.Plataform.Data.Services.Usuario
                 return ResultView;
             }
 
+            var dataAtual = DateTime.UtcNow.AddHours(-3);
+
+            await _context.Usuario
+                .Where(x => x.UsuarioId == result.UsuarioId)
+                .ExecuteUpdateAsync(s => s.SetProperty(u => u.DataUltimoAcesso, dataAtual));
+
+            result.DataUltimoAcesso = dataAtual;
+
             List<SistemaPerfilAcessoUsuariosModel> resultPerfilDeAcesso = await _context.PerfilAcessoUsuario
                 .Where(x => x.UsuarioId == result.UsuarioId)
                 .Include(x => x.PerfilAcesso)
@@ -185,6 +196,13 @@ namespace WebZi.Plataform.Data.Services.Usuario
                 _mapper.Map<List<TiposContatosPessoaDTO>>(resultTiposContatos);
 
             ResultView.Mensagem = MensagemViewHelper.SetFound();
+
+            var senhaInicialHash = GenerateSqlServerMd5Hash("INICIAL123");
+            if (result?.Senha1 == senhaInicialHash)
+            {
+                ResultView.Mensagem.AvisosInformativos.Add(
+                    "Alterar Senha.");
+            }
 
 
             //var ListagemUsuarioClienteDeposito = await _context.ViewUsuarioClienteDeposito
@@ -224,10 +242,10 @@ namespace WebZi.Plataform.Data.Services.Usuario
                                && x.PerfilAcessoId == (int)PerfisDeAcessoEnum.GerenciarUsuariosHomolog
                                && _context.SistemaPerfilAcessoSubModulos
                                    .Any(s => s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.GerenciarUsuariosHomolog
-                                             && s.IdSubModulo == (int)SubModuloEnum.GerenciarUsuariosHomolog),
+                                             && s.IdSubModulo == (int)SubModuloEnum.VerPerfisDeAcessoHomolog),
                     cancellationToken: ct);
 
-            if (possuiPermissao)
+            if (!possuiPermissao)
             {
                 ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Não possui permissão");
                 return ResultView;
@@ -267,10 +285,10 @@ namespace WebZi.Plataform.Data.Services.Usuario
                                && x.PerfilAcessoId == (int)PerfisDeAcessoEnum.GerenciarUsuariosHomolog
                                && _context.SistemaPerfilAcessoSubModulos
                                    .Any(s => s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.GerenciarUsuariosHomolog
-                                             && s.IdSubModulo == (int)SubModuloEnum.GerenciarUsuariosHomolog),
+                                             && s.IdSubModulo == (int)SubModuloEnum.VerPerfisDeAcessoHomolog),
                     cancellationToken: ct);
 
-            if (possuiPermissao)
+            if (!possuiPermissao)
             {
                 ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Não possui permissão");
                 return ResultView;
@@ -334,10 +352,10 @@ namespace WebZi.Plataform.Data.Services.Usuario
                                && x.PerfilAcessoId == (int)PerfisDeAcessoEnum.GerenciarUsuariosHomolog
                                && _context.SistemaPerfilAcessoSubModulos
                                    .Any(s => s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.GerenciarUsuariosHomolog
-                                             && s.IdSubModulo == (int)SubModuloEnum.GerenciarUsuariosHomolog),
+                                             && s.IdSubModulo == (int)SubModuloEnum.VerPerfisDeAcessoHomolog),
                     cancellationToken: ct);
 
-            if (possuiPermissao)
+            if (!possuiPermissao)
             {
                 ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Não possui permissão");
                 return ResultView;
@@ -664,6 +682,388 @@ namespace WebZi.Plataform.Data.Services.Usuario
                 sb.Append(x.ToString("x2"));
 
             return sb.ToString();
+        }
+
+        private string GenerateSqlServerMd5Hash(string input)
+        {
+            using var md5 = MD5.Create();
+            var bytes = Encoding.ASCII.GetBytes(input);
+            var hashBytes = md5.ComputeHash(bytes);
+            return Encoding.Default.GetString(hashBytes);
+        }
+
+        private async Task FiltrarDepositosSemVinculo(List<int> vincularCliente, List<int> vincularDeposito,
+            CancellationToken ct)
+        {
+            if (vincularDeposito?.Count > 0)
+            {
+                if (vincularCliente == null || vincularCliente.Count == 0)
+                {
+                    vincularDeposito.Clear();
+                    return;
+                }
+
+                var depositosValidos = await _context.ClienteDeposito
+                    .AsNoTracking()
+                    .Where(x => vincularDeposito.Contains(x.DepositoId) && vincularCliente.Contains(x.ClienteId))
+                    .Select(x => x.DepositoId)
+                    .Distinct()
+                    .ToListAsync(ct);
+
+                vincularDeposito.RemoveAll(depositoId => !depositosValidos.Contains(depositoId));
+            }
+        }
+
+        public async Task<MensagemDTO> CreateUserAsync(
+            int usuarioCadastroId,
+            CadastroUsuarioParameters parameters,
+            CancellationToken ct)
+        {
+            MensagemDTO ResultView = new();
+
+            var possuiPermissao = await _context.PerfilAcessoUsuario
+                .AsNoTracking()
+                .AnyAsync(x => x.UsuarioId == usuarioCadastroId
+                               && x.PerfilAcessoId == (int)PerfisDeAcessoEnum.GerenciarUsuariosHomolog
+                               && _context.SistemaPerfilAcessoSubModulos
+                                   .Any(s => s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.GerenciarUsuariosHomolog
+                                             && s.IdSubModulo == (int)SubModuloEnum.CadastrarUsuarioHomolog),
+                    cancellationToken: ct);
+
+            if (!possuiPermissao)
+            {
+                ResultView = MensagemViewHelper.SetBadRequest("Não possui permissão");
+                return ResultView;
+            }
+
+            if (string.IsNullOrWhiteSpace(parameters.Login))
+            {
+                ResultView = MensagemViewHelper.SetBadRequest("Informe o Login do usuário");
+                return ResultView;
+            }
+
+            if (parameters.identificadorPessoa <= 0)
+            {
+                ResultView = MensagemViewHelper.SetBadRequest("Informe a pessoa que seria vinculada ao usuário");
+                return ResultView;
+            }
+
+            var loginNormalized = parameters.Login.ToUpperTrim();
+
+            var loginExists = await _context.Usuario
+                .AsNoTracking()
+                .AnyAsync(x => x.Login == loginNormalized, ct);
+
+            if (loginExists)
+            {
+                ResultView = MensagemViewHelper.SetBadRequest("O login informado já está em uso");
+                return ResultView;
+            }
+
+            parameters.VincularCliente ??= new List<int>();
+            parameters.VincularDeposito ??= new List<int>();
+            parameters.VincularCliente = parameters.VincularCliente.Distinct().ToList();
+            parameters.VincularDeposito = parameters.VincularDeposito.Distinct().ToList();
+            parameters.PerfisDeAcesso = parameters.PerfisDeAcesso?.Distinct().ToList() ?? new List<int>();
+
+            await FiltrarDepositosSemVinculo(parameters.VincularCliente, parameters.VincularDeposito, ct);
+
+            var permissaoConfig = parameters.PermissoesUsuario?.FirstOrDefault();
+
+            var novoUsuario = new UsuarioModel
+            {
+                Login = loginNormalized,
+                Senha1 = GenerateSqlServerMd5Hash("INICIAL123"),
+                PessoaId = parameters.identificadorPessoa,
+                Matricula = parameters.Matricula,
+                FlagAtivo = "S",
+                FlagPermissaoDesconto = permissaoConfig?.FlagPermissaoDesconto ?? "N",
+                FlagPermissaoDataRetroativaFaturamento = permissaoConfig?.FlagPermissaoDataRetroativaFaturamento ?? "N",
+                UsuarioCadastroId = usuarioCadastroId,
+                DataCadastro = DateTime.UtcNow.AddHours(-3)
+            };
+
+            await using var _transaction = await _context.Database.BeginTransactionAsync(ct);
+            try
+            {
+                await _context.Usuario.AddAsync(novoUsuario, ct);
+                await _context.SaveChangesAsync(ct);
+
+                var newUserId = novoUsuario.UsuarioId;
+
+                if (parameters.PerfisDeAcesso.Count > 0)
+                {
+                    var perfisList = parameters.PerfisDeAcesso.Select(perfilId => new SistemaPerfilAcessoUsuariosModel
+                    {
+                        UsuarioId = newUserId,
+                        PerfilAcessoId = perfilId
+                    }).ToList();
+
+                    await _context.PerfilAcessoUsuario.AddRangeAsync(perfisList, ct);
+                }
+
+                if (parameters.VincularCliente.Count > 0)
+                {
+                    var clientesList = parameters.VincularCliente.Select(clienteId => new UsuarioClienteModel
+                    {
+                        UsuarioId = newUserId,
+                        ClienteId = clienteId,
+                        UsuarioCadastroId = usuarioCadastroId,
+                        DataCadastro = DateTime.UtcNow.AddHours(-3)
+                    }).ToList();
+
+                    await _context.UsuarioCliente.AddRangeAsync(clientesList, ct);
+                }
+
+                if (parameters.VincularDeposito.Count > 0)
+                {
+                    var depositosList = parameters.VincularDeposito.Select(depositoId => new UsuarioDepositoModel
+                    {
+                        UsuarioId = newUserId,
+                        DepositoId = depositoId,
+                        UsuarioCadastroId = usuarioCadastroId,
+                        DataCadastro = DateTime.UtcNow.AddHours(-3)
+                    }).ToList();
+
+                    await _context.UsuarioDeposito.AddRangeAsync(depositosList, ct);
+                }
+
+                await _context.SaveChangesAsync(ct);
+
+                await _transaction.CommitAsync(ct);
+                ResultView = MensagemViewHelper.SetCreateSuccess();
+                return ResultView;
+            }
+            catch (Exception e)
+            {
+                ResultView = MensagemViewHelper.SetBadRequest(e.Message);
+                return ResultView;
+            }
+        }
+
+        public async Task<MensagemDTO> UpdateUserAsync(
+            int usuarioAlteracaoId,
+            AtualizarUsuarioParameters parameters,
+            CancellationToken ct)
+        {
+            MensagemDTO ResultView = new();
+
+            var possuiPermissao = await _context.PerfilAcessoUsuario
+                .AsNoTracking()
+                .AnyAsync(x => x.UsuarioId == usuarioAlteracaoId
+                               && x.PerfilAcessoId == (int)PerfisDeAcessoEnum.GerenciarUsuariosHomolog
+                               && _context.SistemaPerfilAcessoSubModulos
+                                   .Any(s => s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.GerenciarUsuariosHomolog
+                                             && s.IdSubModulo == (int)SubModuloEnum.EditarUsuarioHomolog),
+                    cancellationToken: ct);
+
+            if (!possuiPermissao)
+            {
+                ResultView = MensagemViewHelper.SetBadRequest("Não possui permissão");
+                return ResultView;
+            }
+
+            if (parameters.identificadorUsuario <= 0)
+            {
+                ResultView = MensagemViewHelper.SetBadRequest("Identificador do usuário inválido");
+                return ResultView;
+            }
+
+            var usuario = await _context.Usuario
+                .FirstOrDefaultAsync(x => x.UsuarioId == parameters.identificadorUsuario, ct);
+
+            if (usuario == null)
+            {
+                ResultView = MensagemViewHelper.SetNotFound("Usuário não encontrado");
+                return ResultView;
+            }
+
+            if (!string.IsNullOrWhiteSpace(parameters.Login))
+            {
+                var loginNormalized = parameters.Login.ToUpperTrim();
+                var loginExists = await _context.Usuario
+                    .AsNoTracking()
+                    .AnyAsync(x => x.Login == loginNormalized && x.UsuarioId != usuario.UsuarioId, ct);
+
+                if (loginExists)
+                {
+                    ResultView =
+                        MensagemViewHelper.SetBadRequest("O login informado já está em uso por outro usuário");
+                    return ResultView;
+                }
+
+                usuario.Login = loginNormalized;
+            }
+
+            if (parameters.identificadorPessoa > 0)
+            {
+                usuario.PessoaId = parameters.identificadorPessoa;
+            }
+
+            if (parameters.Matricula != null)
+            {
+                usuario.Matricula = parameters.Matricula;
+            }
+
+            if (!string.IsNullOrWhiteSpace(parameters.FlagAtivo))
+            {
+                usuario.FlagAtivo = parameters.FlagAtivo.ToUpperTrim();
+            }
+
+            if (parameters.PermissoesUsuario?.Count > 0)
+            {
+                var perm = parameters.PermissoesUsuario.First();
+                if (!string.IsNullOrWhiteSpace(perm.FlagPermissaoDesconto))
+                {
+                    usuario.FlagPermissaoDesconto = perm.FlagPermissaoDesconto;
+                }
+
+                if (!string.IsNullOrWhiteSpace(perm.FlagPermissaoDataRetroativaFaturamento))
+                {
+                    usuario.FlagPermissaoDataRetroativaFaturamento = perm.FlagPermissaoDataRetroativaFaturamento;
+                }
+            }
+
+            usuario.UsuarioAlteracaoId = usuarioAlteracaoId;
+            usuario.DataAlteracao = DateTime.UtcNow.AddHours(-3);
+
+            parameters.VincularCliente ??= new List<int>();
+            parameters.VincularDeposito ??= new List<int>();
+            parameters.VincularCliente = parameters.VincularCliente.Distinct().ToList();
+            parameters.VincularDeposito = parameters.VincularDeposito.Distinct().ToList();
+            parameters.PerfisDeAcesso = parameters.PerfisDeAcesso?.Distinct().ToList() ?? new List<int>();
+
+            await FiltrarDepositosSemVinculo(parameters.VincularCliente, parameters.VincularDeposito, ct);
+
+            await using var _transaction = await _context.Database.BeginTransactionAsync(ct);
+            try
+            {
+                var perfisAtuais = await _context.PerfilAcessoUsuario
+                    .Where(x => x.UsuarioId == usuario.UsuarioId)
+                    .ToListAsync(ct);
+                _context.PerfilAcessoUsuario.RemoveRange(perfisAtuais);
+
+                if (parameters.PerfisDeAcesso.Count > 0)
+                {
+                    var novosPerfis = parameters.PerfisDeAcesso.Select(perfilId => new SistemaPerfilAcessoUsuariosModel
+                    {
+                        UsuarioId = usuario.UsuarioId,
+                        PerfilAcessoId = perfilId
+                    }).ToList();
+                    await _context.PerfilAcessoUsuario.AddRangeAsync(novosPerfis, ct);
+                }
+
+                var clientesAtuais = await _context.UsuarioCliente
+                    .Where(x => x.UsuarioId == usuario.UsuarioId)
+                    .ToListAsync(ct);
+                _context.UsuarioCliente.RemoveRange(clientesAtuais);
+
+                if (parameters.VincularCliente.Count > 0)
+                {
+                    var novosClientes = parameters.VincularCliente.Select(clienteId => new UsuarioClienteModel
+                    {
+                        UsuarioId = usuario.UsuarioId,
+                        ClienteId = clienteId,
+                        UsuarioCadastroId = usuarioAlteracaoId,
+                        DataCadastro = DateTime.UtcNow.AddHours(-3)
+                    }).ToList();
+                    await _context.UsuarioCliente.AddRangeAsync(novosClientes, ct);
+                }
+
+                var depositosAtuais = await _context.UsuarioDeposito
+                    .Where(x => x.UsuarioId == usuario.UsuarioId)
+                    .ToListAsync(ct);
+                _context.UsuarioDeposito.RemoveRange(depositosAtuais);
+
+                if (parameters.VincularDeposito.Count > 0)
+                {
+                    var novosDepositos = parameters.VincularDeposito.Select(depositoId => new UsuarioDepositoModel
+                    {
+                        UsuarioId = usuario.UsuarioId,
+                        DepositoId = depositoId,
+                        UsuarioCadastroId = usuarioAlteracaoId,
+                        DataCadastro = DateTime.UtcNow.AddHours(-3)
+                    }).ToList();
+                    await _context.UsuarioDeposito.AddRangeAsync(novosDepositos, ct);
+                }
+
+                await _context.SaveChangesAsync(ct);
+                await _transaction.CommitAsync(ct);
+
+                ResultView = MensagemViewHelper.SetUpdateSuccess();
+                return ResultView;
+            }
+            catch (Exception e)
+            {
+                ResultView = MensagemViewHelper.SetBadRequest(e.Message);
+                return ResultView;
+            }
+        }
+
+        public async Task<MensagemDTO> ResetPasswordAsync(int usuarioId, RedefinirSenhaParameters parameters,
+            CancellationToken ct)
+        {
+            MensagemDTO ResultView = new();
+            parameters.Login = parameters.Login.ToUpperTrim();
+
+            var possuiPermissao = await _context.PerfilAcessoUsuario
+                .AsNoTracking()
+                .AnyAsync(x => x.UsuarioId == usuarioId
+                               && x.PerfilAcessoId == (int)PerfisDeAcessoEnum.GerenciarUsuariosHomolog
+                               && _context.SistemaPerfilAcessoSubModulos
+                                   .Any(s => s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.GerenciarUsuariosHomolog
+                                             && s.IdSubModulo == (int)SubModuloEnum.ResetarSenhaDoUsuarioHomolog),
+                    cancellationToken: ct);
+
+            if (!possuiPermissao)
+            {
+                ResultView = MensagemViewHelper.SetBadRequest("Não possui permissão para redefinir senha");
+                return ResultView;
+            }
+
+            var senhaHash = GenerateSqlServerMd5Hash("INICIAL123");
+
+            var rowsAffected = await _context.Usuario
+                .Where(x => x.Login == parameters.Login)
+                .ExecuteUpdateAsync(s => s
+                        .SetProperty(u => u.Senha1, senhaHash)
+                        .SetProperty(u => u.UsuarioAlteracaoId, usuarioId)
+                        .SetProperty(u => u.DataAlteracao, DateTime.UtcNow.AddHours(-3)),
+                    ct);
+
+            if (rowsAffected == 0)
+            {
+                ResultView = MensagemViewHelper.SetNotFound("Usuário não encontrado");
+                return ResultView;
+            }
+
+            ResultView = MensagemViewHelper.SetUpdateSuccess();
+            return ResultView;
+        }
+
+        public async Task<MensagemDTO> ChangePasswordAsync(CadastrarSenhaParameters parameters,
+            CancellationToken ct)
+        {
+            MensagemDTO ResultView = new();
+
+            var loginNormalized = parameters.Login.ToUpperTrim();
+            var senhaHash = GenerateSqlServerMd5Hash(parameters.Senha.Trim());
+
+            var result = await _context.Usuario
+                .Where(x => x.Login == loginNormalized)
+                .ExecuteUpdateAsync(s => s
+                        .SetProperty(u => u.Senha1, senhaHash)
+                        .SetProperty(u => u.DataAlteracao, DateTime.UtcNow.AddHours(-3)),
+                    ct);
+
+            if (result == 0)
+            {
+                ResultView = MensagemViewHelper.SetNotFound("Usuário não encontrado");
+                return ResultView;
+            }
+
+            ResultView = MensagemViewHelper.SetUpdateSuccess();
+            return ResultView;
         }
     }
 }

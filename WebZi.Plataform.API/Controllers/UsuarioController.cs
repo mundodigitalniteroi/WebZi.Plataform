@@ -5,6 +5,9 @@ using WebZi.Plataform.Data.Services.Usuario;
 using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.DTO.Usuario;
 using WebZi.Plataform.Domain.ViewModel.Usuario;
+using WebZi.Plataform.Domain.ViewModel.Usuario.AtualizarUsuario;
+using WebZi.Plataform.Domain.ViewModel.Usuario.CadastrarSenha;
+using WebZi.Plataform.Domain.ViewModel.Usuario.CadastroUsuario;
 
 namespace WebZi.Plataform.API.Controllers
 {
@@ -209,6 +212,118 @@ namespace WebZi.Plataform.API.Controllers
                 ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
+
+
+        [HttpPost("Cadastrar")]
+        public async Task<ActionResult<MensagemDTO>> Cadastrar(CadastroUsuarioParameters parameters,
+            CancellationToken ct)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            MensagemDTO ResultView = new();
+            var usuarioId = User.GetUserId();
+            try
+            {
+                ResultView = await _provider
+                    .GetService<UsuarioService>()
+                    .CreateUserAsync(usuarioId!.Value, parameters, ct);
+
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView = MensagemViewHelper.SetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+        }
+
+        [HttpPut("Atualizar")]
+        public async Task<ActionResult<MensagemDTO>> Atualizar(AtualizarUsuarioParameters parameters,
+            CancellationToken ct)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            MensagemDTO ResultView = new();
+            var usuarioId = User.GetUserId();
+            try
+            {
+                ResultView = await _provider
+                    .GetService<UsuarioService>()
+                    .UpdateUserAsync(usuarioId!.Value, parameters, ct);
+
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView = MensagemViewHelper.SetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+        }
+
+        [HttpPut("RedefinirSenha")]
+        public async Task<ActionResult<MensagemDTO>> RedefinirSenha(
+            RedefinirSenhaParameters parameters,
+            CancellationToken ct)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            MensagemDTO ResultView = new();
+            var usuarioId = User.GetUserId();
+            try
+            {
+                ResultView = await _provider
+                    .GetService<UsuarioService>()
+                    .ResetPasswordAsync(usuarioId!.Value, parameters, ct);
+
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView = MensagemViewHelper.SetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+        }
+
+        [HttpPut("AlterarSenha")]
+        [AllowAnonymous]
+        [IgnoreAntiforgeryToken]
+        public async Task<ActionResult<MensagemDTO>> AlterarSenha(
+            CadastrarSenhaParameters parameters,
+            CancellationToken ct)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            MensagemDTO ResultView = new();
+            try
+            {
+                ResultView = await _provider
+                    .GetService<UsuarioService>()
+                    .ChangePasswordAsync(parameters, ct);
+
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView = MensagemViewHelper.SetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
             }
         }
 
