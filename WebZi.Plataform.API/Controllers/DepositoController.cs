@@ -46,6 +46,32 @@ namespace WebZi.Plataform.API.Controllers
             }
         }
 
+        [HttpGet("ListarDepositos")]
+        public async Task<ActionResult<DepositoVincularAUsuariosListDTO>> ListarDepositos(int? clienteId,byte? skip, byte? take, CancellationToken ct)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            DepositoVincularAUsuariosListDTO ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<DepositoService>()
+                    .ListAsync(clienteId,take, skip, ct);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
+
         [HttpGet("SelecionarDataHoraPeloIdentificador")]
         // TODO: [Authorize]
         public ActionResult<DateTime> SelecionarDataHoraPeloIdentificador(int Identificador)

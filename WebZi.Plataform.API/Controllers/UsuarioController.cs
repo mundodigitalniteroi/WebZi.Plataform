@@ -76,9 +76,9 @@ namespace WebZi.Plataform.API.Controllers
             }
         }
 
-        [HttpPost("SelecionarPorLoginOuUsername")]
-        // TODO: [Authorize]
-        public async Task<ActionResult<UsuarioPorNomeOuLoginListDTO>> SelecionarPorLoginOuUsername(ConsultaPorNomeOuLoginParameters request, CancellationToken ct)
+        [HttpPost("ListarPorLoginOuUsername")]
+        public async Task<ActionResult<UsuarioPorNomeOuLoginListDTO>> ListarPorLoginOuUsername(
+            ConsultaPorNomeOuLoginParameters request, CancellationToken ct)
         {
             if (!ModelState.IsValid)
             {
@@ -87,11 +87,12 @@ namespace WebZi.Plataform.API.Controllers
 
             UsuarioPorNomeOuLoginListDTO ResultView = new();
 
+            var usuarioId = User.GetUserId();
             try
             {
                 ResultView = await _provider
                     .GetService<UsuarioService>()
-                    .GetByUsernameOrLogin(request, ct);
+                    .ListByUsernameOrLogin(usuarioId!.Value, request, ct);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -102,23 +103,76 @@ namespace WebZi.Plataform.API.Controllers
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
         }
-        
-        [HttpGet("ListaPerfisDeAcesso")]
-        // TODO: [Authorize]
-        public async Task<ActionResult<UsuarioPorNomeOuLoginListDTO>> ListaPerfisDeAcesso(CancellationToken ct)
+
+        [HttpGet("ConsultarUsuarioParaGerenciamento")]
+        public async Task<ActionResult<UsuarioGerenciamentoDTO>> ConsultarUsuarioParaGerenciamento(string login,
+            CancellationToken ct)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            UsuarioPorNomeOuLoginListDTO ResultView = new();
+            UsuarioGerenciamentoDTO ResultView = new();
+            var usuarioId = User.GetUserId();
+            try
+            {
+                ResultView = await _provider
+                    .GetService<UsuarioService>()
+                    .GetByLoginForManagementAsync(usuarioId!.Value, login, ct);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
+
+        [HttpGet("TiposDePermissoes")]
+        public async Task<ActionResult<TiposDePermissãoListDTO>> TiposDePermissoes(CancellationToken ct)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            TiposDePermissãoListDTO ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<UsuarioService>()
+                    .ListPermissionsTypes(ct);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
+
+        [HttpGet("ListaPerfisDeAcesso")]
+        public async Task<ActionResult<PerfilAcessoListDTO>> ListaPerfisDeAcesso(byte? skip, byte? take,
+            CancellationToken ct)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            PerfilAcessoListDTO ResultView = new();
             var userId = User.GetUserId();
             try
             {
                 ResultView = await _provider
                     .GetService<UsuarioService>()
-                    .ListAccessProfileAsync(userId!.Value, ct);
+                    .ListAccessProfileAsync(userId!.Value, skip, take, ct);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }

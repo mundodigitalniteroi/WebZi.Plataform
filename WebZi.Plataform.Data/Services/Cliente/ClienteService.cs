@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
@@ -96,6 +97,7 @@ namespace WebZi.Plataform.Data.Services.Cliente
             {
                 ResultView.Mensagem = MensagemViewHelper.SetNotFound();
             }
+
             return ResultView;
         }
 
@@ -104,7 +106,8 @@ namespace WebZi.Plataform.Data.Services.Cliente
             ImageListDTO ResultView = await new BucketService(_context, _httpClientFactory)
                 .DownloadFileAsync("CADLOGOCLIENTE", ClienteId);
 
-            if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok && ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.NotFound)
+            if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok &&
+                ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.NotFound)
             {
                 return ResultView;
             }
@@ -127,6 +130,12 @@ namespace WebZi.Plataform.Data.Services.Cliente
             }
         }
 
+
+        /// <summary>
+        /// Lista os clientes vinculados a um usuário específico.
+        /// </summary>
+        /// <param name="UsuarioId">Identificador do usuário.</param>
+        /// <returns>Retorna a listagem de clientes associados ao usuário.</returns>
         public async Task<ClienteListDTO> ListAsync(int UsuarioId)
         {
             ClienteListDTO ResultView = new();
@@ -156,6 +165,43 @@ namespace WebZi.Plataform.Data.Services.Cliente
             {
                 ResultView.Mensagem = MensagemViewHelper.SetNotFound();
             }
+
+            return ResultView;
+        }
+
+
+        /// <summary>
+        /// Lista os clientes ativos para vinculação a usuários, com suporte à paginação.
+        /// </summary>
+        /// <param name="take">Quantidade de registros a serem retornados.</param>
+        /// <param name="skip">Quantidade de registros a serem ignorados.</param>
+        /// <param name="ct">Token de cancelamento.</param>
+        /// <returns>Retorna a listagem de clientes para vinculação a usuários.</returns>
+        public async Task<ClienteVincularAUsuarioListDTO> ListAsync(byte? take, byte? skip, CancellationToken ct)
+        {
+            ClienteVincularAUsuarioListDTO ResultView = new();
+
+            var limit = take.HasValue && take.Value > 0 ? take.Value : 20;
+            var offset = skip.HasValue && skip.Value >= 0 ? skip.Value : 0;
+
+            var result = await _context.Cliente
+                .Where(x => x.FlagAtivo == "S")
+                .Skip(offset)
+                .Take(limit)
+                .AsNoTracking()
+                .Select(x => new ClienteVincularUsuarioDTO
+                {
+                    IdentificadorCliente = x.ClienteId,
+                    Nome = x.Nome,
+                    FlagAtivo = x.FlagAtivo
+                })
+                .ToListAsync(ct);
+
+            ResultView.Listagem = result;
+
+            ResultView.Mensagem = result.Count > 0
+                ? MensagemViewHelper.SetFound(result.Count)
+                : MensagemViewHelper.SetNotFound();
 
             return ResultView;
         }

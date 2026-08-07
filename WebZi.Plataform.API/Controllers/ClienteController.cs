@@ -46,6 +46,33 @@ namespace WebZi.Plataform.API.Controllers
             }
         }
 
+        [HttpGet("ListarClientes")]
+        // TODO: [Authorize]
+        public async Task<ActionResult<ClienteVincularAUsuarioListDTO>> ListarClientes(byte? skip, byte? take, CancellationToken ct)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            ClienteVincularAUsuarioListDTO ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<ClienteService>()
+                    .ListAsync(take, skip, ct);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
+
         [HttpGet("SelecionarLogomarca")]
         // TODO: [Authorize]
         public async Task<ActionResult<ImageListDTO>> SelecionarLogomarca(int IdentificadorCliente)

@@ -1,9 +1,11 @@
 ﻿using System.Data;
 using System.IdentityModel.Tokens.Jwt;
+using System.Runtime.Serialization;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -17,6 +19,8 @@ using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Pessoa;
+using WebZi.Plataform.Domain.DTO.Cliente;
+using WebZi.Plataform.Domain.DTO.Deposito;
 using WebZi.Plataform.Domain.DTO.Pessoa;
 using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.DTO.Usuario;
@@ -209,21 +213,140 @@ namespace WebZi.Plataform.Data.Services.Usuario
             return ResultView;
         }
 
-        public async Task<UsuarioPorNomeOuLoginListDTO> ListAccessProfileAsync(int usuarioId,CancellationToken ct)
+        public async Task<PerfilAcessoListDTO> ListAccessProfileAsync(int usuarioId, byte? skip, byte? take,
+            CancellationToken ct)
         {
-            throw new NotImplementedException();
+            PerfilAcessoListDTO ResultView = new();
+
+            var possuiPermissao = await _context.PerfilAcessoUsuario
+                .AsNoTracking()
+                .AnyAsync(x => x.UsuarioId == usuarioId
+                               && x.PerfilAcessoId == (int)PerfisDeAcessoEnum.GerenciarUsuariosHomolog
+                               && _context.SistemaPerfilAcessoSubModulos
+                                   .Any(s => s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.GerenciarUsuariosHomolog
+                                             && s.IdSubModulo == (int)SubModuloEnum.GerenciarUsuariosHomolog),
+                    cancellationToken: ct);
+
+            if (possuiPermissao)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Não possui permissão");
+                return ResultView;
+            }
+
+            var limit = take.HasValue && take.Value > 0 ? take.Value : 20;
+            var offset = skip.HasValue && skip.Value >= 0 ? skip.Value : 0;
+            var result = await _context.PerfilAcesso
+                .Where(x => x.FlagAtivo == 'S')
+                .Skip(offset)
+                .Take(limit)
+                .AsNoTracking()
+                .ProjectTo<PerfilAcessoDTO>(_mapper.ConfigurationProvider)
+                .ToListAsync(ct);
+
+            ResultView.Listagem = result;
+
+            ResultView.Mensagem = result.Count > 0
+                ? MensagemViewHelper.SetFound(result.Count)
+                : MensagemViewHelper.SetNotFound();
+
+            return ResultView;
         }
-        
-        public async Task<UsuarioPorNomeOuLoginListDTO> GetByUsernameOrLogin(
+
+
+        public async Task<UsuarioGerenciamentoDTO> GetByLoginForManagementAsync(
+            int usuarioId,
+            string login,
+            CancellationToken ct)
+        {
+            UsuarioGerenciamentoDTO ResultView = new();
+            login = login.ToUpperTrim();
+
+            var possuiPermissao = await _context.PerfilAcessoUsuario
+                .AsNoTracking()
+                .AnyAsync(x => x.UsuarioId == usuarioId
+                               && x.PerfilAcessoId == (int)PerfisDeAcessoEnum.GerenciarUsuariosHomolog
+                               && _context.SistemaPerfilAcessoSubModulos
+                                   .Any(s => s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.GerenciarUsuariosHomolog
+                                             && s.IdSubModulo == (int)SubModuloEnum.GerenciarUsuariosHomolog),
+                    cancellationToken: ct);
+
+            if (possuiPermissao)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Não possui permissão");
+                return ResultView;
+            }
+
+            var result = await _context.Usuario
+                .AsNoTracking()
+                .Where(x => x.Login == login)
+                .Select(x => new UsuarioGerenciamentoDTO
+                {
+                    Login = x.Login,
+                    Nome = x.Pessoa.Nome,
+                    Matricula = x.Matricula,
+                    DataUltimoAcesso = DateTimeHelper.FormatDateTime(x.DataUltimoAcesso,
+                        DateTimeHelper.DateTimeFormat.DateFormatted),
+                    FlagAtivo = x.FlagAtivo,
+                    ClientesVinculados = x.ListagemUsuarioCliente
+                        .Select(uc => new ClienteVincularUsuarioDTO
+                        {
+                            IdentificadorCliente = uc.Cliente.ClienteId,
+                            Nome = uc.Cliente.Nome,
+                            FlagAtivo = uc.Cliente.FlagAtivo
+                        }).ToList(),
+                    DepositosVinculados = x.ListagemUsuarioDeposito
+                        .Select(ud => new DepositoVincularAUsuariosDTO
+                        {
+                            IdentificadorDeposito = ud.Deposito.DepositoId,
+                            Nome = ud.Deposito.Nome,
+                            FlagAtivo = ud.Deposito.FlagAtivo
+                        }).ToList(),
+                    PerfisDeAcessoVinculados = _context.PerfilAcessoUsuario
+                        .Where(p => p.UsuarioId == x.UsuarioId)
+                        .Select(p => new PerfilAcessoDTO
+                        {
+                            PerfilAcessoId = p.PerfilAcessoId,
+                            Descricao = p.PerfilAcesso.Descricao
+                        }).ToList()
+                })
+                .FirstOrDefaultAsync(ct);
+            if (result is null)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound("Usuário não encontrado");
+                return ResultView;
+            }
+
+            ResultView = result;
+            ResultView.Mensagem = MensagemViewHelper.SetFound();
+            return ResultView;
+        }
+
+        public async Task<UsuarioPorNomeOuLoginListDTO> ListByUsernameOrLogin(
+            int usuarioId,
             ConsultaPorNomeOuLoginParameters request,
             CancellationToken ct)
         {
-            UsuarioPorNomeOuLoginListDTO result = new();
+            UsuarioPorNomeOuLoginListDTO ResultView = new();
+
+            var possuiPermissao = await _context.PerfilAcessoUsuario
+                .AsNoTracking()
+                .AnyAsync(x => x.UsuarioId == usuarioId
+                               && x.PerfilAcessoId == (int)PerfisDeAcessoEnum.GerenciarUsuariosHomolog
+                               && _context.SistemaPerfilAcessoSubModulos
+                                   .Any(s => s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.GerenciarUsuariosHomolog
+                                             && s.IdSubModulo == (int)SubModuloEnum.GerenciarUsuariosHomolog),
+                    cancellationToken: ct);
+
+            if (possuiPermissao)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Não possui permissão");
+                return ResultView;
+            }
 
             if (string.IsNullOrWhiteSpace(request.Login) && string.IsNullOrWhiteSpace(request.Username))
             {
-                result.Mensagem = MensagemViewHelper.SetBadRequest("Informe o Login ou o Username");
-                return result;
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Informe o Login ou o Username");
+                return ResultView;
             }
 
             var login = request.Login?.Trim();
@@ -246,9 +369,9 @@ namespace WebZi.Plataform.Data.Services.Usuario
             {
                 query = query.Where(x => x.FlagAtivo == "S");
             }
-            
-            var limit = request.take.HasValue && request.take.Value > 0 ? request.take.Value : 20;
-            var offset = request.skip.HasValue && request.skip.Value >= 0 ? request.skip.Value : 0;
+
+            var limit = request.Take.HasValue && request.Take.Value > 0 ? request.Take.Value : 20;
+            var offset = request.Skip.HasValue && request.Skip.Value >= 0 ? request.Skip.Value : 0;
 
             var usuarios = await query
                 .OrderByDescending(x => x.DataUltimoAcesso)
@@ -259,21 +382,44 @@ namespace WebZi.Plataform.Data.Services.Usuario
                     Login = x.Login,
                     Nome = x.Pessoa.Nome,
                     FlagAtivo = x.FlagAtivo,
-                    DataUltimoAcesso = DateTimeHelper.FormatDateTime(x.DataUltimoAcesso, DateTimeHelper.DateTimeFormat.DateTimeFormatted)
+                    DataUltimoAcesso = DateTimeHelper.FormatDateTime(x.DataUltimoAcesso,
+                        DateTimeHelper.DateTimeFormat.DateTimeFormatted)
                 })
                 .ToListAsync(cancellationToken: ct);
 
             if (usuarios is null || usuarios.Count == 0)
             {
-                result.Mensagem = MensagemViewHelper.SetNotFound("Nenhum usuário encontrado");
-                return result;
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound("Nenhum usuário encontrado");
+                return ResultView;
             }
 
-            result.Listagem = usuarios;
-            result.Mensagem = MensagemViewHelper.SetFound(usuarios.Count);
-            return result;
+            ResultView.Listagem = usuarios;
+            ResultView.Mensagem = MensagemViewHelper.SetFound(usuarios.Count);
+            return ResultView;
         }
 
+        public async Task<TiposDePermissãoListDTO> ListPermissionsTypes(CancellationToken ct)
+        {
+            TiposDePermissãoListDTO ResultView = new();
+
+            var result = await _context.UsuarioTipoPermissao
+                .AsNoTracking()
+                .Select(x => new TipoPermissaoDTO
+                {
+                    IdentificadorTipoPermissao = x.TipoPermissaoId,
+                    Codigo = x.Codigo,
+                    Descricao = x.Descricao
+                })
+                .ToListAsync(ct);
+
+            ResultView.Listagem = result;
+
+            ResultView.Mensagem = result.Count > 0
+                ? MensagemViewHelper.SetFound(result.Count)
+                : MensagemViewHelper.SetNotFound();
+
+            return ResultView;
+        }
 
         public async Task<UsuarioDTO> GetByIdAsync(int UsuarioId)
         {

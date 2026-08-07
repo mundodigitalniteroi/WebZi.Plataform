@@ -6,6 +6,5 @@ namespace WebZi.Plataform.Domain.DTO.Usuario
     {
         public MensagemDTO Mensagem { get; set; } = new();
         public List<UsuarioPorNomeOuLoginDTO> Listagem { get; set; }
-
     }
 }

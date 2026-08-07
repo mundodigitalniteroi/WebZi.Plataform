@@ -1,4 +1,5 @@
-﻿using WebZi.Plataform.Domain.Models.Usuario;
+using WebZi.Plataform.Domain.Models.Pessoa.Documento;
+using WebZi.Plataform.Domain.Models.Usuario;
 
 namespace WebZi.Plataform.Domain.Models.Pessoa
 {
@@ -46,11 +47,7 @@ namespace WebZi.Plataform.Domain.Models.Pessoa
 
         public virtual ICollection<UsuarioModel> Usuarios { get; set; }
 
-        //public virtual TbGloPesTiposEstadoCivil IdTipoEstadoCivilNavigation { get; set; }
-
-        //public virtual TbGloPesTiposProfisso IdTipoProfissaoNavigation { get; set; }
-
-        //public virtual ICollection<TbGloPesPessoasDocumentosIdentificacao> TbGloPesPessoasDocumentosIdentificacaos { get; set; } = new List<TbGloPesPessoasDocumentosIdentificacao>();
+        public virtual ICollection<PessoaDocumentoIdentificacaoModel> DocumentosIdentificacao { get; set; } = new List<PessoaDocumentoIdentificacaoModel>();
 
         //public virtual ICollection<TbGloPesPessoasFoto> TbGloPesPessoasFotos { get; set; } = new List<TbGloPesPessoasFoto>();
 

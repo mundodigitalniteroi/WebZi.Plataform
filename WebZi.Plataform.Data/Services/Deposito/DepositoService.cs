@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
 using WebZi.Plataform.CrossCutting.Date;
 using WebZi.Plataform.Data.Database;
@@ -38,7 +39,8 @@ namespace WebZi.Plataform.Data.Services.Deposito
 
             if (DepositoId <= 0)
             {
-                ResultView.Mensagem = MensagemViewHelper.SetBadRequest(MensagemPadraoEnum.IdentificadorDepositoInvalido);
+                ResultView.Mensagem =
+                    MensagemViewHelper.SetBadRequest(MensagemPadraoEnum.IdentificadorDepositoInvalido);
 
                 return ResultView;
             }
@@ -136,13 +138,15 @@ namespace WebZi.Plataform.Data.Services.Deposito
                 DataFimHorarioVerao = DateTimeHelper.GetBrazilLastDaylightSavingDay(DataHoraAtual.Year - 1);
             }
 
-            bool HorarioVerao = DataHoraAtual.Date >= DataInicioHorarioVerao.Date && DataHoraAtual.Date <= DataFimHorarioVerao.Date;
+            bool HorarioVerao = DataHoraAtual.Date >= DataInicioHorarioVerao.Date &&
+                                DataHoraAtual.Date <= DataFimHorarioVerao.Date;
 
             if (HorarioVerao && EstadoPrincipal != null && Estado != null)
             {
                 if (EstadoPrincipal.UtcVeraoId > Estado.UtcId)
                 {
-                    DataHoraAtual = DataHoraAtual.AddHours((double)(EstadoPrincipal.UtcVeraoId - Estado.UtcVeraoId) * -1);
+                    DataHoraAtual =
+                        DataHoraAtual.AddHours((double)(EstadoPrincipal.UtcVeraoId - Estado.UtcVeraoId) * -1);
                 }
                 else if (EstadoPrincipal.UtcVeraoId < Estado.UtcVeraoId)
                 {
@@ -153,13 +157,18 @@ namespace WebZi.Plataform.Data.Services.Deposito
             return DataHoraAtual;
         }
 
+        /// <summary>
+        /// Lista os depósitos vinculados a um usuário específico.
+        /// </summary>
+        /// <param name="UsuarioId">Identificador do usuário.</param>
+        /// <returns>Retorna a listagem de depósitos associados ao usuário.</returns>
         public async Task<DepositoListDTO> ListAsync(int UsuarioId)
         {
             DepositoListDTO ResultView = new();
 
             List<UsuarioDepositoModel> result = await _context.UsuarioDeposito
                 .Include(x => x.Deposito)
-                    .ThenInclude(d => d.Endereco)
+                .ThenInclude(d => d.Endereco)
                 .Where(x => x.UsuarioId == UsuarioId)
                 .AsNoTracking()
                 .ToListAsync();
@@ -183,6 +192,44 @@ namespace WebZi.Plataform.Data.Services.Deposito
             {
                 ResultView.Mensagem = MensagemViewHelper.SetNotFound();
             }
+
+            return ResultView;
+        }
+
+        /// <summary>
+        /// Lista os depósitos, podendo ser filtrados por cliente, com suporte à paginação.
+        /// </summary>
+        /// <param name="clienteId">Identificador opcional do cliente para filtragem.</param>
+        /// <param name="take">Quantidade de registros a serem retornados.</param>
+        /// <param name="skip">Quantidade de registros a serem ignorados.</param>
+        /// <param name="ct">Token de cancelamento.</param>
+        /// <returns>Retorna a listagem de depósitos para vinculação a usuários.</returns>
+        public async Task<DepositoVincularAUsuariosListDTO> ListAsync(int? clienteId, byte? take, byte? skip, CancellationToken ct)
+        {
+            DepositoVincularAUsuariosListDTO ResultView = new();
+            var limit = take.HasValue && take.Value > 0 ? take.Value : 20;
+            var offset = skip.HasValue && skip.Value >= 0 ? skip.Value : 0;
+            int? targetClienteId = clienteId.HasValue && clienteId.Value > 0 ? clienteId.Value : null;
+
+            var result = await _context.ClienteDeposito
+                .Where(x => (targetClienteId == null || x.ClienteId == targetClienteId) && x.FlagAtivo == "S" && x.Deposito.FlagAtivo == "S")
+                .Skip(offset)
+                .Take(limit)
+                .AsNoTracking()
+                .Select(x => new DepositoVincularAUsuariosDTO
+                {
+                    IdentificadorCliente = x.ClienteId,
+                    IdentificadorDeposito = x.DepositoId,
+                    Nome = x.Deposito.Nome,
+                    FlagAtivo = x.Deposito.FlagAtivo
+                })
+                .ToListAsync(ct);
+
+            ResultView.Listagem = result;
+
+            ResultView.Mensagem = result.Count > 0
+                ? MensagemViewHelper.SetFound(result.Count)
+                : MensagemViewHelper.SetNotFound();
 
             return ResultView;
         }

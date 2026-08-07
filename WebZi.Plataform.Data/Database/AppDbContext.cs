@@ -365,6 +365,8 @@ namespace WebZi.Plataform.Data.Database
 
         public DbSet<PessoaModel> Pessoa { get; set; }
 
+        public DbSet<PessoaDocumentoIdentificacaoModel> PessoaDocumentoIdentificacao { get; set; }
+
         public DbSet<TipoDocumentoIdentificacaoModel> TipoDocumentoIdentificacao { get; set; }
 
         #endregion Pessoa

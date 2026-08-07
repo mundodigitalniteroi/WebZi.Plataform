@@ -457,6 +457,10 @@ namespace WebZi.Plataform.Data.Services
                 .ForMember(d => d.PerfilAcessoId, o => o.MapFrom(s => s.PerfilAcessoId))
                 .ForMember(d => d.Descricao, o => o.MapFrom(s => s.PerfilAcesso.Descricao));
 
+            CreateMap<SistemaPerfilAcessoModel, PerfilAcessoDTO>()
+                .ForMember(d => d.PerfilAcessoId, o => o.MapFrom(s => s.PerfilAcessoId))
+                .ForMember(d => d.Descricao, o => o.MapFrom(s => s.Descricao));
+
             CreateMap<TiposContatoPessoaModel, TiposContatosPessoaDTO>()
                 .ForMember(d => d.TipoContatoId, o => o.MapFrom(s => s.TipoContatoId))
                 .ForMember(d => d.TipoContato, o => o.MapFrom(s => s.TiposContatos.Descricao))
