@@ -198,7 +198,7 @@ namespace WebZi.Plataform.Data.Services.Usuario
             ResultView.Mensagem = MensagemViewHelper.SetFound();
 
             int? isSenhaInicial = _context.Database.SqlQueryRaw<int>(
-                "SELECT TOP 1 1 FROM dbo.tb_dep_usuarios WHERE id_usuario = @id AND senha1 = HASHBYTES('MD5', 'INICIAL123')",
+                "SELECT TOP 1 1 AS Value FROM dbo.tb_dep_usuarios WHERE id_usuario = @id AND senha1 = HASHBYTES('MD5', 'INICIAL123')",
                 new SqlParameter("@id", result.UsuarioId)
             ).FirstOrDefault();
 
