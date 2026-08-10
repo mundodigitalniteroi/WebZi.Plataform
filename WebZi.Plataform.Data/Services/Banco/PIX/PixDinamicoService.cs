@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
 using WebZi.Plataform.CrossCutting.Strings;
@@ -259,6 +259,11 @@ namespace WebZi.Plataform.Data.Services.Banco.PIX
                 .AsNoTracking()
                 .OrderByDescending(x => x.DataCadastro)
                 .FirstOrDefaultAsync(x => x.FaturamentoId == Faturamento.FaturamentoId);
+
+            if (pixDinamico == null)
+            {
+                return await CreateAsync(FaturamentoId, UsuarioId);
+            }
 
             if (pixDinamico.PixDinamicoTipoStatusGeracaoId != 2) // CONCLUIDA
             {
