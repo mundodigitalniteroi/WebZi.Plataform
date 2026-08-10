@@ -1,6 +1,7 @@
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Options;
 using System.Data;
 using System.Globalization;
 using System.Text.RegularExpressions;
@@ -15,6 +16,7 @@ using WebZi.Plataform.Data.Services.Atendimento;
 using WebZi.Plataform.Data.Services.Banco.PIX;
 using WebZi.Plataform.Data.Services.ClienteDeposito;
 using WebZi.Plataform.Data.Services.Deposito;
+using WebZi.Plataform.Data.Services.DetranHub;
 using WebZi.Plataform.Data.Services.Localizacao;
 using WebZi.Plataform.Data.Services.Sistema;
 using WebZi.Plataform.Data.Services.WebServices;
@@ -27,6 +29,7 @@ using WebZi.Plataform.Domain.DTO.Faturamento.Simulacao;
 using WebZi.Plataform.Domain.DTO.Generic;
 using WebZi.Plataform.Domain.DTO.Liberacao;
 using WebZi.Plataform.Domain.DTO.Sistema;
+using WebZi.Plataform.Domain.DTO.WebServices.DetranRio;
 using WebZi.Plataform.Domain.DTO.WebServices.Nfe;
 using WebZi.Plataform.Domain.DTO.WebServices.Nfse;
 using WebZi.Plataform.Domain.Enums;
@@ -38,6 +41,7 @@ using WebZi.Plataform.Domain.Models.GRV;
 using WebZi.Plataform.Domain.Models.Liberacao;
 using WebZi.Plataform.Domain.Models.Nfe;
 using WebZi.Plataform.Domain.Models.Sistema;
+using WebZi.Plataform.Domain.Options;
 using WebZi.Plataform.Domain.Services.GRV;
 using WebZi.Plataform.Domain.ViewModel.Faturamento;
 using WebZi.Plataform.Domain.ViewModel.Pagamento;
@@ -52,17 +56,19 @@ namespace WebZi.Plataform.Data.Services.Faturamento
         private readonly AppDbContext _context;
         private readonly IMapper _mapper;
         private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IOptions<DetranHubOptions> _detranHubOptions;
 
         public FaturamentoService(AppDbContext context)
         {
             _context = context;
         }
 
-        public FaturamentoService(AppDbContext context, IMapper mapper, IHttpClientFactory httpClientFactory)
+        public FaturamentoService(AppDbContext context, IMapper mapper, IHttpClientFactory httpClientFactory, IOptions<DetranHubOptions> detranHubOptions = null)
         {
             _context = context;
             _mapper = mapper;
             _httpClientFactory = httpClientFactory;
+            _detranHubOptions = detranHubOptions;
         }
 
         private static FaturamentoComposicaoModel AplicarDesconto(FaturamentoComposicaoModel FaturamentoComposicao,
@@ -1514,13 +1520,29 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             ResultView.Mensagem = await new ClienteDepositoService(_context)
                 .ValidateClienteDepositoAsync(model.IdentificadorCliente.Value, model.IdentificadorDeposito.Value);
 
-            DetranRioService DetranRioService = new(_context, _mapper);
-
             if (!Grv.Placa.IsNullOrWhiteSpace() || !Grv.Chassi.IsNullOrWhiteSpace())
             {
-                ResultView.Veiculo = Grv.Placa.IsPlaca()
-                    ? await DetranRioService.GetViewByPlacaAsync(Grv.Placa)
-                    : await DetranRioService.GetViewByChassiAsync(Grv.Chassi);
+                var detranHubService = _detranHubOptions != null
+                    ? new DetranHubService(_httpClientFactory, _mapper, _detranHubOptions)
+                    : new DetranHubService(_httpClientFactory, _mapper);
+
+                string placa = Grv.Placa.IsPlaca() ? Grv.Placa : null;
+                string chassi = placa == null ? Grv.Chassi : null;
+
+                var detranHubResult = await detranHubService.SearchToPlateOrChassi(placa, chassi);
+
+                if (detranHubResult?.Veiculo != null)
+                {
+                    ResultView.Veiculo = _mapper.Map<DetranRioVeiculoDTO>(detranHubResult.Veiculo);
+                    ResultView.Veiculo.Mensagem = detranHubResult.Mensagem;
+                }
+                else
+                {
+                    ResultView.Veiculo = new DetranRioVeiculoDTO
+                    {
+                        Mensagem = detranHubResult?.Mensagem ?? MensagemViewHelper.SetNotFound("Veículo não encontrado")
+                    };
+                }
 
                 if (ResultView.Veiculo.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
                 {
@@ -2214,10 +2236,27 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             if (!Faturamento.Atendimento.Grv.Placa.IsNullOrWhiteSpace() ||
                 !Faturamento.Atendimento.Grv.Chassi.IsNullOrWhiteSpace())
             {
-                DetranRioService DetranRioService = new(_context, _mapper);
-                ResultView.Veiculo = Faturamento.Atendimento.Grv.Placa.IsPlaca()
-                    ? await DetranRioService.GetViewByPlacaAsync(Faturamento.Atendimento.Grv.Placa)
-                    : await DetranRioService.GetViewByChassiAsync(Faturamento.Atendimento.Grv.Chassi);
+                var detranHubService = _detranHubOptions != null
+                    ? new DetranHubService(_httpClientFactory, _mapper, _detranHubOptions)
+                    : new DetranHubService(_httpClientFactory, _mapper);
+
+                string placa = Faturamento.Atendimento.Grv.Placa.IsPlaca() ? Faturamento.Atendimento.Grv.Placa : null;
+                string chassi = placa == null ? Faturamento.Atendimento.Grv.Chassi : null;
+
+                var detranHubResult = await detranHubService.SearchToPlateOrChassi(placa, chassi);
+
+                if (detranHubResult?.Veiculo != null)
+                {
+                    ResultView.Veiculo = _mapper.Map<DetranRioVeiculoDTO>(detranHubResult.Veiculo);
+                    ResultView.Veiculo.Mensagem = detranHubResult.Mensagem;
+                }
+                else
+                {
+                    ResultView.Veiculo = new DetranRioVeiculoDTO
+                    {
+                        Mensagem = detranHubResult?.Mensagem ?? MensagemViewHelper.SetNotFound("Veículo não encontrado")
+                    };
+                }
             }
 
             ResultView.Atendimento.SaidaParaReparo =
