@@ -2,6 +2,7 @@
 {
     public class SimulacaoFaturamentoDTO
     {
+        public string Status { get; set; }
         public decimal ValorFaturado { get; set; }
 
         public string HoraDiaria { get; set; }

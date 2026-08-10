@@ -2255,7 +2255,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                     IdentificadorDeposito = Grv.DepositoId,
                     IdentificadorAtendimento = Grv.Atendimento?.AtendimentoId ?? 0,
                     IdentificadorFaturamento =
-                        Grv.Atendimento?.ListagemFaturamento?.FirstOrDefault()?.FaturamentoId ?? 0,
+                        Grv.Atendimento?.ListagemFaturamento?.OrderByDescending(x => x.FaturamentoId).FirstOrDefault()?.FaturamentoId ?? 0,
                     StatusOperacaoId = Grv.StatusOperacaoId,
 
                     NumeroProcesso = Grv.NumeroFormularioGrv,

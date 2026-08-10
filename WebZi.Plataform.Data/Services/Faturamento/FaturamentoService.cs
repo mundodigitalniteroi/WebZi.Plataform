@@ -2112,7 +2112,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             ResultView.StatusOperacaoId = Faturamento.Atendimento.Grv.StatusOperacaoId;
             ResultView.StatusOperacaoDescricao = Faturamento.Atendimento.Grv.StatusOperacao?.Descricao;
-            ResultView.Status = Faturamento.Status;
+            ResultView.Faturamento.Status = Faturamento.Status;
 
             ResultView.TipoMeioCobrancaId = Faturamento.TipoMeioCobrancaId;
             if (notas.Count > 0)
@@ -2265,6 +2265,74 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             ResultView.Mensagem = MensagemViewHelper.SetOk();
 
             return ResultView;
+        }
+
+        public async Task<FaturamentoConsultaDTO> ReprocessarFaturamentoAsync(int identificadorFaturamento, int identificadorUsuario, CancellationToken ct)
+        {
+            FaturamentoConsultaDTO ResultView = new();
+
+            var faturamentoAtual = await _context.Faturamento
+                .Include(x => x.Atendimento)
+                .ThenInclude(x => x.Grv)
+                .ThenInclude(x => x.TipoVeiculo)
+                .Include(x => x.Atendimento)
+                .ThenInclude(x => x.Grv)
+                .ThenInclude(x => x.StatusOperacao)
+                .FirstOrDefaultAsync(x => x.FaturamentoId == identificadorFaturamento, cancellationToken: ct);
+
+            if (faturamentoAtual == null)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound("Faturamento não encontrado");
+                return ResultView;
+            }
+
+            if (faturamentoAtual.Status == "P")
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Não é possível reprocessar um faturamento que já foi pago.");
+                return ResultView;
+            }
+
+            var grv = faturamentoAtual.Atendimento?.Grv;
+
+            if (grv == null)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound("GRV do faturamento não encontrado");
+                return ResultView;
+            }
+
+            DateTime dataHoraDeposito = new DepositoService(_context).GetDataHoraPorDeposito(grv.DepositoId);
+
+            CalculoFaturamentoParametroModel parametrosCalculo = new()
+            {
+                DataHoraInicialParaCalculo = grv.DataHoraGuarda!.Value,
+                DataHoraFinalParaCalculo = dataHoraDeposito != DateTime.MinValue ? dataHoraDeposito : DateTime.Now,
+                DataHoraPorDeposito = dataHoraDeposito,
+                FaturarSemGrv = false,
+                IsSimulacao = false,
+                IsComboio = false,
+                StatusOperacaoId = grv.StatusOperacaoId,
+                IsLeilaoStatus = new[] { "1", "3", "7" }.Contains(grv.StatusOperacaoId),
+                FaturamentoProdutoId = grv.FaturamentoProdutoId,
+                GrvId = grv.GrvId,
+                NumeroFormularioGrv = grv.NumeroFormularioGrv,
+                TipoVeiculoId = grv.TipoVeiculoId,
+                TipoMeioCobrancaId = faturamentoAtual.TipoMeioCobrancaId,
+                ClienteDeposito = await _context.ClienteDeposito
+                    .Include(x => x.Cliente)
+                    .ThenInclude(x => x.Endereco)
+                    .Include(x => x.Deposito)
+                    .ThenInclude(x => x.Endereco)
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(x => x.ClienteId == grv.ClienteId && x.DepositoId == grv.DepositoId, cancellationToken: ct)
+            };
+
+            FaturamentoModel novoFaturamento = Faturar(parametrosCalculo, out var  calculoDiarias);
+            novoFaturamento.UsuarioCadastroId = identificadorUsuario;
+
+            _context.Faturamento.Add(novoFaturamento);
+            await _context.SaveChangesAsync(ct);
+
+            return await ConsultarFaturamentoAsync(novoFaturamento.FaturamentoId, identificadorUsuario, ct);
         }
 
         private async Task<MensagemDTO> CreateFaturamentoCartao(FaturamentoModel faturamento,
