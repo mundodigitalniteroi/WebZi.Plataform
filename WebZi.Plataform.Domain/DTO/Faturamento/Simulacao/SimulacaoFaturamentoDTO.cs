@@ -1,7 +1,8 @@
-﻿namespace WebZi.Plataform.Domain.DTO.Faturamento.Simulacao
+namespace WebZi.Plataform.Domain.DTO.Faturamento.Simulacao
 {
     public class SimulacaoFaturamentoDTO
     {
+        public int FaturamentoId { get; set; }
         public string Status { get; set; }
         public decimal ValorFaturado { get; set; }
 

@@ -107,12 +107,13 @@ namespace WebZi.Plataform.Data.Services.WebServices
 
                 return ResultView;
             }
-            else if (Faturamento.Status != "P")
+            else if (Faturamento.ListagemBoleto == null || Faturamento.ListagemBoleto.Count == 0)
             {
-                return Create(FaturamentoId, UsuarioId);
-            }
-            else if (Faturamento.ListagemBoleto?.Count == 0)
-            {
+                if (Faturamento.Status != "P")
+                {
+                    return Create(FaturamentoId, UsuarioId);
+                }
+
                 ResultView.Mensagem = MensagemViewHelper.SetNotFound("Boleto não encontrado");
 
                 return ResultView;
@@ -121,6 +122,18 @@ namespace WebZi.Plataform.Data.Services.WebServices
             BoletoModel Boleto = Faturamento.ListagemBoleto
                 .OrderByDescending(x => x.DataEmissao)
                 .FirstOrDefault();
+
+            if (Boleto == null)
+            {
+                if (Faturamento.Status != "P")
+                {
+                    return Create(FaturamentoId, UsuarioId);
+                }
+
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound("Boleto não encontrado");
+
+                return ResultView;
+            }
 
             BucketArquivoModel BucketArquivo = _context.BucketArquivo
                 .Include(x => x.BucketNomeTabelaOrigem)
@@ -164,6 +177,11 @@ namespace WebZi.Plataform.Data.Services.WebServices
                 }
                 else
                 {
+                    if (Faturamento.Status != "P")
+                    {
+                        return Create(FaturamentoId, UsuarioId);
+                    }
+
                     ResultView.Mensagem = MensagemViewHelper.SetNotFound("A imagem do Boleto não foi gerado ou foi excluído");
 
                     return ResultView;

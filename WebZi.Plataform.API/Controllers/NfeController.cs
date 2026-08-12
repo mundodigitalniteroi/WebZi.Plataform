@@ -76,7 +76,7 @@ public class NfeController : ControllerBase
     }
 
     [HttpPost("GerarNota")]
-    public async Task<ActionResult<MensagemDTO>> GerarNota(int grvId, int usuarioId)
+    public async Task<ActionResult<MensagemDTO>> GerarNota(int grvId, int usuarioId, CancellationToken ct)
     {
         if (!ModelState.IsValid)
         {
@@ -89,7 +89,7 @@ public class NfeController : ControllerBase
         {
             ResultView = await _provider
                 .GetService<WSNfseService>()
-                .CreateNfseAsync(grvId, usuarioId);
+                .CreateNfseAsync(grvId, usuarioId, ct);
 
             return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
         }

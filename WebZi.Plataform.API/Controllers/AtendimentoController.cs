@@ -298,33 +298,33 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpPost("CadastrarSaidaParaReparo")]
-        public async Task<ActionResult<MensagemDTO>> CadastrarSaidaParaReparo(SaidaParaReparoParameters parameters)
+        public async Task<ActionResult<SaidaParaReparoDTO>> CadastrarSaidaParaReparo(SaidaParaReparoParameters parameters, CancellationToken ct)
         {
-            MensagemDTO ResultView = new();
+            SaidaParaReparoDTO ResultView = new();
             try
             {
                 ResultView = await _provider
                     .GetService<AtendimentoService>()
-                    .CreateSaidaReparo(parameters);
-                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+                    .CreateSaidaReparo(parameters, ct);
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
             catch (Exception ex)
             {
-                ResultView = MensagemViewHelper.SetInternalServerError(ex);
-                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
         }
 
         [HttpPut("AtualizarPrevisaoRetorno")]
         public async Task<ActionResult<MensagemDTO>> AtualizarSaidaParaReparo(
-            SaidaParaReparoUpdateParameters parameters)
+            SaidaParaReparoUpdateParameters parameters, CancellationToken ct)
         {
             MensagemDTO ResultView = new();
             try
             {
                 ResultView = await _provider
                     .GetService<AtendimentoService>()
-                    .UpdateSaidaReparo(parameters);
+                    .UpdateSaidaReparo(parameters, ct);
                 return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
             }
             catch (Exception ex)

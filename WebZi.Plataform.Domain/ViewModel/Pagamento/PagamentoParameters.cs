@@ -10,6 +10,8 @@ namespace WebZi.Plataform.Domain.ViewModel.Pagamento
 
         [Required(ErrorMessage = "Propriedade obrigatória")]
         public int IdentificadorUsuario { get; set; }
+
+        public bool SaidaParaReparo { get; set; } = false;
         public List<PagamentoParameterCartao> Cartoes { get; set; }
     }
 

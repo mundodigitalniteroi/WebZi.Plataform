@@ -255,6 +255,14 @@ namespace WebZi.Plataform.Data.Services.Banco.PIX
                 return ResultView;
             }
 
+            if (Faturamento.TipoMeioCobranca.Alias != TipoMeioCobrancaAliasEnum.PixDinamico)
+            {
+                ResultView.Mensagem = MensagemViewHelper
+                    .SetBadRequest($"Esse Faturamento está cadastrado em outra Forma de Pagamento: {Faturamento.TipoMeioCobranca.Descricao}");
+
+                return ResultView;
+            }
+
             PixDinamicoModel pixDinamico = await _context.PixDinamico
                 .AsNoTracking()
                 .OrderByDescending(x => x.DataCadastro)
@@ -262,7 +270,14 @@ namespace WebZi.Plataform.Data.Services.Banco.PIX
 
             if (pixDinamico == null)
             {
-                return await CreateAsync(FaturamentoId, UsuarioId);
+                if (Faturamento.Status != "P")
+                {
+                    return await CreateAsync(FaturamentoId, UsuarioId);
+                }
+
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound("PIX Dinâmico não encontrado");
+
+                return ResultView;
             }
 
             if (pixDinamico.PixDinamicoTipoStatusGeracaoId != 2) // CONCLUIDA

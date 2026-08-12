@@ -12,320 +12,319 @@ using WebZi.Plataform.Domain.DTO.Report;
 using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.ViewModel.Faturamento;
 
-namespace WebZi.Plataform.API.Controllers
+namespace WebZi.Plataform.API.Controllers;
+
+[Route("api/[controller]")]
+[Authorize]
+[ApiController]
+public class FaturamentoController : ControllerBase
 {
-    [Route("api/[controller]")]
-    [Authorize]
-    [ApiController]
-    public class FaturamentoController : ControllerBase
+    private readonly IServiceProvider _provider;
+
+    public FaturamentoController(IServiceProvider provider)
     {
-        private readonly IServiceProvider _provider;
+        _provider = provider;
+    }
 
-        public FaturamentoController(IServiceProvider provider)
+    [HttpGet("AlterarFormaPagamento")]
+    // TODO: [Authorize]
+    public async Task<ActionResult<MensagemDTO>> AlterarFormaPagamento(int IdentificadorFaturamento, byte IdentificadorNovaFormaPagamento, int IdentificadorUsuario, CancellationToken ct)
+    {
+        if (!ModelState.IsValid)
         {
-            _provider = provider;
+            return BadRequest(ModelState);
         }
 
-        [HttpGet("AlterarFormaPagamento")]
-        // TODO: [Authorize]
-        public async Task<ActionResult<MensagemDTO>> AlterarFormaPagamento(int IdentificadorFaturamento, byte IdentificadorNovaFormaPagamento, int IdentificadorUsuario)
+        MensagemDTO ResultView;
+
+        try
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            ResultView = await _provider
+                .GetService<FaturamentoService>()
+                .UpdateFormaPagamentoAsync(IdentificadorFaturamento, IdentificadorNovaFormaPagamento, IdentificadorUsuario, ct);
 
-            MensagemDTO ResultView;
-
-            try
-            {
-                ResultView = await _provider
-                    .GetService<FaturamentoService>()
-                    .UpdateFormaPagamentoAsync(IdentificadorFaturamento, IdentificadorNovaFormaPagamento, IdentificadorUsuario);
-
-                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
-            }
-            catch (Exception ex)
-            {
-                ResultView = MensagemViewHelper.SetInternalServerError(ex);
-
-                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
-            }
+            return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
         }
-
-        [HttpGet("GerarGuiaPagamentoReboqueEstadia")]
-        // TODO: [Authorize]
-        public async Task<ActionResult<GuiaPagamentoReboqueEstadiaDTO>> GerarGuiaPagamentoReboqueEstadia(int IdentificadorFaturamento, int IdentificadorUsuario)
+        catch (Exception ex)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            ResultView = MensagemViewHelper.SetInternalServerError(ex);
 
-            GuiaPagamentoReboqueEstadiaDTO ResultView = new();
-
-            try
-            {
-                ResultView = await _provider
-                    .GetService<GuiaPagamentoReboqueEstadiaService>()
-                    .GetGuiaPagamentoReboqueEstadiaAsync(IdentificadorFaturamento, IdentificadorUsuario);
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-            catch (Exception ex)
-            {
-                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-        }
-
-        [HttpGet("ConsultarGuiaPagamentoReboqueEstadia")]
-        // TODO: [Authorize]
-        public async Task<ActionResult<GuiaPagamentoReboqueEstadiaDTO>> ConsultarGuiaPagamentoReboqueEstadia(int IdentificadorFaturamento, int IdentificadorUsuario)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            GuiaPagamentoReboqueEstadiaDTO ResultView = new();
-
-            try
-            {
-                ResultView = await _provider
-                    .GetService<GuiaPagamentoReboqueEstadiaService>()
-                    .ConsultarGuiaPagamentoReboqueEstadiaAsync(IdentificadorFaturamento, IdentificadorUsuario);
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-            catch (Exception ex)
-            {
-                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-        }
-
-        [HttpGet("ListarPorIdentificadorAtendimento")]
-        // TODO: [Authorize]
-        public async Task<ActionResult<FaturamentoListDTO>> ListarPorIdentificadorAtendimento(int IdentificadorAtendimento, int IdentificadorUsuario, bool SelecionarFaturasCanceladas)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            FaturamentoListDTO ResultView = new();
-
-            try
-            {
-                ResultView = await _provider
-                    .GetService<FaturamentoService>()
-                    .ListByAtendimentoIdAsync(IdentificadorAtendimento, IdentificadorUsuario, SelecionarFaturasCanceladas);
-
-                return StatusCode((int)HtmlStatusCodeEnum.Ok, ResultView);
-            }
-            catch (Exception ex)
-            {
-                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-        }
-
-        [HttpGet("ListarPorIdentificadorProcesso")]
-        // TODO: [Authorize]
-        public async Task<ActionResult<FaturamentoListDTO>> ListarPorIdentificadorProcesso(int IdentificadorProcesso, int IdentificadorUsuario, bool SelecionarFaturasCanceladas)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            FaturamentoListDTO ResultView = new();
-
-            try
-            {
-                ResultView = await _provider
-                    .GetService<FaturamentoService>()
-                    .ListByGrvIdAsync(IdentificadorProcesso, IdentificadorUsuario, SelecionarFaturasCanceladas);
-
-                return StatusCode((int)HtmlStatusCodeEnum.Ok, ResultView);
-            }
-            catch (Exception ex)
-            {
-                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-        }
-
-        [HttpGet("ListarServicoAssociadoTipoVeiculo")]
-        // TODO: [Authorize]
-        public async Task<ActionResult<ServicoAssociadoTipoVeiculoListDTO>> ListarServicoAssociadoTipoVeiculo(int IdentificadorProcesso, int IdentificadorUsuario, CancellationToken ct)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            ServicoAssociadoTipoVeiculoListDTO ResultView = new();
-
-            try
-            {
-                ResultView = await _provider
-                    .GetService<FaturamentoService>()
-                    .ListServicoAssociadoTipoVeiculoAsync(IdentificadorProcesso, IdentificadorUsuario, ct);
-
-                return StatusCode((int)HtmlStatusCodeEnum.Ok, ResultView);
-            }
-            catch (Exception ex)
-            {
-                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-        }
-
-        [HttpGet("ListarServicoAssociadoGrv")]
-        // TODO: [Authorize]
-        public async Task<ActionResult<ServicoAssociadoTipoVeiculoListDTO>> ListarServicoAssociadoGrv(int IdentificadorProcesso, int IdentificadorUsuario, CancellationToken ct)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            ServicoAssociadoTipoVeiculoListDTO ResultView = new();
-
-            try
-            {
-                ResultView = await _provider
-                    .GetService<FaturamentoService>()
-                    .ListServicoAssociadoTipoVeiculoAsync(IdentificadorProcesso, IdentificadorUsuario, ct);
-
-                return StatusCode((int)HtmlStatusCodeEnum.Ok, ResultView);
-            }
-            catch (Exception ex)
-            {
-                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-        }
-
-        [HttpGet("ListarTipoCobranca")]
-        // TODO: [Authorize]
-        public async Task<ActionResult<TabelaGenericaListDTO>> ListarTipoCobranca()
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            TabelaGenericaListDTO ResultView = new();
-
-            try
-            {
-                ResultView = await _provider
-                    .GetService<TabelaGenericaService>()
-                    .ListToViewModelAsync("FAT_TIPO_COBRANCA");
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-            catch (Exception ex)
-            {
-                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-        }
-
-        [HttpPost("Vincular")]
-        
-        
-        [HttpPost("Simulacao")]
-        [IgnoreAntiforgeryToken]
-        public async Task<ActionResult<SimulacaoDTO>> Simular([FromBody] SimulacaoParameters Parametros, CancellationToken ct)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            SimulacaoDTO ResultView = new();
-
-            try
-            {
-                ResultView = await _provider
-                    .GetService<FaturamentoService>()
-                    .SimularAsync(Parametros, ct);
-
-                ResultView.DataHoraSimulacao = DateTime.Now;
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-            catch (Exception ex)
-            {
-                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-        }
-
-        [HttpGet("Consultar")]
-        [IgnoreAntiforgeryToken]
-        public async Task<ActionResult<FaturamentoConsultaDTO>> Consultar(int identificadorFaturamento, int identificadorUsuario, CancellationToken ct)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            FaturamentoConsultaDTO ResultView = new();
-
-            try
-            {
-                ResultView = await _provider
-                    .GetService<FaturamentoService>()
-                    .ConsultarFaturamentoAsync(identificadorFaturamento, identificadorUsuario, ct);
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-            catch (Exception ex)
-            {
-                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-        }
-
-        [HttpPost("ReprocessarFaturamento")]
-        [IgnoreAntiforgeryToken]
-        public async Task<ActionResult<FaturamentoConsultaDTO>> ReprocessarFaturamento(int identificadorFaturamento, int identificadorUsuario, CancellationToken ct)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            FaturamentoConsultaDTO ResultView = new();
-
-            try
-            {
-                ResultView = await _provider
-                    .GetService<FaturamentoService>()
-                    .ReprocessarFaturamentoAsync(identificadorFaturamento, identificadorUsuario, ct);
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
-            catch (Exception ex)
-            {
-                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
-
-                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-            }
+            return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
         }
     }
+
+    [HttpGet("GerarGuiaPagamentoReboqueEstadia")]
+    // TODO: [Authorize]
+    public async Task<ActionResult<GuiaPagamentoReboqueEstadiaDTO>> GerarGuiaPagamentoReboqueEstadia(int IdentificadorFaturamento, int IdentificadorUsuario)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        GuiaPagamentoReboqueEstadiaDTO ResultView = new();
+
+        try
+        {
+            ResultView = await _provider
+                .GetService<GuiaPagamentoReboqueEstadiaService>()
+                .GetGuiaPagamentoReboqueEstadiaAsync(IdentificadorFaturamento, IdentificadorUsuario);
+
+            return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+        }
+        catch (Exception ex)
+        {
+            ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+
+            return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+        }
+    }
+
+    [HttpGet("ConsultarGuiaPagamentoReboqueEstadia")]
+    // TODO: [Authorize]
+    public async Task<ActionResult<GuiaPagamentoReboqueEstadiaDTO>> ConsultarGuiaPagamentoReboqueEstadia(int IdentificadorFaturamento, int IdentificadorUsuario)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        GuiaPagamentoReboqueEstadiaDTO ResultView = new();
+
+        try
+        {
+            ResultView = await _provider
+                .GetService<GuiaPagamentoReboqueEstadiaService>()
+                .ConsultarGuiaPagamentoReboqueEstadiaAsync(IdentificadorFaturamento, IdentificadorUsuario);
+
+            return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+        }
+        catch (Exception ex)
+        {
+            ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+
+            return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+        }
+    }
+
+    [HttpGet("ListarPorIdentificadorAtendimento")]
+    // TODO: [Authorize]
+    public async Task<ActionResult<FaturamentoListDTO>> ListarPorIdentificadorAtendimento(int IdentificadorAtendimento, int IdentificadorUsuario, bool SelecionarFaturasCanceladas)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        FaturamentoListDTO ResultView = new();
+
+        try
+        {
+            ResultView = await _provider
+                .GetService<FaturamentoService>()
+                .ListByAtendimentoIdAsync(IdentificadorAtendimento, IdentificadorUsuario, SelecionarFaturasCanceladas);
+
+            return StatusCode((int)HtmlStatusCodeEnum.Ok, ResultView);
+        }
+        catch (Exception ex)
+        {
+            ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+
+            return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+        }
+    }
+
+    [HttpGet("ListarPorIdentificadorProcesso")]
+    // TODO: [Authorize]
+    public async Task<ActionResult<FaturamentoListDTO>> ListarPorIdentificadorProcesso(int IdentificadorProcesso, int IdentificadorUsuario, bool SelecionarFaturasCanceladas)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        FaturamentoListDTO ResultView = new();
+
+        try
+        {
+            ResultView = await _provider
+                .GetService<FaturamentoService>()
+                .ListByGrvIdAsync(IdentificadorProcesso, IdentificadorUsuario, SelecionarFaturasCanceladas);
+
+            return StatusCode((int)HtmlStatusCodeEnum.Ok, ResultView);
+        }
+        catch (Exception ex)
+        {
+            ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+
+            return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+        }
+    }
+
+    [HttpGet("ListarServicoAssociadoTipoVeiculo")]
+    // TODO: [Authorize]
+    public async Task<ActionResult<ServicoAssociadoTipoVeiculoListDTO>> ListarServicoAssociadoTipoVeiculo(int IdentificadorProcesso, int IdentificadorUsuario, CancellationToken ct)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        ServicoAssociadoTipoVeiculoListDTO ResultView = new();
+
+        try
+        {
+            ResultView = await _provider
+                .GetService<FaturamentoService>()
+                .ListServicoAssociadoTipoVeiculoAsync(IdentificadorProcesso, IdentificadorUsuario, ct);
+
+            return StatusCode((int)HtmlStatusCodeEnum.Ok, ResultView);
+        }
+        catch (Exception ex)
+        {
+            ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+
+            return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+        }
+    }
+
+    [HttpGet("ListarServicoAssociadoGrv")]
+    // TODO: [Authorize]
+    public async Task<ActionResult<ServicoAssociadoTipoVeiculoListDTO>> ListarServicoAssociadoGrv(int IdentificadorProcesso, int IdentificadorUsuario, CancellationToken ct)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        ServicoAssociadoTipoVeiculoListDTO ResultView = new();
+
+        try
+        {
+            ResultView = await _provider
+                .GetService<FaturamentoService>()
+                .ListServicoAssociadoTipoVeiculoAsync(IdentificadorProcesso, IdentificadorUsuario, ct);
+
+            return StatusCode((int)HtmlStatusCodeEnum.Ok, ResultView);
+        }
+        catch (Exception ex)
+        {
+            ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+
+            return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+        }
+    }
+
+    [HttpGet("ListarTipoCobranca")]
+    // TODO: [Authorize]
+    public async Task<ActionResult<TabelaGenericaListDTO>> ListarTipoCobranca()
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        TabelaGenericaListDTO ResultView = new();
+
+        try
+        {
+            ResultView = await _provider
+                .GetService<TabelaGenericaService>()
+                .ListToViewModelAsync("FAT_TIPO_COBRANCA");
+
+            return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+        }
+        catch (Exception ex)
+        {
+            ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+
+            return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+        }
+    }
+
+    [HttpPost("Vincular")]
+        
+        
+    [HttpPost("Simulacao")]
+    [IgnoreAntiforgeryToken]
+    public async Task<ActionResult<SimulacaoDTO>> Simular([FromBody] SimulacaoParameters Parametros, CancellationToken ct)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        SimulacaoDTO ResultView = new();
+
+        try
+        {
+            ResultView = await _provider
+                .GetService<FaturamentoService>()
+                .SimularAsync(Parametros, ct);
+
+            ResultView.DataHoraSimulacao = DateTime.Now;
+
+            return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+        }
+        catch (Exception ex)
+        {
+            ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+
+            return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+        }
+    }
+
+    [HttpGet("Consultar")]
+    [IgnoreAntiforgeryToken]
+    public async Task<ActionResult<FaturamentoConsultaDTO>> Consultar(int identificadorFaturamento, int identificadorUsuario, CancellationToken ct)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        FaturamentoConsultaDTO ResultView = new();
+
+        try
+        {
+            ResultView = await _provider
+                .GetService<FaturamentoService>()
+                .ConsultarFaturamentoAsync(identificadorFaturamento, identificadorUsuario, ct);
+
+            return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+        }
+        catch (Exception ex)
+        {
+            ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+
+            return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+        }
+    }
+
+    // [HttpPost("ReprocessarFaturamento")]
+    // [IgnoreAntiforgeryToken]
+    // public async Task<ActionResult<FaturamentoConsultaDTO>> ReprocessarFaturamento(int identificadorFaturamento, int identificadorUsuario, CancellationToken ct)
+    // {
+    //     if (!ModelState.IsValid)
+    //     {
+    //         return BadRequest(ModelState);
+    //     }
+    //
+    //     FaturamentoConsultaDTO ResultView = new();
+    //
+    //     try
+    //     {
+    //         ResultView = await _provider
+    //             .GetService<FaturamentoService>()
+    //             .ReprocessarFaturamentoAsync(identificadorFaturamento, identificadorUsuario, ct);
+    //
+    //         return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+    //
+    //         return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+    //     }
+    // }
 }

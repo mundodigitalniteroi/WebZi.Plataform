@@ -37,7 +37,7 @@ namespace WebZi.Plataform.Domain.DTO.Faturamento
         public List<NFERetornoFaturamentoDTO?> NotaFiscal { get; set; }
         public AtendimentoDTO Atendimento { get; set; }
 
-        public SimulacaoFaturamentoDTO Faturamento { get; set; }
+        public List<SimulacaoFaturamentoDTO> Faturamentos { get; set; } = new();
 
         public LiberacaoEspecialDTO? LiberacaoEspecial { get; set; }
 

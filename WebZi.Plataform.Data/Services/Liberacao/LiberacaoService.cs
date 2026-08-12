@@ -724,7 +724,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                         await _context.SaidaReparo
                             .AsTracking()
                             .Where(x => x.Id == Parameters.IdentificadorSaidaReparo)
-                            .UpdateAsync(x => new Domain.Models.Atendimento.AtendimentoSaidaParaReparoModel
+                            .UpdateAsync(x => new AtendimentoSaidaParaReparoModel
                             {
                                 DataRetorno = DateTime.Now,
                                 IdUsuario = Parameters.IdentificadorUsuario
@@ -824,7 +824,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
             };
         }
 
-        public async Task<MensagemDTO> EntregaAsync(EntregaParameters Parameters)
+        public async Task<MensagemDTO> EntregaAsync(EntregaParameters Parameters, CancellationToken ct)
         {
             MensagemDTO ResultView = new GrvService(_context)
                 .ValidateInputGrv(Parameters.IdentificadorProcesso, Parameters.IdentificadorUsuario);
@@ -864,7 +864,8 @@ namespace WebZi.Plataform.Data.Services.Liberacao
             TipoLiberacaoModel TipoLiberacao = await _context
                 .TipoLiberacao
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.TipoLiberacaoId == Parameters.IdentificadorTipoLiberacao);
+                .FirstOrDefaultAsync(x => x.TipoLiberacaoId == Parameters.IdentificadorTipoLiberacao,
+                    cancellationToken: ct);
 
 
             if (Parameters.IdentificadorTipoLiberacao <= 0)
@@ -875,13 +876,15 @@ namespace WebZi.Plataform.Data.Services.Liberacao
 
             GrvModel Grv = await _context.Grv
                 .Include(x => x.StatusOperacao)
+                .Include(x => x.Atendimento)
+                .ThenInclude(x => x.ListagemFaturamento.Where(x => x.Status != "C"))
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.GrvId == Parameters.IdentificadorProcesso);
+                .FirstOrDefaultAsync(x => x.GrvId == Parameters.IdentificadorProcesso, cancellationToken: ct);
 
             var permitirEmissao = await _context.FaturamentoRegra
                 .AnyAsync(x =>
                     x.ClienteId == Grv.ClienteId && x.DepositoId == Grv.DepositoId &&
-                    x.FaturamentoRegraTipoId == 11);
+                    x.FaturamentoRegraTipoId == 11, cancellationToken: ct);
 
             if (Grv.StatusOperacao.StatusOperacaoId != "T" && Grv.StatusOperacao.StatusOperacaoId != "U" &&
                 Grv.StatusOperacao.StatusOperacaoId != "R")
@@ -891,27 +894,23 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                     $"Descrição do Status atual: {Grv.StatusOperacao.Descricao.ToUpper()}");
             }
 
-            List<FaturamentoModel> Faturamentos = await _context.Faturamento
-                .Include(x => x.Atendimento)
-                .Where(x => x.Atendimento.GrvId == Parameters.IdentificadorProcesso && x.Status != "C")
-                .AsNoTracking()
-                .ToListAsync();
+            List<FaturamentoModel> Faturamentos =
+                Grv.Atendimento?.ListagemFaturamento.OrderByDescending(x => x.DataCadastro).ToList();
 
-            if (Faturamentos == null)
+            if (Faturamentos == null || !Faturamentos.Any())
             {
                 return MensagemViewHelper.SetNotFound(MensagemPadraoEnum.NaoEncontradoFaturamento);
             }
 
             if (Faturamentos.Exists(x => x.Status == "N"))
             {
-                return MensagemViewHelper.SetBadRequest($"Este Processo possui uma Fatura não paga");
+                return MensagemViewHelper.SetBadRequest("Este Processo possui uma Fatura não paga");
             }
 
             DateTime DataHoraPorDeposito = new DepositoService(_context)
                 .GetDataHoraPorDeposito(Grv.DepositoId);
 
             FaturamentoModel UltimoFaturamento = Faturamentos
-                .OrderByDescending(x => x.DataCadastro)
                 .FirstOrDefault();
 
             if (UltimoFaturamento.DataPrazoRetiradaVeiculo.Value.Date < DataHoraPorDeposito.Date)
@@ -928,111 +927,195 @@ namespace WebZi.Plataform.Data.Services.Liberacao
             };
 
 
-            await using (IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync())
+            await using IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync(ct);
+            try
             {
-                try
+                await _context.Liberacao.AddAsync(Liberacao, ct);
+
+                await _context.SaveChangesAsync(ct);
+
+
+                if (!Grv.StatusOperacaoId.Equals("R") && Parameters.IdentificadorTipoLiberacao == 1)
                 {
-                    await _context.Liberacao.AddAsync(Liberacao);
-
-                    await _context.SaveChangesAsync();
-
-
-                    if (!Grv.StatusOperacaoId.Equals("R") && Parameters.IdentificadorTipoLiberacao == 1)
-                    {
-                        await _context.Atendimento
-                            .Where(x => x.AtendimentoId == Parameters.IdentificadorAtendimento)
-                            .UpdateAsync(x => new AtendimentoModel()
-                            {
-                                FormaLiberacao = Parameters.FormaLiberacao.FormaLiberacao,
-                                FormaLiberacaoNome = Parameters.FormaLiberacao.FormaLiberacaoNome,
-                                FormaLiberacaoCNH = Parameters.FormaLiberacao.FormaLiberacaoCnh,
-                                FormaLiberacaoCPF = Parameters.FormaLiberacao.FormaLiberacaoCpf,
-                                FormaLiberacaoPlaca = Parameters.FormaLiberacao.FormaLiberacaoPlaca,
-                                DataAlteracao = DateTime.Now
-                            });
-                    }
-
-                    if (!Grv.StatusOperacaoId.Equals("R") && Parameters.IdentificadorTipoLiberacao == 2)
-                    {
-                        await _provider.GetService<LiberacaoEspecialService>()
-                            .CreateLiberacaoEspecialAsync(Parameters.LiberacaoEspecial, Liberacao.DataCadastro, false);
-                    }
-
-                    if (Grv.StatusOperacaoId.Equals("R"))
-                    {
-                        if (Parameters.IdentificadorSaidaReparo == null)
-                        {
-                            await transaction.RollbackAsync();
-                            ResultView = MensagemViewHelper.SetBadRequest("Propriedade obrigatória");
-                            return ResultView;
-                        }
-
-                        await _context.SaidaReparo
-                            .AsTracking()
-                            .Where(x => x.Id == Parameters.IdentificadorSaidaReparo)
-                            .UpdateAsync(x => new AtendimentoSaidaParaReparoModel
-                            {
-                                DataRetorno = DateTime.Now,
-                                IdUsuario = Parameters.IdentificadorUsuario
-                            });
-                        await _context.LiberacaoEspecial
-                            .Where(x => x.IdGrv == Parameters.IdentificadorProcesso)
-                            .UpdateAsync(x => new LiberacaoEspecialModel() { DataLiberacao = Liberacao.DataCadastro });
-                    }
-
-                    if (_options.Value.Enable && permitirEmissao)
-                    {
-                        if (!string.Equals(Grv.StatusOperacaoId, "2") && !string.Equals(Grv.StatusOperacaoId, "R"))
-                        {
-                            await _provider
-                                .GetService<WSNfseService>()
-                                .CreateNfseAsync(Grv.GrvId, Parameters.IdentificadorUsuario);
-                        }
-                    }
-
-                    if (string.Equals(Grv.StatusOperacaoId, "T") || string.Equals(Grv.StatusOperacaoId, "R") ||
-                        string.Equals(Grv.StatusOperacaoId, "U"))
-                    {
-                        await _context.Grv
-                            .Where(x => x.GrvId == Parameters.IdentificadorProcesso)
-                            .UpdateAsync(x => new GrvModel()
-                            {
-                                LiberacaoId = Liberacao.LiberacaoId,
-                                StatusOperacaoId = "E",
-                                UsuarioAlteracaoId = Parameters.IdentificadorUsuario
-                            });
-                    }
-                    else if (string.Equals(Grv.StatusOperacaoId, "2") || string.Equals(Grv.StatusOperacaoId, "6"))
-                    {
-                        await _context.Grv
-                            .Where(x => x.GrvId == Parameters.IdentificadorProcesso)
-                            .UpdateAsync(x => new GrvModel()
-                            {
-                                LiberacaoId = Liberacao.LiberacaoId, StatusOperacaoId = "7",
-                                UsuarioAlteracaoId = Parameters.IdentificadorUsuario
-                            });
-                    }
-
-                    if (Parameters.ResponsavelFoto != null)
-                    {
-                        new BucketService(_context, _httpClientFactory)
-                            .SendFile(BucketNomeTabelaOrigemEnum.EntregaFotoResponsavel, Liberacao.LiberacaoId,
-                                Parameters.IdentificadorUsuario, Parameters.ResponsavelFoto);
-                    }
-
-                    await _context.SaveChangesAsync();
-
-                    await transaction.CommitAsync();
+                    await AtualizarFormaLiberacaoAtendimentoAsync(Parameters, ct);
                 }
-                catch (Exception ex)
-                {
-                    await transaction.RollbackAsync();
 
-                    return MensagemViewHelper.SetInternalServerError(ex.Message);
+                if (!Grv.StatusOperacaoId.Equals("R") && Parameters.IdentificadorTipoLiberacao == 2)
+                {
+                    await ProcessarLiberacaoEspecialAsync(Parameters, Liberacao.DataCadastro, ct);
+                }
+
+                if (Grv.StatusOperacaoId.Equals("R") && Parameters.FlagProcessarFaturamentoAdicional == "S")
+                {
+                    if (Parameters.IdentificadorSaidaReparo == null)
+                    {
+                        await transaction.RollbackAsync(ct);
+                        return MensagemViewHelper.SetBadRequest("Propriedade obrigatória: IdentificadorSaidaReparo");
+                    }
+
+                    await ProcessarRetornoSaidaParaReparoAsync(Parameters, Grv, Liberacao, DataHoraPorDeposito,
+                        UltimoFaturamento, ct);
+                }
+
+                await ProcessarEmissaoNfseAsync(Grv, Parameters.IdentificadorUsuario, permitirEmissao, ct);
+
+                await AtualizarStatusGrvEntregaAsync(Parameters, Grv, Liberacao.LiberacaoId, ct);
+
+                if (Parameters.ResponsavelFoto != null)
+                {
+                    new BucketService(_context, _httpClientFactory)
+                        .SendFile(BucketNomeTabelaOrigemEnum.EntregaFotoResponsavel, Liberacao.LiberacaoId,
+                            Parameters.IdentificadorUsuario, Parameters.ResponsavelFoto);
+                }
+
+                await _context.SaveChangesAsync(ct);
+                await transaction.CommitAsync(ct);
+                return MensagemViewHelper.SetCreateSuccess();
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync(ct);
+
+                return MensagemViewHelper.SetInternalServerError(ex.Message);
+            }
+        }
+
+        private async Task AtualizarFormaLiberacaoAtendimentoAsync(EntregaParameters parameters, CancellationToken ct)
+        {
+            await _context.Atendimento
+                .Where(x => x.AtendimentoId == parameters.IdentificadorAtendimento)
+                .UpdateAsync(x => new AtendimentoModel()
+                {
+                    FormaLiberacao = parameters.FormaLiberacao.FormaLiberacao,
+                    FormaLiberacaoNome = parameters.FormaLiberacao.FormaLiberacaoNome,
+                    FormaLiberacaoCNH = parameters.FormaLiberacao.FormaLiberacaoCnh,
+                    FormaLiberacaoCPF = parameters.FormaLiberacao.FormaLiberacaoCpf,
+                    FormaLiberacaoPlaca = parameters.FormaLiberacao.FormaLiberacaoPlaca,
+                    DataAlteracao = DateTime.Now
+                }, cancellationToken: ct);
+        }
+
+        private async Task ProcessarLiberacaoEspecialAsync(EntregaParameters parameters, DateTime dataCadastroLiberacao,
+            CancellationToken ct)
+        {
+            await _provider.GetService<LiberacaoEspecialService>()
+                .CreateLiberacaoEspecialAsync(parameters.LiberacaoEspecial, dataCadastroLiberacao, false, ct);
+        }
+
+        private async Task ProcessarEmissaoNfseAsync(GrvModel grv, int usuarioId, bool permitirEmissao,
+            CancellationToken ct)
+        {
+            if (_options.Value.Enable && permitirEmissao)
+            {
+                if (!string.Equals(grv.StatusOperacaoId, "2") && !string.Equals(grv.StatusOperacaoId, "R"))
+                {
+                    await _provider
+                        .GetService<WSNfseService>()
+                        .CreateNfseAsync(grv.GrvId, usuarioId, ct);
+                }
+            }
+        }
+
+        private async Task AtualizarStatusGrvEntregaAsync(EntregaParameters parameters, GrvModel grv, int liberacaoId,
+            CancellationToken ct)
+        {
+            if (string.Equals(grv.StatusOperacaoId, "T") || string.Equals(grv.StatusOperacaoId, "R") ||
+                string.Equals(grv.StatusOperacaoId, "U"))
+            {
+                await _context.Grv
+                    .Where(x => x.GrvId == parameters.IdentificadorProcesso)
+                    .UpdateAsync(x => new GrvModel()
+                    {
+                        LiberacaoId = liberacaoId,
+                        StatusOperacaoId = "E",
+                        UsuarioAlteracaoId = parameters.IdentificadorUsuario
+                    }, cancellationToken: ct);
+            }
+            else if (string.Equals(grv.StatusOperacaoId, "2") || string.Equals(grv.StatusOperacaoId, "6"))
+            {
+                await _context.Grv
+                    .Where(x => x.GrvId == parameters.IdentificadorProcesso)
+                    .UpdateAsync(x => new GrvModel()
+                    {
+                        LiberacaoId = liberacaoId,
+                        StatusOperacaoId = "7",
+                        UsuarioAlteracaoId = parameters.IdentificadorUsuario
+                    }, cancellationToken: ct);
+            }
+        }
+
+        private async Task ProcessarRetornoSaidaParaReparoAsync(
+            EntregaParameters parameters,
+            GrvModel grv,
+            LiberacaoModel liberacao,
+            DateTime dataHoraPorDeposito,
+            FaturamentoModel ultimoFaturamento,
+            CancellationToken ct)
+        {
+            var saidaReparo = await _context.SaidaReparo
+                .AsTracking()
+                .FirstOrDefaultAsync(x => x.Id == parameters.IdentificadorSaidaReparo, cancellationToken: ct);
+
+            if (saidaReparo != null)
+            {
+                saidaReparo.DataRetorno = DateTime.Now;
+                saidaReparo.IdUsuario = parameters.IdentificadorUsuario;
+            }
+
+            if (parameters.IdentificadorTipoLiberacao == 1 && parameters.FormaLiberacao != null)
+            {
+                await AtualizarFormaLiberacaoAtendimentoAsync(parameters, ct);
+            }
+            else if (parameters.IdentificadorTipoLiberacao == 2)
+            {
+                bool existeLiberacaoEspecial = await _context.LiberacaoEspecial
+                    .AnyAsync(x => x.IdGrv == parameters.IdentificadorProcesso, cancellationToken: ct);
+
+                if (existeLiberacaoEspecial)
+                {
+                    await _context.LiberacaoEspecial
+                        .Where(x => x.IdGrv == parameters.IdentificadorProcesso)
+                        .UpdateAsync(x => new LiberacaoEspecialModel { DataLiberacao = liberacao.DataCadastro },
+                            cancellationToken: ct);
+                }
+                else if (parameters.LiberacaoEspecial != null)
+                {
+                    await ProcessarLiberacaoEspecialAsync(parameters, liberacao.DataCadastro, ct);
                 }
             }
 
-            return MensagemViewHelper.SetCreateSuccess();
+            CalculoFaturamentoParametroModel parametrosCalculo = new()
+            {
+                DataHoraInicialParaCalculo = saidaReparo!.DataSaida,
+                DataHoraFinalParaCalculo = dataHoraPorDeposito != DateTime.MinValue ? dataHoraPorDeposito : DateTime.Now,
+                DataHoraPorDeposito = dataHoraPorDeposito,
+                FaturarSemGrv = false,
+                IsSimulacao = false,
+                IsComboio = false,
+                StatusOperacaoId = grv.StatusOperacaoId,
+                IsLeilaoStatus = new[] { "1", "3", "7" }.Contains(grv.StatusOperacaoId),
+                FaturamentoProdutoId = grv.FaturamentoProdutoId,
+                GrvId = grv.GrvId,
+                FaturamentoAdicional = true,
+                NumeroFormularioGrv = grv.NumeroFormularioGrv,
+                TipoVeiculoId = grv.TipoVeiculoId,
+                TipoMeioCobrancaId = ultimoFaturamento.TipoMeioCobrancaId,
+                ClienteDeposito = await _context.ClienteDeposito
+                    .Include(x => x.Cliente)
+                    .ThenInclude(x => x.Endereco)
+                    .Include(x => x.Deposito)
+                    .ThenInclude(x => x.Endereco)
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(
+                        x => x.ClienteId == grv.ClienteId && x.DepositoId == grv.DepositoId,
+                        cancellationToken: ct)
+            };
+
+            FaturamentoModel FaturamentoAdicional = _provider.GetService<FaturamentoService>()
+                .Faturar(parametrosCalculo, out var calculoDiarias);
+            FaturamentoAdicional.UsuarioCadastroId = parameters.IdentificadorUsuario;
+
+            _context.Faturamento.Add(FaturamentoAdicional);
         }
     }
 }

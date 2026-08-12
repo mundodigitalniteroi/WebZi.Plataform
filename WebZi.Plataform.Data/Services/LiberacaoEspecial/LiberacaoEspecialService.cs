@@ -63,7 +63,7 @@ public class LiberacaoEspecialService
         return ResultView;
     }
     
-    public async Task<MensagemDTO> CreateLiberacaoEspecialAsync(LiberacaoEspecialParameters parameters, DateTime dataLiberacao, bool saidaParaReparo)
+    public async Task<MensagemDTO> CreateLiberacaoEspecialAsync(LiberacaoEspecialParameters parameters, DateTime dataLiberacao, bool saidaParaReparo, CancellationToken ct)
     {
         #region Validação
 
@@ -94,7 +94,7 @@ public class LiberacaoEspecialService
         
         try
         {
-            await _context.LiberacaoEspecial.AddAsync(liberacaoEspecial);
+            await _context.LiberacaoEspecial.AddAsync(liberacaoEspecial, ct);
             await _context.Faturamento
                 .Where(x => x.FaturamentoId == parameters.IdentificadorFaturamento)
                 .UpdateAsync(x => new FaturamentoModel()
@@ -103,7 +103,7 @@ public class LiberacaoEspecialService
                     UsuarioAlteracaoId = parameters.IdentificadorUsuario,
                     DataPrazoRetiradaVeiculo = DateTime.Now.AddDays(1),
                     DataPagamento = DateTime.Now
-                });
+                }, cancellationToken: ct);
             await _context.Grv
                 .Where(x => x.GrvId == parameters.IdentificadorProcesso)
                 .UpdateAsync(x => new GrvModel()
@@ -111,8 +111,8 @@ public class LiberacaoEspecialService
                     StatusOperacaoId = saidaParaReparo ? "R" : "E",
                     DataAlteracao = DateTime.Now,
                     UsuarioAlteracaoId = parameters.IdentificadorUsuario
-                });
-            await _context.SaveChangesAsync();
+                }, cancellationToken: ct);
+            await _context.SaveChangesAsync(ct);
             return MensagemViewHelper.SetCreateSuccess();
         }
         catch (Exception e)

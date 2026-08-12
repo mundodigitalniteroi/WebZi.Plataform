@@ -27,7 +27,10 @@ namespace WebZi.Plataform.Domain.ViewModel.Atendimento
         [Required(ErrorMessage = "Propriedade obrigatória")]
         [StringLength(500, ErrorMessage = "Valor maximo passado")]
         public string MotivoSaida { get; set; }
-
+        
+        [Required(ErrorMessage = "Propriedade obrigatória")]
+        [RegularExpression("S|N", ErrorMessage = "Valor da Flag inválido, informe S ou N")]
+        public string FlagFaturamentoAdiantado { get; set; }
         public FormaLiberacaoParameters? FormaLiberacao { get; set; }
         public LiberacaoEspecialParameters? LiberacaoEspecial { get; set; }
     }
