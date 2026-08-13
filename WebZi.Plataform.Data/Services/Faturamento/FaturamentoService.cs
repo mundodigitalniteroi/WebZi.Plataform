@@ -2005,6 +2005,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 ResultView.Mensagem = MensagemViewHelper.SetNotFound("Faturamento não encontrado");
                 return ResultView;
             }
+
             var Atendimento = await _context.Atendimento
                 .Include(x => x.Grv)
                 .ThenInclude(x => x.StatusOperacao)
@@ -2081,12 +2082,14 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             {
                 var faturamentoDto = _mapper.Map<SimulacaoFaturamentoDTO>(faturamentoModel);
                 faturamentoDto.ListagemServico =
-                    _mapper.Map<List<SimulacaoFaturamentoComposicaoDTO>>(faturamentoModel.ListagemFaturamentoComposicao);
+                    _mapper.Map<List<SimulacaoFaturamentoComposicaoDTO>>(faturamentoModel
+                        .ListagemFaturamentoComposicao);
                 foreach (var Servico in faturamentoDto.ListagemServico)
                 {
                     var FaturamentoServicoTipoVeiculo = await _context.FaturamentoServicoTipoVeiculo
                         .Include(x => x.FaturamentoServicoAssociado).ThenInclude(faturamentoServicoAssociadoModel =>
-                            faturamentoServicoAssociadoModel.FaturamentoServicoTipo).Include(x => x.FaturamentoServicosGrvs)
+                            faturamentoServicoAssociadoModel.FaturamentoServicoTipo)
+                        .Include(x => x.FaturamentoServicosGrvs)
                         .AsNoTracking()
                         .FirstOrDefaultAsync(x =>
                                 x.FaturamentoServicoTipoVeiculoId == Servico.IdentificadorFaturamentoServicoTipoVeiculo,
@@ -2105,7 +2108,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     Servico.IdentificadorFaturamentoServicoAssociado =
                         FaturamentoServicoTipoVeiculo?.FaturamentoServicoAssociadoId;
 
-                    Servico.DescricaoTipoServico = ListagemTipoCobranca.Where(x => x.ValorCadastro == Servico.TipoServico)
+                    Servico.DescricaoTipoServico = ListagemTipoCobranca
+                        .Where(x => x.ValorCadastro == Servico.TipoServico)
                         .FirstOrDefault()?.Descricao;
 
                     Servico.NomeServico = FaturamentoServicoTipoVeiculo?.FaturamentoServicoAssociado?.Descricao;
@@ -2113,7 +2117,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     Servico.DataVigenciaInicial =
                         (DateTime)FaturamentoServicoTipoVeiculo?.FaturamentoServicoAssociado?.DataVigenciaInicial;
 
-                    Servico.DataVigenciaFinal = FaturamentoServicoTipoVeiculo?.FaturamentoServicoAssociado?.DataVigenciaFinal;
+                    Servico.DataVigenciaFinal =
+                        FaturamentoServicoTipoVeiculo?.FaturamentoServicoAssociado?.DataVigenciaFinal;
 
                     Servico.FlagServicoObrigatorio =
                         FaturamentoServicoTipoVeiculo?.FaturamentoServicoAssociado?.FlagServicoObrigatorio == "S" ||
@@ -2466,6 +2471,88 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             catch (Exception ex)
             {
                 return MensagemViewHelper.SetBadRequest("Erro ao registrar faturamento do cartão");
+            }
+        }
+
+        public async Task<MensagemDTO> GerarFaturamentoSaidaReparoAsync(
+            int identificadorProcesso,
+            int identificadorSaidaReparo,
+            int identificadorUsuario,
+            CancellationToken ct = default)
+        {
+            try
+            {
+                GrvModel grv = await _context.Grv
+                    .Include(x => x.Atendimento)
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(x => x.GrvId == identificadorProcesso, ct);
+
+                if (grv == null)
+                {
+                    return MensagemViewHelper.SetNotFound("Processo (GRV) não encontrado.");
+                }
+
+                AtendimentoSaidaParaReparoModel saidaReparo = await _context.SaidaReparo
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(x => x.Id == identificadorSaidaReparo, ct);
+
+                if (saidaReparo == null)
+                {
+                    return MensagemViewHelper.SetNotFound("Registro de saída para reparo não encontrado.");
+                }
+
+                FaturamentoModel ultimoFaturamento = await _context.Faturamento
+                    .AsNoTracking()
+                    .Where(x => x.AtendimentoId == grv.Atendimento.AtendimentoId && x.Status != "C")
+                    .OrderByDescending(x => x.DataCadastro)
+                    .FirstOrDefaultAsync(ct);
+
+                if (ultimoFaturamento == null)
+                {
+                    return MensagemViewHelper.SetBadRequest(
+                        "Nenhum faturamento anterior encontrado para a geração do faturamento adicional.");
+                }
+
+                DateTime DataHoraPorDeposito = new DepositoService(_context)
+                    .GetDataHoraPorDeposito(grv.DepositoId);
+                CalculoFaturamentoParametroModel parametrosCalculo = new()
+                {
+                    DataHoraInicialParaCalculo = saidaReparo.DataSaida,
+                    DataHoraFinalParaCalculo =
+                        DataHoraPorDeposito != DateTime.MinValue ? DataHoraPorDeposito : DateTime.Now,
+                    DataHoraPorDeposito = DataHoraPorDeposito,
+                    FaturarSemGrv = false,
+                    IsSimulacao = false,
+                    IsComboio = false,
+                    StatusOperacaoId = grv.StatusOperacaoId,
+                    IsLeilaoStatus = new[] { "1", "3", "7" }.Contains(grv.StatusOperacaoId),
+                    FaturamentoProdutoId = grv.FaturamentoProdutoId,
+                    GrvId = grv.GrvId,
+                    FaturamentoAdicional = true,
+                    NumeroFormularioGrv = grv.NumeroFormularioGrv,
+                    TipoVeiculoId = grv.TipoVeiculoId,
+                    TipoMeioCobrancaId = ultimoFaturamento.TipoMeioCobrancaId,
+                    ClienteDeposito = await _context.ClienteDeposito
+                        .Include(x => x.Cliente)
+                        .ThenInclude(x => x.Endereco)
+                        .Include(x => x.Deposito)
+                        .ThenInclude(x => x.Endereco)
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync(
+                            x => x.ClienteId == grv.ClienteId && x.DepositoId == grv.DepositoId,
+                            cancellationToken: ct)
+                };
+
+                FaturamentoModel faturamentoAdicional = Faturar(parametrosCalculo, out _);
+                faturamentoAdicional.UsuarioCadastroId = identificadorUsuario;
+
+                await _context.Faturamento.AddAsync(faturamentoAdicional, ct);
+                await _context.SaveChangesAsync(ct);
+                return MensagemViewHelper.SetCreateSuccess();
+            }
+            catch (Exception ex)
+            {
+                return MensagemViewHelper.SetInternalServerError(ex.Message);
             }
         }
     }

@@ -5,6 +5,7 @@ using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Faturamento;
 using WebZi.Plataform.Data.Services.Report;
 using WebZi.Plataform.Data.Services.Sistema;
+using WebZi.Plataform.Data.Services.Usuario;
 using WebZi.Plataform.Domain.DTO.Faturamento;
 using WebZi.Plataform.Domain.DTO.Faturamento.Servico;
 using WebZi.Plataform.Domain.DTO.Faturamento.Simulacao;
@@ -28,7 +29,8 @@ public class FaturamentoController : ControllerBase
 
     [HttpGet("AlterarFormaPagamento")]
     // TODO: [Authorize]
-    public async Task<ActionResult<MensagemDTO>> AlterarFormaPagamento(int IdentificadorFaturamento, byte IdentificadorNovaFormaPagamento, int IdentificadorUsuario, CancellationToken ct)
+    public async Task<ActionResult<MensagemDTO>> AlterarFormaPagamento(int IdentificadorFaturamento,
+        byte IdentificadorNovaFormaPagamento, int IdentificadorUsuario, CancellationToken ct)
     {
         if (!ModelState.IsValid)
         {
@@ -41,7 +43,8 @@ public class FaturamentoController : ControllerBase
         {
             ResultView = await _provider
                 .GetService<FaturamentoService>()
-                .UpdateFormaPagamentoAsync(IdentificadorFaturamento, IdentificadorNovaFormaPagamento, IdentificadorUsuario, ct);
+                .UpdateFormaPagamentoAsync(IdentificadorFaturamento, IdentificadorNovaFormaPagamento,
+                    IdentificadorUsuario, ct);
 
             return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
         }
@@ -55,7 +58,8 @@ public class FaturamentoController : ControllerBase
 
     [HttpGet("GerarGuiaPagamentoReboqueEstadia")]
     // TODO: [Authorize]
-    public async Task<ActionResult<GuiaPagamentoReboqueEstadiaDTO>> GerarGuiaPagamentoReboqueEstadia(int IdentificadorFaturamento, int IdentificadorUsuario)
+    public async Task<ActionResult<GuiaPagamentoReboqueEstadiaDTO>> GerarGuiaPagamentoReboqueEstadia(
+        int IdentificadorFaturamento, int IdentificadorUsuario)
     {
         if (!ModelState.IsValid)
         {
@@ -82,7 +86,8 @@ public class FaturamentoController : ControllerBase
 
     [HttpGet("ConsultarGuiaPagamentoReboqueEstadia")]
     // TODO: [Authorize]
-    public async Task<ActionResult<GuiaPagamentoReboqueEstadiaDTO>> ConsultarGuiaPagamentoReboqueEstadia(int IdentificadorFaturamento, int IdentificadorUsuario)
+    public async Task<ActionResult<GuiaPagamentoReboqueEstadiaDTO>> ConsultarGuiaPagamentoReboqueEstadia(
+        int IdentificadorFaturamento, int IdentificadorUsuario)
     {
         if (!ModelState.IsValid)
         {
@@ -109,7 +114,8 @@ public class FaturamentoController : ControllerBase
 
     [HttpGet("ListarPorIdentificadorAtendimento")]
     // TODO: [Authorize]
-    public async Task<ActionResult<FaturamentoListDTO>> ListarPorIdentificadorAtendimento(int IdentificadorAtendimento, int IdentificadorUsuario, bool SelecionarFaturasCanceladas)
+    public async Task<ActionResult<FaturamentoListDTO>> ListarPorIdentificadorAtendimento(int IdentificadorAtendimento,
+        int IdentificadorUsuario, bool SelecionarFaturasCanceladas)
     {
         if (!ModelState.IsValid)
         {
@@ -136,7 +142,8 @@ public class FaturamentoController : ControllerBase
 
     [HttpGet("ListarPorIdentificadorProcesso")]
     // TODO: [Authorize]
-    public async Task<ActionResult<FaturamentoListDTO>> ListarPorIdentificadorProcesso(int IdentificadorProcesso, int IdentificadorUsuario, bool SelecionarFaturasCanceladas)
+    public async Task<ActionResult<FaturamentoListDTO>> ListarPorIdentificadorProcesso(int IdentificadorProcesso,
+        int IdentificadorUsuario, bool SelecionarFaturasCanceladas)
     {
         if (!ModelState.IsValid)
         {
@@ -163,7 +170,8 @@ public class FaturamentoController : ControllerBase
 
     [HttpGet("ListarServicoAssociadoTipoVeiculo")]
     // TODO: [Authorize]
-    public async Task<ActionResult<ServicoAssociadoTipoVeiculoListDTO>> ListarServicoAssociadoTipoVeiculo(int IdentificadorProcesso, int IdentificadorUsuario, CancellationToken ct)
+    public async Task<ActionResult<ServicoAssociadoTipoVeiculoListDTO>> ListarServicoAssociadoTipoVeiculo(
+        int IdentificadorProcesso, int IdentificadorUsuario, CancellationToken ct)
     {
         if (!ModelState.IsValid)
         {
@@ -190,7 +198,8 @@ public class FaturamentoController : ControllerBase
 
     [HttpGet("ListarServicoAssociadoGrv")]
     // TODO: [Authorize]
-    public async Task<ActionResult<ServicoAssociadoTipoVeiculoListDTO>> ListarServicoAssociadoGrv(int IdentificadorProcesso, int IdentificadorUsuario, CancellationToken ct)
+    public async Task<ActionResult<ServicoAssociadoTipoVeiculoListDTO>> ListarServicoAssociadoGrv(
+        int IdentificadorProcesso, int IdentificadorUsuario, CancellationToken ct)
     {
         if (!ModelState.IsValid)
         {
@@ -243,11 +252,10 @@ public class FaturamentoController : ControllerBase
     }
 
     [HttpPost("Vincular")]
-        
-        
     [HttpPost("Simulacao")]
     [IgnoreAntiforgeryToken]
-    public async Task<ActionResult<SimulacaoDTO>> Simular([FromBody] SimulacaoParameters Parametros, CancellationToken ct)
+    public async Task<ActionResult<SimulacaoDTO>> Simular([FromBody] SimulacaoParameters Parametros,
+        CancellationToken ct)
     {
         if (!ModelState.IsValid)
         {
@@ -276,7 +284,8 @@ public class FaturamentoController : ControllerBase
 
     [HttpGet("Consultar")]
     [IgnoreAntiforgeryToken]
-    public async Task<ActionResult<FaturamentoConsultaDTO>> Consultar(int identificadorFaturamento, int identificadorUsuario, CancellationToken ct)
+    public async Task<ActionResult<FaturamentoConsultaDTO>> Consultar(int identificadorFaturamento,
+        int identificadorUsuario, CancellationToken ct)
     {
         if (!ModelState.IsValid)
         {
@@ -301,30 +310,33 @@ public class FaturamentoController : ControllerBase
         }
     }
 
-    // [HttpPost("ReprocessarFaturamento")]
-    // [IgnoreAntiforgeryToken]
-    // public async Task<ActionResult<FaturamentoConsultaDTO>> ReprocessarFaturamento(int identificadorFaturamento, int identificadorUsuario, CancellationToken ct)
-    // {
-    //     if (!ModelState.IsValid)
-    //     {
-    //         return BadRequest(ModelState);
-    //     }
-    //
-    //     FaturamentoConsultaDTO ResultView = new();
-    //
-    //     try
-    //     {
-    //         ResultView = await _provider
-    //             .GetService<FaturamentoService>()
-    //             .ReprocessarFaturamentoAsync(identificadorFaturamento, identificadorUsuario, ct);
-    //
-    //         return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
-    //
-    //         return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-    //     }
-    // }
+    [HttpPost("GerarFaturamentoSaidaReparo")]
+    public async Task<ActionResult<MensagemDTO>> GerarFaturamentoSaidaReparo(
+        [FromBody] GerarFaturamentoSaidaReparoViewModel parametros,
+        CancellationToken ct)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var userId = User.GetUserId();
+        MensagemDTO resultView;
+        try
+        {
+            resultView = await _provider
+                .GetService<FaturamentoService>()
+                .GerarFaturamentoSaidaReparoAsync(parametros.IdentificadorProcesso, parametros.IdentificadorSaidaReparo,
+                    userId!.Value,
+                    ct);
+
+            return StatusCode((int)resultView.HtmlStatusCode, resultView);
+        }
+        catch (Exception ex)
+        {
+            resultView = MensagemViewHelper.SetInternalServerError(ex);
+
+            return StatusCode((int)resultView.HtmlStatusCode, resultView);
+        }
+    }
 }

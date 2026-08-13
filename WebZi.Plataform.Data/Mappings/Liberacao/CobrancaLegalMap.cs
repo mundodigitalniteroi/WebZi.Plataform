@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using WebZi.Plataform.Domain.Models.Liberacao;
 
@@ -9,7 +9,10 @@ namespace WebZi.Plataform.Data.Mappings.Liberacao
         public void Configure(EntityTypeBuilder<CobrancaLegalModel> builder)
         {
             builder
-                .ToTable("tb_dep_grv_cobrancas_legais", "dbo")
+                .ToTable("tb_dep_grv_cobrancas_legais", "dbo", tb =>
+                {
+                    tb.HasTrigger("tr_log_upd_grv_cobrancas_legais");
+                })
                 .HasKey(x => x.CobrancaLegalId);
 
             builder.Property(e => e.CobrancaLegalId)

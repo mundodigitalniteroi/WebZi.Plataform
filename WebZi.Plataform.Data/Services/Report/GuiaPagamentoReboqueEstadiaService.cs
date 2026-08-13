@@ -280,6 +280,8 @@ namespace WebZi.Plataform.Data.Services.Report
         {
             GuiaPagamentoEstadiaReboque.FaturamentoNumeroIdentificacao = Faturamento.NumeroIdentificacao;
 
+            GuiaPagamentoEstadiaReboque.StatusPagamento = Faturamento.Status;
+            
             GuiaPagamentoEstadiaReboque.FaturamentoValorFaturado = Faturamento.ValorFaturado.FormatMoney();
 
             GuiaPagamentoEstadiaReboque.FaturamentoDataVencimento = Faturamento.DataVencimento.ToString("dd/MM/yyyy");

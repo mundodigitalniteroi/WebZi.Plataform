@@ -2230,7 +2230,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 query = query.Where(x => x.DataHoraRemocao >= GrvPesquisa.DataInicialRemocao.Value);
             if (GrvPesquisa.DataFinalRemocao.HasValue)
                 query = query.Where(x => x.DataHoraRemocao <= GrvPesquisa.DataFinalRemocao.Value);
-
+            
             #endregion
 
             var result = await query

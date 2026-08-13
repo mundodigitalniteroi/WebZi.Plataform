@@ -935,17 +935,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                 await _context.SaveChangesAsync(ct);
 
 
-                if (!Grv.StatusOperacaoId.Equals("R") && Parameters.IdentificadorTipoLiberacao == 1)
-                {
-                    await AtualizarFormaLiberacaoAtendimentoAsync(Parameters, ct);
-                }
-
-                if (!Grv.StatusOperacaoId.Equals("R") && Parameters.IdentificadorTipoLiberacao == 2)
-                {
-                    await ProcessarLiberacaoEspecialAsync(Parameters, Liberacao.DataCadastro, ct);
-                }
-
-                if (Grv.StatusOperacaoId.Equals("R") && Parameters.FlagProcessarFaturamentoAdicional == "S")
+                if (Grv.StatusOperacaoId.Equals("R"))
                 {
                     if (Parameters.IdentificadorSaidaReparo == null)
                     {
@@ -953,8 +943,37 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                         return MensagemViewHelper.SetBadRequest("Propriedade obrigatória: IdentificadorSaidaReparo");
                     }
 
-                    await ProcessarRetornoSaidaParaReparoAsync(Parameters, Grv, Liberacao, DataHoraPorDeposito,
-                        UltimoFaturamento, ct);
+                    var saidaReparo = await _context.SaidaReparo
+                        .AsTracking()
+                        .FirstOrDefaultAsync(x => x.Id == Parameters.IdentificadorSaidaReparo, cancellationToken: ct);
+
+                    if (saidaReparo != null)
+                    {
+                        saidaReparo.DataRetorno = DateTime.Now;
+                        saidaReparo.IdUsuario = Parameters.IdentificadorUsuario;
+                    }
+                }
+
+                if (Parameters.IdentificadorTipoLiberacao == 1 && Parameters.FormaLiberacao != null)
+                {
+                    await AtualizarFormaLiberacaoAtendimentoAsync(Parameters, ct);
+                }
+                else if (Parameters.IdentificadorTipoLiberacao == 2)
+                {
+                    bool existeLiberacaoEspecial = await _context.LiberacaoEspecial
+                        .AnyAsync(x => x.IdGrv == Parameters.IdentificadorProcesso, cancellationToken: ct);
+
+                    if (existeLiberacaoEspecial)
+                    {
+                        await _context.LiberacaoEspecial
+                            .Where(x => x.IdGrv == Parameters.IdentificadorProcesso)
+                            .UpdateAsync(x => new LiberacaoEspecialModel { DataLiberacao = Liberacao.DataCadastro },
+                                cancellationToken: ct);
+                    }
+                    else if (Parameters.LiberacaoEspecial != null)
+                    {
+                        await ProcessarLiberacaoEspecialAsync(Parameters, Liberacao.DataCadastro, ct);
+                    }
                 }
 
                 await ProcessarEmissaoNfseAsync(Grv, Parameters.IdentificadorUsuario, permitirEmissao, ct);
@@ -1042,80 +1061,6 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                         UsuarioAlteracaoId = parameters.IdentificadorUsuario
                     }, cancellationToken: ct);
             }
-        }
-
-        private async Task ProcessarRetornoSaidaParaReparoAsync(
-            EntregaParameters parameters,
-            GrvModel grv,
-            LiberacaoModel liberacao,
-            DateTime dataHoraPorDeposito,
-            FaturamentoModel ultimoFaturamento,
-            CancellationToken ct)
-        {
-            var saidaReparo = await _context.SaidaReparo
-                .AsTracking()
-                .FirstOrDefaultAsync(x => x.Id == parameters.IdentificadorSaidaReparo, cancellationToken: ct);
-
-            if (saidaReparo != null)
-            {
-                saidaReparo.DataRetorno = DateTime.Now;
-                saidaReparo.IdUsuario = parameters.IdentificadorUsuario;
-            }
-
-            if (parameters.IdentificadorTipoLiberacao == 1 && parameters.FormaLiberacao != null)
-            {
-                await AtualizarFormaLiberacaoAtendimentoAsync(parameters, ct);
-            }
-            else if (parameters.IdentificadorTipoLiberacao == 2)
-            {
-                bool existeLiberacaoEspecial = await _context.LiberacaoEspecial
-                    .AnyAsync(x => x.IdGrv == parameters.IdentificadorProcesso, cancellationToken: ct);
-
-                if (existeLiberacaoEspecial)
-                {
-                    await _context.LiberacaoEspecial
-                        .Where(x => x.IdGrv == parameters.IdentificadorProcesso)
-                        .UpdateAsync(x => new LiberacaoEspecialModel { DataLiberacao = liberacao.DataCadastro },
-                            cancellationToken: ct);
-                }
-                else if (parameters.LiberacaoEspecial != null)
-                {
-                    await ProcessarLiberacaoEspecialAsync(parameters, liberacao.DataCadastro, ct);
-                }
-            }
-
-            CalculoFaturamentoParametroModel parametrosCalculo = new()
-            {
-                DataHoraInicialParaCalculo = saidaReparo!.DataSaida,
-                DataHoraFinalParaCalculo = dataHoraPorDeposito != DateTime.MinValue ? dataHoraPorDeposito : DateTime.Now,
-                DataHoraPorDeposito = dataHoraPorDeposito,
-                FaturarSemGrv = false,
-                IsSimulacao = false,
-                IsComboio = false,
-                StatusOperacaoId = grv.StatusOperacaoId,
-                IsLeilaoStatus = new[] { "1", "3", "7" }.Contains(grv.StatusOperacaoId),
-                FaturamentoProdutoId = grv.FaturamentoProdutoId,
-                GrvId = grv.GrvId,
-                FaturamentoAdicional = true,
-                NumeroFormularioGrv = grv.NumeroFormularioGrv,
-                TipoVeiculoId = grv.TipoVeiculoId,
-                TipoMeioCobrancaId = ultimoFaturamento.TipoMeioCobrancaId,
-                ClienteDeposito = await _context.ClienteDeposito
-                    .Include(x => x.Cliente)
-                    .ThenInclude(x => x.Endereco)
-                    .Include(x => x.Deposito)
-                    .ThenInclude(x => x.Endereco)
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(
-                        x => x.ClienteId == grv.ClienteId && x.DepositoId == grv.DepositoId,
-                        cancellationToken: ct)
-            };
-
-            FaturamentoModel FaturamentoAdicional = _provider.GetService<FaturamentoService>()
-                .Faturar(parametrosCalculo, out var calculoDiarias);
-            FaturamentoAdicional.UsuarioCadastroId = parameters.IdentificadorUsuario;
-
-            _context.Faturamento.Add(FaturamentoAdicional);
         }
     }
 }
