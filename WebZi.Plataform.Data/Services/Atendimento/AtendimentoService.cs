@@ -1373,11 +1373,11 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             int ClienteId
         )
         {
-            // UsuarioPermissaoModel UsuarioPermissao = await _context.UsuarioPermissao
-            //     .Include(x => x.TipoPermissao)
-            //     .AsNoTracking()
-            //     .FirstOrDefaultAsync(x => x.UsuarioId == UsuarioId
-            //                               && x.TipoPermissao.Codigo == "EXCLUSAOATENDIMENTOS");
+            UsuarioPermissaoModel UsuarioPermissao = await _context.UsuarioPermissao
+                .Include(x => x.TipoPermissao)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.UsuarioId == UsuarioId
+                                          && x.TipoPermissao.Codigo == "EXCLUSAOATENDIMENTOS");
 
             var permiteExclusao = await _context.PerfilAcessoUsuario
                 .AsNoTracking()
@@ -1388,10 +1388,10 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                                    // .Any(s => s.IdPerfilAcesso == 80 && s.IdSubModulo == 166)); //
                                    .Any(s => s.IdPerfilAcesso == 84 && s.IdSubModulo == 166)); //
 
-            // if (UsuarioPermissao == null)
-            // {
-            //     return MensagemViewHelper.SetUnauthorized("Usuário não possui permissão para excluir Processos");
-            // }
+            if (UsuarioPermissao == null)
+            {
+                return MensagemViewHelper.SetUnauthorized("Usuário não possui permissão para excluir Processos");
+            }
 
             if (!permiteExclusao)
             {
