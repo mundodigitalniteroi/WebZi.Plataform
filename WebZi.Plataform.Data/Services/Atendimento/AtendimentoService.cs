@@ -1377,16 +1377,16 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 .Include(x => x.TipoPermissao)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.UsuarioId == UsuarioId
-                                          && x.TipoPermissao.Codigo == "EXCLUSAOATENDIMENTOS");
+                                          && x.TipoPermissao.TipoPermissaoId == 3);
 
             var permiteExclusao = await _context.PerfilAcessoUsuario
                 .AsNoTracking()
                 .AnyAsync(x => x.UsuarioId == UsuarioId
-                               // && x.PerfilAcessoId == 80
-                               && x.PerfilAcessoId == 84 // prod
+                               && x.PerfilAcessoId == 80
+                               // && x.PerfilAcessoId == 84 // prod
                                && _context.SistemaPerfilAcessoSubModulos
-                                   // .Any(s => s.IdPerfilAcesso == 80 && s.IdSubModulo == 166)); //
-                                   .Any(s => s.IdPerfilAcesso == 84 && s.IdSubModulo == 166)); //
+                                   .Any(s => s.IdPerfilAcesso == 80 && s.IdSubModulo == 166)); //
+                                   // .Any(s => s.IdPerfilAcesso == 84 && s.IdSubModulo == 166)); //
 
             if (UsuarioPermissao == null)
             {
@@ -1445,7 +1445,45 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             {
                 try
                 {
-                    if (SaidaParaReparo)
+                    if (Grv.LiberacaoId != null || Grv.Liberacao != null)
+                    {
+                        await _context.Grv
+                            .Where(x => x.GrvId == Grv.GrvId && x.LiberacaoId != null)
+                            .ExecuteUpdateAsync(s => s.SetProperty(x => x.LiberacaoId, (int?)null));
+                    }
+
+                    if (Grv.Atendimento != null)
+                    {
+                        List<int> faturamentoIds = await _context.Faturamento
+                            .Where(x => x.AtendimentoId == Grv.Atendimento.AtendimentoId)
+                            .Select(x => x.FaturamentoId)
+                            .ToListAsync();
+
+                        if (faturamentoIds.Count > 0)
+                        {
+                            await _context.PixDinamicoSenhaConfirmacaoTranferencia
+                                .Where(x => faturamentoIds.Contains(x.FaturamentoId))
+                                .ExecuteDeleteAsync();
+
+                            await _context.PixEstatico
+                                .Where(x => faturamentoIds.Contains(x.FaturamentoId))
+                                .ExecuteDeleteAsync();
+
+                            await _context.PixDinamico
+                                .Where(x => faturamentoIds.Contains(x.FaturamentoId))
+                                .ExecuteDeleteAsync();
+
+                            await _context.LiberacaoEspecial
+                                .Where(x => faturamentoIds.Contains(x.IdFaturamento))
+                                .ExecuteDeleteAsync();
+                        }
+                    }
+
+                    await _context.LiberacaoEspecial
+                        .Where(x => x.IdGrv == Grv.GrvId)
+                        .ExecuteDeleteAsync();
+
+                    if (SaidaParaReparo && Grv.Atendimento != null)
                     {
                         await _context.SaidaReparo
                             .Where(x => x.AtendimentoId == Grv.Atendimento.AtendimentoId)
