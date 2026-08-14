@@ -1054,8 +1054,21 @@ namespace WebZi.Plataform.Data.Services.Usuario
             var novaSenha = parameters.Senha.ToUpperTrim();
             var dataAlteracao = DateTime.UtcNow.AddHours(-3);
 
-            var result = await _context.Database.ExecuteSqlInterpolatedAsync(
-                $"UPDATE dbo.tb_dep_usuarios SET senha1 = HASHBYTES('MD5', {novaSenha}), data_alteracao = {dataAlteracao} WHERE login = {loginNormalized}",
+            SqlParameter[] sqlParameters = new[]
+            {
+                new SqlParameter("@novaSenha", SqlDbType.VarChar) { Value = novaSenha },
+                new SqlParameter("@dataAlteracao", SqlDbType.DateTime) { Value = dataAlteracao },
+                new SqlParameter("@login", SqlDbType.VarChar) { Value = loginNormalized }
+            };
+
+            var result = await _context.Database.ExecuteSqlRawAsync(
+                """
+                UPDATE dbo.tb_dep_usuarios
+                SET senha1 = HASHBYTES('MD5', @novaSenha),
+                    data_alteracao = @dataAlteracao
+                WHERE login = @login
+                """,
+                sqlParameters,
                 ct);
 
             if (result == 0)
