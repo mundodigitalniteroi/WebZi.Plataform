@@ -52,9 +52,7 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpPost("Entrega")]
-        // TODO: [Authorize]
-        [IgnoreAntiforgeryToken]
-        public async Task<ActionResult<MensagemDTO>> Entrega([FromBody] EntregaParameters Parameters)
+        public async Task<ActionResult<MensagemDTO>> Entrega([FromBody] EntregaParameters Parameters, CancellationToken ct)
         {
             if (!ModelState.IsValid)
             {
@@ -67,7 +65,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<LiberacaoService>()
-                    .EntregaAsync(Parameters);
+                    .EntregaAsync(Parameters, ct);
 
                 return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
             }

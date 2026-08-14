@@ -92,6 +92,7 @@ namespace WebZi.Plataform.Domain.DTO.Report
         public string FaturamentoNumeroIdentificacao { get; set; }
 
         public string FaturamentoDataVencimento { get; set; }
+        public string StatusPagamento { get; set; }
 
         public string PrazoRetiradaVeiculo { get; set; }
 

@@ -217,7 +217,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
             return MensagemViewHelper.SetCreateSuccess("Nota Fiscal Emitida");
         }
 
-        public async Task<MensagemDTO> CreateNfseAsync(int grvId, int usuarioId)
+        public async Task<MensagemDTO> CreateNfseAsync(int grvId, int usuarioId, CancellationToken ct)
         {
             MensagemDTO ResultView = new GrvService(_context).ValidateInputGrv(grvId, usuarioId);
 
@@ -225,15 +225,15 @@ namespace WebZi.Plataform.Data.Services.WebServices
 
             var grv = await _context.Grv
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.GrvId == grvId);
+                .FirstOrDefaultAsync(x => x.GrvId == grvId, cancellationToken: ct);
             NfeModel nfeDB = await _context.Nfe
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.GrvId == grvId);
+                .FirstOrDefaultAsync(x => x.GrvId == grvId, cancellationToken: ct);
 
             var permitirEmissao = await _context.FaturamentoRegra
                 .AnyAsync(x =>
                     x.ClienteId == grv.ClienteId && x.DepositoId == grv.DepositoId &&
-                    x.FaturamentoRegraTipoId == 11);
+                    x.FaturamentoRegraTipoId == 11, cancellationToken: ct);
 
             #endregion
 

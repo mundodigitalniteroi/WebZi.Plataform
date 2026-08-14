@@ -88,7 +88,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             _options = options;
         }
 
-        public async Task<MensagemDTO> CheckInformacoesParaCadastroAsync(AtendimentoParameters AtendimentoCadastro)
+        public async Task<MensagemDTO> CheckInformacoesParaCadastroAsync(AtendimentoParameters AtendimentoCadastro, CancellationToken ct)
         {
             if (AtendimentoCadastro.IdentificadorTipoMeioCobranca <= 0)
             {
@@ -111,11 +111,11 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 .Include(x => x.StatusOperacao)
                 .Include(x => x.Atendimento)
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.GrvId == AtendimentoCadastro.IdentificadorProcesso);
+                .FirstOrDefaultAsync(x => x.GrvId == AtendimentoCadastro.IdentificadorProcesso, cancellationToken: ct);
 
             UsuarioModel Usuario = await _context.Usuario
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.UsuarioId == AtendimentoCadastro.IdentificadorUsuario);
+                .FirstOrDefaultAsync(x => x.UsuarioId == AtendimentoCadastro.IdentificadorUsuario, cancellationToken: ct);
 
             if (!new[] { "B", "D", "V", "L", "E", "1", "2", "3", "4", "7" }.Contains(Grv.StatusOperacaoId))
             {
@@ -280,7 +280,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 TipoDocumentoIdentificacaoModel TipoDocumentoIdentificacao = await _context.TipoDocumentoIdentificacao
                     .AsNoTracking()
                     .FirstOrDefaultAsync(w =>
-                        w.TipoDocumentoIdentificacaoId == AtendimentoCadastro.IdentificadorProprietarioTipoDocumento);
+                        w.TipoDocumentoIdentificacaoId == AtendimentoCadastro.IdentificadorProprietarioTipoDocumento, cancellationToken: ct);
 
                 if (TipoDocumentoIdentificacao == null)
                 {
@@ -314,7 +314,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             var permitirEmissao = await _context.FaturamentoRegra
                 .AnyAsync(x =>
                     x.ClienteId == Grv.ClienteId && x.DepositoId == Grv.DepositoId &&
-                    x.FaturamentoRegraTipoId == 11);
+                    x.FaturamentoRegraTipoId == 11, cancellationToken: ct);
 
             if (Grv.Cliente.FlagEmissaoNotaFiscal == "S" && permitirEmissao)
             {
@@ -428,7 +428,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                                     x.FaturamentoRegraTipo.Codigo ==
                                     FaturamentoRegraTipoEnum.ObrigatorioInformarInscricaoMunicipal)
                         .AsNoTracking()
-                        .FirstOrDefaultAsync();
+                        .FirstOrDefaultAsync(cancellationToken: ct);
 
                     if (FaturamentoRegra != null)
                     {
@@ -446,7 +446,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             TipoMeioCobrancaModel TipoMeioCobranca = await _context.TipoMeioCobranca
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.TipoMeioCobrancaId == AtendimentoCadastro.IdentificadorTipoMeioCobranca);
+                .FirstOrDefaultAsync(x => x.TipoMeioCobrancaId == AtendimentoCadastro.IdentificadorTipoMeioCobranca, cancellationToken: ct);
 
             if (TipoMeioCobranca == null)
             {
@@ -481,7 +481,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
         }
 
         public async Task<MensagemDTO> CheckInformacoesParaAtualizarAsync(
-            AtualizarAtendimentoParameters AtualizarAtendimento)
+            AtualizarAtendimentoParameters AtualizarAtendimento, CancellationToken ct)
         {
             MensagemDTO ResultView = new MensagemDTO();
             List<string> Erros = new List<string>();
@@ -495,7 +495,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                                // && x.PerfilAcessoId == 80
                                && x.PerfilAcessoId == 84 // prod
                                && _context.SistemaPerfilAcessoSubModulos
-                                   .Any(s => s.IdPerfilAcesso == 84 && s.IdSubModulo == 165)); // prod
+                                   .Any(s => s.IdPerfilAcesso == 84 && s.IdSubModulo == 165), cancellationToken: ct); // prod
             // .Any(s => s.IdPerfilAcesso == 80 && s.IdSubModulo == 165));
             if (!permitirEdicao)
             {
@@ -525,11 +525,11 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 .Include(x => x.StatusOperacao)
                 .Include(x => x.Atendimento)
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.GrvId == AtualizarAtendimento.IdentificadorProcesso);
+                .FirstOrDefaultAsync(x => x.GrvId == AtualizarAtendimento.IdentificadorProcesso, cancellationToken: ct);
 
             UsuarioModel Usuario = await _context.Usuario
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.UsuarioId == AtualizarAtendimento.IdentificadorUsuario);
+                .FirstOrDefaultAsync(x => x.UsuarioId == AtualizarAtendimento.IdentificadorUsuario, cancellationToken: ct);
 
             if (Grv.Atendimento == null)
             {
@@ -688,7 +688,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 TipoDocumentoIdentificacaoModel TipoDocumentoIdentificacao = await _context.TipoDocumentoIdentificacao
                     .AsNoTracking()
                     .FirstOrDefaultAsync(w =>
-                        w.TipoDocumentoIdentificacaoId == AtualizarAtendimento.IdentificadorProprietarioTipoDocumento);
+                        w.TipoDocumentoIdentificacaoId == AtualizarAtendimento.IdentificadorProprietarioTipoDocumento, cancellationToken: ct);
 
                 if (TipoDocumentoIdentificacao == null)
                 {
@@ -726,7 +726,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                                // && x.PerfilAcessoId == 79 
                                && _context.SistemaPerfilAcessoSubModulos
                                    // .Any(s => s.IdPerfilAcesso == 79 && s.IdSubModulo == 163)); 
-                                   .Any(s => s.IdPerfilAcesso == 81 && s.IdSubModulo == 167)); // AMBIENTE DE HOMOLOG
+                                   .Any(s => s.IdPerfilAcesso == 81 && s.IdSubModulo == 167), cancellationToken: ct); // AMBIENTE DE HOMOLOG
 
 
             if (permiteEdicaoNf)
@@ -841,7 +841,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                                     x.FaturamentoRegraTipo.Codigo ==
                                     FaturamentoRegraTipoEnum.ObrigatorioInformarInscricaoMunicipal)
                         .AsNoTracking()
-                        .FirstOrDefaultAsync();
+                        .FirstOrDefaultAsync(cancellationToken: ct);
 
                     if (FaturamentoRegra != null)
                     {
@@ -942,7 +942,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             return mensagem;
         }
 
-        public async Task<AtendimentoCadastroDTO> CreateAtendimentoAsync(AtendimentoParameters AtendimentoInput)
+        public async Task<AtendimentoCadastroDTO> CreateAtendimentoAsync(AtendimentoParameters AtendimentoInput, CancellationToken ct)
         {
             #region Consultas
 
@@ -951,14 +951,14 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 .Include(x => x.Deposito)
                 .Where(x => x.GrvId == AtendimentoInput.IdentificadorProcesso)
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(cancellationToken: ct);
 
             DateTime DataHoraPorDeposito = new DepositoService(_context)
                 .GetDataHoraPorDeposito(Grv.DepositoId);
             var permitirEmissao = await _context.FaturamentoRegra
                 .AnyAsync(x =>
                     x.ClienteId == Grv.ClienteId && x.DepositoId == Grv.DepositoId &&
-                    x.FaturamentoRegraTipoId == 11);
+                    x.FaturamentoRegraTipoId == 11, cancellationToken: ct);
 
             #endregion Consultas
 
@@ -1073,13 +1073,13 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             CalculoDiariasModel CalculoDiarias = new();
 
-            await using (var transaction = await _context.Database.BeginTransactionAsync())
+            await using (var transaction = await _context.Database.BeginTransactionAsync(ct))
             {
                 try
                 {
                     _context.Atendimento.Add(Atendimento);
 
-                    await _context.SaveChangesAsync();
+                    await _context.SaveChangesAsync(ct);
 
                     Faturamento = new FaturamentoService(_context)
                         .Faturar(ParametrosCalculoFaturamento, out CalculoDiarias);
@@ -1094,14 +1094,14 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
                     UpdateGrv(ParametrosCalculoFaturamento);
 
-                    await _context.SaveChangesAsync();
-                    await transaction.CommitAsync();
+                    await _context.SaveChangesAsync(ct);
+                    await transaction.CommitAsync(ct);
 
                     ResultView.IdentificadorAtendimento = Atendimento.AtendimentoId;
                 }
                 catch (Exception ex)
                 {
-                    await transaction.RollbackAsync();
+                    await transaction.RollbackAsync(ct);
 
                     ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
 
@@ -1147,7 +1147,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
         }
 
         public async Task<MensagemDTO> UpdateAtendimentoAsync(
-            AtualizarAtendimentoParameters AtendimentoInput)
+            AtualizarAtendimentoParameters AtendimentoInput, CancellationToken ct)
         {
             MensagemDTO ResultView = new();
 
@@ -1160,12 +1160,12 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 .ThenInclude(x => x.Deposito)
                 .Where(x => x.AtendimentoId == AtendimentoInput.IdentificadorAtendimento)
                 .AsTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(cancellationToken: ct);
 
             var permitirEmissao = await _context.FaturamentoRegra
                 .AnyAsync(x =>
                     x.ClienteId == Atendimento.Grv.ClienteId && x.DepositoId == Atendimento.Grv.DepositoId &&
-                    x.FaturamentoRegraTipoId == 11);
+                    x.FaturamentoRegraTipoId == 11, cancellationToken: ct);
 
             #endregion Consultas
 
@@ -1231,7 +1231,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             #endregion Dados do Atendimento
 
-            await using (var transaction = await _context.Database.BeginTransactionAsync())
+            await using (var transaction = await _context.Database.BeginTransactionAsync(ct))
             {
                 try
                 {
@@ -1244,12 +1244,12 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                             .UpdateLiberacaoEspecialAsync(AtendimentoInput.LiberacaoEspecial);
                     }
 
-                    await _context.SaveChangesAsync();
-                    await transaction.CommitAsync();
+                    await _context.SaveChangesAsync(ct);
+                    await transaction.CommitAsync(ct);
                 }
                 catch (Exception ex)
                 {
-                    await transaction.RollbackAsync();
+                    await transaction.RollbackAsync(ct);
                     ResultView = MensagemViewHelper.SetInternalServerError(ex);
                     return ResultView;
                 }
@@ -1373,11 +1373,11 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             int ClienteId
         )
         {
-            // UsuarioPermissaoModel UsuarioPermissao = await _context.UsuarioPermissao
-            //     .Include(x => x.TipoPermissao)
-            //     .AsNoTracking()
-            //     .FirstOrDefaultAsync(x => x.UsuarioId == UsuarioId
-            //                               && x.TipoPermissao.Codigo == "EXCLUSAOATENDIMENTOS");
+            UsuarioPermissaoModel UsuarioPermissao = await _context.UsuarioPermissao
+                .Include(x => x.TipoPermissao)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.UsuarioId == UsuarioId
+                                          && x.TipoPermissao.TipoPermissaoId == 3);
 
             var permiteExclusao = await _context.PerfilAcessoUsuario
                 .AsNoTracking()
@@ -1388,10 +1388,10 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                                    // .Any(s => s.IdPerfilAcesso == 80 && s.IdSubModulo == 166)); //
                                    .Any(s => s.IdPerfilAcesso == 84 && s.IdSubModulo == 166)); //
 
-            // if (UsuarioPermissao == null)
-            // {
-            //     return MensagemViewHelper.SetUnauthorized("Usuário não possui permissão para excluir Processos");
-            // }
+            if (UsuarioPermissao == null)
+            {
+                return MensagemViewHelper.SetUnauthorized("Usuário não possui permissão para excluir Processos");
+            }
 
             if (!permiteExclusao)
             {
@@ -1445,7 +1445,45 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             {
                 try
                 {
-                    if (SaidaParaReparo)
+                    if (Grv.LiberacaoId != null || Grv.Liberacao != null)
+                    {
+                        await _context.Grv
+                            .Where(x => x.GrvId == Grv.GrvId && x.LiberacaoId != null)
+                            .ExecuteUpdateAsync(s => s.SetProperty(x => x.LiberacaoId, (int?)null));
+                    }
+
+                    if (Grv.Atendimento != null)
+                    {
+                        List<int> faturamentoIds = await _context.Faturamento
+                            .Where(x => x.AtendimentoId == Grv.Atendimento.AtendimentoId)
+                            .Select(x => x.FaturamentoId)
+                            .ToListAsync();
+
+                        if (faturamentoIds.Count > 0)
+                        {
+                            await _context.PixDinamicoSenhaConfirmacaoTranferencia
+                                .Where(x => faturamentoIds.Contains(x.FaturamentoId))
+                                .ExecuteDeleteAsync();
+
+                            await _context.PixEstatico
+                                .Where(x => faturamentoIds.Contains(x.FaturamentoId))
+                                .ExecuteDeleteAsync();
+
+                            await _context.PixDinamico
+                                .Where(x => faturamentoIds.Contains(x.FaturamentoId))
+                                .ExecuteDeleteAsync();
+
+                            await _context.LiberacaoEspecial
+                                .Where(x => faturamentoIds.Contains(x.IdFaturamento))
+                                .ExecuteDeleteAsync();
+                        }
+                    }
+
+                    await _context.LiberacaoEspecial
+                        .Where(x => x.IdGrv == Grv.GrvId)
+                        .ExecuteDeleteAsync();
+
+                    if (SaidaParaReparo && Grv.Atendimento != null)
                     {
                         await _context.SaidaReparo
                             .Where(x => x.AtendimentoId == Grv.Atendimento.AtendimentoId)
@@ -1552,51 +1590,88 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             return ResultView;
         }
 
-        public async Task<MensagemDTO> CreateSaidaReparo(SaidaParaReparoParameters parameters)
+        public async Task<SaidaParaReparoDTO> CreateSaidaReparo(SaidaParaReparoParameters parameters,
+            CancellationToken ct)
         {
-            MensagemDTO ResultView = new GrvService(_context).ValidateInputGrv(parameters.IdentificadorProcesso,
+            SaidaParaReparoDTO ResultView = new();
+            ResultView.Mensagem = new GrvService(_context).ValidateInputGrv(parameters.IdentificadorProcesso,
                 parameters.IdentificadorUsuario);
-
             var Erros = new List<string>();
 
             #region Consultar
 
             var atendimento = await _context.Atendimento
                 .Include(x => x.Grv)
+                .Include(x => x.ListagemFaturamento.Where(x => x.Status != "C"))
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.AtendimentoId == parameters.IdentificadorAtendimento);
+                .FirstOrDefaultAsync(x => x.AtendimentoId == parameters.IdentificadorAtendimento,
+                    cancellationToken: ct);
+
+            List<FaturamentoModel> Faturamentos =
+                atendimento.ListagemFaturamento.OrderByDescending(x => x.DataCadastro).ToList();
+
+            if (Faturamentos == null || !Faturamentos.Any())
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound(MensagemPadraoEnum.NaoEncontradoFaturamento);
+                return ResultView;
+            }
+
+            if (Faturamentos.Exists(x => x.Status == "N"))
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Este Processo possui uma Fatura não paga");
+                return ResultView;
+            }
+
+            var grv = atendimento.Grv;
             var permitirEmissao = await _context.FaturamentoRegra
                 .AnyAsync(x =>
                     x.ClienteId == atendimento.Grv.ClienteId && x.DepositoId == atendimento.Grv.DepositoId &&
-                    x.FaturamentoRegraTipoId == 11);
+                    x.FaturamentoRegraTipoId == 11, cancellationToken: ct);
+
+
+            FaturamentoModel UltimoFaturamento = atendimento.ListagemFaturamento?
+                .FirstOrDefault();
 
 
             TipoLiberacaoModel TipoLiberacao = await _context
                 .TipoLiberacao
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.TipoLiberacaoId == parameters.IdentificadorTipoLiberacao);
+                .FirstOrDefaultAsync(x => x.TipoLiberacaoId == parameters.IdentificadorTipoLiberacao,
+                    cancellationToken: ct);
 
             if (parameters.IdentificadorTipoLiberacao <= 0)
-                return MensagemViewHelper.SetBadRequest("Precisa ter um tipo de liberação");
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Precisa ter um tipo de liberação");
+                return ResultView;
+            }
 
             bool exists = await _context.SaidaReparo
                 .AsNoTracking()
-                .AnyAsync(x => x.AtendimentoId == parameters.IdentificadorAtendimento);
+                .AnyAsync(x => x.AtendimentoId == parameters.IdentificadorAtendimento, cancellationToken: ct);
 
             #endregion
 
 
             if (TipoLiberacao is null)
-                return MensagemViewHelper.SetBadRequest("Não existe esse tipo de liberação");
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Não existe esse tipo de liberação");
+                return ResultView;
+            }
 
             if (atendimento is null)
-                return MensagemViewHelper.SetNotFound("Atendimento não identificado");
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound("Atendimento não identificado");
+                return ResultView;
+            }
 
             if (exists)
-                return MensagemViewHelper.SetCreateSuccess("Já está cadastrado");
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetCreateSuccess("Já está cadastrado");
+                return ResultView;
+            }
 
-            if (parameters.DataSaida > atendimento.Grv.DataHoraGuarda)
-                Erros.Add("A Data da Saída não pode ser maior do que a Data da guarda");
+            // if (parameters.DataSaida > atendimento.Grv.DataHoraGuarda)
+            //     Erros.Add("A Data da Saída não pode ser maior do que a Data da guarda");
 
             if (parameters.DataSaida > parameters.DataPrevisaoRetorno)
                 Erros.Add("A Data da Saída não pode ser maior do que a Data da Previão de Retorno");
@@ -1622,12 +1697,13 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                     Erros.Add("Liberação Especial precisa ser preenchida");
             }
 
-            if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+            if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
                 Erros.Add("Grv incorreto");
 
             if (Erros.Count > 0)
             {
-                ResultView = MensagemViewHelper.SetBadRequest(Erros);
+                ResultView.Mensagem.HtmlStatusCode = HtmlStatusCodeEnum.BadRequest;
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest(Erros);
                 return ResultView;
             }
 
@@ -1636,67 +1712,58 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 AtendimentoId = parameters.IdentificadorAtendimento,
                 DataSaida = parameters.DataSaida,
                 DataPrevisaoRetorno = parameters.DataPrevisaoRetorno,
-                MotivoSaida = parameters.MotivoSaida
+                MotivoSaida = parameters.MotivoSaida,
+                IdUsuario = parameters.IdentificadorUsuario
             };
 
 
-            await using (IDbContextTransaction _transaction = await _context.Database.BeginTransactionAsync())
+            await using IDbContextTransaction _transaction = await _context.Database.BeginTransactionAsync(ct);
+            try
             {
-                try
+                await _context.SaidaReparo.AddAsync(saidaReparo, ct);
+
+                await AtualizarStatusGrvSaidaReparoAsync(parameters, ct);
+
+                if (parameters.IdentificadorTipoLiberacao == 1)
                 {
-                    await _context.SaidaReparo.AddAsync(saidaReparo);
-
-                    await _context.Grv
-                        .Where(x => x.GrvId == parameters.IdentificadorProcesso)
-                        .UpdateAsync(x => new GrvModel()
-                        {
-                            StatusOperacaoId = "R",
-                            DataAlteracao = DateTime.Now,
-                            UsuarioAlteracaoId = parameters.IdentificadorUsuario
-                        });
-
-                    if (parameters.IdentificadorTipoLiberacao == 1)
-                    {
-                        await _context.Atendimento
-                            .Where(x => x.AtendimentoId == parameters.IdentificadorAtendimento)
-                            .UpdateAsync(x => new AtendimentoModel()
-                            {
-                                FormaLiberacao = parameters.FormaLiberacao.FormaLiberacao,
-                                FormaLiberacaoNome = parameters.FormaLiberacao.FormaLiberacaoNome,
-                                FormaLiberacaoCNH = parameters.FormaLiberacao.FormaLiberacaoCnh,
-                                FormaLiberacaoCPF = parameters.FormaLiberacao.FormaLiberacaoCpf,
-                                FormaLiberacaoPlaca = parameters.FormaLiberacao.FormaLiberacaoPlaca,
-                                DataAlteracao = DateTime.Now
-                            });
-                    }
-
-                    if (parameters.IdentificadorTipoLiberacao == 2)
-                    {
-                        await _provider.GetService<LiberacaoEspecialService>()
-                            .CreateLiberacaoEspecialAsync(parameters.LiberacaoEspecial, new DateTime(1900, 1, 1), true);
-                    }
-
-                    if (_options.Value.Enable && permitirEmissao)
-                    {
-                        await _provider.GetService<WSNfseService>()
-                            .CreateNfseAsync(parameters.IdentificadorProcesso, parameters.IdentificadorUsuario);
-                    }
-
-                    await _context.SaveChangesAsync();
-                    await _transaction.CommitAsync();
+                    await AtualizarFormaLiberacaoAtendimentoAsync(parameters, ct);
                 }
-                catch (Exception ex)
+
+                if (parameters.IdentificadorTipoLiberacao == 2)
                 {
-                    await _transaction.RollbackAsync();
-                    ResultView = MensagemViewHelper.SetInternalServerError(ex);
-                    return ResultView;
+                    await ProcessarLiberacaoEspecialSaidaReparoAsync(parameters, ct);
                 }
+
+                if (parameters.FlagFaturamentoAdiantado == "S")
+                {
+                    await GerarFaturamentoAdicionalSaidaReparoAsync(new GerarFaturamentoSaidaReparoParameters
+                    {
+                        Grv = grv,
+                        UltimoFaturamento = UltimoFaturamento,
+                        DataInicialParaCalculo = parameters.DataSaida,
+                        DataFinalParaCalculo = parameters.DataPrevisaoRetorno,
+                        IdentificadorUsuario = parameters.IdentificadorUsuario,
+                        IsAtualizacaoPrevisao = false
+                    }, ct);
+                }
+
+                await ProcessarEmissaoNfseSaidaReparoAsync(parameters, permitirEmissao, ct);
+
+                await _context.SaveChangesAsync(ct);
+                await _transaction.CommitAsync(ct);
+                ResultView.Mensagem = MensagemViewHelper.SetCreateSuccess();
+                return ResultView;
             }
-
-            return ResultView;
+            catch (Exception ex)
+            {
+                await _transaction.RollbackAsync(ct);
+                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+                return ResultView;
+            }
         }
 
-        public async Task<MensagemDTO> UpdateSaidaReparo(SaidaParaReparoUpdateParameters parameters)
+        public async Task<MensagemDTO> UpdateSaidaReparo(SaidaParaReparoUpdateParameters parameters,
+            CancellationToken ct)
         {
             MensagemDTO ResultView = new();
             var errors = new List<string>();
@@ -1705,11 +1772,16 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             var atendimento = await _context.Atendimento
                 .Include(x => x.Grv)
+                .Include(x => x.ListagemFaturamento.OrderByDescending(x => x.DataCadastro).Where(x => x.Status != "C"))
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.AtendimentoId == parameters.IdentificadorAtendimento);
+                .FirstOrDefaultAsync(x => x.AtendimentoId == parameters.IdentificadorAtendimento,
+                    cancellationToken: ct);
             var saidaReparo = await _context.SaidaReparo
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.Id == parameters.IdentificadorSaidaParaReparo);
+                .FirstOrDefaultAsync(x => x.Id == parameters.IdentificadorSaidaParaReparo, cancellationToken: ct);
+
+            var ultimoFaturamento = atendimento.ListagemFaturamento.FirstOrDefault();
+            var dataPrevisaoAntigo = saidaReparo.DataPrevisaoRetorno;
 
             #endregion
 
@@ -1719,20 +1791,21 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             if (saidaReparo is null)
                 errors.Add("Saida para reparo não encontrado");
 
-            if (saidaReparo.DataSaida > atendimento.Grv.DataHoraGuarda)
-                errors.Add("A Data da Saída não pode ser maior do que a Data da guarda");
+            // if (saidaReparo.DataSaida > atendimento.Grv.DataHoraGuarda)
+            //     errors.Add("A Data da Saída não pode ser maior do que a Data da guarda");
 
             if (saidaReparo.DataSaida > parameters.DataPrevisaoRetorno)
                 errors.Add("A Data da Saída não pode ser maior do que a Data da Previão de Retorno");
 
-            if (errors.Count <= 0)
+            if (errors.Count > 0)
             {
+                ResultView.HtmlStatusCode = HtmlStatusCodeEnum.BadRequest;
                 ResultView.AvisosImpeditivos.AddRange(errors);
                 return ResultView;
             }
 
 
-            await using (IDbContextTransaction _transaction = await _context.Database.BeginTransactionAsync())
+            await using (IDbContextTransaction _transaction = await _context.Database.BeginTransactionAsync(ct))
             {
                 try
                 {
@@ -1740,20 +1813,36 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                         .Where(x => x.Id == parameters.IdentificadorSaidaParaReparo)
                         .UpdateAsync(x => new AtendimentoSaidaParaReparoModel()
                         {
-                            DataPrevisaoRetorno = parameters.DataPrevisaoRetorno,
-                        });
-                    await _context.SaveChangesAsync();
-                    await _transaction.CommitAsync();
+                            DataPrevisaoRetorno = parameters.DataPrevisaoRetorno
+                        }, cancellationToken: ct);
+
+
+                    if (parameters.FlagAtualizarFaturamentoAdiantado == "S")
+                    {
+                        await GerarFaturamentoAdicionalSaidaReparoAsync(new GerarFaturamentoSaidaReparoParameters
+                        {
+                            Grv = atendimento.Grv,
+                            UltimoFaturamento = ultimoFaturamento,
+                            DataInicialParaCalculo = saidaReparo.DataSaida,
+                            DataFinalParaCalculo = parameters.DataPrevisaoRetorno,
+                            IdentificadorUsuario = saidaReparo.IdUsuario!.Value,
+                            IsAtualizacaoPrevisao = true,
+                            DataPrevisaoAntiga = dataPrevisaoAntigo
+                        }, ct);
+                    }
+
+                    await _context.SaveChangesAsync(ct);
+                    await _transaction.CommitAsync(ct);
+                    ResultView = MensagemViewHelper.SetUpdateSuccess("Atualização da data de previsão do retorno do veiculo");
+                    return ResultView;
                 }
                 catch (Exception ex)
                 {
-                    _transaction.Rollback();
+                    await _transaction.RollbackAsync(ct);
                     ResultView = MensagemViewHelper.SetInternalServerError(ex);
                     return ResultView;
                 }
             }
-
-            return ResultView;
         }
 
         public async Task<AtendimentoDTO> GetByProcessoAsync(string NumeroProcesso, string CodigoProduto, int ClienteId,
@@ -1917,6 +2006,167 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             Grv.StatusOperacaoId = ParametrosCalculoFaturamento.StatusOperacaoId;
 
             _context.Grv.Update(Grv);
+        }
+
+        private async Task AtualizarStatusGrvSaidaReparoAsync(SaidaParaReparoParameters parameters,
+            CancellationToken ct)
+        {
+            await _context.Grv
+                .Where(x => x.GrvId == parameters.IdentificadorProcesso)
+                .UpdateAsync(x => new GrvModel
+                {
+                    StatusOperacaoId = "R",
+                    DataAlteracao = DateTime.Now,
+                    UsuarioAlteracaoId = parameters.IdentificadorUsuario
+                }, cancellationToken: ct);
+        }
+
+        private async Task AtualizarFormaLiberacaoAtendimentoAsync(SaidaParaReparoParameters parameters,
+            CancellationToken ct)
+        {
+            await _context.Atendimento
+                .Where(x => x.AtendimentoId == parameters.IdentificadorAtendimento)
+                .UpdateAsync(x => new AtendimentoModel()
+                {
+                    FormaLiberacao = parameters.FormaLiberacao.FormaLiberacao,
+                    FormaLiberacaoNome = parameters.FormaLiberacao.FormaLiberacaoNome,
+                    FormaLiberacaoCNH = parameters.FormaLiberacao.FormaLiberacaoCnh,
+                    FormaLiberacaoCPF = parameters.FormaLiberacao.FormaLiberacaoCpf,
+                    FormaLiberacaoPlaca = parameters.FormaLiberacao.FormaLiberacaoPlaca,
+                    DataAlteracao = DateTime.Now
+                }, cancellationToken: ct);
+        }
+
+        private async Task ProcessarLiberacaoEspecialSaidaReparoAsync(SaidaParaReparoParameters parameters,
+            CancellationToken ct)
+        {
+            await _provider.GetService<LiberacaoEspecialService>()
+                .CreateLiberacaoEspecialAsync(parameters.LiberacaoEspecial, new DateTime(1900, 1, 1), true, ct);
+        }
+
+        private async Task GerarFaturamentoAdicionalSaidaReparoAsync(
+            GerarFaturamentoSaidaReparoParameters payload,
+            CancellationToken ct)
+        {
+            if (payload.UltimoFaturamento is null)
+                throw new ArgumentNullException(nameof(payload.UltimoFaturamento),
+                    "Ultimo Faturamento não pode ser nulo");
+
+            if (payload.IsAtualizacaoPrevisao)
+            {
+                await ProcessarFaturamentoAtualizacaoPrevisaoAsync(payload, ct);
+                return;
+            }
+
+            await ExecutarFaturamentoAdicionalAsync(
+                payload,
+                payload.DataInicialParaCalculo,
+                payload.DataFinalParaCalculo,
+                ct);
+        }
+
+        private async Task ProcessarFaturamentoAtualizacaoPrevisaoAsync(
+            GerarFaturamentoSaidaReparoParameters payload,
+            CancellationToken ct)
+        {
+            if (payload.UltimoFaturamento.Status == "N")
+            {
+                await CancelarFaturamentoAsync(payload.UltimoFaturamento.FaturamentoId,
+                    payload.IdentificadorUsuario, ct);
+                await ExecutarFaturamentoAdicionalAsync(
+                    payload,
+                    payload.DataInicialParaCalculo,
+                    payload.DataFinalParaCalculo,
+                    ct);
+            }
+            else
+            {
+                DateTime dataInicial = payload.DataPrevisaoAntiga ?? payload.DataInicialParaCalculo;
+
+                await ExecutarFaturamentoAdicionalAsync(
+                    payload,
+                    dataInicial,
+                    payload.DataFinalParaCalculo,
+                    ct);
+            }
+        }
+
+        private async Task CancelarFaturamentoAsync(
+            int faturamentoId,
+            int usuarioAlteracaoId,
+            CancellationToken ct)
+        {
+            await _context.Faturamento
+                .Where(x => x.FaturamentoId == faturamentoId)
+                .UpdateAsync(x => new FaturamentoModel
+                {
+                    Status = "C",
+                    UsuarioAlteracaoId = usuarioAlteracaoId,
+                    DataAlteracao = DateTime.Now
+                }, ct);
+        }
+
+        private async Task ExecutarFaturamentoAdicionalAsync(
+            GerarFaturamentoSaidaReparoParameters payload,
+            DateTime dataInicial,
+            DateTime dataFinal,
+            CancellationToken ct)
+        {
+            CalculoFaturamentoParametroModel parametrosCalculo =
+                await MontarParametrosCalculoFaturamentoAsync(payload, dataInicial, dataFinal, ct);
+
+            FaturamentoModel novoFaturamento = _provider.GetService<FaturamentoService>()
+                .Faturar(parametrosCalculo, out _);
+
+            novoFaturamento.UsuarioCadastroId = payload.IdentificadorUsuario;
+
+            await _context.Faturamento.AddAsync(novoFaturamento, ct);
+        }
+
+        private async Task<CalculoFaturamentoParametroModel> MontarParametrosCalculoFaturamentoAsync(
+            GerarFaturamentoSaidaReparoParameters payload,
+            DateTime dataInicial,
+            DateTime dataFinal,
+            CancellationToken ct)
+        {
+            var clienteDeposito = await _context.ClienteDeposito
+                .Include(x => x.Cliente)
+                .ThenInclude(x => x.Endereco)
+                .Include(x => x.Deposito)
+                .ThenInclude(x => x.Endereco)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(
+                    x => x.ClienteId == payload.Grv.ClienteId && x.DepositoId == payload.Grv.DepositoId,
+                    cancellationToken: ct);
+
+            return new CalculoFaturamentoParametroModel
+            {
+                DataHoraInicialParaCalculo = dataInicial,
+                DataHoraFinalParaCalculo = dataFinal,
+                DataHoraPorDeposito = dataFinal,
+                FaturarSemGrv = false,
+                IsSimulacao = false,
+                IsComboio = false,
+                StatusOperacaoId = payload.Grv.StatusOperacaoId,
+                IsLeilaoStatus = new[] { "1", "3", "7" }.Contains(payload.Grv.StatusOperacaoId),
+                FaturamentoProdutoId = payload.Grv.FaturamentoProdutoId,
+                GrvId = payload.Grv.GrvId,
+                NumeroFormularioGrv = payload.Grv.NumeroFormularioGrv,
+                TipoVeiculoId = payload.Grv.TipoVeiculoId,
+                FaturamentoAdicional = true,
+                TipoMeioCobrancaId = payload.UltimoFaturamento.TipoMeioCobrancaId,
+                ClienteDeposito = clienteDeposito
+            };
+        }
+
+        private async Task ProcessarEmissaoNfseSaidaReparoAsync(SaidaParaReparoParameters parameters,
+            bool permitirEmissao, CancellationToken ct)
+        {
+            if (_options.Value.Enable && permitirEmissao)
+            {
+                await _provider.GetService<WSNfseService>()
+                    .CreateNfseAsync(parameters.IdentificadorProcesso, parameters.IdentificadorUsuario, ct);
+            }
         }
 
         //private async void GerarFormaPagamento(CalculoFaturamentoParametroModel ParametrosCalculoFaturamento)

@@ -23,7 +23,8 @@ namespace WebZi.Plataform.API.Controllers
         [HttpPost("ValidarInformacoesParaPagamento")]
         // TODO: [Authorize]
         [IgnoreAntiforgeryToken]
-        public async Task<ActionResult<MensagemDTO>> ValidarInformacoesParaPagamento([FromBody] PagamentoParameters Atendimento)
+        public async Task<ActionResult<MensagemDTO>> ValidarInformacoesParaPagamento(
+            [FromBody] PagamentoParameters Atendimento)
         {
             if (!ModelState.IsValid)
             {
@@ -51,7 +52,8 @@ namespace WebZi.Plataform.API.Controllers
         [HttpPost("ConfirmarPagamento")]
         // TODO: [Authorize]
         [IgnoreAntiforgeryToken]
-        public async Task<ActionResult<FaturamentoDTO>> ConfirmarPagamento([FromBody] PagamentoParameters model)
+        public async Task<ActionResult<FaturamentoDTO>> ConfirmarPagamento([FromBody] PagamentoParameters model,
+            CancellationToken ct)
         {
             if (!ModelState.IsValid)
             {
@@ -60,7 +62,8 @@ namespace WebZi.Plataform.API.Controllers
 
             FaturamentoDTO faturamento = await _provider
                 .GetService<FaturamentoService>()
-                .ConfirmarPagamentoAsync(model.IdentificadorFaturamento, model.IdentificadorUsuario, model.Cartoes);
+                .ConfirmarPagamentoAsync(model.IdentificadorFaturamento, model.IdentificadorUsuario, model.Cartoes,
+                    model.SaidaParaReparo, ct);
 
             if (faturamento.Mensagem.Erros.Count == 0)
             {

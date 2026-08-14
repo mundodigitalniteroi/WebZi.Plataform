@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using WebZi.Plataform.Domain.Models.Atendimento;
 
@@ -8,7 +8,10 @@ namespace WebZi.Plataform.Data.Mappings.Atendimento
     {
         public void Configure(EntityTypeBuilder<AtendimentoSaidaParaReparoModel> builder)
         {
-            builder.ToTable("tb_dep_atendimento_saida_reparo", "dbo")
+            builder.ToTable("tb_dep_atendimento_saida_reparo", "dbo", tb =>
+                {
+                    tb.HasTrigger("tr_log_upd_atendimento_saida_reparo");
+                })
                 .HasKey(x => x.Id);
 
             builder.Property(x => x.Id)

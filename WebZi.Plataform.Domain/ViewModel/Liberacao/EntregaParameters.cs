@@ -20,7 +20,6 @@ namespace WebZi.Plataform.Domain.ViewModel.Liberacao
         public int? IdentificadorSaidaReparo { get; set; }
         public FormaLiberacaoParameters? FormaLiberacao { get; set; }
         public LiberacaoEspecialParameters? LiberacaoEspecial { get; set; }
-        
         public byte[] ResponsavelFoto { get; set; }
     }
 }
