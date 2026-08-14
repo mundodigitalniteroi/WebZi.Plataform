@@ -27,7 +27,7 @@ namespace WebZi.Plataform.API.Controllers
         [HttpPost("Cadastrar")]
         // TODO: [Authorize]
         [IgnoreAntiforgeryToken]
-        public async Task<ActionResult<AtendimentoCadastroDTO>> Cadastrar([FromBody] AtendimentoParameters Atendimento)
+        public async Task<ActionResult<AtendimentoCadastroDTO>> Cadastrar([FromBody] AtendimentoParameters Atendimento, CancellationToken ct)
         {
             if (!ModelState.IsValid)
             {
@@ -40,7 +40,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView.Mensagem = await _provider
                     .GetService<AtendimentoService>()
-                    .CheckInformacoesParaCadastroAsync(Atendimento);
+                    .CheckInformacoesParaCadastroAsync(Atendimento, ct);
 
                 if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
                 {
@@ -58,7 +58,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<AtendimentoService>()
-                    .CreateAtendimentoAsync(Atendimento);
+                    .CreateAtendimentoAsync(Atendimento, ct);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -72,7 +72,7 @@ namespace WebZi.Plataform.API.Controllers
 
 
         [HttpPut("Atualizar")]
-        public async Task<ActionResult<MensagemDTO>> Atualizar(AtualizarAtendimentoParameters parameters)
+        public async Task<ActionResult<MensagemDTO>> Atualizar(AtualizarAtendimentoParameters parameters, CancellationToken ct)
         {
             if (!ModelState.IsValid)
             {
@@ -85,7 +85,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<AtendimentoService>()
-                    .CheckInformacoesParaAtualizarAsync(parameters);
+                    .CheckInformacoesParaAtualizarAsync(parameters, ct);
 
                 if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
                 {
@@ -103,7 +103,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<AtendimentoService>()
-                    .UpdateAtendimentoAsync(parameters);
+                    .UpdateAtendimentoAsync(parameters, ct);
             }
             catch (Exception ex)
             {
@@ -272,7 +272,7 @@ namespace WebZi.Plataform.API.Controllers
         [IgnoreAntiforgeryToken]
         // TODO: [Authorize]
         public async Task<ActionResult<MensagemDTO>> ValidarInformacoesParaCadastro(
-            [FromBody] AtendimentoParameters Atendimento)
+            [FromBody] AtendimentoParameters Atendimento, CancellationToken ct)
         {
             if (!ModelState.IsValid)
             {
@@ -285,7 +285,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<AtendimentoService>()
-                    .CheckInformacoesParaCadastroAsync(Atendimento);
+                    .CheckInformacoesParaCadastroAsync(Atendimento, ct);
 
                 return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
             }

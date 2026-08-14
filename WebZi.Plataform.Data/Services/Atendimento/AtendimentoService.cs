@@ -88,7 +88,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             _options = options;
         }
 
-        public async Task<MensagemDTO> CheckInformacoesParaCadastroAsync(AtendimentoParameters AtendimentoCadastro)
+        public async Task<MensagemDTO> CheckInformacoesParaCadastroAsync(AtendimentoParameters AtendimentoCadastro, CancellationToken ct)
         {
             if (AtendimentoCadastro.IdentificadorTipoMeioCobranca <= 0)
             {
@@ -111,11 +111,11 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 .Include(x => x.StatusOperacao)
                 .Include(x => x.Atendimento)
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.GrvId == AtendimentoCadastro.IdentificadorProcesso);
+                .FirstOrDefaultAsync(x => x.GrvId == AtendimentoCadastro.IdentificadorProcesso, cancellationToken: ct);
 
             UsuarioModel Usuario = await _context.Usuario
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.UsuarioId == AtendimentoCadastro.IdentificadorUsuario);
+                .FirstOrDefaultAsync(x => x.UsuarioId == AtendimentoCadastro.IdentificadorUsuario, cancellationToken: ct);
 
             if (!new[] { "B", "D", "V", "L", "E", "1", "2", "3", "4", "7" }.Contains(Grv.StatusOperacaoId))
             {
@@ -280,7 +280,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 TipoDocumentoIdentificacaoModel TipoDocumentoIdentificacao = await _context.TipoDocumentoIdentificacao
                     .AsNoTracking()
                     .FirstOrDefaultAsync(w =>
-                        w.TipoDocumentoIdentificacaoId == AtendimentoCadastro.IdentificadorProprietarioTipoDocumento);
+                        w.TipoDocumentoIdentificacaoId == AtendimentoCadastro.IdentificadorProprietarioTipoDocumento, cancellationToken: ct);
 
                 if (TipoDocumentoIdentificacao == null)
                 {
@@ -314,7 +314,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             var permitirEmissao = await _context.FaturamentoRegra
                 .AnyAsync(x =>
                     x.ClienteId == Grv.ClienteId && x.DepositoId == Grv.DepositoId &&
-                    x.FaturamentoRegraTipoId == 11);
+                    x.FaturamentoRegraTipoId == 11, cancellationToken: ct);
 
             if (Grv.Cliente.FlagEmissaoNotaFiscal == "S" && permitirEmissao)
             {
@@ -428,7 +428,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                                     x.FaturamentoRegraTipo.Codigo ==
                                     FaturamentoRegraTipoEnum.ObrigatorioInformarInscricaoMunicipal)
                         .AsNoTracking()
-                        .FirstOrDefaultAsync();
+                        .FirstOrDefaultAsync(cancellationToken: ct);
 
                     if (FaturamentoRegra != null)
                     {
@@ -446,7 +446,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             TipoMeioCobrancaModel TipoMeioCobranca = await _context.TipoMeioCobranca
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.TipoMeioCobrancaId == AtendimentoCadastro.IdentificadorTipoMeioCobranca);
+                .FirstOrDefaultAsync(x => x.TipoMeioCobrancaId == AtendimentoCadastro.IdentificadorTipoMeioCobranca, cancellationToken: ct);
 
             if (TipoMeioCobranca == null)
             {
@@ -481,7 +481,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
         }
 
         public async Task<MensagemDTO> CheckInformacoesParaAtualizarAsync(
-            AtualizarAtendimentoParameters AtualizarAtendimento)
+            AtualizarAtendimentoParameters AtualizarAtendimento, CancellationToken ct)
         {
             MensagemDTO ResultView = new MensagemDTO();
             List<string> Erros = new List<string>();
@@ -495,7 +495,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                                // && x.PerfilAcessoId == 80
                                && x.PerfilAcessoId == 84 // prod
                                && _context.SistemaPerfilAcessoSubModulos
-                                   .Any(s => s.IdPerfilAcesso == 84 && s.IdSubModulo == 165)); // prod
+                                   .Any(s => s.IdPerfilAcesso == 84 && s.IdSubModulo == 165), cancellationToken: ct); // prod
             // .Any(s => s.IdPerfilAcesso == 80 && s.IdSubModulo == 165));
             if (!permitirEdicao)
             {
@@ -525,11 +525,11 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 .Include(x => x.StatusOperacao)
                 .Include(x => x.Atendimento)
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.GrvId == AtualizarAtendimento.IdentificadorProcesso);
+                .FirstOrDefaultAsync(x => x.GrvId == AtualizarAtendimento.IdentificadorProcesso, cancellationToken: ct);
 
             UsuarioModel Usuario = await _context.Usuario
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.UsuarioId == AtualizarAtendimento.IdentificadorUsuario);
+                .FirstOrDefaultAsync(x => x.UsuarioId == AtualizarAtendimento.IdentificadorUsuario, cancellationToken: ct);
 
             if (Grv.Atendimento == null)
             {
@@ -688,7 +688,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 TipoDocumentoIdentificacaoModel TipoDocumentoIdentificacao = await _context.TipoDocumentoIdentificacao
                     .AsNoTracking()
                     .FirstOrDefaultAsync(w =>
-                        w.TipoDocumentoIdentificacaoId == AtualizarAtendimento.IdentificadorProprietarioTipoDocumento);
+                        w.TipoDocumentoIdentificacaoId == AtualizarAtendimento.IdentificadorProprietarioTipoDocumento, cancellationToken: ct);
 
                 if (TipoDocumentoIdentificacao == null)
                 {
@@ -726,7 +726,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                                // && x.PerfilAcessoId == 79 
                                && _context.SistemaPerfilAcessoSubModulos
                                    // .Any(s => s.IdPerfilAcesso == 79 && s.IdSubModulo == 163)); 
-                                   .Any(s => s.IdPerfilAcesso == 81 && s.IdSubModulo == 167)); // AMBIENTE DE HOMOLOG
+                                   .Any(s => s.IdPerfilAcesso == 81 && s.IdSubModulo == 167), cancellationToken: ct); // AMBIENTE DE HOMOLOG
 
 
             if (permiteEdicaoNf)
@@ -841,7 +841,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                                     x.FaturamentoRegraTipo.Codigo ==
                                     FaturamentoRegraTipoEnum.ObrigatorioInformarInscricaoMunicipal)
                         .AsNoTracking()
-                        .FirstOrDefaultAsync();
+                        .FirstOrDefaultAsync(cancellationToken: ct);
 
                     if (FaturamentoRegra != null)
                     {
@@ -942,7 +942,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             return mensagem;
         }
 
-        public async Task<AtendimentoCadastroDTO> CreateAtendimentoAsync(AtendimentoParameters AtendimentoInput)
+        public async Task<AtendimentoCadastroDTO> CreateAtendimentoAsync(AtendimentoParameters AtendimentoInput, CancellationToken ct)
         {
             #region Consultas
 
@@ -951,14 +951,14 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 .Include(x => x.Deposito)
                 .Where(x => x.GrvId == AtendimentoInput.IdentificadorProcesso)
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(cancellationToken: ct);
 
             DateTime DataHoraPorDeposito = new DepositoService(_context)
                 .GetDataHoraPorDeposito(Grv.DepositoId);
             var permitirEmissao = await _context.FaturamentoRegra
                 .AnyAsync(x =>
                     x.ClienteId == Grv.ClienteId && x.DepositoId == Grv.DepositoId &&
-                    x.FaturamentoRegraTipoId == 11);
+                    x.FaturamentoRegraTipoId == 11, cancellationToken: ct);
 
             #endregion Consultas
 
@@ -1073,13 +1073,13 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             CalculoDiariasModel CalculoDiarias = new();
 
-            await using (var transaction = await _context.Database.BeginTransactionAsync())
+            await using (var transaction = await _context.Database.BeginTransactionAsync(ct))
             {
                 try
                 {
                     _context.Atendimento.Add(Atendimento);
 
-                    await _context.SaveChangesAsync();
+                    await _context.SaveChangesAsync(ct);
 
                     Faturamento = new FaturamentoService(_context)
                         .Faturar(ParametrosCalculoFaturamento, out CalculoDiarias);
@@ -1094,14 +1094,14 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
                     UpdateGrv(ParametrosCalculoFaturamento);
 
-                    await _context.SaveChangesAsync();
-                    await transaction.CommitAsync();
+                    await _context.SaveChangesAsync(ct);
+                    await transaction.CommitAsync(ct);
 
                     ResultView.IdentificadorAtendimento = Atendimento.AtendimentoId;
                 }
                 catch (Exception ex)
                 {
-                    await transaction.RollbackAsync();
+                    await transaction.RollbackAsync(ct);
 
                     ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
 
@@ -1147,7 +1147,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
         }
 
         public async Task<MensagemDTO> UpdateAtendimentoAsync(
-            AtualizarAtendimentoParameters AtendimentoInput)
+            AtualizarAtendimentoParameters AtendimentoInput, CancellationToken ct)
         {
             MensagemDTO ResultView = new();
 
@@ -1160,12 +1160,12 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 .ThenInclude(x => x.Deposito)
                 .Where(x => x.AtendimentoId == AtendimentoInput.IdentificadorAtendimento)
                 .AsTracking()
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(cancellationToken: ct);
 
             var permitirEmissao = await _context.FaturamentoRegra
                 .AnyAsync(x =>
                     x.ClienteId == Atendimento.Grv.ClienteId && x.DepositoId == Atendimento.Grv.DepositoId &&
-                    x.FaturamentoRegraTipoId == 11);
+                    x.FaturamentoRegraTipoId == 11, cancellationToken: ct);
 
             #endregion Consultas
 
@@ -1231,7 +1231,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             #endregion Dados do Atendimento
 
-            await using (var transaction = await _context.Database.BeginTransactionAsync())
+            await using (var transaction = await _context.Database.BeginTransactionAsync(ct))
             {
                 try
                 {
@@ -1244,12 +1244,12 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                             .UpdateLiberacaoEspecialAsync(AtendimentoInput.LiberacaoEspecial);
                     }
 
-                    await _context.SaveChangesAsync();
-                    await transaction.CommitAsync();
+                    await _context.SaveChangesAsync(ct);
+                    await transaction.CommitAsync(ct);
                 }
                 catch (Exception ex)
                 {
-                    await transaction.RollbackAsync();
+                    await transaction.RollbackAsync(ct);
                     ResultView = MensagemViewHelper.SetInternalServerError(ex);
                     return ResultView;
                 }
@@ -1382,11 +1382,11 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             var permiteExclusao = await _context.PerfilAcessoUsuario
                 .AsNoTracking()
                 .AnyAsync(x => x.UsuarioId == UsuarioId
-                               && x.PerfilAcessoId == 80
-                               // && x.PerfilAcessoId == 84 // prod
+                               // && x.PerfilAcessoId == 80
+                               && x.PerfilAcessoId == 84 // prod
                                && _context.SistemaPerfilAcessoSubModulos
-                                   .Any(s => s.IdPerfilAcesso == 80 && s.IdSubModulo == 166)); //
-                                   // .Any(s => s.IdPerfilAcesso == 84 && s.IdSubModulo == 166)); //
+                                   // .Any(s => s.IdPerfilAcesso == 80 && s.IdSubModulo == 166)); //
+                                   .Any(s => s.IdPerfilAcesso == 84 && s.IdSubModulo == 166)); //
 
             if (UsuarioPermissao == null)
             {
