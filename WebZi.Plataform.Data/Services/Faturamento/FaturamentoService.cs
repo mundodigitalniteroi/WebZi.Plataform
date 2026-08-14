@@ -797,7 +797,9 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     }
                     else
                     {
-                        FaturamentoComposicao.QuantidadeComposicao = Math.Round(FaturamentoServicoGrv.Valor.Value, 2);
+                        FaturamentoComposicao.QuantidadeComposicao = FaturamentoServicoGrv.QuantidadeDesconto.HasValue && FaturamentoServicoGrv.QuantidadeDesconto.Value > 0
+                            ? FaturamentoServicoGrv.QuantidadeDesconto.Value
+                            : (FaturamentoServicoGrv.Valor.HasValue ? Math.Round(FaturamentoServicoGrv.Valor.Value, 2) : 1);
                     }
 
                     if (FaturamentoComposicao.QuantidadeComposicao == 0)
