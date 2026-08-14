@@ -1051,7 +1051,7 @@ namespace WebZi.Plataform.Data.Services.Usuario
             MensagemDTO ResultView = new();
 
             var loginNormalized = parameters.Login.ToUpperTrim();
-            var novaSenha = parameters.Senha.Trim();
+            var novaSenha = parameters.Senha.ToUpperTrim();
             var dataAlteracao = DateTime.UtcNow.AddHours(-3);
 
             var result = await _context.Database.ExecuteSqlInterpolatedAsync(
