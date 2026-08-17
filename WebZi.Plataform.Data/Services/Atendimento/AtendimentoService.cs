@@ -129,8 +129,11 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                     $"Este Processo já possui um Atendimento cadastrado. Identificador do Atendimento: {Grv.Atendimento.AtendimentoId}");
             }
 
-            if (Usuario.FlagPermissaoDesconto != "S")
-                return MensagemViewHelper.SetBadRequest($"Este usuario não é permitido o cadastro de Descontos.");
+            if (AtendimentoCadastro.Descontos != null && AtendimentoCadastro.Descontos.Any())
+            {
+                if (Usuario.FlagPermissaoDesconto != "S")
+                    return MensagemViewHelper.SetBadRequest($"Este usuario não é permitido o cadastro de Descontos.");
+            }
 
             #endregion Consultas
 
@@ -537,8 +540,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                     $"Este Processo não possui um Atendimento cadastrado.");
             }
 
-            if (Usuario.FlagPermissaoDesconto != "S")
-                return MensagemViewHelper.SetBadRequest($"Este usuario não é permitido o cadastro de Descontos.");
+
 
             #endregion Consultas
 
@@ -1287,7 +1289,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
         private async Task<CalculoFaturamentoParametroModel> ConfigParametrosCalculoFaturamentoAsync(GrvModel Grv,
             int TipoMeioCobrancaId,
-            int UsuarioCadastroId, DateTime DataHoraPorDeposito, List<DescontoParameters> descontoParameters)
+            int UsuarioCadastroId, DateTime DataHoraPorDeposito, List<DescontoParameters>? descontoParameters)
         {
             // Quando no cadastro do Cliente foi configurado o Tipo de Cobrança, este cadastro é o que será usado para o cadastro da Fatura.
             var TipoMeioCobranca = await _context.TipoMeioCobranca
@@ -1339,7 +1341,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                     .AsNoTracking()
                     .FirstOrDefaultAsync(x => x.ClienteId == Grv.ClienteId && x.DepositoId == Grv.DepositoId),
 
-                FaturamentoDescontos = descontoParameters.Select(x => new CalculoFaturamentoDescontoModel
+                FaturamentoDescontos = descontoParameters?.Select(x => new CalculoFaturamentoDescontoModel
                 {
                     FaturamentoServicoTipoVeiculoId = x.FaturamentoServicoTipoVeiculoId,
                     TipoComposicao = x.TipoComposicao,
@@ -1351,7 +1353,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                     ObservacaoDesconto = x.ObservacaoDesconto
                 }).ToList(),
 
-                FaturamentoQuantidadesAlteradas = descontoParameters
+                FaturamentoQuantidadesAlteradas = descontoParameters?
                     .Where(x => x.QuantidadeAjuste != 0)
                     .Select(x => new CalculoFaturamentoQuantidadeAlteradaModel
                     {
@@ -1361,7 +1363,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                         UsuarioAlteracaoQuantidadeId = x.UsuarioDescontoId,
                         QuantidadeAjuste = x.QuantidadeAjuste,
                         QuantidadeAlterada = 0,
-                    }).ToList()
+                    }).ToList() 
             };
 
             return ParametrosCalculoFaturamento;
