@@ -63,6 +63,7 @@ namespace WebZi.Plataform.Data.Services.Pessoa
             List<TipoDocumentoIdentificacaoModel> result = await _context.TipoDocumentoIdentificacao
                 .Where(x => x.FlagAtivo == "S"
                             && x.FlagPrincipal == "S")
+                .OrderByDescending(x => x.TipoDocumentoIdentificacaoId)
                 .AsNoTracking()
                 .ToListAsync();
 
