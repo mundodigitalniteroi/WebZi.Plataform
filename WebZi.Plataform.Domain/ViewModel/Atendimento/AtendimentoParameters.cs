@@ -94,7 +94,7 @@ namespace WebZi.Plataform.Domain.ViewModel.Atendimento
 
         public DateTime DataHoraInicioAtendimento { get; set; }
 
-        public List<DescontoParameters> Descontos { get; set; }
+        public List<DescontoParameters>? Descontos { get; set; }
         public LiberacaoEspecialParameters? LiberacaoEspecial { get; set; }
     }
 }

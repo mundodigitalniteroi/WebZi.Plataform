@@ -50,7 +50,7 @@ public class PessoaController : ControllerBase
     [HttpGet("ListarTipoDocumentoIdentificacaoSimplificado")]
     // TODO: [Authorize]
     public async Task<ActionResult<TipoDocumentoIdentificacaoSimplificadoListDTO>>
-        ListarTipoDocumentoIdentificacaoSimplificado()
+        ListarTipoDocumentoIdentificacaoSimplificado(CancellationToken ct)
     {
         if (!ModelState.IsValid)
         {
@@ -63,7 +63,7 @@ public class PessoaController : ControllerBase
         {
             ResultView = await _provider
                 .GetService<PessoaService>()
-                .ListTipoDocumentoIdentificacaoSimplificadoAsync();
+                .ListTipoDocumentoIdentificacaoSimplificadoAsync(ct);
 
             return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
         }

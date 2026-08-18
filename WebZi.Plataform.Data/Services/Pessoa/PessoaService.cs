@@ -60,21 +60,21 @@ public class PessoaService
     }
 
     public async Task<TipoDocumentoIdentificacaoSimplificadoListDTO>
-        ListTipoDocumentoIdentificacaoSimplificadoAsync()
+        ListTipoDocumentoIdentificacaoSimplificadoAsync( CancellationToken ct)
     {
         TipoDocumentoIdentificacaoSimplificadoListDTO ResultView = new();
 
         List<TipoDocumentoIdentificacaoModel> result = await _context.TipoDocumentoIdentificacao
             .Where(x => x.FlagAtivo == "S"
                         && x.FlagPrincipal == "S")
+            .OrderBy(x => x.TipoDocumentoIdentificacaoId)
             .AsNoTracking()
-            .ToListAsync();
+            .ToListAsync(cancellationToken: ct);
 
         if (result?.Count > 0)
         {
             ResultView.Listagem = _mapper
                 .Map<List<TipoDocumentoIdentificacaoSimplificadoDTO>>(result
-                    .OrderBy(x => x.Codigo)
                     .ToList());
 
             ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
