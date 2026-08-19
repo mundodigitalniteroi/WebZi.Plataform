@@ -25,6 +25,28 @@ public class PessoaService
         _mapper = mapper;
     }
 
+    public async Task<PessoaDTO?> GetByNomeAsync(string nome, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(nome))
+        {
+            return null;
+        }
+
+        var nomeClean = nome.Trim();
+
+        return await _context.Pessoa
+            .AsNoTracking()
+            .Where(x => x.Nome != null && (x.Nome == nomeClean || (x.Nome + " " + (x.Sobrenome ?? "")).Trim() == nomeClean))
+            .Select(x => new PessoaDTO
+            {
+                IdentificadorPessoa = x.IdPessoa,
+                Nome = x.Nome != null ? x.Nome.Trim() : "",
+                NomeDoMeio = x.NomeMeio != null ? x.NomeMeio.Trim() : "",
+                Sobrenome = x.Sobrenome != null ? x.Sobrenome.Trim() : ""
+            })
+            .FirstOrDefaultAsync(ct);
+    }
+
     public async Task<string> GetPessoaTelefoneByIdAsync(int pessoaId)
         => await _context.TipoPessoaContatos
             .Include(x => x.Pessoa)
@@ -101,7 +123,7 @@ public class PessoaService
                                          && s.IdSubModulo == (int)SubModuloEnum.ConsultarPessoaHomolog),
                 cancellationToken: ct);
 
-        if (possuiPermissao)
+        if (!possuiPermissao)
         {
             ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Não possui permissão");
             return ResultView;

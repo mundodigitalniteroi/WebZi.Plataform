@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace WebZi.Plataform.Domain.ViewModel.Usuario.CadastroUsuario;
 
@@ -8,8 +8,9 @@ public class CadastroUsuarioParameters
     [MaxLength(20, ErrorMessage = "{0} deve ter no máximo {1} caracteres.")]
     public string Login { get; set; }
 
-    [Required(ErrorMessage = "Propriedade obrigatória")]
     public long identificadorPessoa { get; set; }
+
+    public string? NomePessoa { get; set; }
 
     [MaxLength(15, ErrorMessage = "{0} deve ter no máximo {1} caracteres.")]
     public string Matricula { get; set; }

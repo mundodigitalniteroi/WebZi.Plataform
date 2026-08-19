@@ -1,4 +1,4 @@
-using System.Data;
+﻿using System.Data;
 using System.IdentityModel.Tokens.Jwt;
 using System.Runtime.Serialization;
 using System.Security.Claims;
@@ -28,6 +28,7 @@ using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Pessoa.Contato;
 using WebZi.Plataform.Domain.Models.Usuario;
 using WebZi.Plataform.Domain.Options;
+using WebZi.Plataform.Domain.ViewModel.Pessoa;
 using WebZi.Plataform.Domain.ViewModel.Usuario;
 using WebZi.Plataform.Domain.ViewModel.Usuario.CadastroUsuario;
 using WebZi.Plataform.Domain.ViewModel.Usuario.AtualizarUsuario;
@@ -283,72 +284,84 @@ namespace WebZi.Plataform.Data.Services.Usuario
             UsuarioGerenciamentoDTO ResultView = new();
             login = login.ToUpperTrim();
 
-            var possuiPermissao = await _context.PerfilAcessoUsuario
+            var temSubModulo = await _context.SistemaPerfilAcessoSubModulos
+                .AsNoTracking()
+                .AnyAsync(s => s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.GerenciarUsuariosHomolog
+                               && s.IdSubModulo == (int)SubModuloEnum.VerPerfisDeAcessoHomolog, ct);
+
+            if (!temSubModulo)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Não possui permissão");
+                return ResultView;
+            }
+
+            var possuiPerfil = await _context.PerfilAcessoUsuario
                 .AsNoTracking()
                 .AnyAsync(x => x.UsuarioId == usuarioId
-                               && x.PerfilAcessoId == (int)PerfisDeAcessoEnum.GerenciarUsuariosHomolog
-                               && _context.SistemaPerfilAcessoSubModulos
-                                   .Any(s => s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.GerenciarUsuariosHomolog
-                                             && s.IdSubModulo == (int)SubModuloEnum.VerPerfisDeAcessoHomolog),
-                    cancellationToken: ct);
+                               && x.PerfilAcessoId == (int)PerfisDeAcessoEnum.GerenciarUsuariosHomolog, ct);
 
-            if (!possuiPermissao)
+            if (!possuiPerfil)
             {
                 ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Não possui permissão");
                 return ResultView;
             }
 
             var result = await _context.Usuario
+                .AsSplitQuery()
                 .AsNoTracking()
                 .Where(x => x.Login == login)
-                .Select(x => new UsuarioGerenciamentoDTO
+                .Select(x => new
                 {
-                    Login = x.Login,
-                    Nome = x.Pessoa.Nome,
-                    Matricula = x.Matricula,
-                    DataUltimoAcesso = DateTimeHelper.FormatDateTime(x.DataUltimoAcesso,
-                        DateTimeHelper.DateTimeFormat.DateFormatted),
-                    FlagAtivo = x.FlagAtivo,
-                    FlagMfa = x.FlagMfa,
-                    TiposDePermissoesVinculadas = _context.UsuarioPermissao
-                        .Where(p => p.UsuarioId == x.UsuarioId)
-                        .Select(p => new TipoPermissaoDTO
+                    data = new UsuarioGerenciamentoDTO
+                    {
+                        Login = x.Login,
+                        Nome = x.Pessoa != null ? x.Pessoa.Nome : null,
+                        Matricula = x.Matricula,
+                        FlagPermissaoDataRetroativaFaturamento = x.FlagPermissaoDataRetroativaFaturamento,
+                        FlagPermissaoDesconto = x.FlagPermissaoDesconto,
+                        FlagAtivo = x.FlagAtivo,
+                        FlagMfa = x.FlagMfa,
+                        TiposDePermissoesVinculadas = x.ListagemUsuarioPermissao.Select(p => new TipoPermissaoDTO
                         {
                             IdentificadorTipoPermissao = p.TipoPermissaoId,
                             Codigo = p.TipoPermissao.Codigo,
                             Descricao = p.TipoPermissao.Descricao
                         }).ToList(),
-                    ClientesVinculados = x.ListagemUsuarioCliente
-                        .Select(uc => new ClienteVincularUsuarioDTO
+                        ClientesVinculados = x.ListagemUsuarioCliente.Select(uc => new ClienteVincularUsuarioDTO
                         {
                             IdentificadorCliente = uc.Cliente.ClienteId,
                             Nome = uc.Cliente.Nome,
                             FlagAtivo = uc.Cliente.FlagAtivo
                         }).ToList(),
-                    DepositosVinculados = x.ListagemUsuarioDeposito
-                        .Select(ud => new DepositoVincularAUsuariosDTO
+                        DepositosVinculados = x.ListagemUsuarioDeposito.Select(ud => new DepositoVincularAUsuariosDTO
                         {
                             IdentificadorDeposito = ud.Deposito.DepositoId,
                             Nome = ud.Deposito.Nome,
                             FlagAtivo = ud.Deposito.FlagAtivo
                         }).ToList(),
-                    PerfisDeAcessoVinculados = _context.PerfilAcessoUsuario
-                        .Where(p => p.UsuarioId == x.UsuarioId)
-                        .Select(p => new PerfilAcessoDTO
-                        {
-                            PerfilAcessoId = p.PerfilAcessoId,
-                            Descricao = p.PerfilAcesso.Descricao
-                        }).ToList()
+                        PerfisDeAcessoVinculados = _context.PerfilAcessoUsuario
+                            .Where(p => p.UsuarioId == x.UsuarioId)
+                            .Select(p => new PerfilAcessoDTO
+                            {
+                                PerfilAcessoId = p.PerfilAcessoId,
+                                Descricao = p.PerfilAcesso.Descricao
+                            }).ToList()
+                    },
+                    x.DataUltimoAcesso
                 })
                 .FirstOrDefaultAsync(ct);
+
             if (result is null)
             {
                 ResultView.Mensagem = MensagemViewHelper.SetNotFound("Usuário não encontrado");
                 return ResultView;
             }
 
-            ResultView = result;
+            ResultView = result.data;
+            ResultView.DataUltimoAcesso = DateTimeHelper.FormatDateTime(result.DataUltimoAcesso,
+                DateTimeHelper.DateTimeFormat.DateFormatted);
             ResultView.Mensagem = MensagemViewHelper.SetFound();
+
             return ResultView;
         }
 
@@ -359,16 +372,23 @@ namespace WebZi.Plataform.Data.Services.Usuario
         {
             UsuarioPorNomeOuLoginListDTO ResultView = new();
 
-            var possuiPermissao = await _context.PerfilAcessoUsuario
+            var temSubModulo = await _context.SistemaPerfilAcessoSubModulos
+                .AsNoTracking()
+                .AnyAsync(s => s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.GerenciarUsuariosHomolog
+                               && s.IdSubModulo == (int)SubModuloEnum.VerPerfisDeAcessoHomolog, ct);
+
+            if (!temSubModulo)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Não possui permissão");
+                return ResultView;
+            }
+
+            var possuiPerfil = await _context.PerfilAcessoUsuario
                 .AsNoTracking()
                 .AnyAsync(x => x.UsuarioId == usuarioId
-                               && x.PerfilAcessoId == (int)PerfisDeAcessoEnum.GerenciarUsuariosHomolog
-                               && _context.SistemaPerfilAcessoSubModulos
-                                   .Any(s => s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.GerenciarUsuariosHomolog
-                                             && s.IdSubModulo == (int)SubModuloEnum.VerPerfisDeAcessoHomolog),
-                    cancellationToken: ct);
+                               && x.PerfilAcessoId == (int)PerfisDeAcessoEnum.GerenciarUsuariosHomolog, ct);
 
-            if (!possuiPermissao)
+            if (!possuiPerfil)
             {
                 ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Não possui permissão");
                 return ResultView;
@@ -748,6 +768,15 @@ namespace WebZi.Plataform.Data.Services.Usuario
                 return ResultView;
             }
 
+            if (!string.IsNullOrWhiteSpace(parameters.NomePessoa))
+            {
+                var pessoa = await  _provider?.GetService<PessoaService>().GetByNomeAsync(parameters.NomePessoa, ct)!;
+                if (pessoa is { IdentificadorPessoa: > 0 })
+                {
+                    parameters.identificadorPessoa = pessoa.IdentificadorPessoa;
+                }
+            }
+
             if (parameters.identificadorPessoa <= 0)
             {
                 ResultView = MensagemViewHelper.SetBadRequest("Informe a pessoa que seria vinculada ao usuário");
@@ -784,10 +813,13 @@ namespace WebZi.Plataform.Data.Services.Usuario
                 Matricula = parameters.Matricula,
                 FlagAtivo = "S",
                 FlagMfa = parameters.FlagMfa,
+                FlagReceberEmailErro = "N",
                 FlagPermissaoDesconto = parameters.FlagPermissaoDesconto,
                 FlagPermissaoDataRetroativaFaturamento = parameters.FlagPermissaoDataRetroativaFaturamento,
                 UsuarioCadastroId = usuarioCadastroId,
-                DataCadastro = DateTime.UtcNow.AddHours(-3)
+                DataCadastro = DateTime.UtcNow.AddHours(-3),
+                DataCadastroSenha = DateTime.UtcNow.AddHours(-3),
+                NumeroFormularioGrvSequencia = 0
             };
 
             await using var _transaction = await _context.Database.BeginTransactionAsync(ct);
@@ -863,7 +895,8 @@ namespace WebZi.Plataform.Data.Services.Usuario
             catch (Exception e)
             {
                 await _transaction.RollbackAsync(ct);
-                ResultView = MensagemViewHelper.SetBadRequest(e.Message);
+                var mensagem = e.InnerException != null ? $"{e.Message} -> {e.InnerException.Message}" : e.Message;
+                ResultView = MensagemViewHelper.SetBadRequest(mensagem);
                 return ResultView;
             }
         }
@@ -890,14 +923,9 @@ namespace WebZi.Plataform.Data.Services.Usuario
                 return ResultView;
             }
 
-            if (parameters.identificadorUsuario <= 0)
-            {
-                ResultView = MensagemViewHelper.SetBadRequest("Identificador do usuário inválido");
-                return ResultView;
-            }
 
             var usuario = await _context.Usuario
-                .FirstOrDefaultAsync(x => x.UsuarioId == parameters.identificadorUsuario, ct);
+                .FirstOrDefaultAsync(x => x.Login == parameters.Login, ct);
 
             if (usuario == null)
             {
@@ -922,6 +950,16 @@ namespace WebZi.Plataform.Data.Services.Usuario
                 usuario.Login = loginNormalized;
             }
 
+            if (parameters.identificadorPessoa <= 0 && !string.IsNullOrWhiteSpace(parameters.NomePessoa))
+            {
+                var pessoaService = _provider?.GetService<PessoaService>() ?? new PessoaService(_context, _mapper);
+                var pessoa = await pessoaService.GetByNomeAsync(parameters.NomePessoa, ct);
+                if (pessoa != null && pessoa.IdentificadorPessoa > 0)
+                {
+                    parameters.identificadorPessoa = pessoa.IdentificadorPessoa;
+                }
+            }
+
             if (parameters.identificadorPessoa > 0)
             {
                 usuario.PessoaId = parameters.identificadorPessoa;
@@ -932,16 +970,11 @@ namespace WebZi.Plataform.Data.Services.Usuario
                 usuario.Matricula = parameters.Matricula;
             }
 
-            if (!string.IsNullOrWhiteSpace(parameters.FlagAtivo))
-            {
-                usuario.FlagAtivo = parameters.FlagAtivo.ToUpperTrim();
-            }
+            usuario.FlagAtivo = parameters.FlagAtivo.ToUpperTrim();
 
-            if (!string.IsNullOrWhiteSpace(parameters.FlagMfa.ToString()))
-            {
-                usuario.FlagMfa = parameters.FlagMfa;
-            }
-
+            usuario.FlagMfa = parameters.FlagMfa;
+            usuario.FlagPermissaoDataRetroativaFaturamento = parameters.FlagPermissaoDataRetroativaFaturamento;
+            usuario.FlagPermissaoDesconto = parameters.FlagPermissaoDesconto;
             usuario.UsuarioAlteracaoId = usuarioAlteracaoId;
             usuario.DataAlteracao = DateTime.UtcNow.AddHours(-3);
 
@@ -1058,7 +1091,8 @@ namespace WebZi.Plataform.Data.Services.Usuario
             catch (Exception e)
             {
                 await _transaction.RollbackAsync(ct);
-                ResultView = MensagemViewHelper.SetBadRequest(e.Message);
+                var mensagem = e.InnerException != null ? $"{e.Message} -> {e.InnerException.Message}" : e.Message;
+                ResultView = MensagemViewHelper.SetBadRequest(mensagem);
                 return ResultView;
             }
         }
@@ -1071,7 +1105,8 @@ namespace WebZi.Plataform.Data.Services.Usuario
                 return MensagemViewHelper.SetBadRequest("Login do usuário não informado.");
 
             var loginNormalized = parameters.Login.ToUpperTrim();
-            var usuario = await _context.Usuario.AsNoTracking().FirstOrDefaultAsync(x => x.Login == loginNormalized, ct);
+            var usuario = await _context.Usuario.AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Login == loginNormalized, ct);
             if (usuario == null)
                 return MensagemViewHelper.SetNotFound("Usuário não encontrado.");
 
@@ -1108,7 +1143,8 @@ namespace WebZi.Plataform.Data.Services.Usuario
                 return MensagemViewHelper.SetBadRequest("Login do usuário não informado.");
 
             var loginNormalized = parameters.Login.ToUpperTrim();
-            var usuario = await _context.Usuario.AsNoTracking().FirstOrDefaultAsync(x => x.Login == loginNormalized, ct);
+            var usuario = await _context.Usuario.AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Login == loginNormalized, ct);
             if (usuario == null)
                 return MensagemViewHelper.SetNotFound("Usuário não encontrado.");
 
@@ -1145,7 +1181,8 @@ namespace WebZi.Plataform.Data.Services.Usuario
                 return MensagemViewHelper.SetBadRequest("Login do usuário não informado.");
 
             var loginNormalized = parameters.Login.ToUpperTrim();
-            var usuario = await _context.Usuario.AsNoTracking().FirstOrDefaultAsync(x => x.Login == loginNormalized, ct);
+            var usuario = await _context.Usuario.AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Login == loginNormalized, ct);
             if (usuario == null)
                 return MensagemViewHelper.SetNotFound("Usuário não encontrado.");
 
@@ -1182,12 +1219,14 @@ namespace WebZi.Plataform.Data.Services.Usuario
                 return MensagemViewHelper.SetBadRequest("Login do usuário não informado.");
 
             var loginNormalized = parameters.Login.ToUpperTrim();
-            var usuario = await _context.Usuario.AsNoTracking().FirstOrDefaultAsync(x => x.Login == loginNormalized, ct);
+            var usuario = await _context.Usuario.AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Login == loginNormalized, ct);
             if (usuario == null)
                 return MensagemViewHelper.SetNotFound("Usuário não encontrado.");
 
             var permissaoParaRemover = await _context.UsuarioPermissao
-                .FirstOrDefaultAsync(x => x.UsuarioId == usuario.UsuarioId && x.TipoPermissaoId == parameters.Permissao, ct);
+                .FirstOrDefaultAsync(x => x.UsuarioId == usuario.UsuarioId && x.TipoPermissaoId == parameters.Permissao,
+                    ct);
 
             if (permissaoParaRemover == null)
                 return MensagemViewHelper.SetNotFound("A permissão informada não está vinculada a este usuário.");

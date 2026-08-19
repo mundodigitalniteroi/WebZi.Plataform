@@ -13,6 +13,8 @@ public class UsuarioGerenciamentoDTO
     public string DataUltimoAcesso { get; set; }
     public string FlagAtivo { get; set; }
     public char FlagMfa { get; set; }
+    public string FlagPermissaoDesconto { get; set; }
+    public string FlagPermissaoDataRetroativaFaturamento { get; set; }
     public List<TipoPermissaoDTO> TiposDePermissoesVinculadas { get; set; }
     public List<PerfilAcessoDTO> PerfisDeAcessoVinculados { get; set; }
     public List<ClienteVincularUsuarioDTO> ClientesVinculados { get; set; }
