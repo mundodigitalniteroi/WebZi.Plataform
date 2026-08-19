@@ -24,7 +24,7 @@ public class NfeController : ControllerBase
     }
 
     [HttpGet("ConsultaNfe")]
-    public async Task<ActionResult<NFERetornoFaturamentoDTOList>> ConsultarNfe(int grvId, int usuarioId)
+    public async Task<ActionResult<NFERetornoFaturamentoDTOList>> ConsultarNfe(int grvId, int usuarioId, CancellationToken ct)
     {
         if (!ModelState.IsValid)
         {
@@ -37,7 +37,7 @@ public class NfeController : ControllerBase
         {
             ResultView = await _provider
                 .GetService<WSNfseService>()
-                .ConsultarNfeAsync(grvId, usuarioId);
+                .ConsultarNfeAsync(grvId, usuarioId, ct);
 
             return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
         }
@@ -50,7 +50,7 @@ public class NfeController : ControllerBase
     }
     
     [HttpPost("ReprocessarNota")]
-    public async Task<ActionResult<MensagemDTO>> ReprocessarNota(int grvId, string notaId, int usuarioId)
+    public async Task<ActionResult<MensagemDTO>> ReprocessarNota(int grvId, string notaId, int usuarioId, CancellationToken ct)
     {
         if (!ModelState.IsValid)
         {
@@ -63,7 +63,7 @@ public class NfeController : ControllerBase
         {
             ResultView = await _provider
                 .GetService<WSNfseService>()
-                .ReprocessNfseAsync(grvId, notaId, usuarioId);
+                .ReprocessNfseAsync(grvId, notaId, usuarioId, ct);
 
             return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
         }
@@ -101,7 +101,7 @@ public class NfeController : ControllerBase
         }
     }
     [HttpGet("ConsultarJsonNfe")]
-    public async Task<ActionResult<NfeJsonEnvioDTO>> ConsultarJsonNfe(long nfeid)
+    public async Task<ActionResult<NfeJsonEnvioDTO>> ConsultarJsonNfe(long nfeid, CancellationToken ct)
     {
         if (!ModelState.IsValid)
         {
@@ -114,7 +114,7 @@ public class NfeController : ControllerBase
         {
             ResultView = await _provider
                 .GetService<WSNfseService>()
-                .GetJsonNfeAsync(nfeid);
+                .GetJsonNfeAsync(nfeid, ct);
 
             return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
         }
@@ -127,7 +127,7 @@ public class NfeController : ControllerBase
     }
     
     [HttpPut("AtualizarDadosNotaFiscal")]
-    public async Task<ActionResult<MensagemDTO>> AtualizarDadosNotaFiscal(AtualizarDadosNFeParameters parameters)
+    public async Task<ActionResult<MensagemDTO>> AtualizarDadosNotaFiscal(AtualizarDadosNFeParameters parameters, CancellationToken ct)
     {
         if (!ModelState.IsValid)
         {
@@ -140,7 +140,7 @@ public class NfeController : ControllerBase
         {
             ResultView = await _provider
                 .GetService<WSNfseService>()
-                .UpdateNFeAsync(parameters);
+                .UpdateNFeAsync(parameters, ct);
 
             return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
         }

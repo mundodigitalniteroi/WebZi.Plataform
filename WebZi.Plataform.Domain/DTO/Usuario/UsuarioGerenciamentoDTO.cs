@@ -12,6 +12,8 @@ public class UsuarioGerenciamentoDTO
     public string Matricula { get; set; }
     public string DataUltimoAcesso { get; set; }
     public string FlagAtivo { get; set; }
+    public char FlagMfa { get; set; }
+    public List<TipoPermissaoDTO> TiposDePermissoesVinculadas { get; set; }
     public List<PerfilAcessoDTO> PerfisDeAcessoVinculados { get; set; }
     public List<ClienteVincularUsuarioDTO> ClientesVinculados { get; set; }
     public List<DepositoVincularAUsuariosDTO> DepositosVinculados { get; set; }

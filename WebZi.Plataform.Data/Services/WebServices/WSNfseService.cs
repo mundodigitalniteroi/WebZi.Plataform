@@ -14,6 +14,7 @@ using WebZi.Plataform.Data.WSnfse;
 using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.DTO.WebServices.Nfe;
 using WebZi.Plataform.Domain.DTO.WebServices.Nfse;
+using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Nfe;
 using WebZi.Plataform.Domain.Models.Sistema;
 using WebZi.Plataform.Domain.Options;
@@ -47,7 +48,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
             _mapper = mapper;
         }
 
-        public async Task<NFERetornoFaturamentoDTOList> ConsultarNfeAsync(int grvId, int usuarioId)
+        public async Task<NFERetornoFaturamentoDTOList> ConsultarNfeAsync(int grvId, int usuarioId, CancellationToken ct)
         {
             NFERetornoFaturamentoDTOList ResultView = new();
             List<string> Erros = new();
@@ -91,7 +92,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
                         .ToList()
                 })
                 .AsNoTracking()
-                .ToListAsync();
+                .ToListAsync(cancellationToken: ct);
 
             #endregion
 
@@ -119,7 +120,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
                         x.IdentificadorNota != null &&
                         nfeIdentificadoresComErro.Contains(x.IdentificadorNota.ToString()))
                     .AsNoTracking()
-                    .ToListAsync();
+                    .ToListAsync(cancellationToken: ct);
 
                 erroPorIdentificadorNota = errosNfe
                     .Where(x => x.IdentificadorNota.HasValue)
@@ -182,7 +183,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
             return ResultView;
         }
 
-        public async Task<MensagemDTO> ReprocessNfseAsync(int grvId, string notaId, int usuarioId)
+        public async Task<MensagemDTO> ReprocessNfseAsync(int grvId, string notaId, int usuarioId, CancellationToken ct)
         {
             MensagemDTO ResultView = new GrvService(_context).ValidateInputGrv(grvId, usuarioId);
 
@@ -190,7 +191,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
 
             var nfeDB = await _context.Nfe
                 .AsNoTracking()
-                .AnyAsync(x => x.GrvId == grvId && x.IdentificadorNota == notaId);
+                .AnyAsync(x => x.GrvId == grvId && x.IdentificadorNota == notaId, cancellationToken: ct);
 
             #endregion
 
@@ -202,7 +203,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
 
             if (_options.Value.Enable)
             {
-                var result = await ReprocessNfseFromWSAsync(grvId, notaId, usuarioId);
+                var result = await ReprocessNfseFromWSAsync(grvId, notaId, usuarioId, ct);
                 if (result.Mensagem.Erros.Count > 0 || result.Mensagem.AvisosImpeditivos.Count > 0)
                 {
                     ResultView = MensagemViewHelper.SetBadRequest(
@@ -262,7 +263,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
             }
 
 
-            var result = await CreateNfseFromWSAsync(grvId, usuarioId);
+            var result = await CreateNfseFromWSAsync(grvId, usuarioId,ct);
             if (result.Mensagem.Erros.Count > 0 || result.Mensagem.AvisosImpeditivos.Count > 0)
             {
                 ResultView = MensagemViewHelper.SetBadRequest(
@@ -278,7 +279,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
 
 
         private async Task<WSNfseGerarNotaFiscalDTO> ReprocessNfseFromWSAsync(int grvId, string identificadorNota,
-            int usuarioId)
+            int usuarioId , CancellationToken ct)
         {
             WSNfseGerarNotaFiscalDTO ResultView = new();
             var config = _options?.Value;
@@ -289,7 +290,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
 
             WebServiceUrlModel WebServiceUrl = await _context.WebServiceUrl
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.Name == "Wsnfse");
+                .FirstOrDefaultAsync(x => x.Name == "Wsnfse", cancellationToken: ct);
             //var localhost = "http://localhost:8655/WSnfse.asmx";
             List<string>? avisos = new List<string>();
             List<string>? erros = new List<string>();
@@ -351,7 +352,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
             return ResultView;
         }
 
-        private async Task<WSNfseGerarNotaFiscalDTO> CreateNfseFromWSAsync(int grvId, int usuarioId)
+        private async Task<WSNfseGerarNotaFiscalDTO> CreateNfseFromWSAsync(int grvId, int usuarioId , CancellationToken ct)
         {
             WSNfseGerarNotaFiscalDTO ResultView = new();
             var config = _options?.Value;
@@ -362,7 +363,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
 
             WebServiceUrlModel WebServiceUrl = await _context.WebServiceUrl
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.Name == "Wsnfse");
+                .FirstOrDefaultAsync(x => x.Name == "Wsnfse", cancellationToken: ct);
             // var localhost = "http://localhost:8655/WSnfse.asmx";
             List<string>? avisos = new List<string>();
             List<string>? erros = new List<string>();
@@ -424,13 +425,13 @@ namespace WebZi.Plataform.Data.Services.WebServices
             return ResultView;
         }
 
-        public async Task<NfeJsonEnvioDTO> GetJsonNfeAsync(long nfeId)
+        public async Task<NfeJsonEnvioDTO> GetJsonNfeAsync(long nfeId , CancellationToken ct)
         {
             NfeJsonEnvioDTO ResultView = new();
 
             #region Consulta
 
-            var nfe = await _context.NfeRetornoSolicitacao.AsNoTracking().FirstOrDefaultAsync(x => x.NfeId == nfeId);
+            var nfe = await _context.NfeRetornoSolicitacao.AsNoTracking().FirstOrDefaultAsync(x => x.NfeId == nfeId, cancellationToken: ct);
 
             #endregion
 
@@ -460,7 +461,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
             }
         }
 
-        public async Task<MensagemDTO> UpdateNFeAsync(AtualizarDadosNFeParameters parameters)
+        public async Task<MensagemDTO> UpdateNFeAsync(AtualizarDadosNFeParameters parameters, CancellationToken ct)
         {
             MensagemDTO ResultView = await ValidateInputsAsync(parameters);
 
@@ -472,20 +473,19 @@ namespace WebZi.Plataform.Data.Services.WebServices
             #region Consulta
 
             var atendimento = await _context.Atendimento.AsTracking()
-                .FirstOrDefaultAsync(x => x.GrvId == parameters.IdentificadorProcesso);
+                .FirstOrDefaultAsync(x => x.GrvId == parameters.IdentificadorProcesso, cancellationToken: ct);
             var permitirEmissao = await _context.FaturamentoRegra
                 .AnyAsync(x =>
                     x.ClienteId == parameters.IdentificadorCliente &&
                     x.DepositoId == parameters.IdentificadorDeposito &&
-                    x.FaturamentoRegraTipoId == 11);
+                    x.FaturamentoRegraTipoId == 11, cancellationToken: ct);
             var permiteEdicaoNota = await _context.PerfilAcessoUsuario
                 .AsNoTracking()
                 .AnyAsync(x => x.UsuarioId == parameters.IdentificadorUsuario
-                               // && x.PerfilAcessoId == 81
-                               && x.PerfilAcessoId == 81 // AMBIENTE DE HOMOLOG
+                               && (x.PerfilAcessoId == (int)PerfisDeAcessoEnum.NfeEditHomolog || x.PerfilAcessoId == (int)PerfisDeAcessoEnum.NfeEditProd)
                                && _context.SistemaPerfilAcessoSubModulos
-                                   .Any(s => s.IdPerfilAcesso == 81 && s.IdSubModulo == 167)); // AMBIENTE DE HOMOLOG 
-            // .Any(s => s.IdPerfilAcesso == 81 && s.IdSubModulo == 164));
+                                   .Any(s => (s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.NfeEditHomolog || s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.NfeEditProd)
+                                             && s.IdSubModulo == (int)SubModuloEnum.EditarNfe), cancellationToken: ct);
 
             #endregion
 
@@ -546,7 +546,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
                 atendimento.UsuarioAlteracaoId = parameters.IdentificadorUsuario;
                 atendimento.DataAlteracao = DateTime.Now;
 
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(ct);
 
                 ResultView = MensagemViewHelper.SetUpdateSuccess();
                 return ResultView;

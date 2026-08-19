@@ -432,5 +432,101 @@ namespace WebZi.Plataform.API.Controllers
                 return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
             }
         }
+
+        [HttpDelete("DesvincularPerfilAcesso")]
+        public async Task<ActionResult<MensagemDTO>> DesvincularPerfilAcesso([FromBody] DesvincularPerfisDoUsuarioParameters parameters, CancellationToken ct)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            MensagemDTO ResultView = new();
+            try
+            {
+                ResultView = await _provider
+                    .GetService<UsuarioService>()
+                    .UnlinkProfilesToUserAsync(parameters, ct);
+
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView = MensagemViewHelper.SetInternalServerError(ex);
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+        }
+
+        [HttpDelete("DesvincularClientes")]
+        public async Task<ActionResult<MensagemDTO>> DesvincularClientes([FromBody] DesvincularClienteDoUsuarioParameters parameters, CancellationToken ct)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            MensagemDTO ResultView = new();
+            try
+            {
+                ResultView = await _provider
+                    .GetService<UsuarioService>()
+                    .UnlinkClientToUserAsync(parameters, ct);
+
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView = MensagemViewHelper.SetInternalServerError(ex);
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+        }
+
+        [HttpDelete("DesvincularDepositos")]
+        public async Task<ActionResult<MensagemDTO>> DesvincularDepositos([FromBody] DesvincularDepositoDoUsuarioParameters parameters, CancellationToken ct)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            MensagemDTO ResultView = new();
+            try
+            {
+                ResultView = await _provider
+                    .GetService<UsuarioService>()
+                    .UnlinkDepositToUserAsync(parameters, ct);
+
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView = MensagemViewHelper.SetInternalServerError(ex);
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+        }
+
+        [HttpDelete("DesvincularPermissao")]
+        public async Task<ActionResult<MensagemDTO>> DesvincularPermissao([FromBody] DesvincularPermissaoDoUsuarioParameters parameters, CancellationToken ct)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            MensagemDTO ResultView = new();
+            try
+            {
+                ResultView = await _provider
+                    .GetService<UsuarioService>()
+                    .UnlinkPermissionToUserAsync(parameters, ct);
+
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView = MensagemViewHelper.SetInternalServerError(ex);
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+        }
     }
 }

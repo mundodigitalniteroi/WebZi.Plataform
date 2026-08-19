@@ -309,6 +309,15 @@ namespace WebZi.Plataform.Data.Services.Usuario
                     DataUltimoAcesso = DateTimeHelper.FormatDateTime(x.DataUltimoAcesso,
                         DateTimeHelper.DateTimeFormat.DateFormatted),
                     FlagAtivo = x.FlagAtivo,
+                    FlagMfa = x.FlagMfa,
+                    TiposDePermissoesVinculadas = _context.UsuarioPermissao
+                        .Where(p => p.UsuarioId == x.UsuarioId)
+                        .Select(p => new TipoPermissaoDTO
+                        {
+                            IdentificadorTipoPermissao = p.TipoPermissaoId,
+                            Codigo = p.TipoPermissao.Codigo,
+                            Descricao = p.TipoPermissao.Descricao
+                        }).ToList(),
                     ClientesVinculados = x.ListagemUsuarioCliente
                         .Select(uc => new ClienteVincularUsuarioDTO
                         {
@@ -688,13 +697,6 @@ namespace WebZi.Plataform.Data.Services.Usuario
             return sb.ToString();
         }
 
-        private string GenerateSqlServerMd5Hash(string input)
-        {
-            using var md5 = MD5.Create();
-            var bytes = Encoding.ASCII.GetBytes(input);
-            var hashBytes = md5.ComputeHash(bytes);
-            return Encoding.Default.GetString(hashBytes);
-        }
 
         private async Task FiltrarDepositosSemVinculo(List<int> vincularCliente, List<int> vincularDeposito,
             CancellationToken ct)
@@ -764,6 +766,7 @@ namespace WebZi.Plataform.Data.Services.Usuario
                 return ResultView;
             }
 
+            parameters.PermissoesUsuario ??= new List<int>();
             parameters.VincularCliente ??= new List<int>();
             parameters.VincularDeposito ??= new List<int>();
             parameters.VincularCliente = parameters.VincularCliente.Distinct().ToList();
@@ -772,7 +775,6 @@ namespace WebZi.Plataform.Data.Services.Usuario
 
             await FiltrarDepositosSemVinculo(parameters.VincularCliente, parameters.VincularDeposito, ct);
 
-            var permissaoConfig = parameters.PermissoesUsuario?.FirstOrDefault();
 
             var novoUsuario = new UsuarioModel
             {
@@ -781,8 +783,9 @@ namespace WebZi.Plataform.Data.Services.Usuario
                 PessoaId = parameters.identificadorPessoa,
                 Matricula = parameters.Matricula,
                 FlagAtivo = "S",
-                FlagPermissaoDesconto = permissaoConfig?.FlagPermissaoDesconto ?? "N",
-                FlagPermissaoDataRetroativaFaturamento = permissaoConfig?.FlagPermissaoDataRetroativaFaturamento ?? "N",
+                FlagMfa = parameters.FlagMfa,
+                FlagPermissaoDesconto = parameters.FlagPermissaoDesconto,
+                FlagPermissaoDataRetroativaFaturamento = parameters.FlagPermissaoDataRetroativaFaturamento,
                 UsuarioCadastroId = usuarioCadastroId,
                 DataCadastro = DateTime.UtcNow.AddHours(-3)
             };
@@ -798,6 +801,21 @@ namespace WebZi.Plataform.Data.Services.Usuario
                 await _context.Database.ExecuteSqlInterpolatedAsync(
                     $"UPDATE dbo.tb_dep_usuarios SET senha1 = HASHBYTES('MD5', 'INICIAL123') WHERE id_usuario = {newUserId}",
                     ct);
+
+                if (parameters.PermissoesUsuario?.Count > 0)
+                {
+                    var permissoesList = parameters.PermissoesUsuario.Distinct().Select(permissaoId =>
+                        new UsuarioPermissaoModel
+                        {
+                            UsuarioId = newUserId,
+                            TipoPermissaoId = (short)permissaoId,
+                            UsuarioCadastroId = usuarioCadastroId,
+                            DataCadastro = DateTime.UtcNow.AddHours(-3),
+                            FlagAtivo = "S"
+                        }).ToList();
+
+                    await _context.UsuarioPermissao.AddRangeAsync(permissoesList, ct);
+                }
 
                 if (parameters.PerfisDeAcesso.Count > 0)
                 {
@@ -844,6 +862,7 @@ namespace WebZi.Plataform.Data.Services.Usuario
             }
             catch (Exception e)
             {
+                await _transaction.RollbackAsync(ct);
                 ResultView = MensagemViewHelper.SetBadRequest(e.Message);
                 return ResultView;
             }
@@ -918,18 +937,9 @@ namespace WebZi.Plataform.Data.Services.Usuario
                 usuario.FlagAtivo = parameters.FlagAtivo.ToUpperTrim();
             }
 
-            if (parameters.PermissoesUsuario?.Count > 0)
+            if (!string.IsNullOrWhiteSpace(parameters.FlagMfa.ToString()))
             {
-                var perm = parameters.PermissoesUsuario.First();
-                if (!string.IsNullOrWhiteSpace(perm.FlagPermissaoDesconto))
-                {
-                    usuario.FlagPermissaoDesconto = perm.FlagPermissaoDesconto;
-                }
-
-                if (!string.IsNullOrWhiteSpace(perm.FlagPermissaoDataRetroativaFaturamento))
-                {
-                    usuario.FlagPermissaoDataRetroativaFaturamento = perm.FlagPermissaoDataRetroativaFaturamento;
-                }
+                usuario.FlagMfa = parameters.FlagMfa;
             }
 
             usuario.UsuarioAlteracaoId = usuarioAlteracaoId;
@@ -946,53 +956,97 @@ namespace WebZi.Plataform.Data.Services.Usuario
             await using var _transaction = await _context.Database.BeginTransactionAsync(ct);
             try
             {
-                var perfisAtuais = await _context.PerfilAcessoUsuario
-                    .Where(x => x.UsuarioId == usuario.UsuarioId)
-                    .ToListAsync(ct);
-                _context.PerfilAcessoUsuario.RemoveRange(perfisAtuais);
-
-                if (parameters.PerfisDeAcesso.Count > 0)
+                if (parameters.PermissoesUsuario?.Count > 0)
                 {
-                    var novosPerfis = parameters.PerfisDeAcesso.Select(perfilId => new SistemaPerfilAcessoUsuariosModel
+                    var permissoesDesejadas = parameters.PermissoesUsuario.Distinct().Select(id => (short)id).ToList();
+                    var permissoesExistentesIds = (await _context.UsuarioPermissao
+                        .AsNoTracking()
+                        .Where(x => x.UsuarioId == usuario.UsuarioId)
+                        .Select(x => x.TipoPermissaoId)
+                        .ToListAsync(ct)).ToHashSet();
+
+                    var novasPermissoesIds =
+                        permissoesDesejadas.Where(id => !permissoesExistentesIds.Contains(id)).ToList();
+                    if (novasPermissoesIds.Count > 0)
                     {
-                        UsuarioId = usuario.UsuarioId,
-                        PerfilAcessoId = perfilId
-                    }).ToList();
-                    await _context.PerfilAcessoUsuario.AddRangeAsync(novosPerfis, ct);
+                        var novasPermissoes = novasPermissoesIds.Select(permissaoId => new UsuarioPermissaoModel
+                        {
+                            UsuarioId = usuario.UsuarioId,
+                            TipoPermissaoId = permissaoId,
+                            UsuarioCadastroId = usuarioAlteracaoId,
+                            DataCadastro = DateTime.UtcNow.AddHours(-3),
+                            FlagAtivo = "S"
+                        }).ToList();
+                        await _context.UsuarioPermissao.AddRangeAsync(novasPermissoes, ct);
+                    }
                 }
 
-                var clientesAtuais = await _context.UsuarioCliente
-                    .Where(x => x.UsuarioId == usuario.UsuarioId)
-                    .ToListAsync(ct);
-                _context.UsuarioCliente.RemoveRange(clientesAtuais);
-
-                if (parameters.VincularCliente.Count > 0)
+                if (parameters.PerfisDeAcesso?.Count > 0)
                 {
-                    var novosClientes = parameters.VincularCliente.Select(clienteId => new UsuarioClienteModel
+                    var perfisDesejados = parameters.PerfisDeAcesso.Distinct().ToList();
+                    var perfisExistentesIds = (await _context.PerfilAcessoUsuario
+                        .AsNoTracking()
+                        .Where(x => x.UsuarioId == usuario.UsuarioId)
+                        .Select(x => x.PerfilAcessoId)
+                        .ToListAsync(ct)).ToHashSet();
+
+                    var novosPerfisIds = perfisDesejados.Where(id => !perfisExistentesIds.Contains(id)).ToList();
+                    if (novosPerfisIds.Count > 0)
                     {
-                        UsuarioId = usuario.UsuarioId,
-                        ClienteId = clienteId,
-                        UsuarioCadastroId = usuarioAlteracaoId,
-                        DataCadastro = DateTime.UtcNow.AddHours(-3)
-                    }).ToList();
-                    await _context.UsuarioCliente.AddRangeAsync(novosClientes, ct);
+                        var novosPerfis = novosPerfisIds.Select(perfilId => new SistemaPerfilAcessoUsuariosModel
+                        {
+                            UsuarioId = usuario.UsuarioId,
+                            PerfilAcessoId = perfilId
+                        }).ToList();
+                        await _context.PerfilAcessoUsuario.AddRangeAsync(novosPerfis, ct);
+                    }
                 }
 
-                var depositosAtuais = await _context.UsuarioDeposito
-                    .Where(x => x.UsuarioId == usuario.UsuarioId)
-                    .ToListAsync(ct);
-                _context.UsuarioDeposito.RemoveRange(depositosAtuais);
-
-                if (parameters.VincularDeposito.Count > 0)
+                if (parameters.VincularCliente?.Count > 0)
                 {
-                    var novosDepositos = parameters.VincularDeposito.Select(depositoId => new UsuarioDepositoModel
+                    var clientesDesejados = parameters.VincularCliente.Distinct().ToList();
+                    var clientesExistentesIds = (await _context.UsuarioCliente
+                        .AsNoTracking()
+                        .Where(x => x.UsuarioId == usuario.UsuarioId)
+                        .Select(x => x.ClienteId)
+                        .ToListAsync(ct)).ToHashSet();
+
+                    var novosClientesIds = clientesDesejados.Where(id => !clientesExistentesIds.Contains(id)).ToList();
+                    if (novosClientesIds.Count > 0)
                     {
-                        UsuarioId = usuario.UsuarioId,
-                        DepositoId = depositoId,
-                        UsuarioCadastroId = usuarioAlteracaoId,
-                        DataCadastro = DateTime.UtcNow.AddHours(-3)
-                    }).ToList();
-                    await _context.UsuarioDeposito.AddRangeAsync(novosDepositos, ct);
+                        var novosClientes = novosClientesIds.Select(clienteId => new UsuarioClienteModel
+                        {
+                            UsuarioId = usuario.UsuarioId,
+                            ClienteId = clienteId,
+                            UsuarioCadastroId = usuarioAlteracaoId,
+                            DataCadastro = DateTime.UtcNow.AddHours(-3)
+                        }).ToList();
+                        await _context.UsuarioCliente.AddRangeAsync(novosClientes, ct);
+                    }
+                }
+
+                if (parameters.VincularDeposito?.Count > 0)
+                {
+                    var depositosDesejados = parameters.VincularDeposito.Distinct().ToList();
+                    var depositosExistentesIds = (await _context.UsuarioDeposito
+                        .AsNoTracking()
+                        .Where(x => x.UsuarioId == usuario.UsuarioId)
+                        .Select(x => x.DepositoId)
+                        .ToListAsync(ct)).ToHashSet();
+
+                    var novosDepositosIds =
+                        depositosDesejados.Where(id => !depositosExistentesIds.Contains(id)).ToList();
+                    if (novosDepositosIds.Count > 0)
+                    {
+                        var novosDepositos = novosDepositosIds.Select(depositoId => new UsuarioDepositoModel
+                        {
+                            UsuarioId = usuario.UsuarioId,
+                            DepositoId = depositoId,
+                            UsuarioCadastroId = usuarioAlteracaoId,
+                            DataCadastro = DateTime.UtcNow.AddHours(-3)
+                        }).ToList();
+                        await _context.UsuarioDeposito.AddRangeAsync(novosDepositos, ct);
+                    }
                 }
 
                 await _context.SaveChangesAsync(ct);
@@ -1000,6 +1054,149 @@ namespace WebZi.Plataform.Data.Services.Usuario
 
                 ResultView = MensagemViewHelper.SetUpdateSuccess();
                 return ResultView;
+            }
+            catch (Exception e)
+            {
+                await _transaction.RollbackAsync(ct);
+                ResultView = MensagemViewHelper.SetBadRequest(e.Message);
+                return ResultView;
+            }
+        }
+
+        public async Task<MensagemDTO> UnlinkClientToUserAsync(DesvincularClienteDoUsuarioParameters parameters,
+            CancellationToken ct)
+        {
+            MensagemDTO ResultView = new();
+            if (string.IsNullOrWhiteSpace(parameters.Login))
+                return MensagemViewHelper.SetBadRequest("Login do usuário não informado.");
+
+            var loginNormalized = parameters.Login.ToUpperTrim();
+            var usuario = await _context.Usuario.AsNoTracking().FirstOrDefaultAsync(x => x.Login == loginNormalized, ct);
+            if (usuario == null)
+                return MensagemViewHelper.SetNotFound("Usuário não encontrado.");
+
+            if (parameters.Clientes == null || parameters.Clientes.Count == 0)
+                return MensagemViewHelper.SetBadRequest("Nenhum cliente foi informado para desvinculação.");
+
+            var clientesParaDesvincular = parameters.Clientes.Distinct().ToList();
+
+            var clientesParaRemover = await _context.UsuarioCliente
+                .Where(x => x.UsuarioId == usuario.UsuarioId && clientesParaDesvincular.Contains(x.ClienteId))
+                .ToListAsync(ct);
+
+            if (clientesParaRemover.Count == 0)
+                return MensagemViewHelper.SetNotFound("Nenhum dos clientes informados está vinculado a este usuário.");
+
+            try
+            {
+                _context.UsuarioCliente.RemoveRange(clientesParaRemover);
+                await _context.SaveChangesAsync(ct);
+                return MensagemViewHelper.SetDeleteSuccess();
+            }
+            catch (Exception e)
+            {
+                ResultView = MensagemViewHelper.SetBadRequest(e.Message);
+                return ResultView;
+            }
+        }
+
+        public async Task<MensagemDTO> UnlinkDepositToUserAsync(DesvincularDepositoDoUsuarioParameters parameters,
+            CancellationToken ct)
+        {
+            MensagemDTO ResultView = new();
+            if (string.IsNullOrWhiteSpace(parameters.Login))
+                return MensagemViewHelper.SetBadRequest("Login do usuário não informado.");
+
+            var loginNormalized = parameters.Login.ToUpperTrim();
+            var usuario = await _context.Usuario.AsNoTracking().FirstOrDefaultAsync(x => x.Login == loginNormalized, ct);
+            if (usuario == null)
+                return MensagemViewHelper.SetNotFound("Usuário não encontrado.");
+
+            if (parameters.Deposito == null || parameters.Deposito.Count == 0)
+                return MensagemViewHelper.SetBadRequest("Nenhum depósito foi informado para desvinculação.");
+
+            var depositosParaDesvincular = parameters.Deposito.Distinct().ToList();
+
+            var depositosParaRemover = await _context.UsuarioDeposito
+                .Where(x => x.UsuarioId == usuario.UsuarioId && depositosParaDesvincular.Contains(x.DepositoId))
+                .ToListAsync(ct);
+
+            if (depositosParaRemover.Count == 0)
+                return MensagemViewHelper.SetNotFound("Nenhum dos depósitos informados está vinculado a este usuário.");
+
+            try
+            {
+                _context.UsuarioDeposito.RemoveRange(depositosParaRemover);
+                await _context.SaveChangesAsync(ct);
+                return MensagemViewHelper.SetDeleteSuccess();
+            }
+            catch (Exception e)
+            {
+                ResultView = MensagemViewHelper.SetBadRequest(e.Message);
+                return ResultView;
+            }
+        }
+
+        public async Task<MensagemDTO> UnlinkProfilesToUserAsync(DesvincularPerfisDoUsuarioParameters parameters,
+            CancellationToken ct)
+        {
+            MensagemDTO ResultView = new();
+            if (string.IsNullOrWhiteSpace(parameters.Login))
+                return MensagemViewHelper.SetBadRequest("Login do usuário não informado.");
+
+            var loginNormalized = parameters.Login.ToUpperTrim();
+            var usuario = await _context.Usuario.AsNoTracking().FirstOrDefaultAsync(x => x.Login == loginNormalized, ct);
+            if (usuario == null)
+                return MensagemViewHelper.SetNotFound("Usuário não encontrado.");
+
+            if (parameters.Perfis == null || parameters.Perfis.Count == 0)
+                return MensagemViewHelper.SetBadRequest("Nenhum perfil de acesso foi informado para desvinculação.");
+
+            var perfisParaDesvincular = parameters.Perfis.Distinct().ToList();
+
+            var perfisParaRemover = await _context.PerfilAcessoUsuario
+                .Where(x => x.UsuarioId == usuario.UsuarioId && perfisParaDesvincular.Contains(x.PerfilAcessoId))
+                .ToListAsync(ct);
+
+            if (perfisParaRemover.Count == 0)
+                return MensagemViewHelper.SetNotFound("Nenhum dos perfis informados está vinculado a este usuário.");
+
+            try
+            {
+                _context.PerfilAcessoUsuario.RemoveRange(perfisParaRemover);
+                await _context.SaveChangesAsync(ct);
+                return MensagemViewHelper.SetDeleteSuccess();
+            }
+            catch (Exception e)
+            {
+                ResultView = MensagemViewHelper.SetBadRequest(e.Message);
+                return ResultView;
+            }
+        }
+
+        public async Task<MensagemDTO> UnlinkPermissionToUserAsync(DesvincularPermissaoDoUsuarioParameters parameters,
+            CancellationToken ct)
+        {
+            MensagemDTO ResultView = new();
+            if (string.IsNullOrWhiteSpace(parameters.Login))
+                return MensagemViewHelper.SetBadRequest("Login do usuário não informado.");
+
+            var loginNormalized = parameters.Login.ToUpperTrim();
+            var usuario = await _context.Usuario.AsNoTracking().FirstOrDefaultAsync(x => x.Login == loginNormalized, ct);
+            if (usuario == null)
+                return MensagemViewHelper.SetNotFound("Usuário não encontrado.");
+
+            var permissaoParaRemover = await _context.UsuarioPermissao
+                .FirstOrDefaultAsync(x => x.UsuarioId == usuario.UsuarioId && x.TipoPermissaoId == parameters.Permissao, ct);
+
+            if (permissaoParaRemover == null)
+                return MensagemViewHelper.SetNotFound("A permissão informada não está vinculada a este usuário.");
+
+            try
+            {
+                _context.UsuarioPermissao.Remove(permissaoParaRemover);
+                await _context.SaveChangesAsync(ct);
+                return MensagemViewHelper.SetDeleteSuccess();
             }
             catch (Exception e)
             {

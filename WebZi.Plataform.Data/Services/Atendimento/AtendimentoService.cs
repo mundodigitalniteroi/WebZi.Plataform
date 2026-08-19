@@ -495,11 +495,10 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             var permitirEdicao = await _context.PerfilAcessoUsuario
                 .AsNoTracking()
                 .AnyAsync(x => x.UsuarioId == AtualizarAtendimento.IdentificadorUsuario
-                               // && x.PerfilAcessoId == 80
-                               && x.PerfilAcessoId == 84 // prod
+                               && (x.PerfilAcessoId == (int)PerfisDeAcessoEnum.AtendimentoEditProd || x.PerfilAcessoId == (int)PerfisDeAcessoEnum.AtendimentoEditHomolog)
                                && _context.SistemaPerfilAcessoSubModulos
-                                   .Any(s => s.IdPerfilAcesso == 84 && s.IdSubModulo == 165), cancellationToken: ct); // prod
-            // .Any(s => s.IdPerfilAcesso == 80 && s.IdSubModulo == 165));
+                                   .Any(s => (s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.AtendimentoEditProd || s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.AtendimentoEditHomolog) 
+                                             && s.IdSubModulo == (int)SubModuloEnum.EditarAtendimento), cancellationToken: ct);
             if (!permitirEdicao)
             {
                 Erros.Add("Não possui permissão para edição do atendimento");
@@ -724,11 +723,10 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             var permiteEdicaoNf = await _context.PerfilAcessoUsuario
                 .AsNoTracking()
                 .AnyAsync(x => x.UsuarioId == AtualizarAtendimento.IdentificadorUsuario
-                               && x.PerfilAcessoId == 81 // AMBIENTE DE HOMOLOG
-                               // && x.PerfilAcessoId == 79 
+                               && (x.PerfilAcessoId == (int)PerfisDeAcessoEnum.NfeEditHomolog || x.PerfilAcessoId == (int)PerfisDeAcessoEnum.NfeEditProd)
                                && _context.SistemaPerfilAcessoSubModulos
-                                   // .Any(s => s.IdPerfilAcesso == 79 && s.IdSubModulo == 163)); 
-                                   .Any(s => s.IdPerfilAcesso == 81 && s.IdSubModulo == 167), cancellationToken: ct); // AMBIENTE DE HOMOLOG
+                                   .Any(s => (s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.NfeEditHomolog || s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.NfeEditProd)
+                                             && s.IdSubModulo == (int)SubModuloEnum.EditarNfe), cancellationToken: ct);
 
 
             if (permiteEdicaoNf)
@@ -1384,11 +1382,10 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             var permiteExclusao = await _context.PerfilAcessoUsuario
                 .AsNoTracking()
                 .AnyAsync(x => x.UsuarioId == UsuarioId
-                               && x.PerfilAcessoId == 80
-                               // && x.PerfilAcessoId == 84 // prod
+                               && (x.PerfilAcessoId == (int)PerfisDeAcessoEnum.AtendimentoEditHomolog || x.PerfilAcessoId == (int)PerfisDeAcessoEnum.AtendimentoEditProd)
                                && _context.SistemaPerfilAcessoSubModulos
-                                   .Any(s => s.IdPerfilAcesso == 80 && s.IdSubModulo == 166)); //
-                                   // .Any(s => s.IdPerfilAcesso == 84 && s.IdSubModulo == 166)); //
+                                   .Any(s => (s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.AtendimentoEditHomolog || s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.AtendimentoEditProd)
+                                             && s.IdSubModulo == (int)SubModuloEnum.ExcluirAtendimento));
 
             if (UsuarioPermissao == null)
             {
