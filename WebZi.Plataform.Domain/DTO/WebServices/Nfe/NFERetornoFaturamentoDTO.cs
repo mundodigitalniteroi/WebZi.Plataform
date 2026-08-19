@@ -1,4 +1,4 @@
-﻿namespace WebZi.Plataform.Domain.DTO.WebServices.Nfe
+namespace WebZi.Plataform.Domain.DTO.WebServices.Nfe
 {
     public class NFERetornoFaturamentoDTO
     {
@@ -13,6 +13,7 @@
         public int identificadorServico { get; set; }
         public string? Servico { get; set; }
         public decimal? Valor { get; set; }
+        public int? IdentificadorFaturamento { get; set; }
         public string? StatusErro { get; set; }
         public string? MensagemErro { get; set; }
         public string? CorrecaoErro { get; set; }

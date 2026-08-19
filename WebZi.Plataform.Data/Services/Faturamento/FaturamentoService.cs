@@ -2041,6 +2041,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     Composicoes = model.NfeFaturamentoComposicao
                         .Select(nfc => new
                         {
+                            FaturamentoId = nfc.FaturamentoComposicao != null ? (int?)nfc.FaturamentoComposicao.FaturamentoId : null,
+
                             Valor = nfc.FaturamentoComposicao != null
                                 ? nfc.FaturamentoComposicao.ValorComposicao
                                 : 0,
@@ -2186,6 +2188,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     if (nfe.Status == "E")
                     {
                         var nfDto = _mapper.Map<NFERetornoFaturamentoDTO>(nfe);
+                        nfDto.IdentificadorFaturamento = item.Composicoes?.FirstOrDefault()?.FaturamentoId;
 
                         if (int.TryParse(nfe.IdentificadorNota, out var identificadorNota) &&
                             erroPorIdentificadorNota.TryGetValue(identificadorNota, out var erro))
@@ -2210,7 +2213,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                         foreach (var composicao in item.Composicoes)
                         {
                             var nfDto = _mapper.Map<NFERetornoFaturamentoDTO>(nfe);
-
+                            nfDto.IdentificadorFaturamento = composicao.FaturamentoId;
                             nfDto.Valor = composicao.Valor;
                             nfDto.Servico = composicao.Servico;
 
@@ -2219,7 +2222,9 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     }
                     else
                     {
-                        notasDto.Add(_mapper.Map<NFERetornoFaturamentoDTO>(nfe));
+                        var nfDto = _mapper.Map<NFERetornoFaturamentoDTO>(nfe);
+                        nfDto.IdentificadorFaturamento = item.Composicoes?.FirstOrDefault()?.FaturamentoId;
+                        notasDto.Add(nfDto);
                     }
                 }
 
