@@ -1417,7 +1417,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 return ResultView;
             }
 
-            if (Grv.StatusOperacaoId != "V")
+            if (!new[] { "V", "1", "3", "7" }.Contains(Grv.StatusOperacaoId))
             {
                 string descricaoStatus = Grv.StatusOperacao?.Descricao?.ToUpper();
                 ResultView.Mensagem = MensagemViewHelper.SetBadRequest(

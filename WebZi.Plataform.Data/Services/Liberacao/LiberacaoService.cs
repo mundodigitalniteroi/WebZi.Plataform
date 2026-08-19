@@ -110,23 +110,27 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                 .Include(x => x.TipoVeiculo)
                 .Include(x => x.StatusOperacao)
                 .Include(x => x.Cliente)
+                .Include(x => x.Deposito)
+                .Include(x => x.Cor)
+                .Include(x => x.MarcaModelo)
+                .Include(x => x.Reboque)
                 .Include(x => x.Atendimento)
                 .Include(x => x.Liberacao)
                 .Include(x => x.ListagemLacre)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.GrvId == GrvId);
 
-            if (Grv.StatusOperacaoId is not "R" and not "T" and not "E" and not "U")
+            if (Grv.StatusOperacaoId is not "R" and not "T" and not "E" and not "U" and not "7")
             {
                 ResultView.Mensagem = MensagemViewHelper
                     .SetBadRequest(
-                        $"O Status atual deste Processo não permite a geração do Documento. Status atual: {Grv.StatusOperacao.Descricao}");
+                        $"O Status atual deste Processo não permite a geração do Documento. Status atual: {Grv.StatusOperacao?.Descricao}");
 
                 return ResultView;
             }
             else if (Grv.StatusOperacaoId == "E")
             {
-                if (DateTime.Now.Date > Grv.Liberacao.DataCadastro.Date)
+                if (Grv.Liberacao?.DataCadastro != null && DateTime.Now.Date > Grv.Liberacao.DataCadastro.Date)
                 {
                     ResultView.Mensagem.Alertas
                         .Add(
@@ -134,152 +138,162 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                 }
             }
 
-            int FaturamentoId = await new FaturamentoService(_context).GetUltimoFaturamentoIdAsync(GrvId);
+            int? FaturamentoId = await new FaturamentoService(_context).GetUltimoFaturamentoIdAsync(GrvId);
 
-            if (FaturamentoId == 0)
+            GuiaPagamentoReboqueEstadiaDTO GuiaPagamentoReboqueEstadia = null;
+            if (FaturamentoId.HasValue && FaturamentoId.Value > 0)
             {
-                ResultView.Mensagem = MensagemViewHelper.SetNotFound("Faturamento não encontrado");
-
-                return ResultView;
+                GuiaPagamentoReboqueEstadia = await new GuiaPagamentoReboqueEstadiaService(_context, _mapper, _httpClientFactory)
+                    .GetGuiaPagamentoReboqueEstadiaAsync(FaturamentoId.Value, UsuarioId, true);
             }
 
-            GuiaPagamentoReboqueEstadiaDTO GuiaPagamentoReboqueEstadia =
-                await new GuiaPagamentoReboqueEstadiaService(_context, _mapper, _httpClientFactory)
-                    .GetGuiaPagamentoReboqueEstadiaAsync(FaturamentoId, UsuarioId, true);
-
-            if (GuiaPagamentoReboqueEstadia == null)
-            {
-                ResultView.Mensagem = MensagemViewHelper
-                    .SetNotFound(
-                        "Informações para a geração da Guia de Autorização para a Retirada do Veículo não encontradas");
-
-                return ResultView;
-            }
-
-            var prazo = GuiaPagamentoReboqueEstadia.PrazoRetiradaVeiculo;
+            var prazo = GuiaPagamentoReboqueEstadia?.PrazoRetiradaVeiculo;
 
             var prazoFormatado = !string.IsNullOrEmpty(prazo) && prazo.Length >= 10
                 ? prazo.Substring(0, 10)
                 : prazo ?? "";
+
             ResultView.IdentificadorProcesso = Grv.GrvId;
 
             ResultView.NumeroProcesso = Grv.NumeroFormularioGrv;
 
-            ResultView.ClienteNome = GuiaPagamentoReboqueEstadia.ClienteNome;
+            ResultView.ClienteNome = GuiaPagamentoReboqueEstadia?.ClienteNome ?? Grv.Cliente?.Nome ?? "";
 
-            ResultView.ClienteEndereco = GuiaPagamentoReboqueEstadia.ClienteEndereco;
+            ResultView.ClienteEndereco = GuiaPagamentoReboqueEstadia?.ClienteEndereco ?? "";
 
             ResultView.DadosCodigoAutorizacao = "Link para validação";
 
+            string depositoNome = GuiaPagamentoReboqueEstadia?.DepositoNome ?? Grv.Deposito?.Nome ?? "";
+            string numFormulario = GuiaPagamentoReboqueEstadia?.NumeroFormularioGrv ?? Grv.NumeroFormularioGrv ?? "";
+
             ResultView.DadosProcessoGrv = "Dados do Processo Processo: " +
-                                          GuiaPagamentoReboqueEstadia.NumeroFormularioGrv + " - " + "Depósito: " +
-                                          GuiaPagamentoReboqueEstadia.DepositoNome;
+                                          numFormulario + " - " + "Depósito: " +
+                                          depositoNome;
 
             ResultView.DadosTipoProcesso = "REGISTRO DE APREENSÃO";
 
-            ResultView.DadosReboque = !string.IsNullOrWhiteSpace(GuiaPagamentoReboqueEstadia.ReboquePlaca)
-                ? VeiculoHelper.FormatPlaca(GuiaPagamentoReboqueEstadia.ReboquePlaca)
+            string reboquePlaca = GuiaPagamentoReboqueEstadia?.ReboquePlaca ?? Grv.Reboque?.Placa ?? "";
+            ResultView.DadosReboque = !string.IsNullOrWhiteSpace(reboquePlaca)
+                ? VeiculoHelper.FormatPlaca(reboquePlaca)
                 : string.Empty;
 
-            ResultView.DadosDataEntrada = GuiaPagamentoReboqueEstadia.DataHoraGuarda.Left(10);
+            string dataHoraGuardaStr = GuiaPagamentoReboqueEstadia?.DataHoraGuarda ?? (Grv.DataHoraGuarda != null ? DateTimeHelper.FormatDateTime(Grv.DataHoraGuarda, DateTimeHelper.DateTimeFormat.DateTimeFormatted) : "");
 
-            ResultView.DadosHoraEntrada = GuiaPagamentoReboqueEstadia.DataHoraGuarda.Right(5);
+            ResultView.DadosDataEntrada = dataHoraGuardaStr.Left(10);
 
-            ResultView.DadosPermanencia = GuiaPagamentoReboqueEstadia.QuantidadeEstadias == 1
-                ? GuiaPagamentoReboqueEstadia.QuantidadeEstadias.ToString() + " dia"
-                : GuiaPagamentoReboqueEstadia.QuantidadeEstadias.ToString() + " dias";
+            ResultView.DadosHoraEntrada = dataHoraGuardaStr.Right(5);
+
+            int qtdEstadias = GuiaPagamentoReboqueEstadia?.QuantidadeEstadias ?? 0;
+            ResultView.DadosPermanencia = qtdEstadias == 1
+                ? "1 dia"
+                : qtdEstadias.ToString() + " dias";
 
             ResultView.DadosAutorizadaRetiradaVeiculoEm =
                 DateTimeHelper.FormatDateTime(DateTime.Now,
                     DateTimeHelper.DateTimeFormat
-                        .DateTimeFormatted); //GuiaPagamentoReboqueEstadia.FaturamentoDataVencimento.Left(10);
+                        .DateTimeFormatted);
 
             ResultView.DadosDaRetiradaDoVeiculo = DateTimeHelper.FormatDateTime(Grv.Liberacao?.DataCadastro,
                 DateTimeHelper.DateTimeFormat.DateTimeFormatted);
 
 
-            ResultView.VeiculoTipo = Grv.TipoVeiculo.Descricao;
+            ResultView.VeiculoTipo = Grv.TipoVeiculo?.Descricao ?? "";
 
-            ResultView.VeiculoMarcaModelo = GuiaPagamentoReboqueEstadia.MarcaModelo;
+            ResultView.VeiculoMarcaModelo = GuiaPagamentoReboqueEstadia?.MarcaModelo ?? Grv.MarcaModelo?.MarcaModelo ?? "";
 
-            ResultView.VeiculoPlaca = VeiculoHelper.FormatPlaca(GuiaPagamentoReboqueEstadia.Placa);
+            ResultView.VeiculoPlaca = VeiculoHelper.FormatPlaca(GuiaPagamentoReboqueEstadia?.Placa ?? Grv.Placa ?? "");
 
-            ResultView.VeiculoRenavam = GuiaPagamentoReboqueEstadia.Renavam;
+            ResultView.VeiculoRenavam = GuiaPagamentoReboqueEstadia?.Renavam ?? Grv.Renavam ?? "";
 
-            ResultView.VeiculoChassi = GuiaPagamentoReboqueEstadia.Chassi;
+            ResultView.VeiculoChassi = GuiaPagamentoReboqueEstadia?.Chassi ?? Grv.Chassi ?? "";
 
-            ResultView.VeiculoCor = GuiaPagamentoReboqueEstadia.Cor;
+            ResultView.VeiculoCor = GuiaPagamentoReboqueEstadia?.Cor  ?? "";
+
+            string depositoEndereco = GuiaPagamentoReboqueEstadia?.DepositoEndereco ?? "";
 
             ResultView.TextoApresentacao =
                 "Este documento deverá ser apresentado no Depósito de Veículos localizado no endereço " +
-                GuiaPagamentoReboqueEstadia.DepositoEndereco + ", até a data: " +
+                depositoEndereco + ", até a data: " +
                 prazoFormatado +
                 ", para que a retirada do veículo seja autorizada. A não apresentação até a data informada acarretará na cobrança de estadias adicionais.";
 
+            string respNome = GuiaPagamentoReboqueEstadia?.AtendimentoResponsavelNome ?? Grv.Atendimento?.ResponsavelNome ?? "Não informado";
+            string respDoc = GuiaPagamentoReboqueEstadia?.AtendimentoResponsavelDocumento ?? Grv.Atendimento?.ResponsavelDocumento ?? "Não informado";
+            string veicPlacaFormatada = VeiculoHelper.FormatPlaca(GuiaPagamentoReboqueEstadia?.Placa ?? Grv.Placa ?? "");
+            string veicMarcaModeloStr = GuiaPagamentoReboqueEstadia?.MarcaModelo ?? Grv.MarcaModelo?.MarcaModelo ?? "";
+            string veicCorStr = GuiaPagamentoReboqueEstadia?.Cor ?? Grv.Cor?.Cor ?? "";
+
             ResultView.TextoDeclaracaoRetirada1 =
-                $@"Eu {GuiaPagamentoReboqueEstadia.AtendimentoResponsavelNome}, portador do CPF {GuiaPagamentoReboqueEstadia.AtendimentoResponsavelDocumento}, declaro que no dia {DateTime.Now.ToString("dd 'de' MMMM 'de' yyyy", CultureInfo.GetCultureInfo("pt-BR"))}, " +
-                $"recebi do depósito {GuiaPagamentoReboqueEstadia.DepositoNome} o veículo de placa {VeiculoHelper.FormatPlaca(GuiaPagamentoReboqueEstadia.Placa)}, Marca/Modelo {GuiaPagamentoReboqueEstadia.MarcaModelo}, Cor {GuiaPagamentoReboqueEstadia.Cor}, recolhido às {GuiaPagamentoReboqueEstadia.DataHoraGuarda.Right(5)} do dia {GuiaPagamentoReboqueEstadia.DataHoraGuarda.Left(10)}, " +
-                $"no endereco {GuiaPagamentoReboqueEstadia.DepositoEndereco}";
+                $@"Eu {respNome}, portador do CPF {respDoc}, declaro que no dia {DateTime.Now.ToString("dd 'de' MMMM 'de' yyyy", CultureInfo.GetCultureInfo("pt-BR"))}, " +
+                $"recebi do depósito {depositoNome} o veículo de placa {veicPlacaFormatada}, Marca/Modelo {veicMarcaModeloStr}, Cor {veicCorStr}, recolhido às {dataHoraGuardaStr.Right(5)} do dia {dataHoraGuardaStr.Left(10)}, " +
+                $"no endereco {depositoEndereco}";
 
             ResultView.TextoDeclaracaoRetirada2 =
                 $@"Declaro também que o veículo se encontrava nas mesmas condições, quando foi removido e ainda lacrado, " +
                 "conforme numeração abaixo descrita, sendo estes lacres conferidos na minha presença, nada havendo para reclamar agora ou no futuro.";
 
-            ResultView.ProprietarioProcurador = GuiaPagamentoReboqueEstadia.AtendimentoResponsavelNome;
+            ResultView.ProprietarioProcurador = respNome;
 
-            ResultView.ProprietarioCpf = GuiaPagamentoReboqueEstadia.AtendimentoResponsavelDocumento;
+            ResultView.ProprietarioCpf = respDoc;
 
-            ResultView.GrvEstacionamentoSetor = !GuiaPagamentoReboqueEstadia.EstacionamentoSetor.IsNullOrWhiteSpace()
-                ? GuiaPagamentoReboqueEstadia.EstacionamentoSetor
+            string estSetor = GuiaPagamentoReboqueEstadia?.EstacionamentoSetor ?? Grv.EstacionamentoSetor;
+            string estVaga = GuiaPagamentoReboqueEstadia?.EstacionamentoNumeroVaga ?? Grv.EstacionamentoNumeroVaga;
+            string numChave = GuiaPagamentoReboqueEstadia?.NumeroChave ?? Grv.NumeroChave;
+
+            ResultView.GrvEstacionamentoSetor = !string.IsNullOrWhiteSpace(estSetor)
+                ? estSetor
                 : "Não informado";
 
-            ResultView.GrvEstacionamentoNumeroVaga =
-                !GuiaPagamentoReboqueEstadia.EstacionamentoNumeroVaga.IsNullOrWhiteSpace()
-                    ? GuiaPagamentoReboqueEstadia.EstacionamentoNumeroVaga
-                    : "Não informado";
+            ResultView.GrvEstacionamentoNumeroVaga = !string.IsNullOrWhiteSpace(estVaga)
+                ? estVaga
+                : "Não informado";
 
-            ResultView.GrvNumeroChave = !GuiaPagamentoReboqueEstadia.NumeroChave.IsNullOrWhiteSpace()
-                ? GuiaPagamentoReboqueEstadia.NumeroChave
+            ResultView.GrvNumeroChave = !string.IsNullOrWhiteSpace(numChave)
+                ? numChave
                 : "Não informado";
 
             ViewUsuarioModel Usuario = await _context.ViewUsuario
                 .FirstOrDefaultAsync(x => x.UsuarioId == UsuarioId);
 
-            ResultView.UsuarioNome = Usuario.NomeCompleto;
-
-            ResultView.UsuarioMatricula = Usuario.Matricula;
+            if (Usuario != null)
+            {
+                ResultView.UsuarioNome = Usuario.NomeCompleto;
+                ResultView.UsuarioMatricula = Usuario.Matricula;
+            }
 
 
             #region FORMA DE LIBERAÇÃO
 
-            ResultView.AtendimentoFormaLiberacaoNome = GuiaPagamentoReboqueEstadia.AtendimentoFormaLiberacaoNome;
-
-            ResultView.AtendimentoFormaLiberacaoCNH = GuiaPagamentoReboqueEstadia.AtendimentoFormaLiberacaoCNH;
-
-            if (GuiaPagamentoReboqueEstadia.AtendimentoFormaLiberacao == "C")
+            if (GuiaPagamentoReboqueEstadia != null)
             {
-                ResultView.AtendimentoFormaLiberacao = "Condutor habilitado";
+                ResultView.AtendimentoFormaLiberacaoNome = GuiaPagamentoReboqueEstadia.AtendimentoFormaLiberacaoNome;
+                ResultView.AtendimentoFormaLiberacaoCNH = GuiaPagamentoReboqueEstadia.AtendimentoFormaLiberacaoCNH;
 
-                ResultView.AtendimentoFormaLiberacaoCpfPlaca =
-                    DocumentHelper.FormatCPF(GuiaPagamentoReboqueEstadia.AtendimentoFormaLiberacaoCPF);
-
-                ResultView.LabelAtendimentoFormaLiberacaoCpfPlaca = "CPF:";
-            }
-            else if (GuiaPagamentoReboqueEstadia.AtendimentoFormaLiberacao == "R")
-            {
-                ResultView.AtendimentoFormaLiberacao = "Reboque";
-
-                ResultView.AtendimentoFormaLiberacaoCpfPlaca =
-                    VeiculoHelper.FormatPlaca(GuiaPagamentoReboqueEstadia.AtendimentoFormaLiberacaoPlaca);
-
-                ResultView.LabelAtendimentoFormaLiberacaoCpfPlaca = "Placa:";
+                if (GuiaPagamentoReboqueEstadia.AtendimentoFormaLiberacao == "C")
+                {
+                    ResultView.AtendimentoFormaLiberacao = "Condutor habilitado";
+                    ResultView.AtendimentoFormaLiberacaoCpfPlaca =
+                        DocumentHelper.FormatCPF(GuiaPagamentoReboqueEstadia.AtendimentoFormaLiberacaoCPF);
+                    ResultView.LabelAtendimentoFormaLiberacaoCpfPlaca = "CPF:";
+                }
+                else if (GuiaPagamentoReboqueEstadia.AtendimentoFormaLiberacao == "R")
+                {
+                    ResultView.AtendimentoFormaLiberacao = "Reboque";
+                    ResultView.AtendimentoFormaLiberacaoCpfPlaca =
+                        VeiculoHelper.FormatPlaca(GuiaPagamentoReboqueEstadia.AtendimentoFormaLiberacaoPlaca);
+                    ResultView.LabelAtendimentoFormaLiberacaoCpfPlaca = "Placa:";
+                }
+                else
+                {
+                    ResultView.AtendimentoFormaLiberacao = "Não informado";
+                    ResultView.AtendimentoFormaLiberacaoNome = "Não informado";
+                    ResultView.AtendimentoFormaLiberacaoCNH = "Não informado";
+                }
             }
             else
             {
                 ResultView.AtendimentoFormaLiberacao = "Não informado";
-
                 ResultView.AtendimentoFormaLiberacaoNome = "Não informado";
-
                 ResultView.AtendimentoFormaLiberacaoCNH = "Não informado";
             }
 
@@ -289,10 +303,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
             ImageListDTO Listagem = await new ClienteService(_context, _mapper, _httpClientFactory)
                 .GetLogomarcaAsync(Grv.ClienteId);
 
-            ResultView.Logo = Listagem
-                .Listagem
-                .FirstOrDefault()
-                .Imagem;
+            ResultView.Logo = Listagem?.Listagem?.FirstOrDefault()?.Imagem;
 
             string key = AppSettingsHelper.GetValue("Segredo", "QRCode");
 
