@@ -223,7 +223,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
             return MensagemViewHelper.SetCreateSuccess("Nota Fiscal Emitida");
         }
 
-        public async Task<MensagemDTO> CreateNfseAsync(int grvId, int usuarioId, CancellationToken ct)
+        public async Task<MensagemDTO> CreateNfseAsync(int grvId, int usuarioId, int? faturamentoId = null, CancellationToken ct = default)
         {
             MensagemDTO ResultView = new GrvService(_context).ValidateInputGrv(grvId, usuarioId);
 
@@ -232,9 +232,46 @@ namespace WebZi.Plataform.Data.Services.WebServices
             var grv = await _context.Grv
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.GrvId == grvId, cancellationToken: ct);
-            NfeModel nfeDB = await _context.Nfe
-                .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.GrvId == grvId, cancellationToken: ct);
+
+            if (grv is null)
+            {
+                ResultView = MensagemViewHelper.SetNotFound("Não foi encontrado este grv");
+                return ResultView;
+            }
+
+            bool nfeJaExiste = false;
+
+            if (faturamentoId.HasValue && faturamentoId.Value > 0)
+            {
+                nfeJaExiste = await _context.Nfe
+                    .AsNoTracking()
+                    .AnyAsync(x => x.GrvId == grvId &&
+                                   x.NfeFaturamentoComposicao.Any(nfc => nfc.FaturamentoComposicao != null && nfc.FaturamentoComposicao.FaturamentoId == faturamentoId.Value), cancellationToken: ct);
+            }
+            else
+            {
+                var faturamentosAtivosIds = await _context.Faturamento
+                    .Where(x => x.Atendimento.GrvId == grvId && x.Status != "C")
+                    .Select(x => x.FaturamentoId)
+                    .ToListAsync(cancellationToken: ct);
+
+                if (faturamentosAtivosIds.Count > 0)
+                {
+                    var faturamentosComNotaIds = await _context.NfeFaturamentoComposicao
+                        .Where(nfc => nfc.Nfe.GrvId == grvId && nfc.FaturamentoComposicao != null)
+                        .Select(nfc => nfc.FaturamentoComposicao.FaturamentoId)
+                        .Distinct()
+                        .ToListAsync(cancellationToken: ct);
+
+                    nfeJaExiste = faturamentosAtivosIds.All(id => faturamentosComNotaIds.Contains(id));
+                }
+                else
+                {
+                    nfeJaExiste = await _context.Nfe
+                        .AsNoTracking()
+                        .AnyAsync(x => x.GrvId == grvId, cancellationToken: ct);
+                }
+            }
 
             var permitirEmissao = await _context.FaturamentoRegra
                 .AnyAsync(x =>
@@ -243,15 +280,9 @@ namespace WebZi.Plataform.Data.Services.WebServices
 
             #endregion
 
-            if (grv is null)
+            if (nfeJaExiste)
             {
-                ResultView = MensagemViewHelper.SetNotFound("Não foi encontrado este grv");
-                return ResultView;
-            }
-
-            if (nfeDB is not null)
-            {
-                ResultView = MensagemViewHelper.SetOk("Nota fiscal já foi emitida");
+                ResultView = MensagemViewHelper.SetOk("Nota fiscal já foi emitida para este faturamento");
                 return ResultView;
             }
 
@@ -376,10 +407,10 @@ namespace WebZi.Plataform.Data.Services.WebServices
             List<string> result;
             try
             {
-                // var response = await ClientConfig("http://localhost:8655/WSnfse.asmx")
-                //     .GerarNotaFiscalAsync(grvId, usuarioId, config.IsDev);
-                var response = await ClientConfig(WebServiceUrl.Url)
+                var response = await ClientConfig("http://localhost:8655/WSnfse.asmx")
                     .GerarNotaFiscalAsync(grvId, usuarioId, config.IsDev);
+                // var response = await ClientConfig(WebServiceUrl.Url)
+                //     .GerarNotaFiscalAsync(grvId, usuarioId, config.IsDev);
 
                 result = response?.Body?.GerarNotaFiscalResult;
             }

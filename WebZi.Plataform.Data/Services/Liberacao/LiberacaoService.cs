@@ -1030,7 +1030,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                 {
                     await _provider
                         .GetService<WSNfseService>()
-                        .CreateNfseAsync(grv.GrvId, usuarioId, ct);
+                        .CreateNfseAsync(grv.GrvId, usuarioId, null,ct);
                 }
             }
         }

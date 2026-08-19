@@ -1444,8 +1444,13 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             {
                 try
                 {
+                    _context.SetUserContextInfo(UsuarioId);
+
+                    int? idLiberacaoExcluir = null;
                     if (Grv.LiberacaoId != null || Grv.Liberacao != null)
                     {
+                        idLiberacaoExcluir = Grv.LiberacaoId ?? Grv.Liberacao?.LiberacaoId;
+
                         await _context.Grv
                             .Where(x => x.GrvId == Grv.GrvId && x.LiberacaoId != null)
                             .ExecuteUpdateAsync(s => s.SetProperty(x => x.LiberacaoId, (int?)null));
@@ -1460,6 +1465,50 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
                         if (faturamentoIds.Count > 0)
                         {
+                            List<int> faturamentoComposicaoIds = await _context.FaturamentoComposicao
+                                .Where(x => faturamentoIds.Contains(x.FaturamentoId))
+                                .Select(x => x.FaturamentoComposicaoId)
+                                .ToListAsync();
+
+                            List<int> nfeIds = await _context.Nfe
+                                .Where(x => x.GrvId == Grv.GrvId)
+                                .Select(x => x.NfeId)
+                                .ToListAsync();
+
+                            if (nfeIds.Count > 0)
+                            {
+                                await _context.NfeRetornoSolicitacao
+                                    .Where(x => nfeIds.Contains(x.NfeId))
+                                    .ExecuteDeleteAsync();
+
+                                await _context.NfeFaturamentoComposicao
+                                    .Where(x => nfeIds.Contains(x.NfeId))
+                                    .ExecuteDeleteAsync();
+                            }
+
+                            if (faturamentoComposicaoIds.Count > 0)
+                            {
+                                await _context.NfeFaturamentoComposicao
+                                    .Where(x => faturamentoComposicaoIds.Contains(x.FaturamentoComposicaoId))
+                                    .ExecuteDeleteAsync();
+
+                                await _context.FaturamentoComposicaoNotaFiscal
+                                    .Where(x => faturamentoComposicaoIds.Contains(x.FaturamentoComposicaoId))
+                                    .ExecuteDeleteAsync();
+                            }
+
+                            await _context.Nfe
+                                .Where(x => x.GrvId == Grv.GrvId)
+                                .ExecuteDeleteAsync();
+
+                            await _context.NfeWsErros
+                                .Where(x => x.GrvId == Grv.GrvId)
+                                .ExecuteDeleteAsync();
+
+                            await _context.FaturamentoCodigoAutorizacaoCartao
+                                .Where(x => faturamentoIds.Contains(x.FaturamentoId))
+                                .ExecuteDeleteAsync();
+
                             await _context.PixDinamicoSenhaConfirmacaoTranferencia
                                 .Where(x => faturamentoIds.Contains(x.FaturamentoId))
                                 .ExecuteDeleteAsync();
@@ -1475,6 +1524,18 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                             await _context.LiberacaoEspecial
                                 .Where(x => faturamentoIds.Contains(x.IdFaturamento))
                                 .ExecuteDeleteAsync();
+
+                            await _context.FaturamentoBoleto
+                                .Where(x => faturamentoIds.Contains(x.FaturamentoId))
+                                .ExecuteDeleteAsync();
+
+                            await _context.FaturamentoComposicao
+                                .Where(x => faturamentoIds.Contains(x.FaturamentoId))
+                                .ExecuteDeleteAsync();
+
+                            await _context.Faturamento
+                                .Where(x => x.AtendimentoId == Grv.Atendimento.AtendimentoId)
+                                .ExecuteDeleteAsync();
                         }
                     }
 
@@ -1486,6 +1547,24 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                     {
                         await _context.SaidaReparo
                             .Where(x => x.AtendimentoId == Grv.Atendimento.AtendimentoId)
+                            .ExecuteDeleteAsync();
+                    }
+
+                    if (Grv.Atendimento != null)
+                    {
+                        await _context.AtendimentoFotoResponsavel
+                            .Where(x => x.AtendimentoId == Grv.Atendimento.AtendimentoId)
+                            .ExecuteDeleteAsync();
+
+                        await _context.Atendimento
+                            .Where(x => x.AtendimentoId == Grv.Atendimento.AtendimentoId)
+                            .ExecuteDeleteAsync();
+                    }
+
+                    if (idLiberacaoExcluir.HasValue && idLiberacaoExcluir.Value > 0)
+                    {
+                        await _context.Liberacao
+                            .Where(x => x.LiberacaoId == idLiberacaoExcluir.Value)
                             .ExecuteDeleteAsync();
                     }
 
@@ -2164,7 +2243,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             if (_options.Value.Enable && permitirEmissao)
             {
                 await _provider.GetService<WSNfseService>()
-                    .CreateNfseAsync(parameters.IdentificadorProcesso, parameters.IdentificadorUsuario, ct);
+                    .CreateNfseAsync(parameters.IdentificadorProcesso, parameters.IdentificadorUsuario,null, ct);
             }
         }
 
