@@ -913,10 +913,12 @@ namespace WebZi.Plataform.Data.Services.Liberacao
             FaturamentoModel UltimoFaturamento = Faturamentos
                 .FirstOrDefault();
 
-            if (UltimoFaturamento.DataPrazoRetiradaVeiculo.Value.Date < DataHoraPorDeposito.Date)
-            {
-                return MensagemViewHelper.SetBadRequest(
-                    $"O prazo para a Entrega do veículo está vencida ({UltimoFaturamento.DataPrazoRetiradaVeiculo.Value.Date:dd/MM/yyyy}), a Entrega não poderá ser realizada");
+            if(Grv.StatusOperacaoId != "R"){
+                if (UltimoFaturamento.DataPrazoRetiradaVeiculo.Value.Date < DataHoraPorDeposito.Date)
+                {
+                    return MensagemViewHelper.SetBadRequest(
+                        $"O prazo para a Entrega do veículo está vencida ({UltimoFaturamento.DataPrazoRetiradaVeiculo.Value.Date:dd/MM/yyyy}), a Entrega não poderá ser realizada");
+                }
             }
 
             LiberacaoModel Liberacao = new()
