@@ -3049,20 +3049,23 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 }
             }
 
-            var grv = await _context.Grv.AsNoTracking()
-                .FirstOrDefaultAsync(x =>
-                    x.ClienteId == GrvPersistencia.IdentificadorCliente &&
-                    x.DepositoId == GrvPersistencia.IdentificadorDeposito &&
-                    x.FaturamentoProdutoId == GrvPersistencia.CodigoProduto &&
-                    (
-                        (!string.IsNullOrWhiteSpace(GrvPersistencia.Placa) &&
-                         x.Placa == GrvPersistencia.Placa)
-                        ||
-                        (!string.IsNullOrWhiteSpace(GrvPersistencia.Chassi) &&
-                         x.Chassi == GrvPersistencia.Chassi)
-                    ), cancellationToken: ct);
+        var grv = await _context.Grv.AsNoTracking()
+            .FirstOrDefaultAsync(x =>
+                x.ClienteId == GrvPersistencia.IdentificadorCliente &&
+                x.DepositoId == GrvPersistencia.IdentificadorDeposito &&
+                x.FaturamentoProdutoId == GrvPersistencia.CodigoProduto &&
+                x.StatusOperacaoId != "E" &&
+                x.StatusOperacaoId != "7" &&
+                (
+                    (!string.IsNullOrWhiteSpace(GrvPersistencia.Placa) &&
+                    x.Placa == GrvPersistencia.Placa)
+                    ||
+                    (!string.IsNullOrWhiteSpace(GrvPersistencia.Chassi) &&
+                    x.Chassi == GrvPersistencia.Chassi)
+                ), cancellationToken: ct);
 
-            if (grv is not null && grv.StatusOperacaoId != "E" && grv.StatusOperacaoId != "7")
+
+            if (grv is not null)
             {
                 bool isPlacaDuplicada = !string.IsNullOrWhiteSpace(GrvPersistencia.Placa) &&
                                         string.Equals(grv.Placa, GrvPersistencia.Placa,
