@@ -1238,7 +1238,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             {
                 foreach (ViewFaturamentoServicoAssociadoVeiculoModel item in result)
                 {
-                    if (item.FlagNaoCobrarSeNaoUsouReboque == "N" && Grv.FlagComboio == "S")
+                    if (item.FlagNaoCobrarSeNaoUsouReboque == "S" && Grv.FlagComboio == "S")
                     {
                         continue;
                     }
