@@ -1529,7 +1529,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             ResultView.Mensagem = await new ClienteDepositoService(_context)
                 .ValidateClienteDepositoAsync(model.IdentificadorCliente.Value, model.IdentificadorDeposito.Value);
-
+            if (Grv.FlagComboio == "S")
+                model.IsComboio = true;
             if (!Grv.Placa.IsNullOrWhiteSpace() || !Grv.Chassi.IsNullOrWhiteSpace())
             {
                 var detranHubService = _detranHubOptions != null
