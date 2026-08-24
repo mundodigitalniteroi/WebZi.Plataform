@@ -1384,11 +1384,11 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             var permiteExclusao = await _context.PerfilAcessoUsuario
                 .AsNoTracking()
                 .AnyAsync(x => x.UsuarioId == UsuarioId
-                               && x.PerfilAcessoId == 80
-                               // && x.PerfilAcessoId == 84 // prod
+                               // && x.PerfilAcessoId == 80
+                               && x.PerfilAcessoId == 84 // prod
                                && _context.SistemaPerfilAcessoSubModulos
-                                   .Any(s => s.IdPerfilAcesso == 80 && s.IdSubModulo == 166)); //
-                                   // .Any(s => s.IdPerfilAcesso == 84 && s.IdSubModulo == 166)); //
+                                   // .Any(s => s.IdPerfilAcesso == 80 && s.IdSubModulo == 166)); //
+                                   .Any(s => s.IdPerfilAcesso == 84 && s.IdSubModulo == 166)); 
 
             if (UsuarioPermissao == null)
             {
