@@ -11,6 +11,7 @@ namespace WebZi.Plataform.Domain.DTO.Atendimento
         public int IdentificadorProcesso { get; set; }
 
         public byte IdentificadorQualificacaoResponsavel { get; set; }
+        public string NomeUsuarioResponsavelCadastro { get; set; }
 
         public string ResponsavelNome { get; set; }
 

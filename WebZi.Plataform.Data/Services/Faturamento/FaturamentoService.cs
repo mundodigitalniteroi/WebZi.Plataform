@@ -2019,6 +2019,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 .ThenInclude(x => x.Deposito)
                 .ThenInclude(x => x.Endereco)
                 .Include(x => x.SaidaParaReparo)
+                .Include(x => x.UsuarioCadastro)
+                .ThenInclude(x => x.Pessoa)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.AtendimentoId == Faturamento.AtendimentoId, cancellationToken: ct);
             Faturamento.Atendimento = Atendimento;
