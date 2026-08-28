@@ -1238,7 +1238,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             {
                 foreach (ViewFaturamentoServicoAssociadoVeiculoModel item in result)
                 {
-                    if (item.FlagNaoCobrarSeNaoUsouReboque == "N" && Grv.FlagComboio == "S")
+                    if (item.FlagNaoCobrarSeNaoUsouReboque == "S" && Grv.FlagComboio == "S")
                     {
                         continue;
                     }
@@ -1529,7 +1529,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             ResultView.Mensagem = await new ClienteDepositoService(_context)
                 .ValidateClienteDepositoAsync(model.IdentificadorCliente.Value, model.IdentificadorDeposito.Value);
-
+            if (Grv.FlagComboio == "S")
+                model.IsComboio = true;
             if (!Grv.Placa.IsNullOrWhiteSpace() || !Grv.Chassi.IsNullOrWhiteSpace())
             {
                 var detranHubService = _detranHubOptions != null
@@ -2018,6 +2019,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 .ThenInclude(x => x.Deposito)
                 .ThenInclude(x => x.Endereco)
                 .Include(x => x.SaidaParaReparo)
+                .Include(x => x.UsuarioCadastro)
+                .ThenInclude(x => x.Pessoa)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.AtendimentoId == Faturamento.AtendimentoId, cancellationToken: ct);
             Faturamento.Atendimento = Atendimento;

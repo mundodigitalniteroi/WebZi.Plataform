@@ -75,7 +75,8 @@ namespace WebZi.Plataform.Data.Services
                 .ForMember(dest => dest.IdentificadorProcesso, from => from.MapFrom(src => src.GrvId))
                 .ForMember(dest => dest.IdentificadorQualificacaoResponsavel,
                     from => from.MapFrom(src => src.QualificacaoResponsavelId))
-                .ForMember(dest => dest.IdentificadorProprietarioTipoDocumento, from => from.MapFrom(src => src.ProprietarioTipoDocumentoId));
+                .ForMember(dest => dest.IdentificadorProprietarioTipoDocumento, from => from.MapFrom(src => src.ProprietarioTipoDocumentoId))
+                .ForMember(dest => dest.NomeUsuarioResponsavelCadastro, from => from.MapFrom(x => $"{x.UsuarioCadastro.Pessoa.Nome} {x.UsuarioCadastro.Pessoa.NomeMeio} {x.UsuarioCadastro.Pessoa.Sobrenome}"));
 
             CreateMap<AtendimentoSaidaParaReparoModel, AtendimentoSaidaParaReparoDTO>()
                 .ForMember(dest => dest.IdentificadorAtendimento, from => from.MapFrom(src => src.AtendimentoId))
