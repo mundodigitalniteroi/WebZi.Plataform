@@ -19,7 +19,8 @@ public class DetranHubController : ControllerBase
     }
 
     [HttpGet("ConsultarPorPlacaOuChassi")]
-    public async Task<ActionResult<ConsultarPorPlacaOuChassiDTO>> ConsultarPorPlacaOuChassi(string? placa, string? chassi)
+    public async Task<ActionResult<ConsultarPorPlacaOuChassiDTO>> ConsultarPorPlacaOuChassi(string? placa,
+        string? chassi)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);

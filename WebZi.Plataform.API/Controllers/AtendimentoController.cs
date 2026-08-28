@@ -27,7 +27,8 @@ namespace WebZi.Plataform.API.Controllers
         [HttpPost("Cadastrar")]
         // TODO: [Authorize]
         [IgnoreAntiforgeryToken]
-        public async Task<ActionResult<AtendimentoCadastroDTO>> Cadastrar([FromBody] AtendimentoParameters Atendimento, CancellationToken ct)
+        public async Task<ActionResult<AtendimentoCadastroDTO>> Cadastrar([FromBody] AtendimentoParameters Atendimento,
+            CancellationToken ct)
         {
             if (!ModelState.IsValid)
             {
@@ -72,7 +73,8 @@ namespace WebZi.Plataform.API.Controllers
 
 
         [HttpPut("Atualizar")]
-        public async Task<ActionResult<MensagemDTO>> Atualizar(AtualizarAtendimentoParameters parameters, CancellationToken ct)
+        public async Task<ActionResult<MensagemDTO>> Atualizar(AtualizarAtendimentoParameters parameters,
+            CancellationToken ct)
         {
             if (!ModelState.IsValid)
             {
@@ -119,7 +121,7 @@ namespace WebZi.Plataform.API.Controllers
         public async Task<ActionResult<MensagemDTO>> ExcluirAtendimento(
             [MaxLength(14, ErrorMessage = "Não pode ser menor ou maior que 14 caracteres")]
             string NumeroProcesso,
-            int UsuarioId, 
+            int UsuarioId,
             int ClienteId
         )
         {
@@ -181,7 +183,8 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpPatch("AtualizarStatusLS")]
-        public async Task<ActionResult<MensagemDTO>> AtualizarStatusLS(AtualizarStatusLEParameters parameters, CancellationToken ct)
+        public async Task<ActionResult<MensagemDTO>> AtualizarStatusLS(AtualizarStatusLEParameters parameters,
+            CancellationToken ct)
         {
             if (!ModelState.IsValid)
             {
@@ -210,7 +213,7 @@ namespace WebZi.Plataform.API.Controllers
 
             return ResultView;
         }
-        
+
         [HttpGet("SelecionarPorIdentificador")]
         // TODO: [Authorize]
         public async Task<ActionResult<AtendimentoDTO>> SelecionarPorIdentificador(int IdentificadorAtendimento,
@@ -298,7 +301,8 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpPost("CadastrarSaidaParaReparo")]
-        public async Task<ActionResult<SaidaParaReparoDTO>> CadastrarSaidaParaReparo(SaidaParaReparoParameters parameters, CancellationToken ct)
+        public async Task<ActionResult<SaidaParaReparoDTO>> CadastrarSaidaParaReparo(
+            SaidaParaReparoParameters parameters, CancellationToken ct)
         {
             SaidaParaReparoDTO ResultView = new();
             try

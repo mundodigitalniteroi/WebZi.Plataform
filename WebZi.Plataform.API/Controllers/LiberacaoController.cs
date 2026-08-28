@@ -52,7 +52,8 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpPost("Entrega")]
-        public async Task<ActionResult<MensagemDTO>> Entrega([FromBody] EntregaParameters Parameters, CancellationToken ct)
+        public async Task<ActionResult<MensagemDTO>> Entrega([FromBody] EntregaParameters Parameters,
+            CancellationToken ct)
         {
             if (!ModelState.IsValid)
             {
@@ -78,32 +79,33 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpPost("ValidarUsuario")]
-        public ActionResult<MensagemDTO> ValidarUsuarioLiberacaoEspecial([FromBody]LiberacaoEspecialValidarParameters parameters)
+        public ActionResult<MensagemDTO> ValidarUsuarioLiberacaoEspecial(
+            [FromBody] LiberacaoEspecialValidarParameters parameters)
         {
-            if(!ModelState.IsValid)
+            if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
             MensagemDTO ResultView;
 
             try
             {
-                ResultView =  _provider
+                ResultView = _provider
                     .GetService<LiberacaoService>()
                     .ValidarUsuario(parameters);
                 return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
-
-            }catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 ResultView = MensagemViewHelper.SetInternalServerError(ex);
 
                 return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
             }
-
         }
 
         [HttpGet("GuiaAutorizacaoRetiradaVeiculo")]
         // TODO: [Authorize]
-        public async Task<ActionResult<GuiaAutorizacaoRetiradaVeiculoDTO>> GuiaAutorizacaoRetiradaVeiculo(int IdentificadorProcesso, int IdentificadorUsuario)
+        public async Task<ActionResult<GuiaAutorizacaoRetiradaVeiculoDTO>> GuiaAutorizacaoRetiradaVeiculo(
+            int IdentificadorProcesso, int IdentificadorUsuario)
         {
             if (!ModelState.IsValid)
             {
@@ -129,7 +131,8 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("ConsultaLiberacao")]
-        public async Task<ActionResult<GrvConsultaLiberacaoDTO>> ConsultaLiberacao(string Placa, string Chassi, string NumeroProcesso)
+        public async Task<ActionResult<GrvConsultaLiberacaoDTO>> ConsultaLiberacao(string Placa, string Chassi,
+            string NumeroProcesso)
         {
             if (!ModelState.IsValid)
             {
@@ -153,9 +156,11 @@ namespace WebZi.Plataform.API.Controllers
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
         }
+
         [HttpGet("ValidarGuiaAutorizacaoRetiradaVeiculo")]
         // TODO: [Authorize]
-        public async Task<ActionResult<ValidacaoGuiaAutorizacaoRetiradaVeiculoDTO>> ValidarGuiaAutorizacaoRetiradaVeiculo(string Input, int IdentificadorUsuario)
+        public async Task<ActionResult<ValidacaoGuiaAutorizacaoRetiradaVeiculoDTO>>
+            ValidarGuiaAutorizacaoRetiradaVeiculo(string Input, int IdentificadorUsuario)
         {
             if (!ModelState.IsValid)
             {

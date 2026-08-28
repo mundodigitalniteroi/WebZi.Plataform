@@ -434,7 +434,8 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpDelete("DesvincularPerfilAcesso")]
-        public async Task<ActionResult<MensagemDTO>> DesvincularPerfilAcesso([FromBody] DesvincularPerfisDoUsuarioParameters parameters, CancellationToken ct)
+        public async Task<ActionResult<MensagemDTO>> DesvincularPerfilAcesso(
+            [FromBody] DesvincularPerfisDoUsuarioParameters parameters, CancellationToken ct)
         {
             if (!ModelState.IsValid)
             {
@@ -458,7 +459,8 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpDelete("DesvincularClientes")]
-        public async Task<ActionResult<MensagemDTO>> DesvincularClientes([FromBody] DesvincularClienteDoUsuarioParameters parameters, CancellationToken ct)
+        public async Task<ActionResult<MensagemDTO>> DesvincularClientes(
+            [FromBody] DesvincularClienteDoUsuarioParameters parameters, CancellationToken ct)
         {
             if (!ModelState.IsValid)
             {
@@ -482,7 +484,8 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpDelete("DesvincularDepositos")]
-        public async Task<ActionResult<MensagemDTO>> DesvincularDepositos([FromBody] DesvincularDepositoDoUsuarioParameters parameters, CancellationToken ct)
+        public async Task<ActionResult<MensagemDTO>> DesvincularDepositos(
+            [FromBody] DesvincularDepositoDoUsuarioParameters parameters, CancellationToken ct)
         {
             if (!ModelState.IsValid)
             {
@@ -506,7 +509,8 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpDelete("DesvincularPermissao")]
-        public async Task<ActionResult<MensagemDTO>> DesvincularPermissao([FromBody] DesvincularPermissaoDoUsuarioParameters parameters, CancellationToken ct)
+        public async Task<ActionResult<MensagemDTO>> DesvincularPermissao(
+            [FromBody] DesvincularPermissaoDoUsuarioParameters parameters, CancellationToken ct)
         {
             if (!ModelState.IsValid)
             {

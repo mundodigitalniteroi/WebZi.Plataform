@@ -23,7 +23,8 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("ListarReboque")]
         // TODO: [Authorize]
-        public async Task<ActionResult<ReboqueListDTO>> ListarReboque(int IdentificadorCliente, int IdentificadorDeposito)
+        public async Task<ActionResult<ReboqueListDTO>> ListarReboque(int IdentificadorCliente,
+            int IdentificadorDeposito)
         {
             if (!ModelState.IsValid)
             {
@@ -77,7 +78,8 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("SelecionarReboquePorPlaca")]
         // TODO: [Authorize]
-        public async Task<ActionResult<ReboqueListDTO>> SelecionarReboquePorPlaca(string Placa, int IdentificadorCliente, int IdentificadorDeposito)
+        public async Task<ActionResult<ReboqueListDTO>> SelecionarReboquePorPlaca(string Placa,
+            int IdentificadorCliente, int IdentificadorDeposito)
         {
             if (!ModelState.IsValid)
             {
@@ -101,6 +103,7 @@ namespace WebZi.Plataform.API.Controllers
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
         }
+
         [HttpPost("Cadastrar")]
         public async Task<ActionResult<MensagemDTO>> Cadastrar(CadastrarReboqueParameters parameters)
         {
@@ -126,6 +129,7 @@ namespace WebZi.Plataform.API.Controllers
                 return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
             }
         }
+
         [HttpPut("Atualizar")]
         public async Task<ActionResult<MensagemDTO>> Atualizar(AtualizarReboqueParameters parameters)
         {

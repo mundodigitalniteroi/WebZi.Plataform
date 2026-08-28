@@ -24,7 +24,8 @@ public class NfeController : ControllerBase
     }
 
     [HttpGet("ConsultaNfe")]
-    public async Task<ActionResult<NFERetornoFaturamentoDTOList>> ConsultarNfe(int grvId, int usuarioId, CancellationToken ct)
+    public async Task<ActionResult<NFERetornoFaturamentoDTOList>> ConsultarNfe(int grvId, int usuarioId,
+        CancellationToken ct)
     {
         if (!ModelState.IsValid)
         {
@@ -48,9 +49,10 @@ public class NfeController : ControllerBase
             return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
         }
     }
-    
+
     [HttpPost("ReprocessarNota")]
-    public async Task<ActionResult<MensagemDTO>> ReprocessarNota(int grvId, string notaId, int usuarioId, CancellationToken ct)
+    public async Task<ActionResult<MensagemDTO>> ReprocessarNota(int grvId, string notaId, int usuarioId,
+        CancellationToken ct)
     {
         if (!ModelState.IsValid)
         {
@@ -100,6 +102,7 @@ public class NfeController : ControllerBase
             return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
         }
     }
+
     [HttpGet("ConsultarJsonNfe")]
     public async Task<ActionResult<NfeJsonEnvioDTO>> ConsultarJsonNfe(long nfeid, CancellationToken ct)
     {
@@ -125,9 +128,10 @@ public class NfeController : ControllerBase
             return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
         }
     }
-    
+
     [HttpPut("AtualizarDadosNotaFiscal")]
-    public async Task<ActionResult<MensagemDTO>> AtualizarDadosNotaFiscal(AtualizarDadosNFeParameters parameters, CancellationToken ct)
+    public async Task<ActionResult<MensagemDTO>> AtualizarDadosNotaFiscal(AtualizarDadosNFeParameters parameters,
+        CancellationToken ct)
     {
         if (!ModelState.IsValid)
         {

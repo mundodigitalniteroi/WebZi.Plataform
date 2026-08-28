@@ -68,6 +68,7 @@ namespace WebZi.Plataform.API.Controllers
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
         }
+
         [HttpGet("ListarTipoRestricao")]
         // TODO: [Authorize]
         public async Task<ActionResult<TabelaGenericaListDTO>> ListarTipoRestricao()
@@ -95,10 +96,11 @@ namespace WebZi.Plataform.API.Controllers
             }
         }
 
-        
+
         [HttpGet("ListarTipoLiberacaoEspecial")]
         // TODO: [Authorize]
-        public async Task<ActionResult<TipoLiberacaoEspecialListDTO>> ListarTipoLiberacaoEspecial(int identificadorUsuario)
+        public async Task<ActionResult<TipoLiberacaoEspecialListDTO>> ListarTipoLiberacaoEspecial(
+            int identificadorUsuario)
         {
             if (!ModelState.IsValid)
             {
@@ -122,11 +124,12 @@ namespace WebZi.Plataform.API.Controllers
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
         }
-        
-        
+
+
         [HttpGet("ListarAutoridadeResponsavel")]
         // TODO: [Authorize]
-        public async Task<ActionResult<AutoridadeResponsavelListDTO>> ListarAutoridadeResponsavel(int? identificadorDeposito, string? UF, string? nomeAutoridade, int skip, int take)
+        public async Task<ActionResult<AutoridadeResponsavelListDTO>> ListarAutoridadeResponsavel(
+            int? identificadorDeposito, string? UF, string? nomeAutoridade, int skip, int take)
         {
             if (!ModelState.IsValid)
             {
@@ -139,7 +142,8 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<GrvService>()
-                    .ListAutoridadesResponsaveisUfOuDepositoAsync(identificadorDeposito,UF, nomeAutoridade, skip, take);
+                    .ListAutoridadesResponsaveisUfOuDepositoAsync(identificadorDeposito, UF, nomeAutoridade, skip,
+                        take);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -207,7 +211,8 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("ListarEquipamentoOpcional")]
         // TODO: [Authorize]
-        public async Task<ActionResult<EquipamentoOpcionalListDTO>> ListarEquipamentoOpcional(byte IdentificadorTipoVeiculo)
+        public async Task<ActionResult<EquipamentoOpcionalListDTO>> ListarEquipamentoOpcional(
+            byte IdentificadorTipoVeiculo)
         {
             if (!ModelState.IsValid)
             {
@@ -231,6 +236,7 @@ namespace WebZi.Plataform.API.Controllers
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
         }
+
         [HttpGet("ListarEquipamentoOpcionalETipoVeiculo")]
         // TODO: [Authorize]
         public async Task<ActionResult<EquipamentoOpcionalListDTO>> ListarEquipamentoOpcionalETipoVeiculo()
@@ -392,6 +398,7 @@ namespace WebZi.Plataform.API.Controllers
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
         }
+
         [HttpGet("ListarTodosOsOrgoesEmissores")]
         // TODO: [Authorize]
         public async Task<ActionResult<OrgaoEmissorListDTO>> ListarTodosOsOrgoesEmissores()
@@ -475,7 +482,8 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("ListarReboque")]
         // TODO: [Authorize]
-        public async Task<ActionResult<ReboqueListDTO>> ListarReboque(int IdentificadorCliente, int IdentificadorDeposito)
+        public async Task<ActionResult<ReboqueListDTO>> ListarReboque(int IdentificadorCliente,
+            int IdentificadorDeposito)
         {
             if (!ModelState.IsValid)
             {
@@ -773,7 +781,8 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("SelecionarReboquePorPlaca")]
         // TODO: [Authorize]
-        public async Task<ActionResult<ReboqueListDTO>> SelecionarReboquePorPlaca(string Placa, int IdentificadorCliente, int IdentificadorDeposito)
+        public async Task<ActionResult<ReboqueListDTO>> SelecionarReboquePorPlaca(string Placa,
+            int IdentificadorCliente, int IdentificadorDeposito)
         {
             if (!ModelState.IsValid)
             {
@@ -799,7 +808,8 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("SelecionarClientesDepositos")]
-        public async Task<ActionResult<ClienteDepositoFlagParcelamentoDTO>> SelecionarClientesDepositos(int idetificadorClienteId, int idetificadorDepositoId)
+        public async Task<ActionResult<ClienteDepositoFlagParcelamentoDTO>> SelecionarClientesDepositos(
+            int idetificadorClienteId, int idetificadorDepositoId)
         {
             if (!ModelState.IsValid)
             {
@@ -813,14 +823,16 @@ namespace WebZi.Plataform.API.Controllers
                     .GetService<ClienteDepositoService>()
                     .GetClienteDepositoFlagParcelamento(idetificadorClienteId, idetificadorDepositoId);
 
-                if(ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+                if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
                 {
                     ResultView.Mensagem = ResultView.Mensagem;
                     return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
                 }
+
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
-            catch(Exception ex) { 
+            catch (Exception ex)
+            {
                 ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
