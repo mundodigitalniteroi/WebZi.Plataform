@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace WebZi.Plataform.Domain.ViewModel.Atendimento
 {
@@ -96,5 +96,9 @@ namespace WebZi.Plataform.Domain.ViewModel.Atendimento
 
         public List<DescontoParameters>? Descontos { get; set; }
         public LiberacaoEspecialParameters? LiberacaoEspecial { get; set; }
+        
+        public string FlagPermissaoDataRetroativaFaturamento { get; set; } = "N";
+
+        public DateTime? DataRetroativa { get; set; }
     }
 }

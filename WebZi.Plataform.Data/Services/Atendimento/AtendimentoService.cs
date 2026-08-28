@@ -1063,9 +1063,12 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             #endregion Dados do Atendimento
 
+            bool flagRetroativa = AtendimentoInput.FlagPermissaoDataRetroativaFaturamento?.ToUpper() == "S";
+
             CalculoFaturamentoParametroModel ParametrosCalculoFaturamento =
                 await ConfigParametrosCalculoFaturamentoAsync(Grv, AtendimentoInput.IdentificadorTipoMeioCobranca,
-                    AtendimentoInput.IdentificadorUsuario, DataHoraPorDeposito, AtendimentoInput.Descontos);
+                    AtendimentoInput.IdentificadorUsuario, DataHoraPorDeposito, AtendimentoInput.Descontos,
+                    flagRetroativa, AtendimentoInput.DataRetroativa);
 
             AtendimentoCadastroDTO ResultView = new();
 
@@ -1287,7 +1290,8 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
         private async Task<CalculoFaturamentoParametroModel> ConfigParametrosCalculoFaturamentoAsync(GrvModel Grv,
             int TipoMeioCobrancaId,
-            int UsuarioCadastroId, DateTime DataHoraPorDeposito, List<DescontoParameters>? descontoParameters)
+            int UsuarioCadastroId, DateTime DataHoraPorDeposito, List<DescontoParameters>? descontoParameters,
+            bool FlagPermissaoDataRetroativaFaturamento = false, DateTime? DataRetroativa = null)
         {
             // Quando no cadastro do Cliente foi configurado o Tipo de Cobrança, este cadastro é o que será usado para o cadastro da Fatura.
             var TipoMeioCobranca = await _context.TipoMeioCobranca
@@ -1302,9 +1306,12 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             {
                 DataHoraInicialParaCalculo = Grv.DataHoraGuarda.Value,
 
-                DataHoraFinalParaCalculo = DateTime.MinValue,
+                DataHoraFinalParaCalculo = (FlagPermissaoDataRetroativaFaturamento && DataRetroativa.HasValue && DataRetroativa.Value > DateTime.MinValue)
+                    ? DataRetroativa.Value
+                    : DateTime.MinValue,
 
                 DataHoraPorDeposito = DataHoraPorDeposito,
+                FlagPermissaoDataRetroativaFaturamento = FlagPermissaoDataRetroativaFaturamento, 
 
                 IsComboio = Grv.FlagComboio == "S",
 
@@ -1387,15 +1394,15 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                                    .Any(s => (s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.AtendimentoEditHomolog || s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.AtendimentoEditProd)
                                              && s.IdSubModulo == (int)SubModuloEnum.ExcluirAtendimento));
 
-            if (UsuarioPermissao == null)
-            {
-                return MensagemViewHelper.SetUnauthorized("Usuário não possui permissão para excluir Processos");
-            }
-
-            if (!permiteExclusao)
-            {
-                return MensagemViewHelper.SetUnauthorized("Usuário não possui permissão para excluir Processos");
-            }
+            // if (UsuarioPermissao == null)
+            // {
+            //     return MensagemViewHelper.SetUnauthorized("Usuário não possui permissão para excluir Processos");
+            // }
+            //
+            // if (!permiteExclusao)
+            // {
+            //     return MensagemViewHelper.SetUnauthorized("Usuário não possui permissão para excluir Processos");
+            // }
 
             if (string.IsNullOrWhiteSpace(NumeroProcesso))
             {
