@@ -1,4 +1,4 @@
-﻿using System.Data;
+using System.Data;
 using System.IdentityModel.Tokens.Jwt;
 using System.Runtime.Serialization;
 using System.Security.Claims;
@@ -244,10 +244,10 @@ namespace WebZi.Plataform.Data.Services.Usuario
             var possuiPermissao = await _context.PerfilAcessoUsuario
                 .AsNoTracking()
                 .AnyAsync(x => x.UsuarioId == usuarioId
-                               && x.PerfilAcessoId == (int)PerfisDeAcessoEnum.GerenciarUsuariosHomolog
+                               && x.PerfilAcessoId == (int)PerfisDeAcessoEnum.GerenciarUsuariosProd
                                && _context.SistemaPerfilAcessoSubModulos
-                                   .Any(s => s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.GerenciarUsuariosHomolog
-                                             && s.IdSubModulo == (int)SubModuloEnum.VerPerfisDeAcessoHomolog),
+                                   .Any(s => s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.GerenciarUsuariosProd
+                                             && s.IdSubModulo == (int)SubModuloEnum.VerPerfisDeAcessoProd),
                     cancellationToken: ct);
 
             if (!possuiPermissao)
@@ -286,8 +286,8 @@ namespace WebZi.Plataform.Data.Services.Usuario
 
             var temSubModulo = await _context.SistemaPerfilAcessoSubModulos
                 .AsNoTracking()
-                .AnyAsync(s => s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.GerenciarUsuariosHomolog
-                               && s.IdSubModulo == (int)SubModuloEnum.VerPerfisDeAcessoHomolog, ct);
+                .AnyAsync(s => s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.GerenciarUsuariosProd
+                               && s.IdSubModulo == (int)SubModuloEnum.VerPerfisDeAcessoProd, ct);
 
             if (!temSubModulo)
             {
@@ -298,7 +298,7 @@ namespace WebZi.Plataform.Data.Services.Usuario
             var possuiPerfil = await _context.PerfilAcessoUsuario
                 .AsNoTracking()
                 .AnyAsync(x => x.UsuarioId == usuarioId
-                               && x.PerfilAcessoId == (int)PerfisDeAcessoEnum.GerenciarUsuariosHomolog, ct);
+                               && x.PerfilAcessoId == (int)PerfisDeAcessoEnum.GerenciarUsuariosProd, ct);
 
             if (!possuiPerfil)
             {
@@ -374,8 +374,8 @@ namespace WebZi.Plataform.Data.Services.Usuario
 
             var temSubModulo = await _context.SistemaPerfilAcessoSubModulos
                 .AsNoTracking()
-                .AnyAsync(s => s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.GerenciarUsuariosHomolog
-                               && s.IdSubModulo == (int)SubModuloEnum.VerPerfisDeAcessoHomolog, ct);
+                .AnyAsync(s => s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.GerenciarUsuariosProd
+                               && s.IdSubModulo == (int)SubModuloEnum.VerPerfisDeAcessoProd, ct);
 
             if (!temSubModulo)
             {
@@ -386,7 +386,7 @@ namespace WebZi.Plataform.Data.Services.Usuario
             var possuiPerfil = await _context.PerfilAcessoUsuario
                 .AsNoTracking()
                 .AnyAsync(x => x.UsuarioId == usuarioId
-                               && x.PerfilAcessoId == (int)PerfisDeAcessoEnum.GerenciarUsuariosHomolog, ct);
+                               && x.PerfilAcessoId == (int)PerfisDeAcessoEnum.GerenciarUsuariosProd, ct);
 
             if (!possuiPerfil)
             {
@@ -750,10 +750,10 @@ namespace WebZi.Plataform.Data.Services.Usuario
             var possuiPermissao = await _context.PerfilAcessoUsuario
                 .AsNoTracking()
                 .AnyAsync(x => x.UsuarioId == usuarioCadastroId
-                               && x.PerfilAcessoId == (int)PerfisDeAcessoEnum.GerenciarUsuariosHomolog
+                               && x.PerfilAcessoId == (int)PerfisDeAcessoEnum.GerenciarUsuariosProd
                                && _context.SistemaPerfilAcessoSubModulos
-                                   .Any(s => s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.GerenciarUsuariosHomolog
-                                             && s.IdSubModulo == (int)SubModuloEnum.CadastrarUsuarioHomolog),
+                                   .Any(s => s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.GerenciarUsuariosProd
+                                             && s.IdSubModulo == (int)SubModuloEnum.CadastrarUsuarioProd),
                     cancellationToken: ct);
 
             if (!possuiPermissao)
@@ -911,10 +911,10 @@ namespace WebZi.Plataform.Data.Services.Usuario
             var possuiPermissao = await _context.PerfilAcessoUsuario
                 .AsNoTracking()
                 .AnyAsync(x => x.UsuarioId == usuarioAlteracaoId
-                               && x.PerfilAcessoId == (int)PerfisDeAcessoEnum.GerenciarUsuariosHomolog
+                               && x.PerfilAcessoId == (int)PerfisDeAcessoEnum.GerenciarUsuariosProd
                                && _context.SistemaPerfilAcessoSubModulos
-                                   .Any(s => s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.GerenciarUsuariosHomolog
-                                             && s.IdSubModulo == (int)SubModuloEnum.EditarUsuarioHomolog),
+                                   .Any(s => s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.GerenciarUsuariosProd
+                                             && s.IdSubModulo == (int)SubModuloEnum.EditarUsuarioProd),
                     cancellationToken: ct);
 
             if (!possuiPermissao)
@@ -1253,10 +1253,10 @@ namespace WebZi.Plataform.Data.Services.Usuario
             var possuiPermissao = await _context.PerfilAcessoUsuario
                 .AsNoTracking()
                 .AnyAsync(x => x.UsuarioId == usuarioId
-                               && x.PerfilAcessoId == (int)PerfisDeAcessoEnum.GerenciarUsuariosHomolog
+                               && x.PerfilAcessoId == (int)PerfisDeAcessoEnum.GerenciarUsuariosProd
                                && _context.SistemaPerfilAcessoSubModulos
-                                   .Any(s => s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.GerenciarUsuariosHomolog
-                                             && s.IdSubModulo == (int)SubModuloEnum.ResetarSenhaDoUsuarioHomolog),
+                                   .Any(s => s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.GerenciarUsuariosProd
+                                             && s.IdSubModulo == (int)SubModuloEnum.ResetarSenhaDoUsuarioProd),
                     cancellationToken: ct);
 
             if (!possuiPermissao)

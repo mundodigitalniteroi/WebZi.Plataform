@@ -3,5 +3,5 @@
 public enum ModuloEnum
 {
     GerenciarUsuariosHomolog = 34,
-    GerenciarUsuariosProd = 35
+    GerenciarUsuariosProd = 33
 }
