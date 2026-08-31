@@ -207,9 +207,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             grv.MarcaModeloId = GrvPersistencia.IdentificadorMarcaModelo;
             grv.MotivoApreensaoId = GrvPersistencia.IdentificadorMotivoApreensao;
             grv.NumeroFormularioGrv = GrvPersistencia.NumeroProcesso;
-            grv.FaturamentoProdutoId = GrvPersistencia.IdentificadorMotivoApreensao == 4
-                ? "DRF"
-                : GrvPersistencia.CodigoProduto;
+            grv.FaturamentoProdutoId = GrvPersistencia.CodigoProduto;
             grv.MatriculaAutoridadeResponsavel =
                 GrvPersistencia.MatriculaAutoridadeResponsavel.ToUpperTrim().ToNullIfEmpty();
             grv.NomeAutoridadeResponsavel = GrvPersistencia.NomeAutoridadeResponsavel.ToUpperTrim().ToNullIfEmpty();
@@ -473,18 +471,18 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 {
                     _context.SetUserContextInfo(GrvPersistencia.IdentificadorUsuario);
 
-                    if (GrvPersistencia.IdentificadorMotivoApreensao == 4)
-                    {
-                        var result = await _provider
-                            .GetService<DRFAService>()
-                            .UpdateDRFAGrv(GrvPersistencia);
-                        if (result.Erros?.Count > 0)
-                        {
-                            await transaction.RollbackAsync(ct);
-                            ResultView = result;
-                            return ResultView;
-                        }
-                    }
+                    // if (GrvPersistencia.IdentificadorMotivoApreensao == 4)
+                    // {
+                    //     var result = await _provider
+                    //         .GetService<DRFAService>()
+                    //         .UpdateDRFAGrv(GrvPersistencia);
+                    //     if (result.Erros?.Count > 0)
+                    //     {
+                    //         await transaction.RollbackAsync(ct);
+                    //         ResultView = result;
+                    //         return ResultView;
+                    //     }
+                    // }
 
                     if (ClienteDeposito.Cliente.FlagClientePossuiCodigoIdentificacao == "S")
                     {
@@ -839,18 +837,18 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
                     await _context.SaveChangesAsync(ct);
 
-                    if (GrvPersistencia.IdentificadorMotivoApreensao == 4)
-                    {
-                        var result = await _provider
-                            .GetService<DRFAService>()
-                            .CreateDRFAGrv(grv.GrvId, GrvPersistencia);
-                        if (result.Erros?.Count > 0)
-                        {
-                            await transaction.RollbackAsync(ct);
-                            ResultView.Mensagem = result;
-                            return ResultView;
-                        }
-                    }
+                    // if (GrvPersistencia.IdentificadorMotivoApreensao == 4)
+                    // {
+                    //     var result = await _provider
+                    //         .GetService<DRFAService>()
+                    //         .CreateDRFAGrv(grv.GrvId, GrvPersistencia);
+                    //     if (result.Erros?.Count > 0)
+                    //     {
+                    //         await transaction.RollbackAsync(ct);
+                    //         ResultView.Mensagem = result;
+                    //         return ResultView;
+                    //     }
+                    // }
 
                     if (ClienteDeposito.Cliente.FlagClientePossuiCodigoIdentificacao == "S")
                     {
@@ -875,7 +873,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 }
                 catch (Exception ex)
                 {
-                    await transaction.RollbackAsync();
+                    await transaction.RollbackAsync(ct);
 
                     ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
 
