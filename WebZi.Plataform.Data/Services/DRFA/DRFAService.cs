@@ -1,7 +1,5 @@
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using System.Formats.Asn1;
 using WebZi.Plataform.CrossCutting.Strings;
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
@@ -13,10 +11,8 @@ using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.DTO.Usuario;
 using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.GRV.DRFA;
-using WebZi.Plataform.Domain.Models.WebServices.DetranAlagoas.ConsultaVeiculoApreensao.Response;
 using WebZi.Plataform.Domain.Services.GRV;
 using WebZi.Plataform.Domain.ViewModel.GRV.Cadastro;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace WebZi.Plataform.Data.Services.DRFA
 {
@@ -30,28 +26,39 @@ namespace WebZi.Plataform.Data.Services.DRFA
         {
             _context = context;
         }
+
         public DRFAService(AppDbContext context, IMapper mapper)
         {
             _context = context;
             _mapper = mapper;
         }
+
         public DRFAService(AppDbContext context, IMapper mapper, IHttpClientFactory httpClientFactory)
         {
             _context = context;
             _mapper = mapper;
             _httpClientFactory = httpClientFactory;
         }
-        
+
         public async Task<MensagemDTO> CreateDRFAGrv(int GrvId, GrvParameters grv)
         {
-            MensagemDTO ResultView = new();
             var drfa = grv.DRFA;
-        
+
             if (drfa == null)
             {
                 return MensagemViewHelper.SetBadRequest("Os dados da DRFA são obrigatórios para veículos com motivo de apreensão Roubo/Furto.");
             }
-        
+
+            if (drfa.FlagRegistroRecuperacao == 'S' && drfa.RegistroRecuperacao == null)
+            {
+                return MensagemViewHelper.SetBadRequest("Preencha os dados de Registro de Recuperação.");
+            }
+
+            if (drfa.FlagAgendamento == 'S' && drfa.AgendamentoRetirada == null)
+            {
+                return MensagemViewHelper.SetBadRequest("Preencha os dados de Agendamento de Retirada.");
+            }
+
             try
             {
                 DRFAModel result = new()
@@ -75,227 +82,191 @@ namespace WebZi.Plataform.Data.Services.DRFA
                     FlagRegistroRecuperacao = drfa.FlagRegistroRecuperacao,
                     DataCadastro = DateTime.UtcNow,
                 };
-        
+
                 _context.DRFA.Add(result);
                 await _context.SaveChangesAsync();
-        
+
                 if (drfa.FlagRegistroRecuperacao == 'S')
                 {
-                    if (drfa.RegistroRecuperacao == null)
-                    {
-                        ResultView = MensagemViewHelper.SetBadRequest("Preencha os dados de Registro de Recuperação.");
-                        return ResultView;
-                    }
-        
-                    var registroRecuperacao = CreateRegistroRecuperacao(result.GrvDrfaId, drfa.RegistroRecuperacao);
-        
-                    if (registroRecuperacao?.Erros != null && registroRecuperacao.Erros.Count > 0)
-                    {
-                        ResultView = MensagemViewHelper.SetBadRequest(registroRecuperacao.Erros);
-                        return ResultView;
-                    }
+                    CreateRegistroRecuperacao(result.GrvDrfaId, drfa.RegistroRecuperacao);
                 }
+
                 if (drfa.FlagAgendamento == 'S')
                 {
-                    if (drfa.AgendamentoRetirada == null)
-                    {
-                        ResultView = MensagemViewHelper.SetBadRequest("Preencha os dados de Agendamento de Retirada.");
-                        return ResultView;
-                    }
-        
-                    var agendamentoRecuperacao = CreateAgendamentoRecuperacao(result.GrvDrfaId, drfa.AgendamentoRetirada);
-        
-                    if (agendamentoRecuperacao?.Erros != null && agendamentoRecuperacao.Erros.Count > 0)
-                    {
-                        ResultView = MensagemViewHelper.SetBadRequest(agendamentoRecuperacao.Erros);
-                        return ResultView;
-                    }
+                    CreateAgendamentoRecuperacao(result.GrvDrfaId, drfa.AgendamentoRetirada);
                 }
-                await _context.SaveChangesAsync();
-                return ResultView;
+
+                if (drfa.FlagRegistroRecuperacao == 'S' || drfa.FlagAgendamento == 'S')
+                {
+                    await _context.SaveChangesAsync();
+                }
+
+                return MensagemViewHelper.SetCreateSuccess();
             }
             catch (Exception ex)
             {
-                ResultView = MensagemViewHelper.SetInternalServerError(ex);
-                return ResultView;
+                return MensagemViewHelper.SetInternalServerError(ex);
             }
-        
         }
-        
-        private MensagemDTO CreateRegistroRecuperacao(int DRFAId,  RegistroRecuperacaoParameters parameters)
+
+        private void CreateRegistroRecuperacao(int drfaId, RegistroRecuperacaoParameters parameters)
         {
-            MensagemDTO ResultView = new();
-            try
+            RegistroRecuperacaoModel result = new()
             {
-                RegistroRecuperacaoModel result = new()
-                {
-                    DRFAId = DRFAId,
-                    AutoridadeDivisaoId = parameters.DivisaoId,
-                    NumeroRegistroRecuperacao = parameters.NumeroRegistro.ToNullIfEmpty(),
-                    MatriculaAgente = parameters.MatriculaAgente.ToNullIfEmpty(),
-                    NomeAgente = parameters.NomeAgente.ToNullIfEmpty(),
-                    DataRegistroRecuperacao = parameters.DataDeRecuperacao
-                };
-                _context.DRFARegistroRecuperacao.Add(result);
-                return ResultView;
-            }catch(Exception ex)
-            {
-                ResultView = MensagemViewHelper.SetInternalServerError("Ocorreu um erro ao criar o registro de recuperação.", ex);
-                return ResultView;
-            }
+                DRFAId = drfaId,
+                AutoridadeDivisaoId = parameters.DivisaoId,
+                NumeroRegistroRecuperacao = parameters.NumeroRegistro.ToNullIfEmpty(),
+                MatriculaAgente = parameters.MatriculaAgente.ToNullIfEmpty(),
+                NomeAgente = parameters.NomeAgente.ToNullIfEmpty(),
+                DataRegistroRecuperacao = parameters.DataDeRecuperacao
+            };
+            _context.DRFARegistroRecuperacao.Add(result);
         }
-        private MensagemDTO CreateAgendamentoRecuperacao(int DRFAId, AgendamentoRetiradaParameters parameters)
+
+        private void CreateAgendamentoRecuperacao(int drfaId, AgendamentoRetiradaParameters parameters)
         {
-            MensagemDTO ResultView = new();
-            try
+            AgendamentoRetiradaModel result = new()
             {
-                AgendamentoRetiradaModel result = new()
-                {
-                    DRFAId = DRFAId,
-                    UsuarioRegistroAgendamentoId = parameters.UsuarioId,
-                    NomeResponsavelAgendamento = parameters.NomeResponsavel.ToNullIfEmpty(),
-                    CpfResponsavelAgendamento = parameters.CPF.Trim().ToNullIfEmpty(),
-                    DataRegistroAgendamento = parameters.DataDoRegistro,
-                    DataAgendamento = parameters.DataDoAgendamento
-                };
-                _context.DRFAAgendamentoRetirada.Add(result);
-                ResultView = MensagemViewHelper.SetCreateSuccess();
-                return ResultView;
-            }catch (Exception ex)
-            {
-                ResultView = MensagemViewHelper.SetInternalServerError("Ocorreu um erro ao criar o agendamento de retirada.", ex);
-                return ResultView;
-            }
+                DRFAId = drfaId,
+                UsuarioRegistroAgendamentoId = parameters.UsuarioId,
+                NomeResponsavelAgendamento = parameters.NomeResponsavel.ToNullIfEmpty(),
+                CpfResponsavelAgendamento = parameters.CPF?.Trim().ToNullIfEmpty(),
+                DataRegistroAgendamento = parameters.DataDoRegistro,
+                DataAgendamento = parameters.DataDoAgendamento
+            };
+            _context.DRFAAgendamentoRetirada.Add(result);
         }
-        
+
         public async Task<ListArquivosDRFADTO> GetArquivos(int GrvId, int UsuarioId)
         {
             ListArquivosDRFADTO ResultView = new()
             {
                 Mensagem = new GrvService(_context).ValidateInputGrv(GrvId, UsuarioId)
             };
-        
+
             if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
             {
                 return ResultView;
             }
+
             var bucketService = new BucketService(_context, _httpClientFactory);
-        
-            var furto = await bucketService.DownloadFileAsync(BucketNomeTabelaOrigemEnum.DRFAArquivoDeRouboFurto, GrvId);
-        
-            if(furto.Listagem?.Count > 0)
+
+            var furtoTask = bucketService.DownloadFileAsync(BucketNomeTabelaOrigemEnum.DRFAArquivoDeRouboFurto, GrvId);
+            var recuperacaoTask = bucketService.DownloadFileAsync(BucketNomeTabelaOrigemEnum.DRFAArquivoRegistroRecuperacao, GrvId);
+
+            await Task.WhenAll(furtoTask, recuperacaoTask);
+
+            var furto = await furtoTask;
+            var recuperacao = await recuperacaoTask;
+
+            if (furto.Listagem?.Count > 0)
             {
                 ResultView.ArquivoRegistroFurtoRoubo = furto.Listagem.First();
             }
-        
-            var recuperacao = await bucketService.DownloadFileAsync(BucketNomeTabelaOrigemEnum.DRFAArquivoRegistroRecuperacao, GrvId);
+
             if (recuperacao.Listagem?.Count > 0)
             {
                 ResultView.ArquivoDeRecuperacao = recuperacao.Listagem.First();
             }
-        
+
             var qtd = (furto.Listagem?.Count ?? 0) + (recuperacao.Listagem?.Count ?? 0);
-        
-            if(qtd > 0)
-            {
-                ResultView.Mensagem = MensagemViewHelper.SetFound(qtd);
-            }
-            else
-            {
-                ResultView.Mensagem = MensagemViewHelper.SetNotFound("Nenhum arquivo encontrado");
-            }
-        
+
+            ResultView.Mensagem = qtd > 0
+                ? MensagemViewHelper.SetFound(qtd)
+                : MensagemViewHelper.SetNotFound("Nenhum arquivo encontrado");
+
             return ResultView;
         }
-        
+
         public async Task<DRFADTO> GetDRFAAsync(int processoId)
         {
-            DRFADTO ResultView = new();
-        
             DRFAModel drfa = await _context.DRFA
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.GrvId == processoId);
+
             if (drfa == null)
             {
-                ResultView.Mensagem = MensagemViewHelper.SetNotFound("DRFA não encontrado para o processo informado.");
-                return ResultView;
-            }
-            ResultView = _mapper.Map<DRFADTO>(drfa);
-        
-            if (drfa.FlagRegistroRecuperacao == 'S')
-            {
-                RegistroRecuperacaoModel registro = await _context.DRFARegistroRecuperacao
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(r => r.DRFAId == drfa.GrvDrfaId);
-        
-                if (registro != null)
+                return new DRFADTO
                 {
-                    ResultView.RegistroRecuperacao = new RegistroRecuperacaoDTO
-                    {
-                        IdentificadorRegistroRecuperacao = registro.GrvDRFARegistroRecuperacaoId,
-                        IdentificadorDRFA = registro.DRFAId,
-                        IdentificadorAutoridadeDivisao = registro.AutoridadeDivisaoId,
-                        NumeroRegistroRecuperacao = registro.NumeroRegistroRecuperacao,
-                        MatriculaAgente = registro.MatriculaAgente,
-                        NomeAgente = registro.NomeAgente,
-                        DataRegistroRecuperacao = registro.DataRegistroRecuperacao.ToString("yyyy-MM-dd HH:mm:ss")
-                    };
-                }
+                    Mensagem = MensagemViewHelper.SetNotFound("DRFA não encontrado para o processo informado.")
+                };
             }
-        
-            if (drfa.FlagRegistroAgendado == 'S')
-            {
-                AgendamentoRetiradaModel agendamento = await _context.DRFAAgendamentoRetirada
+
+            var ResultView = _mapper.Map<DRFADTO>(drfa);
+
+            var registroTask = drfa.FlagRegistroRecuperacao == 'S'
+                ? _context.DRFARegistroRecuperacao
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(r => r.DRFAId == drfa.GrvDrfaId)
+                : Task.FromResult<RegistroRecuperacaoModel>(null);
+
+            var agendamentoTask = drfa.FlagRegistroAgendado == 'S'
+                ? _context.DRFAAgendamentoRetirada
                     .AsNoTracking()
                     .Include(a => a.UsuarioRegistroAgendamento)
-                    .FirstOrDefaultAsync(a => a.DRFAId == drfa.GrvDrfaId);
-        
-                if (agendamento != null)
+                    .FirstOrDefaultAsync(a => a.DRFAId == drfa.GrvDrfaId)
+                : Task.FromResult<AgendamentoRetiradaModel>(null);
+
+            await Task.WhenAll(registroTask, agendamentoTask);
+
+            var registro = await registroTask;
+            if (registro != null)
+            {
+                ResultView.RegistroRecuperacao = new RegistroRecuperacaoDTO
                 {
-                    ResultView.AgendamentoRetirada = new AgendamentoRetiradaDTO
-                    {
-                        IdentificadorAgendamentoRetirada = agendamento.GrvDRFAAgendamentoRetiradaId,
-                        IdentificadorDRFA = agendamento.DRFAId,
-                        IdentificadorUsuarioRegistroAgendamento = agendamento.UsuarioRegistroAgendamentoId,
-                        NomeResponsavelAgendamento = agendamento.NomeResponsavelAgendamento,
-                        CpfResponsavelAgendamento = agendamento.CpfResponsavelAgendamento,
-                        DataRegistroAgendamento = agendamento.DataRegistroAgendamento.ToString("yyyy-MM-dd HH:mm:ss"),
-                        DataAgendamento = agendamento.DataAgendamento.ToString("yyyy-MM-dd HH:mm:ss"),
-                        UsuarioRegistroAgendamento = agendamento.UsuarioRegistroAgendamento == null
-                            ? null
-                            : new UsuarioDTO
-                            {
-                                IdentificadorUsuario = agendamento.UsuarioRegistroAgendamento.UsuarioId,
-                                Nome = agendamento.UsuarioRegistroAgendamento.Login
-                            }
-                    };
-                }
+                    IdentificadorRegistroRecuperacao = registro.GrvDRFARegistroRecuperacaoId,
+                    IdentificadorDRFA = registro.DRFAId,
+                    IdentificadorAutoridadeDivisao = registro.AutoridadeDivisaoId,
+                    NumeroRegistroRecuperacao = registro.NumeroRegistroRecuperacao,
+                    MatriculaAgente = registro.MatriculaAgente,
+                    NomeAgente = registro.NomeAgente,
+                    DataRegistroRecuperacao = registro.DataRegistroRecuperacao.ToString("yyyy-MM-dd HH:mm:ss")
+                };
             }
-        
+
+            var agendamento = await agendamentoTask;
+            if (agendamento != null)
+            {
+                ResultView.AgendamentoRetirada = new AgendamentoRetiradaDTO
+                {
+                    IdentificadorAgendamentoRetirada = agendamento.GrvDRFAAgendamentoRetiradaId,
+                    IdentificadorDRFA = agendamento.DRFAId,
+                    IdentificadorUsuarioRegistroAgendamento = agendamento.UsuarioRegistroAgendamentoId,
+                    NomeResponsavelAgendamento = agendamento.NomeResponsavelAgendamento,
+                    CpfResponsavelAgendamento = agendamento.CpfResponsavelAgendamento,
+                    DataRegistroAgendamento = agendamento.DataRegistroAgendamento.ToString("yyyy-MM-dd HH:mm:ss"),
+                    DataAgendamento = agendamento.DataAgendamento.ToString("yyyy-MM-dd HH:mm:ss"),
+                    UsuarioRegistroAgendamento = agendamento.UsuarioRegistroAgendamento == null
+                        ? null
+                        : new UsuarioDTO
+                        {
+                            IdentificadorUsuario = agendamento.UsuarioRegistroAgendamento.UsuarioId,
+                            Nome = agendamento.UsuarioRegistroAgendamento.Login
+                        }
+                };
+            }
+
             return ResultView;
         }
-        
+
         public async Task<MensagemDTO> UpdateDRFAGrv(GrvAtualizarParameters Grv)
         {
-            MensagemDTO ResultView = new();
-        
             if (Grv.DRFA == null)
             {
                 return MensagemViewHelper.SetBadRequest("Os dados da DRFA são obrigatórios para veículos com motivo de apreensão Roubo/Furto.");
             }
-        
+
             #region Consulta
-            var drfa = _context.DRFA
+            var drfa = await _context.DRFA
                 .AsTracking()
-                .FirstOrDefault(x => x.GrvId == Grv.IdentificadorGrv);
+                .FirstOrDefaultAsync(x => x.GrvId == Grv.IdentificadorGrv);
             #endregion Consulta
-        
+
             if (drfa is null)
-            { 
-                ResultView = MensagemViewHelper.SetBadRequest("DRFA não existe");
-                return ResultView;
+            {
+                return MensagemViewHelper.SetBadRequest("DRFA não existe");
             }
-        
+
             drfa.TipoRegistroId = Grv.DRFA.TipoRegistroId;
             drfa.OrgaoEmissorId = Grv.DRFA.OrgaoEmissorId;
             drfa.AutoridadeDivisaoId = Grv.DRFA.DivisaoId;
@@ -312,45 +283,47 @@ namespace WebZi.Plataform.Data.Services.DRFA
             drfa.DataAlteracao = DateTime.UtcNow;
             drfa.FlagRegistroRecuperacao = Grv.DRFA.FlagRegistroRecuperacao;
             drfa.FlagRegistroAgendado = Grv.DRFA.FlagAgendamento;
-        
-            _context.DRFA.Update(drfa);
+
             if (Grv.DRFA.FlagRegistroRecuperacao == 'S')
             {
-                var response = UpdateRegistroRecuperacao(drfa.GrvDrfaId, Grv.DRFA.RegistroRecuperacao);
+                var response = await UpdateRegistroRecuperacaoAsync(drfa.GrvDrfaId, Grv.DRFA.RegistroRecuperacao);
                 if (response.Erros?.Count > 0)
                 {
-                    ResultView = MensagemViewHelper.SetBadRequest(response.Erros);
-                    return ResultView;
+                    return MensagemViewHelper.SetBadRequest(response.Erros);
                 }
             }
+
             if (Grv.DRFA.FlagAgendamento == 'S')
             {
-                var response = UpdateAgendamentoRecuperacao(drfa.GrvDrfaId, Grv.DRFA.AgendamentoRetirada);
-                if(response.Erros?.Count > 0)
+                var response = await UpdateAgendamentoRecuperacaoAsync(drfa.GrvDrfaId, Grv.DRFA.AgendamentoRetirada);
+                if (response.Erros?.Count > 0)
                 {
-                    ResultView = MensagemViewHelper.SetBadRequest(response.Erros);
-                    return ResultView;
+                    return MensagemViewHelper.SetBadRequest(response.Erros);
                 }
             }
+
             await _context.SaveChangesAsync();
-            ResultView = MensagemViewHelper.SetUpdateSuccess();
-            return ResultView;
+            return MensagemViewHelper.SetUpdateSuccess();
         }
-        private MensagemDTO UpdateRegistroRecuperacao(int DRFAId, RegistroRecuperacaoParameters parameters)
+
+        private async Task<MensagemDTO> UpdateRegistroRecuperacaoAsync(int drfaId, RegistroRecuperacaoParameters parameters)
         {
-            MensagemDTO ResultView = new();
-            #region Consulta
-            var registroRecuperacao = _context.DRFARegistroRecuperacao
-                .AsTracking()
-                .FirstOrDefault(x => x.DRFAId == DRFAId);
-            #endregion
-        
-            if(registroRecuperacao is null)
+            if (parameters == null)
             {
-                ResultView = MensagemViewHelper.SetBadRequest("Registro de Recuperação não encontrado");
-                return ResultView;
+                return MensagemViewHelper.SetBadRequest("Preencha os dados de Registro de Recuperação.");
             }
-        
+
+            #region Consulta
+            var registroRecuperacao = await _context.DRFARegistroRecuperacao
+                .AsTracking()
+                .FirstOrDefaultAsync(x => x.DRFAId == drfaId);
+            #endregion
+
+            if (registroRecuperacao is null)
+            {
+                return MensagemViewHelper.SetBadRequest("Registro de Recuperação não encontrado");
+            }
+
             try
             {
                 registroRecuperacao.AutoridadeDivisaoId = parameters.DivisaoId;
@@ -358,39 +331,44 @@ namespace WebZi.Plataform.Data.Services.DRFA
                 registroRecuperacao.MatriculaAgente = parameters.MatriculaAgente.ToNullIfEmpty();
                 registroRecuperacao.NomeAgente = parameters.NomeAgente.ToNullIfEmpty();
                 registroRecuperacao.DataRegistroRecuperacao = parameters.DataDeRecuperacao;
-                _context.DRFARegistroRecuperacao.Update(registroRecuperacao);
-                ResultView = MensagemViewHelper.SetUpdateSuccess();
-                return ResultView;
+                return MensagemViewHelper.SetUpdateSuccess();
             }
             catch (Exception ex)
             {
-                ResultView = MensagemViewHelper.SetInternalServerError("Ocorreu um erro ao atualizar o registro de recuperação.", ex);
-                return ResultView;
+                return MensagemViewHelper.SetInternalServerError("Ocorreu um erro ao atualizar o registro de recuperação.", ex);
             }
         }
-        private MensagemDTO UpdateAgendamentoRecuperacao(int DRFAId, AgendamentoRetiradaParameters parameters)
+
+        private async Task<MensagemDTO> UpdateAgendamentoRecuperacaoAsync(int drfaId, AgendamentoRetiradaParameters parameters)
         {
-            MensagemDTO ResultView = new();
+            if (parameters == null)
+            {
+                return MensagemViewHelper.SetBadRequest("Preencha os dados de Agendamento de Retirada.");
+            }
+
             #region Consulta
-            var agendamentoRetirada = _context.DRFAAgendamentoRetirada
+            var agendamentoRetirada = await _context.DRFAAgendamentoRetirada
                 .AsTracking()
-                .FirstOrDefault(x => x.DRFAId == DRFAId);
+                .FirstOrDefaultAsync(x => x.DRFAId == drfaId);
             #endregion
+
+            if (agendamentoRetirada is null)
+            {
+                return MensagemViewHelper.SetBadRequest("Agendamento de Retirada não encontrado");
+            }
+
             try
             {
                 agendamentoRetirada.UsuarioRegistroAgendamentoId = parameters.UsuarioId;
                 agendamentoRetirada.NomeResponsavelAgendamento = parameters.NomeResponsavel.ToNullIfEmpty();
-                agendamentoRetirada.CpfResponsavelAgendamento = parameters.CPF.Trim().ToNullIfEmpty();
+                agendamentoRetirada.CpfResponsavelAgendamento = parameters.CPF?.Trim().ToNullIfEmpty();
                 agendamentoRetirada.DataRegistroAgendamento = parameters.DataDoRegistro;
                 agendamentoRetirada.DataAgendamento = parameters.DataDoAgendamento;
-                _context.DRFAAgendamentoRetirada.Update(agendamentoRetirada);
-                ResultView = MensagemViewHelper.SetUpdateSuccess();
-                return ResultView;
+                return MensagemViewHelper.SetUpdateSuccess();
             }
             catch (Exception ex)
             {
-                ResultView = MensagemViewHelper.SetInternalServerError("Ocorreu um erro ao atualizar o agendamento de retirada.", ex);
-                return ResultView;
+                return MensagemViewHelper.SetInternalServerError("Ocorreu um erro ao atualizar o agendamento de retirada.", ex);
             }
         }
     }

@@ -4,8 +4,6 @@ namespace WebZi.Plataform.Domain.ViewModel.GRV.Cadastro
 {
     public class DRFAParameters
     {
-        [Required(ErrorMessage = "Informe o Id do GRV.")]
-        public int GrvId { get; set; }
         [Required(ErrorMessage = "Informe o Tipo de Registro.")]
         public byte TipoRegistroId { get; set; }
         [Required(ErrorMessage = "Informe o Órgão Emissor.")]
