@@ -2522,7 +2522,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     .GetDataHoraPorDeposito(grv.DepositoId);
                 CalculoFaturamentoParametroModel parametrosCalculo = new()
                 {
-                    DataHoraInicialParaCalculo = saidaReparo.DataSaida,
+                    DataHoraInicialParaCalculo = saidaReparo.DataSaida.AddDays(1),
                     DataHoraFinalParaCalculo =
                         DataHoraPorDeposito != DateTime.MinValue ? DataHoraPorDeposito : DateTime.Now,
                     DataHoraPorDeposito = DataHoraPorDeposito,
