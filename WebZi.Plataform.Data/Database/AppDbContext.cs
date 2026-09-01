@@ -20,6 +20,7 @@ using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.Governo;
 using WebZi.Plataform.Domain.Models.GRV;
 using WebZi.Plataform.Domain.Models.GRV.DRFA;
+using WebZi.Plataform.Domain.Models.GRV.SolicitacaoReboque;
 using WebZi.Plataform.Domain.Models.Leilao;
 using WebZi.Plataform.Domain.Models.Liberacao;
 using WebZi.Plataform.Domain.Models.Localizacao;
@@ -243,6 +244,11 @@ namespace WebZi.Plataform.Data.Database
         public DbSet<DRFAModel> DRFA { get; set; }
         public DbSet<AgendamentoRetiradaModel> DRFAAgendamentoRetirada { get; set; }
         public DbSet<RegistroRecuperacaoModel> DRFARegistroRecuperacao { get; set; }
+
+        public DbSet<SolicitacaoReboqueModel> SolicitacaoReboque { get; set; }
+        public DbSet<SolicitacaoReboqueGrvModel> SolicitacaoReboqueGrv { get; set; }
+        public DbSet<SolicitacaoReboqueStatusModel> SolicitacaoReboqueStatus { get; set; }
+        public DbSet<SolicitacaoReboqueTipoModel> SolicitacaoReboqueTipo { get; set; }
 
         #endregion Depósito Público
 
