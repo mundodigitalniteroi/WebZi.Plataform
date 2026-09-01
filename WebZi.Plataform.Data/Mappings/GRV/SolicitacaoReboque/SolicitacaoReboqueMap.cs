@@ -29,6 +29,10 @@ public class SolicitacaoReboqueMap : IEntityTypeConfiguration<SolicitacaoReboque
             .HasColumnName("id_solicitacao_reboque_status")
             .HasColumnType("tinyint");
 
+        builder.Property(x => x.MotivoApreensaoId)
+            .HasColumnName("id_motivo_apreensao")
+            .HasColumnType("tinyint");
+
         builder.Property(x => x.GrvId)
             .HasColumnName("id_grv");
 
@@ -85,5 +89,8 @@ public class SolicitacaoReboqueMap : IEntityTypeConfiguration<SolicitacaoReboque
         builder.HasOne(x => x.UsuarioAlteracao)
             .WithMany()
             .HasForeignKey(x => x.UsuarioAlteracaoId);
+        builder.HasOne(x => x.MotivoApreensao)
+            .WithMany()
+            .HasForeignKey(x => x.MotivoApreensaoId);
     }
 }

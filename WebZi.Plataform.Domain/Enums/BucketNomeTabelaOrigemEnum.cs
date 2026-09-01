@@ -15,5 +15,6 @@
         public static readonly string DRFAArquivoDeRouboFurto = "ARQUIROUBOFURTO";
         public static readonly string DRFAArquivoRegistroRecuperacao = "REGRECUPERACAO";
         public static readonly string VISTORIAS = "VISTORIAS";
+        public static readonly string SolicitacaoReboque = "SOLICITAREBOQUE";
     }
 }

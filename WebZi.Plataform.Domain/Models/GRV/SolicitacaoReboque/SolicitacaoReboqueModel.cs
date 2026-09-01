@@ -12,6 +12,7 @@ public class SolicitacaoReboqueModel
     public int? ReboquistaId { get; set; }
     public byte SolicitacaoReboqueTipoId { get; set; }
     public byte SolicitacaoReboqueStatusId { get; set; }
+    public byte MotivoApreensaoId { get; set; }
     public int? GrvId { get; set; }
     public int UsuarioCadastroId { get; set; }
     public int? UsuarioAlteracaoId { get; set; }
@@ -23,12 +24,13 @@ public class SolicitacaoReboqueModel
     public DateTime? DataAlteracao { get; set; }
 
     public GrvModel Grv { get; set; }
-    
+    public MotivoApreensaoModel MotivoApreensao { get; set; }
+
     public UsuarioModel UsuarioCadastro { get; set; }
     public UsuarioModel UsuarioAlteracao { get; set; }
-    
+
     public ClienteDepositoModel ClienteDeposito { get; set; }
-    
+
     public ReboqueModel Reboque { get; set; }
     public ReboquistaModel Reboquista { get; set; }
 
