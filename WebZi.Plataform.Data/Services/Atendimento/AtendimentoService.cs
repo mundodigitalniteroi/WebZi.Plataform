@@ -1394,15 +1394,15 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                                    .Any(s => (s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.AtendimentoEditHomolog || s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.AtendimentoEditProd)
                                              && s.IdSubModulo == (int)SubModuloEnum.ExcluirAtendimento));
 
-            // if (UsuarioPermissao == null)
-            // {
-            //     return MensagemViewHelper.SetUnauthorized("Usuário não possui permissão para excluir Processos");
-            // }
-            //
-            // if (!permiteExclusao)
-            // {
-            //     return MensagemViewHelper.SetUnauthorized("Usuário não possui permissão para excluir Processos");
-            // }
+            if (UsuarioPermissao == null)
+            {
+                return MensagemViewHelper.SetUnauthorized("Usuário não possui permissão para excluir Processos");
+            }
+            
+            if (!permiteExclusao)
+            {
+                return MensagemViewHelper.SetUnauthorized("Usuário não possui permissão para excluir Processos");
+            }
 
             if (string.IsNullOrWhiteSpace(NumeroProcesso))
             {
