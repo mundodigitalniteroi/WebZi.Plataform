@@ -174,6 +174,14 @@ public class SolicitacaoReboqueService
             ResultView.MatriculaAutoridadeResponsavel = solicitacaoGrv.MatriculaAutoridadeResponsavel;
             ResultView.NomeAutoridadeResponsavel = solicitacaoGrv.NomeAutoridadeResponsavel;
 
+            ResultView.TipoVeiculoId = solicitacaoGrv.TipoVeiculoId;
+            ResultView.CorId = solicitacaoGrv.CorId;
+            ResultView.MarcaModeloId = solicitacaoGrv.MarcaModeloId;
+            ResultView.Placa = solicitacaoGrv.Placa ?? ResultView.Placa;
+            ResultView.Chassi = solicitacaoGrv.Chassi ?? ResultView.Chassi;
+            ResultView.Renavam = solicitacaoGrv.Renavam;
+            ResultView.VeiculoUF = solicitacaoGrv.VeiculoUF;
+
             var condutorModel = await _context.SolicitacaoReboqueCondutor
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.SolicitacaoReboqueGrvId == solicitacaoGrv.Id, cancellationToken: ct);
@@ -204,22 +212,25 @@ public class SolicitacaoReboqueService
             }
         }
 
-        var infracoes = await _context.SolicitacaoReboqueEnquadramentoInfracao
-            .AsNoTracking()
-            .Include(x => x.EnquadramentoInfracao)
-            .Where(x => x.SolicitacaoReboqueId == solicitacaoReboqueId)
-            .ToListAsync(cancellationToken: ct);
-
-        if (infracoes.Count > 0)
+        if (solicitacao.MotivoApreensaoId == 1)
         {
-            ResultView.ListagemEnquadramentoInfracao = infracoes.Select(x => new SolicitacaoReboqueEnquadramentoInfracaoDTO
+            var infracoes = await _context.SolicitacaoReboqueEnquadramentoInfracao
+                .AsNoTracking()
+                .Include(x => x.EnquadramentoInfracao)
+                .Where(x => x.SolicitacaoReboqueId == solicitacaoReboqueId)
+                .ToListAsync(cancellationToken: ct);
+
+            if (infracoes.Count > 0)
             {
-                Id = x.Id,
-                EnquadramentoInfracaoId = x.EnquadramentoInfracaoId,
-                NumeroInfracao = x.NumeroInfracao,
-                CodigoInfracao = x.EnquadramentoInfracao?.CodigoInfracao,
-                DescricaoInfracao = x.EnquadramentoInfracao?.Descricao
-            }).ToList();
+                ResultView.ListagemEnquadramentoInfracao = infracoes.Select(x => new SolicitacaoReboqueEnquadramentoInfracaoDTO
+                {
+                    Id = x.Id,
+                    EnquadramentoInfracaoId = x.EnquadramentoInfracaoId,
+                    NumeroInfracao = x.NumeroInfracao,
+                    CodigoInfracao = x.EnquadramentoInfracao?.CodigoInfracao,
+                    DescricaoInfracao = x.EnquadramentoInfracao?.Descricao
+                }).ToList();
+            }
         }
 
         var lacres = await _context.SolicitacaoReboqueLacre
@@ -231,6 +242,24 @@ public class SolicitacaoReboqueService
         if (lacres.Count > 0)
         {
             ResultView.ListagemLacre = lacres;
+        }
+
+        var bucketOrigem = await _context.BucketNomeTabelaOrigem
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Codigo == BucketNomeTabelaOrigemEnum.SolicitacaoReboque, cancellationToken: ct);
+
+        if (bucketOrigem != null)
+        {
+            var fotos = await _context.BucketArquivo
+                .AsNoTracking()
+                .Where(x => x.NomeTabelaOrigemId == bucketOrigem.NomeTabelaOrigemId && x.TabelaOrigemId == solicitacaoReboqueId)
+                .Select(x => x.Url)
+                .ToListAsync(cancellationToken: ct);
+
+            if (fotos.Count > 0)
+            {
+                ResultView.ListagemFoto = fotos;
+            }
         }
 
         ResultView.Mensagem = MensagemViewHelper.SetFound();

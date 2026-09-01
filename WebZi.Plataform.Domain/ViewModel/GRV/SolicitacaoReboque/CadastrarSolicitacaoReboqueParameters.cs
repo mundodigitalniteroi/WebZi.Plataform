@@ -14,7 +14,6 @@ public class CadastrarSolicitacaoReboqueParameters
     public string LocalRemocaoEnderecoLatitude { get; set; }
     public string LocalRemocaoEnderecoLongitude { get; set; }
 
-    // Veículo
     public byte? IdentificadorTipoVeiculo { get; set; }
     public int? IdentificadorCor { get; set; }
     public int? IdentificadorMarcaModelo { get; set; }
@@ -23,17 +22,13 @@ public class CadastrarSolicitacaoReboqueParameters
     public string? Renavam { get; set; }
     public string? VeiculoUF { get; set; }
 
-    // Autoridade Responsável
     public int? IdentificadorAutoridadeResponsavel { get; set; }
     public string? MatriculaAutoridadeResponsavel { get; set; }
     public string? NomeAutoridadeResponsavel { get; set; }
 
-    // Condutor
     public CondutorParameters? Condutor { get; set; }
 
-    // Listagens
     public List<EnquadramentoInfracaoParameters>? ListagemEnquadramentoInfracao { get; set; }
 
-    // Fotos e Assinaturas
     public List<byte[]>? ListagemFoto { get; set; }
 }
