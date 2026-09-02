@@ -12,6 +12,7 @@ namespace WebZi.Plataform.Domain.ViewModel.Pagamento
         public int IdentificadorUsuario { get; set; }
 
         public bool SaidaParaReparo { get; set; } = false;
+        public bool ConfirmoPagamentoComSenha { get; set; } = false;
         public List<PagamentoParameterCartao> Cartoes { get; set; }
     }
 

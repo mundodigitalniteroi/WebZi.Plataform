@@ -1475,9 +1475,21 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                                 .Where(x => faturamentoIds.Contains(x.FaturamentoId))
                                 .ExecuteDeleteAsync();
 
-                            await _context.PixDinamico
+                            List<int> pixDinamicoIds = await _context.PixDinamico
                                 .Where(x => faturamentoIds.Contains(x.FaturamentoId))
-                                .ExecuteDeleteAsync();
+                                .Select(x => x.PixDinamicoId)
+                                .ToListAsync();
+
+                            if (pixDinamicoIds.Count > 0)
+                            {
+                                await _context.PixDinamicoConsulta
+                                    .Where(x => pixDinamicoIds.Contains(x.PixDinamicoId))
+                                    .ExecuteDeleteAsync();
+
+                                await _context.PixDinamico
+                                    .Where(x => pixDinamicoIds.Contains(x.PixDinamicoId))
+                                    .ExecuteDeleteAsync();
+                            }
 
                             await _context.LiberacaoEspecial
                                 .Where(x => faturamentoIds.Contains(x.IdFaturamento))

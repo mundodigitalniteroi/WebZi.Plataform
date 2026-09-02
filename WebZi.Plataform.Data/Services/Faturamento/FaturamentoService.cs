@@ -35,6 +35,7 @@ using WebZi.Plataform.Domain.DTO.WebServices.Nfse;
 using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Atendimento;
 using WebZi.Plataform.Domain.Models.Banco;
+using WebZi.Plataform.Domain.Models.Banco.PIX.Dinamico.Persistencia;
 using WebZi.Plataform.Domain.Models.Bucket;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.GRV;
@@ -797,9 +798,13 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     }
                     else
                     {
-                        FaturamentoComposicao.QuantidadeComposicao = FaturamentoServicoGrv.QuantidadeDesconto.HasValue && FaturamentoServicoGrv.QuantidadeDesconto.Value > 0
-                            ? FaturamentoServicoGrv.QuantidadeDesconto.Value
-                            : (FaturamentoServicoGrv.Valor.HasValue ? Math.Round(FaturamentoServicoGrv.Valor.Value, 2) : 1);
+                        FaturamentoComposicao.QuantidadeComposicao =
+                            FaturamentoServicoGrv.QuantidadeDesconto.HasValue &&
+                            FaturamentoServicoGrv.QuantidadeDesconto.Value > 0
+                                ? FaturamentoServicoGrv.QuantidadeDesconto.Value
+                                : (FaturamentoServicoGrv.Valor.HasValue
+                                    ? Math.Round(FaturamentoServicoGrv.Valor.Value, 2)
+                                    : 1);
                     }
 
                     if (FaturamentoComposicao.QuantidadeComposicao == 0)
@@ -1824,14 +1829,13 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             return MensagemViewHelper.SetOk("Forma de Pagamento alterada com sucesso");
         }
 
-        public async Task<FaturamentoDTO> ConfirmarPagamentoAsync(int faturamentoId, int usuarioId,
-            List<PagamentoParameterCartao> cartoes, bool saidaParaReparo, CancellationToken ct)
+        public async Task<FaturamentoDTO> ConfirmarPagamentoAsync(PagamentoParameters parameters, CancellationToken ct)
         {
             FaturamentoDTO ResultView = new();
 
             List<string> erros = new();
 
-            if (faturamentoId <= 0)
+            if (parameters.IdentificadorFaturamento <= 0)
             {
                 erros.Add(MensagemPadraoEnum.IdentificadorFaturamentoInvalido);
             }
@@ -1849,7 +1853,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 .ThenInclude(x => x.Grv)
                 .ThenInclude(x => x.Cliente)
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.FaturamentoId == faturamentoId, cancellationToken: ct);
+                .FirstOrDefaultAsync(x => x.FaturamentoId == parameters.IdentificadorFaturamento,
+                    cancellationToken: ct);
 
             if (Faturamento == null)
             {
@@ -1875,7 +1880,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             ResultView.IdentificadorAtendimento = Faturamento.Atendimento.Grv.Atendimento.AtendimentoId;
 
-            if (Faturamento.Atendimento.Grv.StatusOperacaoId is "L" or "R") // L = AGUARDANDO PAGAMENTO R = Saída Para Reparo
+            if (Faturamento.Atendimento.Grv
+                    .StatusOperacaoId is "L" or "R") // L = AGUARDANDO PAGAMENTO R = Saída Para Reparo
             {
                 try
                 {
@@ -1887,18 +1893,34 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     {
                         PixDinamicoDTO pixDinamico = new();
                         pixDinamico = await new PixDinamicoService(_context, _mapper, _httpClientFactory)
-                            .ConsultaAsync(faturamentoId, usuarioId);
-
-                        if (pixDinamico.IdentificadorPixDinamicoTipoStatusGeracao != 2)
+                            .ConsultaAsync(parameters.IdentificadorFaturamento, parameters.IdentificadorUsuario);
+                        if (pixDinamico.IdentificadorPixDinamicoTipoStatusGeracao != 2 &&
+                            !parameters.ConfirmoPagamentoComSenha)
                         {
+                            var statusPix =
+                                await _context.PixDinamicoTipoStatusGeracao
+                                    .AsNoTracking()
+                                    .FirstOrDefaultAsync(x =>
+                                        x.PixDinamicoTipoStatusGeracaoId ==
+                                        pixDinamico.IdentificadorPixDinamicoTipoStatusGeracao, cancellationToken: ct);
                             ResultView.Mensagem = MensagemViewHelper.SetBadRequest(
-                                $"Pix ainda não confirmado, status atual: ${pixDinamico.IdentificadorPixDinamicoTipoStatusGeracao}");
+                                $"Pix ainda não confirmado, status atual: {statusPix.Descricao}");
                             return ResultView;
+                        }
+                        else
+                        {
+                            await _context.PixDinamico
+                                .Where(x => x.FaturamentoId == parameters.IdentificadorFaturamento)
+                                .UpdateAsync(x => new PixDinamicoModel
+                                {
+                                    PixDinamicoTipoStatusGeracaoId = 2,
+                                    DataAlteracao = DateTime.Now
+                                }, ct);
                         }
                     }
                     else if (TipoMeioCobranca.Alias.Equals("CCRED") || TipoMeioCobranca.Alias.Equals("CDEBI"))
                     {
-                        var faturamentoCartao = await CreateFaturamentoCartao(Faturamento, cartoes, ct);
+                        var faturamentoCartao = await CreateFaturamentoCartao(Faturamento, parameters.Cartoes, ct);
 
                         if (faturamentoCartao.HtmlStatusCode == HtmlStatusCodeEnum.BadRequest)
                         {
@@ -1921,11 +1943,11 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
                     //Atualização do faturamento
                     await _context.Faturamento
-                        .Where(x => x.FaturamentoId == faturamentoId)
+                        .Where(x => x.FaturamentoId == parameters.IdentificadorFaturamento)
                         .UpdateAsync(x => new FaturamentoModel()
                         {
                             Status = "P",
-                            UsuarioAlteracaoId = usuarioId,
+                            UsuarioAlteracaoId = parameters.IdentificadorUsuario,
                             DataPrazoRetiradaVeiculo = DateTime.Now.AddDays(1),
                             ValorPagamento = Faturamento.ValorFaturado,
                             DataPagamento = DateTime.Now
@@ -1940,11 +1962,11 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                             FormaLiberacaoCNH = Faturamento.Atendimento.ResponsavelCnh,
                             FormaLiberacaoCPF = Faturamento.Atendimento.ResponsavelDocumento,
                             FormaLiberacao = "C",
-                            UsuarioAlteracaoId = usuarioId,
+                            UsuarioAlteracaoId = parameters.IdentificadorUsuario,
                             FlagPagamentoFinanciado = "N"
                         }, ct);
 
-                    if (!saidaParaReparo)
+                    if (!parameters.SaidaParaReparo)
                     {
                         await _context.Grv
                             .Where(x => x.GrvId == Faturamento.Atendimento.GrvId)
@@ -1952,7 +1974,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                             {
                                 StatusOperacaoId = "T",
                                 DataAlteracao = DateTime.Now,
-                                UsuarioAlteracaoId = usuarioId
+                                UsuarioAlteracaoId = parameters.IdentificadorUsuario
                             }, ct);
                     }
 
