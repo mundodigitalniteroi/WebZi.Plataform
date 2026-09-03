@@ -1,5 +1,7 @@
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore.Query.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using WebZi.Plataform.CrossCutting.Contacts;
@@ -8,6 +10,7 @@ using WebZi.Plataform.CrossCutting.Linq;
 using WebZi.Plataform.CrossCutting.Localizacao;
 using WebZi.Plataform.CrossCutting.Number;
 using WebZi.Plataform.CrossCutting.Strings;
+using WebZi.Plataform.CrossCutting.Veiculo;
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
@@ -19,6 +22,7 @@ using WebZi.Plataform.Data.Services.Localizacao;
 using WebZi.Plataform.Data.Services.Sistema;
 using WebZi.Plataform.Data.Services.Usuario;
 using WebZi.Plataform.Data.Services.WebServices;
+using WebZi.Plataform.Domain.DTO.Deposito;
 using WebZi.Plataform.Domain.DTO.Generic;
 using WebZi.Plataform.Domain.DTO.GRV;
 using WebZi.Plataform.Domain.DTO.GRV.Cadastro;
@@ -33,13 +37,13 @@ using WebZi.Plataform.Domain.Models.Cliente;
 using WebZi.Plataform.Domain.Models.ClienteDeposito;
 using WebZi.Plataform.Domain.Models.Condutor;
 using WebZi.Plataform.Domain.Models.Deposito;
+using WebZi.Plataform.Domain.Models.Documento;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.GRV;
 using WebZi.Plataform.Domain.Models.Servico;
 using WebZi.Plataform.Domain.Models.Sistema;
 using WebZi.Plataform.Domain.Models.Usuario;
 using WebZi.Plataform.Domain.Models.Veiculo;
-using WebZi.Plataform.Domain.Models.VLock;
 using WebZi.Plataform.Domain.Models.WebServices.Boleto;
 using WebZi.Plataform.Domain.ViewModel.GGV;
 using WebZi.Plataform.Domain.ViewModel.GRV.Cadastro;
@@ -782,7 +786,7 @@ namespace WebZi.Plataform.Data.Services.GRV
                 ? null
                 : await _vLockContext.Dispositivos
                     .AsNoTracking()
-                    .FirstOrDefaultAsync(x => x.Imei == GrvPersistencia.CodigoImeiVlock && x.Ativo == true, ct);
+                    .FirstOrDefaultAsync(x => x.Imei == GrvPersistencia.CodigoImeiVlock, ct);
 
             ResultadoCadastroGrvDTO ResultView = new();
 
