@@ -4,11 +4,11 @@ using Microsoft.AspNetCore.Authorization;
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Atendimento;
+using WebZi.Plataform.Data.Services.GRV;
 using WebZi.Plataform.Domain.DTO.Atendimento;
 using WebZi.Plataform.Domain.DTO.Generic;
 using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.ViewModel.Atendimento;
-using WebZi.Plataform.Domain.Services.GRV;
 
 namespace WebZi.Plataform.API.Controllers
 {

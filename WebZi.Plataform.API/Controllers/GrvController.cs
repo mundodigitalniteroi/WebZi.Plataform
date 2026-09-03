@@ -6,6 +6,7 @@ using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Services.Usuario;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.DRFA;
+using WebZi.Plataform.Data.Services.GRV;
 using WebZi.Plataform.Domain.DTO.Bucket;
 using WebZi.Plataform.Domain.DTO.DRFA;
 using WebZi.Plataform.Domain.DTO.Generic;
@@ -13,7 +14,6 @@ using WebZi.Plataform.Domain.DTO.GRV;
 using WebZi.Plataform.Domain.DTO.GRV.Cadastro;
 using WebZi.Plataform.Domain.DTO.GRV.Pesquisa;
 using WebZi.Plataform.Domain.DTO.Sistema;
-using WebZi.Plataform.Domain.Services.GRV;
 using WebZi.Plataform.Domain.ViewModel.GRV.Cadastro;
 using WebZi.Plataform.Domain.ViewModel.GRV.Pesquisa;
 

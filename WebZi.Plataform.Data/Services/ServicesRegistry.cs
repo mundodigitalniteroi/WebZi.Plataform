@@ -12,6 +12,7 @@ using WebZi.Plataform.Data.Services.DRFA;
 using WebZi.Plataform.Data.Services.Empresa;
 using WebZi.Plataform.Data.Services.Faturamento;
 using WebZi.Plataform.Data.Services.GGV;
+using WebZi.Plataform.Data.Services.GRV;
 using WebZi.Plataform.Data.Services.Leilao;
 using WebZi.Plataform.Data.Services.Liberacao;
 using WebZi.Plataform.Data.Services.LiberacaoEspecial;
@@ -24,7 +25,6 @@ using WebZi.Plataform.Data.Services.Usuario;
 using WebZi.Plataform.Data.Services.Veiculo;
 using WebZi.Plataform.Data.Services.Vistorias;
 using WebZi.Plataform.Data.Services.WebServices;
-using WebZi.Plataform.Domain.Services.GRV;
 
 namespace WebZi.Plataform.Data.Services
 {
