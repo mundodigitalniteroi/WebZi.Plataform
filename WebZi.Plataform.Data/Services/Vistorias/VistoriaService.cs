@@ -7,6 +7,7 @@ using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Domain.DTO.Leilao.Vistoria;
 using WebZi.Plataform.Domain.DTO.Vistoria;
 using WebZi.Plataform.Domain.Models.Vistoria;
+using WebZi.Plataform.Domain.Services.GRV;
 
 namespace WebZi.Plataform.Data.Services.Vistorias
 {

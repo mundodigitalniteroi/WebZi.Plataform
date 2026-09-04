@@ -10,7 +10,6 @@ using WebZi.Plataform.CrossCutting.Strings;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Cliente;
-using WebZi.Plataform.Data.Services.GRV;
 using WebZi.Plataform.Data.WSnfse;
 using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.DTO.WebServices.Nfe;
@@ -19,6 +18,7 @@ using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Nfe;
 using WebZi.Plataform.Domain.Models.Sistema;
 using WebZi.Plataform.Domain.Options;
+using WebZi.Plataform.Domain.Services.GRV;
 using WebZi.Plataform.Domain.ViewModel.NFe;
 using static System.Net.WebRequestMethods;
 
