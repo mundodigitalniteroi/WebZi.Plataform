@@ -1981,6 +1981,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     await _context.SaveChangesAsync(ct);
 
                     ResultView.Faturamento.Status = "P";
+                    ResultView.Mensagem = MensagemViewHelper.SetOk("Pagamento confirmado com sucesso");
                 }
                 catch (Exception ex)
                 {

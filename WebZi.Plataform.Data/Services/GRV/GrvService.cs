@@ -791,7 +791,7 @@ namespace WebZi.Plataform.Data.Services.GRV
 
             ResultadoCadastroGrvDTO ResultView = new();
 
-            await using (IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync(ct))
+            using (IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync(ct))
             {
                 _context.SetUserContextInfo(GrvPersistencia.IdentificadorUsuario);
                 try
