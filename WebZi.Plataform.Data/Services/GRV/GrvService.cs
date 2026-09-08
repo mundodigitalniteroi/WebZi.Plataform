@@ -44,6 +44,7 @@ using WebZi.Plataform.Domain.Models.Servico;
 using WebZi.Plataform.Domain.Models.Sistema;
 using WebZi.Plataform.Domain.Models.Usuario;
 using WebZi.Plataform.Domain.Models.Veiculo;
+using WebZi.Plataform.Domain.Models.VLock;
 using WebZi.Plataform.Domain.Models.WebServices.Boleto;
 using WebZi.Plataform.Domain.ViewModel.GGV;
 using WebZi.Plataform.Domain.ViewModel.GRV.Cadastro;
@@ -790,7 +791,7 @@ namespace WebZi.Plataform.Data.Services.GRV
 
             ResultadoCadastroGrvDTO ResultView = new();
 
-            using (IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync(ct))
+            await using (IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync(ct))
             {
                 _context.SetUserContextInfo(GrvPersistencia.IdentificadorUsuario);
                 try
@@ -1085,7 +1086,7 @@ namespace WebZi.Plataform.Data.Services.GRV
 
             ResultadoCadastroGrvDTO ResultView = new();
 
-            using (IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync(ct))
+            await using (IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync(ct))
             {
                 _context.SetUserContextInfo(GrvPersistencia.IdentificadorUsuario);
                 try
