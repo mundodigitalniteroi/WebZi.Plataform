@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using WebZi.Plataform.CrossCutting.Web;
+using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Atendimento;
 using WebZi.Plataform.Data.Services.Faturamento;
 using WebZi.Plataform.Domain.DTO.Faturamento;
@@ -55,15 +56,19 @@ namespace WebZi.Plataform.API.Controllers
             }
 
             FaturamentoDTO ResultView = new();
-            ResultView = await _provider
-                .GetService<FaturamentoService>()
-                .ConfirmarPagamentoAsync(model, ct);
-            if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+          
+            try
             {
+                ResultView = await _provider
+                    .GetService<FaturamentoService>()
+                    .ConfirmarPagamentoAsync(model, ct);
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
-
-            return ResultView;
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
         }
     }
 }
