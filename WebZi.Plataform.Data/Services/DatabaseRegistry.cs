@@ -14,6 +14,11 @@ namespace WebZi.Plataform.Data.Services
                 options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"), providerOptions => providerOptions.CommandTimeout(120))
                     .LogTo(Console.WriteLine, LogLevel.Information) // Exibe as queries executadas no BD pelo EF
             );
+
+            services.AddDbContext<VLockDbContext>(options =>
+                 options.UseSqlServer(configuration.GetConnectionString("VLockConnection"), providerOptions => providerOptions.CommandTimeout(120))
+                     .LogTo(Console.WriteLine, LogLevel.Information) // Exibe as queries executadas no BD pelo EF
+             );
         }
     }
 }

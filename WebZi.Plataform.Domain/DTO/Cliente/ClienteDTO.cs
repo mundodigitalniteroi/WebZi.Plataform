@@ -1,4 +1,4 @@
-﻿namespace WebZi.Plataform.Domain.DTO.Cliente
+namespace WebZi.Plataform.Domain.DTO.Cliente
 {
     public class ClienteDTO
     {
@@ -71,7 +71,6 @@
         public string ChavePIX { get; set; }
 
         public string FlagPossuiPIXDinamico { get; set; }
-
-        public string FlagAtivo { get; set; }
+        public List<int> Depositos { get; set; } = new List<int>();
     }
 }
