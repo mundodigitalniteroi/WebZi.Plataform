@@ -1,4 +1,4 @@
-﻿using WebZi.Plataform.Domain.DTO.Sistema;
+using WebZi.Plataform.Domain.DTO.Sistema;
 
 namespace WebZi.Plataform.Domain.DTO.GRV.Pesquisa
 {
