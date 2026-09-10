@@ -38,7 +38,7 @@ namespace WebZi.Plataform.Data.Services.Banco.PIX
             _httpClientFactory = httpClientFactory;
         }
 
-        public async Task<PixDinamicoDTO> CreateAsync(int FaturamentoId, int UsuarioId)
+        public async Task<PixDinamicoDTO> CreateAsync(int FaturamentoId, int UsuarioId, CancellationToken ct = default)
         {
             PixDinamicoDTO ResultView = new();
 
@@ -57,7 +57,7 @@ namespace WebZi.Plataform.Data.Services.Banco.PIX
                 .ThenInclude(x => x.Cliente)
                 .ThenInclude(x => x.Endereco)
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.FaturamentoId == FaturamentoId);
+                .FirstOrDefaultAsync(x => x.FaturamentoId == FaturamentoId, ct);
 
             if (Faturamento != null)
             {
@@ -110,15 +110,36 @@ namespace WebZi.Plataform.Data.Services.Banco.PIX
 
             PixDinamicoConfiguracaoModel PixDinamicoConfiguracao = await _context.PixDinamicoConfiguracao
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.ClienteId == Faturamento.Atendimento.Grv.Cliente.ClienteId);
+                .FirstOrDefaultAsync(x => x.ClienteId == Faturamento.Atendimento.Grv.Cliente.ClienteId, ct);
+
+            if (PixDinamicoConfiguracao == null)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound("Configuração do PIX Dinâmico não encontrada para este Cliente");
+
+                return ResultView;
+            }
 
             BancoModel Banco = await _context.Banco
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.BancoId == PixDinamicoConfiguracao.BancoPixId);
+                .FirstOrDefaultAsync(x => x.BancoId == PixDinamicoConfiguracao.BancoPixId, ct);
+
+            if (Banco == null)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound("Banco do PIX Dinâmico não encontrado");
+
+                return ResultView;
+            }
 
             PixDinamicoUrlModel PixDinamicoUrl = await _context.PixDinamicoUrl
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.NomeMetodo == "GERARPIX");
+                .FirstOrDefaultAsync(x => x.NomeMetodo == "GERARPIX", ct);
+
+            if (PixDinamicoUrl == null)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound("Configuração de URL para geração do PIX Dinâmico não encontrada");
+
+                return ResultView;
+            }
 
             PixDinamicoEnvioModel PixDinamicoEnvio = new()
             {
@@ -167,7 +188,14 @@ namespace WebZi.Plataform.Data.Services.Banco.PIX
             }
             catch (Exception ex)
             {
-                ResultView.Mensagem = MensagemViewHelper.SetServiceUnavailable(ex);
+                ResultView.Mensagem = MensagemViewHelper.SetServiceUnavailable("Erro ao se comunicar com a API de geração do PIX Dinâmico", ex);
+
+                return ResultView;
+            }
+
+            if (PixDinamicoRetorno == null || string.IsNullOrWhiteSpace(PixDinamicoRetorno.TransactionId))
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Retorno inválido da API de geração do PIX Dinâmico");
 
                 return ResultView;
             }
@@ -184,17 +212,17 @@ namespace WebZi.Plataform.Data.Services.Banco.PIX
 
                 QrCode = PixDinamicoRetorno.QrCode,
 
-                CalendarioCriacao = PixDinamicoRetorno.Calendario.Criacao,
+                CalendarioCriacao = PixDinamicoRetorno.Calendario?.Criacao,
 
-                CalendarioExpiracao = PixDinamicoRetorno.Calendario.Expiracao,
+                CalendarioExpiracao = PixDinamicoRetorno.Calendario?.Expiracao,
 
                 Devedor = PixDinamicoRetorno.Devedor,
 
                 Location = PixDinamicoRetorno.Location,
 
-                LocationId = PixDinamicoRetorno.LocationAttributes.Id,
+                LocationId = PixDinamicoRetorno.LocationAttributes?.Id,
 
-                TipoCobranca = PixDinamicoRetorno.LocationAttributes.TipoCobranca,
+                TipoCobranca = PixDinamicoRetorno.LocationAttributes?.TipoCobranca,
 
                 Chave = PixDinamicoRetorno.Chave,
 
@@ -202,14 +230,14 @@ namespace WebZi.Plataform.Data.Services.Banco.PIX
 
                 InfoAdicionais = PixDinamicoRetorno.InfoAdicionais,
 
-                ValorOriginal = PixDinamicoRetorno.Valor.Original,
+                ValorOriginal = PixDinamicoRetorno.Valor?.Original,
 
                 Json = JsonHelper.Serialize(PixDinamicoRetorno)
             };
 
-            await _context.PixDinamico.AddAsync(PixDinamico);
+            await _context.PixDinamico.AddAsync(PixDinamico, ct);
 
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(ct);
 
             ResultView = _mapper.Map<PixDinamicoDTO>(PixDinamico);
 
@@ -218,7 +246,7 @@ namespace WebZi.Plataform.Data.Services.Banco.PIX
             return ResultView;
         }
 
-        public async Task<PixDinamicoDTO> ConsultaAsync(int FaturamentoId, int UsuarioId)
+        public async Task<PixDinamicoDTO> ConsultaAsync(int FaturamentoId, int UsuarioId, CancellationToken ct = default)
         {
             PixDinamicoDTO ResultView = new();
 
@@ -237,7 +265,7 @@ namespace WebZi.Plataform.Data.Services.Banco.PIX
                 .ThenInclude(x => x.Cliente)
                 .ThenInclude(x => x.Endereco)
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.FaturamentoId == FaturamentoId);
+                .FirstOrDefaultAsync(x => x.FaturamentoId == FaturamentoId, ct);
 
             if (Faturamento != null)
             {
@@ -266,13 +294,13 @@ namespace WebZi.Plataform.Data.Services.Banco.PIX
             PixDinamicoModel pixDinamico = await _context.PixDinamico
                 .AsNoTracking()
                 .OrderByDescending(x => x.DataCadastro)
-                .FirstOrDefaultAsync(x => x.FaturamentoId == Faturamento.FaturamentoId);
+                .FirstOrDefaultAsync(x => x.FaturamentoId == Faturamento.FaturamentoId, ct);
 
             if (pixDinamico == null)
             {
                 if (Faturamento.Status != "P")
                 {
-                    return await CreateAsync(FaturamentoId, UsuarioId);
+                    return await CreateAsync(FaturamentoId, UsuarioId, ct);
                 }
 
                 ResultView.Mensagem = MensagemViewHelper.SetNotFound("PIX Dinâmico não encontrado");
@@ -280,92 +308,130 @@ namespace WebZi.Plataform.Data.Services.Banco.PIX
                 return ResultView;
             }
 
-            if (pixDinamico.PixDinamicoTipoStatusGeracaoId != 2) // CONCLUIDA
+            if (pixDinamico.PixDinamicoTipoStatusGeracaoId == 2) // CONCLUIDA
             {
-                PixDinamicoConfiguracaoModel pixDinamicoConfiguracao = await _context.PixDinamicoConfiguracao
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(x => x.ClienteId == Faturamento.Atendimento.Grv.Cliente.ClienteId);
+                ResultView = _mapper.Map<PixDinamicoDTO>(pixDinamico);
 
-                PixDinamicoUrlModel pixDinamicoUrl = await _context.PixDinamicoUrl
-                   .AsNoTracking()
-                   .FirstOrDefaultAsync(x => x.NomeMetodo == "CONSULTARPIX");
+                ResultView.Mensagem = MensagemViewHelper.SetCreateSuccess("Pagamento PIX Dinâmico concluido!");
 
-                PixConsultaEnvioModel pixConsultaEnvio = new PixConsultaEnvioModel
-                {
-                    TransactionId = pixDinamico.TransactionId,
-
-                    Parametros = new PixConsultaEnvioParametrosModel()
-                    {
-                        BaseUrl = pixDinamicoConfiguracao.BaseUrl,
-
-                        ClientId = pixDinamicoConfiguracao.ClientId,
-
-                        ClientSecret = pixDinamicoConfiguracao.ClientSecret,
-
-                        Certificate = pixDinamicoConfiguracao.Certificate,
-
-                        SenhaCertificado = pixDinamicoConfiguracao.SenhaCertificado,
-                    }
-                };
-
-                PixConsultaRetornoModel pixConsultaRetorno = new();
-
-                try
-                {
-                    Debug.WriteLine(JsonHelper.Serialize(pixConsultaEnvio));
-
-                    pixConsultaRetorno = new HttpClientFactoryService(_httpClientFactory)
-                        .Post<PixConsultaRetornoModel>(pixDinamicoUrl.UrlApi, pixConsultaEnvio);
-                }
-                catch (Exception ex)
-                {
-                    ResultView.Mensagem = MensagemViewHelper.SetServiceUnavailable(ex);
-
-                    return ResultView;
-                }
-
-                PixDinamicoTipoStatusGeracaoModel pixDinamicoTipoStatusGeracao = await _context.PixDinamicoTipoStatusGeracao
-                    .FirstOrDefaultAsync(x => x.Descricao == pixConsultaRetorno.Status);
-
-                PixDinamicoConsultaModel pixDinamicoConsulta = new PixDinamicoConsultaModel
-                {
-                    PixDinamicoId = pixDinamico.PixDinamicoId,
-
-                    PixDinamicoTipoStatusGeracaoId = pixDinamicoTipoStatusGeracao.PixDinamicoTipoStatusGeracaoId,
-
-                    Json = JsonHelper.Serialize(pixConsultaRetorno),
-
-                    DataCadastro = DateTime.Now
-                };
-
-                try
-                {
-                    pixDinamico.PixDinamicoTipoStatusGeracaoId = pixDinamicoConsulta.PixDinamicoTipoStatusGeracaoId;
-
-                    if (pixConsultaRetorno.Pix != null)
-                    {
-                        var pix = pixConsultaRetorno.Pix.FirstOrDefault();
-
-                        if (pix is null) throw new Exception("Erro no retorno da consulta pix");
-
-                        pixDinamico.Revisao = pixConsultaRetorno.Revisao;
-                        pixDinamico.PixHorario = pix?.Horario;
-                        pixDinamico.PagadorNome = pix?.Pagador.Nome;
-                        pixDinamico.PagadorCnpj = pix?.Pagador.Cnpj;
-                        pixDinamico.PagadorCpf = pix?.Pagador.Cpf;
-                        pixDinamico.DataAlteracao = DateTime.Now;
-
-                        _context.PixDinamico.Update(pixDinamico);
-                    }
-
-                    await _context.PixDinamicoConsulta.AddAsync(pixDinamicoConsulta);
-                    await _context.SaveChangesAsync();
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception("Ocorreu um erro ao cadastrar a consulta do PIX dinâmico." + Environment.NewLine + "JSON de retorno: " + Environment.NewLine + pixDinamicoConsulta.Json, ex);
-                }
+                return ResultView;
             }
+
+            PixDinamicoConfiguracaoModel pixDinamicoConfiguracao = await _context.PixDinamicoConfiguracao
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.ClienteId == Faturamento.Atendimento.Grv.Cliente.ClienteId, ct);
+
+            if (pixDinamicoConfiguracao == null)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound("Configuração do PIX Dinâmico não encontrada para este Cliente");
+
+                return ResultView;
+            }
+
+            PixDinamicoUrlModel pixDinamicoUrl = await _context.PixDinamicoUrl
+               .AsNoTracking()
+               .FirstOrDefaultAsync(x => x.NomeMetodo == "CONSULTARPIX", ct);
+
+            if (pixDinamicoUrl == null)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound("Configuração de URL para consulta do PIX Dinâmico não encontrada");
+
+                return ResultView;
+            }
+
+            PixConsultaEnvioModel pixConsultaEnvio = new PixConsultaEnvioModel
+            {
+                TransactionId = pixDinamico.TransactionId,
+
+                Parametros = new PixConsultaEnvioParametrosModel()
+                {
+                    BaseUrl = pixDinamicoConfiguracao.BaseUrl,
+
+                    ClientId = pixDinamicoConfiguracao.ClientId,
+
+                    ClientSecret = pixDinamicoConfiguracao.ClientSecret,
+
+                    Certificate = pixDinamicoConfiguracao.Certificate,
+
+                    SenhaCertificado = pixDinamicoConfiguracao.SenhaCertificado,
+                }
+            };
+
+            PixConsultaRetornoModel pixConsultaRetorno = new();
+
+            try
+            {
+                Debug.WriteLine(JsonHelper.Serialize(pixConsultaEnvio));
+
+                pixConsultaRetorno = new HttpClientFactoryService(_httpClientFactory)
+                    .Post<PixConsultaRetornoModel>(pixDinamicoUrl.UrlApi, pixConsultaEnvio);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetServiceUnavailable("Erro ao se comunicar com a API de consulta do PIX Dinâmico", ex);
+
+                return ResultView;
+            }
+
+            if (pixConsultaRetorno == null || string.IsNullOrWhiteSpace(pixConsultaRetorno.Status))
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Retorno inválido da API de consulta do PIX Dinâmico");
+
+                return ResultView;
+            }
+
+            PixDinamicoTipoStatusGeracaoModel pixDinamicoTipoStatusGeracao = await _context.PixDinamicoTipoStatusGeracao
+                .FirstOrDefaultAsync(x => x.Descricao == pixConsultaRetorno.Status, ct);
+
+            if (pixDinamicoTipoStatusGeracao == null)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound($"Status '{pixConsultaRetorno.Status}' do PIX Dinâmico não cadastrado na base");
+
+                return ResultView;
+            }
+
+            PixDinamicoConsultaModel pixDinamicoConsulta = new PixDinamicoConsultaModel
+            {
+                PixDinamicoId = pixDinamico.PixDinamicoId,
+
+                PixDinamicoTipoStatusGeracaoId = pixDinamicoTipoStatusGeracao.PixDinamicoTipoStatusGeracaoId,
+
+                Json = JsonHelper.Serialize(pixConsultaRetorno),
+
+                DataCadastro = DateTime.Now
+            };
+
+            try
+            {
+                pixDinamico.PixDinamicoTipoStatusGeracaoId = pixDinamicoConsulta.PixDinamicoTipoStatusGeracaoId;
+                pixDinamico.Revisao = pixConsultaRetorno.Revisao;
+                pixDinamico.DataAlteracao = DateTime.Now;
+
+                if (pixConsultaRetorno.Pix != null && pixConsultaRetorno.Pix.Length > 0)
+                {
+                    var pix = pixConsultaRetorno.Pix.FirstOrDefault();
+
+                    if (pix != null)
+                    {
+                        pixDinamico.PixHorario = pix.Horario;
+                        pixDinamico.PagadorNome = pix.Pagador?.Nome;
+                        pixDinamico.PagadorCnpj = pix.Pagador?.Cnpj;
+                        pixDinamico.PagadorCpf = pix.Pagador?.Cpf;
+                    }
+                }
+
+                _context.PixDinamico.Update(pixDinamico);
+
+                await _context.PixDinamicoConsulta.AddAsync(pixDinamicoConsulta, ct);
+                await _context.SaveChangesAsync(ct);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError("Ocorreu um erro ao salvar a consulta do PIX Dinâmico no banco de dados", ex);
+
+                return ResultView;
+            }
+
             ResultView = _mapper.Map<PixDinamicoDTO>(pixDinamico);
 
             ResultView.Mensagem = MensagemViewHelper.SetCreateSuccess("Consulta PIX Dinâmico com sucesso");
