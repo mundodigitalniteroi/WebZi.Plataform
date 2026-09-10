@@ -607,7 +607,7 @@ namespace WebZi.Plataform.Data.Services.GRV
                 return MensagemViewHelper.SetBadRequest("O GRV já está com o status U.");
             }
 
-            using (IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync(ct))
+            await using (IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync(ct))
             {
                 try
                 {
@@ -791,7 +791,7 @@ namespace WebZi.Plataform.Data.Services.GRV
 
             ResultadoCadastroGrvDTO ResultView = new();
 
-            using (IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync(ct))
+            await using (IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync(ct))
             {
                 _context.SetUserContextInfo(GrvPersistencia.IdentificadorUsuario);
                 try
@@ -1086,7 +1086,7 @@ namespace WebZi.Plataform.Data.Services.GRV
 
             ResultadoCadastroGrvDTO ResultView = new();
 
-            using (IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync(ct))
+            await using (IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync(ct))
             {
                 _context.SetUserContextInfo(GrvPersistencia.IdentificadorUsuario);
                 try
