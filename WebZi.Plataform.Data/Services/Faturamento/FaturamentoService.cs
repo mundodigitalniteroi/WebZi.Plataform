@@ -1880,117 +1880,107 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             ResultView.IdentificadorAtendimento = Faturamento.Atendimento.Grv.Atendimento.AtendimentoId;
 
-            if (Faturamento.Atendimento.Grv
-                    .StatusOperacaoId is "L" or "R") // L = AGUARDANDO PAGAMENTO R = Saída Para Reparo
+            if (Faturamento.Atendimento.Grv.StatusOperacaoId is not ("L" or "R"))
             {
-                try
-                {
-                    TipoMeioCobrancaModel TipoMeioCobranca = await _context.TipoMeioCobranca
-                        .FirstOrDefaultAsync(x => x.TipoMeioCobrancaId == Faturamento.TipoMeioCobrancaId, ct);
-
-                    // Se o Tipo de Cobrança for PIX Dinâmico
-                    if (TipoMeioCobranca.Alias.Equals("PIXDIN"))
-                    {
-                        PixDinamicoDTO pixDinamico = new();
-                        pixDinamico = await new PixDinamicoService(_context, _mapper, _httpClientFactory)
-                            .ConsultaAsync(parameters.IdentificadorFaturamento, parameters.IdentificadorUsuario);
-                        if (pixDinamico.IdentificadorPixDinamicoTipoStatusGeracao != 2 &&
-                            !parameters.ConfirmoPagamentoComSenha)
-                        {
-                            var statusPix =
-                                await _context.PixDinamicoTipoStatusGeracao
-                                    .AsNoTracking()
-                                    .FirstOrDefaultAsync(x =>
-                                        x.PixDinamicoTipoStatusGeracaoId ==
-                                        pixDinamico.IdentificadorPixDinamicoTipoStatusGeracao, cancellationToken: ct);
-                            ResultView.Mensagem = MensagemViewHelper.SetBadRequest(
-                                $"Pix ainda não confirmado, status atual: {statusPix.Descricao}");
-                            return ResultView;
-                        }
-                        else
-                        {
-                            await _context.PixDinamico
-                                .Where(x => x.FaturamentoId == parameters.IdentificadorFaturamento)
-                                .UpdateAsync(x => new PixDinamicoModel
-                                {
-                                    PixDinamicoTipoStatusGeracaoId = 2,
-                                    DataAlteracao = DateTime.Now
-                                }, ct);
-                        }
-                    }
-                    else if (TipoMeioCobranca.Alias.Equals("CCRED") || TipoMeioCobranca.Alias.Equals("CDEBI"))
-                    {
-                        var faturamentoCartao = await CreateFaturamentoCartao(Faturamento, parameters.Cartoes, ct);
-
-                        if (faturamentoCartao.HtmlStatusCode == HtmlStatusCodeEnum.BadRequest)
-                        {
-                            ResultView.Mensagem =
-                                MensagemViewHelper.SetBadRequest("Erro ao efetuar pagamento com cartão");
-                            return ResultView;
-                        }
-                    }
-                    //else if(TipoMeioCobranca.Alias.Equals("GPER"))
-                    //{
-                    //    //PEMITE PAGAMENTO DIRETO PARA TESTES E APRESENTAÇÕES
-                    //}
-                    //else
-                    //{
-                    //    //TODO: Tratar outras formas de pagamento
-                    //    ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Forma de pagamento não permitida");
-                    //    return ResultView;
-
-                    //}
-
-                    //Atualização do faturamento
-                    await _context.Faturamento
-                        .Where(x => x.FaturamentoId == parameters.IdentificadorFaturamento)
-                        .UpdateAsync(x => new FaturamentoModel()
-                        {
-                            Status = "P",
-                            UsuarioAlteracaoId = parameters.IdentificadorUsuario,
-                            DataPrazoRetiradaVeiculo = DateTime.Now.AddDays(1),
-                            ValorPagamento = Faturamento.ValorFaturado,
-                            DataPagamento = DateTime.Now
-                        }, ct);
-
-                    //Atualização da Forma Liberação
-                    await _context.Atendimento
-                        .Where(x => x.AtendimentoId == Faturamento.AtendimentoId)
-                        .UpdateAsync(x => new AtendimentoModel()
-                        {
-                            FormaLiberacaoNome = Faturamento.Atendimento.ResponsavelNome,
-                            FormaLiberacaoCNH = Faturamento.Atendimento.ResponsavelCnh,
-                            FormaLiberacaoCPF = Faturamento.Atendimento.ResponsavelDocumento,
-                            FormaLiberacao = "C",
-                            UsuarioAlteracaoId = parameters.IdentificadorUsuario,
-                            FlagPagamentoFinanciado = "N"
-                        }, ct);
-
-                    if (!parameters.SaidaParaReparo)
-                    {
-                        await _context.Grv
-                            .Where(x => x.GrvId == Faturamento.Atendimento.GrvId)
-                            .UpdateAsync(x => new GrvModel()
-                            {
-                                StatusOperacaoId = "T",
-                                DataAlteracao = DateTime.Now,
-                                UsuarioAlteracaoId = parameters.IdentificadorUsuario
-                            }, ct);
-                    }
-
-                    await _context.SaveChangesAsync(ct);
-
-                    ResultView.Faturamento.Status = "P";
-                    ResultView.Mensagem = MensagemViewHelper.SetOk("Pagamento confirmado com sucesso");
-                }
-                catch (Exception ex)
-                {
-                    ResultView.Mensagem = MensagemViewHelper.SetBadRequest(ex.Message);
-                    return ResultView;
-                }
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Status da operação do GRV não permite a confirmação de pagamento");
+                return ResultView;
             }
 
-            return ResultView;
+            try
+            {
+                TipoMeioCobrancaModel TipoMeioCobranca = await _context.TipoMeioCobranca
+                    .FirstOrDefaultAsync(x => x.TipoMeioCobrancaId == Faturamento.TipoMeioCobrancaId, ct);
+
+                // Se o Tipo de Cobrança for PIX Dinâmico
+                if (TipoMeioCobranca.Alias.Equals("PIXDIN"))
+                {
+                    PixDinamicoDTO pixDinamico = new();
+                    pixDinamico = await new PixDinamicoService(_context, _mapper, _httpClientFactory)
+                        .ConsultaAsync(parameters.IdentificadorFaturamento, parameters.IdentificadorUsuario, ct);
+                    if (pixDinamico.IdentificadorPixDinamicoTipoStatusGeracao != 2 &&
+                        !parameters.ConfirmoPagamentoComSenha)
+                    {
+                        var statusPix =
+                            await _context.PixDinamicoTipoStatusGeracao
+                                .AsNoTracking()
+                                .FirstOrDefaultAsync(x =>
+                                    x.PixDinamicoTipoStatusGeracaoId ==
+                                    pixDinamico.IdentificadorPixDinamicoTipoStatusGeracao, cancellationToken: ct);
+                        ResultView.Mensagem = MensagemViewHelper.SetBadRequest(
+                            $"Pix ainda não confirmado, status atual: {statusPix?.Descricao}");
+                        return ResultView;
+                    }
+                    else
+                    {
+                        await _context.PixDinamico
+                            .Where(x => x.FaturamentoId == parameters.IdentificadorFaturamento)
+                            .UpdateAsync(x => new PixDinamicoModel
+                            {
+                                PixDinamicoTipoStatusGeracaoId = 2,
+                                DataAlteracao = DateTime.Now
+                            }, ct);
+                    }
+                }
+                else if (TipoMeioCobranca.Alias.Equals("CCRED") || TipoMeioCobranca.Alias.Equals("CDEBI"))
+                {
+                    var faturamentoCartao = await CreateFaturamentoCartao(Faturamento, parameters.Cartoes, ct);
+
+                    if (faturamentoCartao.HtmlStatusCode == HtmlStatusCodeEnum.BadRequest)
+                    {
+                        ResultView.Mensagem =
+                            MensagemViewHelper.SetBadRequest("Erro ao efetuar pagamento com cartão");
+                        return ResultView;
+                    }
+                }
+
+                //Atualização do faturamento
+                await _context.Faturamento
+                    .Where(x => x.FaturamentoId == parameters.IdentificadorFaturamento)
+                    .UpdateAsync(x => new FaturamentoModel()
+                    {
+                        Status = "P",
+                        UsuarioAlteracaoId = parameters.IdentificadorUsuario,
+                        DataPrazoRetiradaVeiculo = DateTime.Now.AddDays(1),
+                        ValorPagamento = Faturamento.ValorFaturado,
+                        DataPagamento = DateTime.Now
+                    }, ct);
+
+                //Atualização da Forma Liberação
+                await _context.Atendimento
+                    .Where(x => x.AtendimentoId == Faturamento.AtendimentoId)
+                    .UpdateAsync(x => new AtendimentoModel()
+                    {
+                        FormaLiberacaoNome = Faturamento.Atendimento.ResponsavelNome,
+                        FormaLiberacaoCNH = Faturamento.Atendimento.ResponsavelCnh,
+                        FormaLiberacaoCPF = Faturamento.Atendimento.ResponsavelDocumento,
+                        FormaLiberacao = "C",
+                        UsuarioAlteracaoId = parameters.IdentificadorUsuario,
+                        FlagPagamentoFinanciado = "N"
+                    }, ct);
+
+                if (!parameters.SaidaParaReparo)
+                {
+                    await _context.Grv
+                        .Where(x => x.GrvId == Faturamento.Atendimento.GrvId)
+                        .UpdateAsync(x => new GrvModel()
+                        {
+                            StatusOperacaoId = "T",
+                            DataAlteracao = DateTime.Now,
+                            UsuarioAlteracaoId = parameters.IdentificadorUsuario
+                        }, ct);
+                }
+
+                await _context.SaveChangesAsync(ct);
+
+                ResultView.Faturamento.Status = "P";
+                ResultView.Mensagem = MensagemViewHelper.SetUpdateSuccess("Pagamento confirmado com sucesso");
+                return ResultView;
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest($"Ocorreu um erro ao confirmar o pagamento: {ex.Message}");
+                return ResultView;
+            }
         }
 
         public async Task<FaturamentoConsultaDTO> ConsultarFaturamentoAsync(int identificadorFaturamento,

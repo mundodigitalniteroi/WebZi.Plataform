@@ -56,17 +56,19 @@ namespace WebZi.Plataform.API.Controllers
             }
 
             FaturamentoDTO ResultView = new();
-          
+
             try
             {
                 ResultView = await _provider
                     .GetService<FaturamentoService>()
                     .ConfirmarPagamentoAsync(model, ct);
+
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
             catch (Exception ex)
             {
                 ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
         }
