@@ -53,7 +53,7 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("GerarPixDinamico")]
         // TODO: [Authorize]
-        public async Task<ActionResult<PixDinamicoCompletoDTO>> GerarPixDinamico(int IdentificadorFaturamento, int IdentificadorUsuario)
+        public async Task<ActionResult<PixDinamicoCompletoDTO>> GerarPixDinamico(int IdentificadorFaturamento, int IdentificadorUsuario, CancellationToken ct)
         {
             if (!ModelState.IsValid)
             {
@@ -66,7 +66,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 PixDinamicoDTO pixDinamicoDTO = await _provider
                     .GetService<PixDinamicoService>()
-                    .CreateAsync(IdentificadorFaturamento, IdentificadorUsuario);
+                    .CreateAsync(IdentificadorFaturamento, IdentificadorUsuario, ct);
 
                 if (pixDinamicoDTO.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
                 {
@@ -95,7 +95,7 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("ConsultarPixDinamico")]
         // TODO: [Authorize]
-        public async Task<ActionResult<PixDinamicoCompletoDTO>> ConsultarPixDinamico(int IdentificadorFaturamento, int IdentificadorUsuario)
+        public async Task<ActionResult<PixDinamicoCompletoDTO>> ConsultarPixDinamico(int IdentificadorFaturamento, int IdentificadorUsuario, CancellationToken ct)
         {
             if (!ModelState.IsValid)
             {
@@ -108,7 +108,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 PixDinamicoDTO pixDinamicoDTO = await _provider
                     .GetService<PixDinamicoService>()
-                    .ConsultaAsync(IdentificadorFaturamento, IdentificadorUsuario);
+                    .ConsultaAsync(IdentificadorFaturamento, IdentificadorUsuario, ct);
 
                 if (pixDinamicoDTO.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
                 {

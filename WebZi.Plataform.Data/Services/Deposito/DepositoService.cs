@@ -168,7 +168,9 @@ namespace WebZi.Plataform.Data.Services.Deposito
 
             List<UsuarioDepositoModel> result = await _context.UsuarioDeposito
                 .Include(x => x.Deposito)
-                .ThenInclude(d => d.Endereco)
+                    .ThenInclude(d => d.Endereco)
+                .Include(x => x.Deposito)
+                    .ThenInclude(d => d.ClientesDepositos)
                 .Where(x => x.UsuarioId == UsuarioId)
                 .AsNoTracking()
                 .ToListAsync();
@@ -182,10 +184,21 @@ namespace WebZi.Plataform.Data.Services.Deposito
                     Depositos.Add(UsuarioDeposito.Deposito);
                 }
 
-                ResultView.Listagem = _mapper.Map<List<DepositoDTO>>(Depositos
+                var depDtos = _mapper.Map<List<DepositoDTO>>(Depositos
                     .OrderBy(x => x.Nome)
                     .ToList());
 
+                foreach (var dto in depDtos)
+                {
+                    var depModel = Depositos.FirstOrDefault(d => d.DepositoId == dto.IdentificadorDeposito);
+                    var activeCd = depModel?.ClientesDepositos?.FirstOrDefault(cd => cd.FlagAtivo != "N");
+                    if (activeCd != null)
+                    {
+                        dto.IdentificadorCliente = activeCd.ClienteId;
+                    }
+                }
+
+                ResultView.Listagem = depDtos;
                 ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
             }
             else

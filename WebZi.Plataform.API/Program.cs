@@ -135,14 +135,13 @@ static void ConfigureWebApplication(WebApplication app)
         app.UseSwagger();
         app.UseSwaggerUI();
     }
-
     app.UseCors(options =>
     {
-        options.AllowAnyMethod()
+        options
+            .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowAnyOrigin();
     });
-
     app.UseHttpsRedirection();
 
     app.UseAuthentication();

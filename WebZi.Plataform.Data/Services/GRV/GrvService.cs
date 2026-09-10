@@ -2497,9 +2497,15 @@ namespace WebZi.Plataform.Data.Services.GRV
 
             #endregion
 
+            int totalRegistros = await query.CountAsync();
+
+            int take = GrvPesquisa.Take.HasValue && GrvPesquisa.Take.Value > 0 ? GrvPesquisa.Take.Value : 50;
+            int skip = GrvPesquisa.Skip.HasValue && GrvPesquisa.Skip.Value >= 0 ? GrvPesquisa.Skip.Value : 0;
+
             var result = await query
                 .OrderByDescending(x => x.DataCadastro)
-                .Take(100)
+                .Skip(skip)
+                .Take(take)
                 .AsNoTracking()
                 .ToListAsync();
 
@@ -2544,7 +2550,7 @@ namespace WebZi.Plataform.Data.Services.GRV
                 });
             }
 
-            ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
+            ResultView.Mensagem = MensagemViewHelper.SetFound(totalRegistros);
 
             return ResultView;
         }
