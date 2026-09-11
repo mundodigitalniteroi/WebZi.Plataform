@@ -95,7 +95,7 @@ namespace WebZi.Plataform.API.Controllers
             }
         }
 
-        
+
         [HttpGet("ListarTipoLiberacaoEspecial")]
         // TODO: [Authorize]
         public async Task<ActionResult<TipoLiberacaoEspecialListDTO>> ListarTipoLiberacaoEspecial(int identificadorUsuario)
@@ -122,8 +122,8 @@ namespace WebZi.Plataform.API.Controllers
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
         }
-        
-        
+
+
         [HttpGet("ListarAutoridadeResponsavel")]
         // TODO: [Authorize]
         public async Task<ActionResult<AutoridadeResponsavelListDTO>> ListarAutoridadeResponsavel(int? identificadorDeposito, string? UF, string? nomeAutoridade, int skip, int take)
@@ -139,7 +139,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<GrvService>()
-                    .ListAutoridadesResponsaveisUfOuDepositoAsync(identificadorDeposito,UF, nomeAutoridade, skip, take);
+                    .ListAutoridadesResponsaveisUfOuDepositoAsync(identificadorDeposito, UF, nomeAutoridade, skip, take);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -813,14 +813,15 @@ namespace WebZi.Plataform.API.Controllers
                     .GetService<ClienteDepositoService>()
                     .GetClienteDepositoFlagParcelamento(idetificadorClienteId, idetificadorDepositoId);
 
-                if(ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+                if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
                 {
                     ResultView.Mensagem = ResultView.Mensagem;
                     return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
                 }
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
-            catch(Exception ex) { 
+            catch (Exception ex)
+            {
                 ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
