@@ -1880,7 +1880,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             ResultView.IdentificadorAtendimento = Faturamento.Atendimento.Grv.Atendimento.AtendimentoId;
 
-            if (Faturamento.Atendimento.Grv.StatusOperacaoId is not ("L" or "R"))
+            if (Faturamento.Atendimento.Grv.StatusOperacaoId is not ("L" or "R" or "T"))
             {
                 ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Status da operação do GRV não permite a confirmação de pagamento");
                 return ResultView;
@@ -2273,13 +2273,12 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             };
             ResultView.Atendimento = _mapper.Map<AtendimentoDTO>(Faturamento.Atendimento);
 
-            ImageListDTO FotoResponsavel = await new AtendimentoService(_context, _mapper, _httpClientFactory)
-                .GetFotoResponsavelAsync(Faturamento.AtendimentoId, identificadorUsuario);
+            string fotoResponsavelUrl = await new AtendimentoService(_context, _mapper, _httpClientFactory)
+                .GetFotoResponsavelUrlAsync(Faturamento.AtendimentoId, identificadorUsuario);
 
-            if (FotoResponsavel.Listagem?.Count > 0)
+            if (!string.IsNullOrWhiteSpace(fotoResponsavelUrl))
             {
-                ResultView.Atendimento.FotoResponsavel = FotoResponsavel.Listagem
-                    .FirstOrDefault()?.Imagem;
+                ResultView.Atendimento.FotoResponsavel = fotoResponsavelUrl;
             }
 
             if (!Faturamento.Atendimento.Grv.Placa.IsNullOrWhiteSpace() ||
@@ -2492,10 +2491,10 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             }
         }
 
-        public async Task<MensagemDTO> GerarFaturamentoSaidaReparoAsync(
+        public async Task<MensagemDTO> GerarFaturamentoAdicionalAsync(
             int identificadorProcesso,
-            int identificadorSaidaReparo,
             int identificadorUsuario,
+            int? identificadorSaidaReparo = null,
             CancellationToken ct = default)
         {
             try
@@ -2510,13 +2509,12 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     return MensagemViewHelper.SetNotFound("Processo (GRV) não encontrado.");
                 }
 
-                AtendimentoSaidaParaReparoModel saidaReparo = await _context.SaidaReparo
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(x => x.Id == identificadorSaidaReparo, ct);
-
-                if (saidaReparo == null)
+                AtendimentoSaidaParaReparoModel saidaReparo = null;
+                if (identificadorSaidaReparo.HasValue && identificadorSaidaReparo.Value > 0)
                 {
-                    return MensagemViewHelper.SetNotFound("Registro de saída para reparo não encontrado.");
+                    saidaReparo = await _context.SaidaReparo
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync(x => x.Id == identificadorSaidaReparo.Value, ct);
                 }
 
                 FaturamentoModel ultimoFaturamento = await _context.Faturamento
@@ -2531,11 +2529,21 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                         "Nenhum faturamento anterior encontrado para a geração do faturamento adicional.");
                 }
 
+                DateTime dataInicialCalculo;
+                if (saidaReparo != null)
+                {
+                    dataInicialCalculo = saidaReparo.DataSaida.AddDays(1);
+                }
+                else
+                {
+                    dataInicialCalculo = ultimoFaturamento.DataPagamento.Value.AddDays(1);
+                }
+
                 DateTime DataHoraPorDeposito = new DepositoService(_context)
                     .GetDataHoraPorDeposito(grv.DepositoId);
                 CalculoFaturamentoParametroModel parametrosCalculo = new()
                 {
-                    DataHoraInicialParaCalculo = saidaReparo.DataSaida.AddDays(1),
+                    DataHoraInicialParaCalculo = dataInicialCalculo,
                     DataHoraFinalParaCalculo =
                         DataHoraPorDeposito != DateTime.MinValue ? DataHoraPorDeposito : DateTime.Now,
                     DataHoraPorDeposito = DataHoraPorDeposito,
@@ -2566,7 +2574,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
                 await _context.Faturamento.AddAsync(faturamentoAdicional, ct);
                 await _context.SaveChangesAsync(ct);
-                return MensagemViewHelper.SetCreateSuccess();
+                return MensagemViewHelper.SetCreateSuccess("Faturamento adicional gerado com sucesso");
             }
             catch (Exception ex)
             {
@@ -2574,4 +2582,5 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             }
         }
     }
+}   }
 }
