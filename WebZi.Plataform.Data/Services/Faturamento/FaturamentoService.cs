@@ -2273,12 +2273,13 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             };
             ResultView.Atendimento = _mapper.Map<AtendimentoDTO>(Faturamento.Atendimento);
 
-            string fotoResponsavelUrl = await new AtendimentoService(_context, _mapper, _httpClientFactory)
-                .GetFotoResponsavelUrlAsync(Faturamento.AtendimentoId, identificadorUsuario);
+            ImageListDTO FotoResponsavel = await new AtendimentoService(_context, _mapper, _httpClientFactory)
+                .GetFotoResponsavelAsync(Faturamento.AtendimentoId, identificadorUsuario);
 
-            if (!string.IsNullOrWhiteSpace(fotoResponsavelUrl))
+            if (FotoResponsavel.Listagem?.Count > 0)
             {
-                ResultView.Atendimento.FotoResponsavel = fotoResponsavelUrl;
+                ResultView.Atendimento.FotoResponsavel = FotoResponsavel.Listagem
+                    .FirstOrDefault()?.Imagem;
             }
 
             if (!Faturamento.Atendimento.Grv.Placa.IsNullOrWhiteSpace() ||
@@ -2582,5 +2583,4 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             }
         }
     }
-}   }
 }

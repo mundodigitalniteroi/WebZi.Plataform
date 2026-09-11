@@ -497,7 +497,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 .AnyAsync(x => x.UsuarioId == AtualizarAtendimento.IdentificadorUsuario
                                && (x.PerfilAcessoId == (int)PerfisDeAcessoEnum.AtendimentoEditProd || x.PerfilAcessoId == (int)PerfisDeAcessoEnum.AtendimentoEditHomolog)
                                && _context.SistemaPerfilAcessoSubModulos
-                                   .Any(s => (s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.AtendimentoEditProd || s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.AtendimentoEditHomolog) 
+                                   .Any(s => (s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.AtendimentoEditProd || s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.AtendimentoEditHomolog)
                                              && s.IdSubModulo == (int)SubModuloEnum.EditarAtendimento), cancellationToken: ct);
             if (!permitirEdicao)
             {
@@ -1311,7 +1311,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                     : DateTime.MinValue,
 
                 DataHoraPorDeposito = DataHoraPorDeposito,
-                FlagPermissaoDataRetroativaFaturamento = FlagPermissaoDataRetroativaFaturamento, 
+                FlagPermissaoDataRetroativaFaturamento = FlagPermissaoDataRetroativaFaturamento,
 
                 IsComboio = Grv.FlagComboio == "S",
 
@@ -1368,7 +1368,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                         UsuarioAlteracaoQuantidadeId = x.UsuarioDescontoId,
                         QuantidadeAjuste = x.QuantidadeAjuste,
                         QuantidadeAlterada = 0,
-                    }).ToList() 
+                    }).ToList()
             };
 
             return ParametrosCalculoFaturamento;
@@ -1398,7 +1398,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             {
                 return MensagemViewHelper.SetUnauthorized("Usuário não possui permissão para excluir Processos");
             }
-            
+
             if (!permiteExclusao)
             {
                 return MensagemViewHelper.SetUnauthorized("Usuário não possui permissão para excluir Processos");
