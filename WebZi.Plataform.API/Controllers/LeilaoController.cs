@@ -5,9 +5,12 @@ using Microsoft.Extensions.DependencyInjection;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.GGV;
 using WebZi.Plataform.Data.Services.Leilao;
+using WebZi.Plataform.Data.Services.Usuario;
 using WebZi.Plataform.Data.Services.Vistorias;
 using WebZi.Plataform.Domain.DTO.Leilao;
 using WebZi.Plataform.Domain.DTO.Leilao.Vistoria;
+using WebZi.Plataform.Domain.DTO.Sistema;
+using WebZi.Plataform.Domain.ViewModel.Leilao;
 using WebZi.Plataform.Domain.ViewModel.Liberacao;
 
 namespace WebZi.Plataform.API.Controllers;
@@ -71,6 +74,32 @@ public class LeilaoController : ControllerBase
         {
             ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(e);
             return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+        }
+    }
+
+
+    [HttpPatch("IngressarLote")]
+    public async Task<ActionResult<MensagemDTO>> IngressarLote(IngressarLoteParameters parameters, CancellationToken ct)
+    {
+
+
+        MensagemDTO ResultView = new();
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ResultView);
+        }
+
+
+        var userId = User.GetUserId();
+        try
+        {
+            ResultView = await _provider.GetService<LeilaoService>().ChangeStatusPreLeilaoAsync(parameters, userId!.Value, ct);
+            return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+        }
+        catch (Exception e)
+        {
+            ResultView = MensagemViewHelper.SetInternalServerError(e);
+            return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
         }
     }
 }

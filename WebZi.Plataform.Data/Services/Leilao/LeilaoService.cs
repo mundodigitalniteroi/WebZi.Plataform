@@ -7,8 +7,10 @@ using WebZi.Plataform.Domain.DTO.Leilao;
 using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.Models.GRV;
 using WebZi.Plataform.Domain.Models.Leilao;
+using WebZi.Plataform.Domain.ViewModel.Leilao;
 using WebZi.Plataform.Domain.ViewModel.Liberacao;
 using WebZi.Plataform.Domain.Views.Veiculos;
+using Z.EntityFramework.Plus;
 
 namespace WebZi.Plataform.Data.Services.Leilao
 {
@@ -21,6 +23,90 @@ namespace WebZi.Plataform.Data.Services.Leilao
             _context = context;
         }
 
+
+        public async Task<MensagemDTO> ChangeStatusPreLeilaoAsync(IngressarLoteParameters parameters, int IdentificadorUsuario, CancellationToken ct)
+        {
+            MensagemDTO ResultView = new();
+            if (parameters.NumerosDeProcesso == null || parameters.NumerosDeProcesso.Count == 0)
+            {
+                return MensagemViewHelper.SetBadRequest("Nenhum número de processo informado.");
+            }
+
+            var result = await _context.Grv
+                .Select(x => new
+                {
+                    x.GrvId,
+                    x.NumeroFormularioGrv,
+                    x.UsuarioAlteracaoId,
+                    x.DataAlteracao,
+                    x.StatusOperacaoId
+                })
+                .Where(x => parameters.NumerosDeProcesso.Contains(x.NumeroFormularioGrv))
+                .ToListAsync(ct);
+            var processosNaoEncontrados = parameters.NumerosDeProcesso
+                .Where(p => !result.Select(x => x.NumeroFormularioGrv).Contains(p))
+                .ToList();
+
+            var processosJaEmPreLeilao = parameters.NumerosDeProcesso
+                .Where(p => result.Any(x => x.NumeroFormularioGrv.Equals(p) && x.StatusOperacaoId.Equals("1")))
+                .ToList();
+
+            var processosStatusIncorretos = parameters.NumerosDeProcesso
+                .Where(p => result.Any(x => x.NumeroFormularioGrv.Equals(p) && !x.StatusOperacaoId.Equals("V")))
+                .ToList();
+
+
+            if (processosNaoEncontrados.Count > 0)
+            {
+                return MensagemViewHelper.SetBadRequest(
+                    $"Os seguintes processos não foram encontrados: {string.Join(", ", processosNaoEncontrados)}"
+                );
+            }
+
+            if (processosJaEmPreLeilao.Count > 0)
+            {
+                return MensagemViewHelper.SetBadRequest(
+                    $"Os seguintes processos já estão em pré-leilão: {string.Join(", ", processosJaEmPreLeilao)}"
+                );
+            }
+
+            if (processosStatusIncorretos.Count > 0)
+            {
+                return MensagemViewHelper.SetBadRequest(
+                    $"Os seguintes processos não estão no status necessario para inserção ao pré leilão: {string.Join(", ", processosStatusIncorretos)}"
+                );
+            }
+
+            try
+            {
+                if (result.Count is 1)
+                {
+                    await _context.Grv
+                        .Where(x => x.GrvId == result[0].GrvId)
+                        .ExecuteUpdateAsync(setters => setters
+                            .SetProperty(o => o.StatusOperacaoId, "1")
+                            .SetProperty(o => o.UsuarioAlteracaoId, IdentificadorUsuario)
+                            .SetProperty(o => o.DataAlteracao, DateTime.Now)
+                            , ct);
+                    return MensagemViewHelper.SetUpdateSuccess("Lote inserido em Pré Leilão! ");
+                }
+
+                await _context.Grv
+                    .Where(x => result.Select(x => x.GrvId).Contains(x.GrvId))
+                    .ExecuteUpdateAsync(setters => setters
+                        .SetProperty(o => o.StatusOperacaoId, "1")
+                        .SetProperty(o => o.UsuarioAlteracaoId, IdentificadorUsuario)
+                        .SetProperty(o => o.DataAlteracao, DateTime.Now)
+                        , ct);
+                return MensagemViewHelper.SetUpdateSuccess("Lote(s) inserido(s) em Pré Leilão!");
+            }
+            catch (Exception ex)
+            {
+                ResultView = MensagemViewHelper.SetBadRequest(ex.Message);
+                return ResultView;
+            }
+
+        }
         public async Task<PreLeilaoListDTO> ListPreLeiloesAsync(ProcessosPreLeilaoParameters parameters)
         {
             var resultView = new PreLeilaoListDTO();
