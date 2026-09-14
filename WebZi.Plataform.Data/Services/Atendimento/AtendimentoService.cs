@@ -456,7 +456,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 ResultView.AvisosImpeditivos.Add(
                     $"Forma de Pagamento inexistente: {AtendimentoCadastro.IdentificadorTipoMeioCobranca}");
             }
-            else if (TipoMeioCobranca.Alias == TipoMeioCobrancaAliasEnum.PixEstatico &&
+            else if (TipoMeioCobranca.Alias.Equals(TipoMeioCobrancaAliasEnum.PixEstatico) &&
                      Grv.Cliente.FlagPossuiPixEstatico == "N")
             {
                 ResultView.AvisosImpeditivos.Add(
