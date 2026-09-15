@@ -195,7 +195,7 @@ namespace WebZi.Plataform.Data.Services
                     from => from.MapFrom(src => src.FlagPossuiVidroEletrico))
                 .ForMember(dest => dest.FlagPossuiTravaEletrica,
                     from => from.MapFrom(src => src.FlagPossuiTravaEletrica))
-                .ForMember(dest => dest.MatriculaVistoriador, from => from.MapFrom(src => src.MatriculaVistoriador))
+                //.ForMember(dest => dest.MatriculaVistoriador, from => from.MapFrom(src => src.MatriculaVistoriador))
                 .ForMember(dest => dest.Url, opt => opt.Ignore())
                 .ForMember(dest => dest.Mensagem, opt => opt.Ignore());
 
