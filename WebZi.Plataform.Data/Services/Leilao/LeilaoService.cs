@@ -1,14 +1,29 @@
 using Microsoft.EntityFrameworkCore;
 using System.Globalization;
+using WebZi.Plataform.CrossCutting.Configuration;
+using WebZi.Plataform.CrossCutting.Date;
+using WebZi.Plataform.CrossCutting.Documents;
+using WebZi.Plataform.CrossCutting.Secutity;
+using WebZi.Plataform.CrossCutting.Strings;
+using WebZi.Plataform.CrossCutting.Veiculo;
+using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
+using WebZi.Plataform.Data.Services.Cliente;
 using WebZi.Plataform.Data.Services.Deposito;
+using WebZi.Plataform.Data.Services.Faturamento;
+using WebZi.Plataform.Data.Services.Report;
+using WebZi.Plataform.Domain.DTO.Generic;
 using WebZi.Plataform.Domain.DTO.Leilao;
+using WebZi.Plataform.Domain.DTO.Report;
 using WebZi.Plataform.Domain.DTO.Sistema;
+using WebZi.Plataform.Domain.Models.Arrematantes;
 using WebZi.Plataform.Domain.Models.GRV;
 using WebZi.Plataform.Domain.Models.Leilao;
+using WebZi.Plataform.Domain.Services.GRV;
 using WebZi.Plataform.Domain.ViewModel.Leilao;
 using WebZi.Plataform.Domain.ViewModel.Liberacao;
+using WebZi.Plataform.Domain.Views.Usuario;
 using WebZi.Plataform.Domain.Views.Veiculos;
 using Z.EntityFramework.Plus;
 
@@ -21,6 +36,199 @@ namespace WebZi.Plataform.Data.Services.Leilao
         public LeilaoService(AppDbContext context)
         {
             _context = context;
+        }
+
+
+        public async Task<MensagemDTO> CadastrarArrematante(CadastrarArrematanteParameters parameters, CancellationToken ct)
+        {
+            MensagemDTO ResultView = new();
+
+
+            GrvModel Grv = await _context.Grv
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.GrvId == parameters.IdentificadorProcesso, ct);
+
+            if (parameters.IdentificadorProcesso >= 0 && Grv is null)
+            {
+                ResultView = MensagemViewHelper.SetBadRequest("Processo não encontrado.");
+                return ResultView;
+            }
+
+            ArrematantesModel arrematante = new ArrematantesModel
+            {
+                GrvId = parameters.IdentificadorProcesso,
+                NumeroProcesso = Grv.NumeroFormularioGrv,
+                Nome = parameters.Nome,
+                CpfCnpj = parameters.CpfCnpj,
+                TelefoneFixo = parameters.TelefoneFixo,
+                TelefoneCelular = parameters.TelefoneCelular,
+                Email = parameters.Email,
+                Logradouro = parameters.Logradouro,
+                Numero = parameters.Numero,
+                Complemento = parameters.Complemento,
+                Bairro = parameters.Bairro,
+                Cidade = parameters.Cidade,
+                Estado = parameters.Estado,
+                Cep = parameters.Cep,
+                NomeLeilao = parameters.NomeLeilao,
+                NumeroLote = parameters.NumeroLote,
+                ValorArrematacao = parameters.ValorArrematacao,
+                ValorTaxaAdministrativa = parameters.ValorTaxaAdministrativa,
+                ValorOutrasTaxas = parameters.ValorOutrasTaxas,
+                ValorComissao = parameters.ValorComissao,
+                ValorTotal = parameters.ValorTotal,
+                DataLeilao = parameters.DataLeilao,
+                DataCadastro = DateTime.Now
+            };
+
+
+            try
+            {
+
+                await _context.Arrematantes.AddAsync(arrematante, ct);
+
+                await _context.SaveChangesAsync(ct);
+
+                return MensagemViewHelper.SetCreateSuccess("Arrematante cadastrado com sucesso.");
+            }
+            catch (Exception ex)
+            {
+                ResultView = MensagemViewHelper.SetBadRequest(ex.Message);
+                return ResultView;
+            }
+        }
+
+
+        public async Task<GuiaDeclaracaoRetiradaLeilaoDTO> CreateDeclaracaoRetirada(int GrvId, int UsuarioId, CancellationToken ct)
+        {
+            GuiaDeclaracaoRetiradaLeilaoDTO ResultView = new()
+            {
+                Mensagem = new GrvService(_context)
+                    .ValidateInputGrv(GrvId, UsuarioId)
+            };
+
+            if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+            {
+                return ResultView;
+            }
+
+            GrvModel Grv = await _context.Grv
+                .Include(x => x.TipoVeiculo)
+                .Include(x => x.StatusOperacao)
+                .Include(x => x.Cliente)
+                .ThenInclude(x => x.Endereco)
+                .Include(x => x.Deposito)
+                .Include(x => x.Cor)
+                .Include(x => x.MarcaModelo)
+                .Include(x => x.Atendimento)
+                .Include(x => x.Liberacao)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.GrvId == GrvId, cancellationToken: ct);
+
+            if (Grv.StatusOperacaoId is not not "7")
+            {
+                ResultView.Mensagem = MensagemViewHelper
+                    .SetBadRequest(
+                        $"O Status atual deste Processo não permite a geração do Documento. Status atual: {Grv.StatusOperacao?.Descricao}");
+
+                return ResultView;
+            }
+            else if (Grv.StatusOperacaoId == "E")
+            {
+                if (Grv.Liberacao?.DataCadastro != null && DateTime.Now.Date > Grv.Liberacao.DataCadastro.Date)
+                {
+                    ResultView.Mensagem.Alertas
+                        .Add(
+                            $"Este Processo foi entregue em {Grv.Liberacao.DataCadastro:dd/MM/yyyy}, as informações impressas no Documento estão desatualizadas");
+                }
+            }
+
+            int? FaturamentoId = await new FaturamentoService(_context).GetUltimoFaturamentoIdAsync(GrvId);
+
+            ResultView.IdentificadorProcesso = Grv.GrvId;
+
+            ResultView.NumeroProcesso = Grv.NumeroFormularioGrv;
+
+            ResultView.ClienteNome = Grv?.Cliente.Nome ?? "";
+
+            //ResultView.ClienteEndereco = Grv.Cliente.Endereco ?? "";
+
+
+            //string depositoNome = GuiaPagamentoReboqueEstadia?.DepositoNome ?? Grv.Deposito?.Nome ?? "";
+            //string numFormulario = GuiaPagamentoReboqueEstadia?.NumeroFormularioGrv ?? Grv.NumeroFormularioGrv ?? "";
+
+            //ResultView.NumeroProcesso = $"Registro: {numFormulario}";
+
+
+
+            //string respNome = GuiaPagamentoReboqueEstadia?.AtendimentoResponsavelNome ?? Grv.Atendimento?.ResponsavelNome ?? "Não informado";
+            //string respDoc = GuiaPagamentoReboqueEstadia?.AtendimentoResponsavelDocumento ?? Grv.Atendimento?.ResponsavelDocumento ?? "Não informado";
+
+
+            //string depositoEndereco = GuiaPagamentoReboqueEstadia?.DepositoEndereco ?? "";
+
+            //ResultView.Titulo = "DECLARAÇÃO DE RETIRADA DE VEÍCULO ARREMATADO";
+
+            //ResultView.TextoDeclaracaoRetirada1 =
+            //                                    $"Eu {respNome}, portador(a) do CPF {respDoc}, declaro que às {DateTime.Now:HH:mm} do dia \n" +
+            //                                    "31 DE JULHO DE 2026 retirei do Depósito SAO GONCALO o veículo, conforme descrito abaixo, referente \n" +
+            //                                    "ao Lote nº 30, do Leilão realizado no dia 23/06/2026. ";
+
+            //ResultView.VeiculoMarcaModelo = GuiaPagamentoReboqueEstadia?.MarcaModelo ?? Grv.MarcaModelo?.MarcaModelo ?? "";
+
+            //ResultView.VeiculoPlaca = VeiculoHelper.FormatPlaca(GuiaPagamentoReboqueEstadia?.Placa ?? Grv.Placa ?? "");
+
+            //ResultView.VeiculoRenavam = GuiaPagamentoReboqueEstadia?.Renavam ?? Grv.Renavam ?? "";
+
+            //ResultView.VeiculoChassi = GuiaPagamentoReboqueEstadia?.Chassi ?? Grv.Chassi ?? "";
+
+            //ResultView.VeiculoCor = GuiaPagamentoReboqueEstadia?.Cor ?? "";
+
+            //ResultView.TextoDeclaracaoRetirada2 =
+            //    $@"Eu {respNome}, portador do CPF {respDoc}, declaro que no dia {DateTime.Now.ToString("dd 'de' MMMM 'de' yyyy", CultureInfo.GetCultureInfo("pt-BR"))}, " +
+            //    $"recebi do depósito {depositoNome} o veículo de placa {veicPlacaFormatada}, Marca/Modelo {veicMarcaModeloStr}, Cor {veicCorStr}, recolhido às {dataHoraGuardaStr.Right(5)} do dia {dataHoraGuardaStr.Left(10)}, " +
+            //    $"no endereco {depositoEndereco}";
+
+            //ResultView.TextoDeclaracaoRetirada3 =
+            //    $@"Declaro também que o veículo se encontrava nas mesmas condições, quando foi removido e ainda lacrado, " +
+            //    "conforme numeração abaixo descrita, sendo estes lacres conferidos na minha presença, nada havendo para reclamar agora ou no futuro.";
+
+            //ResultView.ProprietarioProcurador = respNome;
+
+            //ResultView.ProprietarioCpf = respDoc;
+
+            //string estSetor = GuiaPagamentoReboqueEstadia?.EstacionamentoSetor ?? Grv.EstacionamentoSetor;
+            //string estVaga = GuiaPagamentoReboqueEstadia?.EstacionamentoNumeroVaga ?? Grv.EstacionamentoNumeroVaga;
+            //string numChave = GuiaPagamentoReboqueEstadia?.NumeroChave ?? Grv.NumeroChave;
+
+            //ResultView.GrvEstacionamentoSetor = !string.IsNullOrWhiteSpace(estSetor)
+            //    ? estSetor
+            //    : "Não informado";
+
+            //ResultView.GrvEstacionamentoNumeroVaga = !string.IsNullOrWhiteSpace(estVaga)
+            //    ? estVaga
+            //    : "Não informado";
+
+            //ResultView.GrvNumeroChave = !string.IsNullOrWhiteSpace(numChave)
+            //    ? numChave
+            //    : "Não informado";
+
+            ViewUsuarioModel Usuario = await _context.ViewUsuario
+                .FirstOrDefaultAsync(x => x.UsuarioId == UsuarioId);
+
+            if (Usuario != null)
+            {
+                ResultView.UsuarioNome = Usuario.NomeCompleto;
+                ResultView.UsuarioMatricula = Usuario.Matricula;
+            }
+
+
+
+
+
+            ResultView.Mensagem = MensagemViewHelper.SetOk(ResultView.Mensagem, "Documento gerado com sucesso");
+
+            return ResultView;
         }
 
 

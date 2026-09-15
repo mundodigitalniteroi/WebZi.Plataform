@@ -9,6 +9,7 @@ using WebZi.Plataform.Data.Services.Usuario;
 using WebZi.Plataform.Data.Services.Vistorias;
 using WebZi.Plataform.Domain.DTO.Leilao;
 using WebZi.Plataform.Domain.DTO.Leilao.Vistoria;
+using WebZi.Plataform.Domain.DTO.Report;
 using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.ViewModel.Leilao;
 using WebZi.Plataform.Domain.ViewModel.Liberacao;
@@ -100,6 +101,37 @@ public class LeilaoController : ControllerBase
         {
             ResultView = MensagemViewHelper.SetInternalServerError(e);
             return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+        }
+    }
+
+
+    [HttpPost]
+    public async Task<ActionResult<MensagemDTO>> Leiloado()
+    {
+        MensagemDTO ResultView = new();
+
+        return ResultView;
+    }
+
+    public async Task<ActionResult<GuiaDeclaracaoRetiradaLeilaoDTO>> DeclaracaoRetiradaVeiculoLeiloado(int identificadorProcesso, CancellationToken ct)
+    {
+        GuiaDeclaracaoRetiradaLeilaoDTO ResultView = new();
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ResultView);
+        }
+
+
+        var userId = User.GetUserId();
+        try
+        {
+            ResultView = await _provider.GetService<LeilaoService>().CreateDeclaracaoRetirada(identificadorProcesso, userId!.Value, ct);
+            return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+        }
+        catch (Exception e)
+        {
+            ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(e);
+            return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
         }
     }
 }
