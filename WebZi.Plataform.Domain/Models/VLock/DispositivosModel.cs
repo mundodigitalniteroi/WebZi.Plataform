@@ -12,10 +12,10 @@ public class DispositivosModel
     public string Modelo { get; set; }
 
     public string NotaFiscal { get; set; }
-    public int? ClienteId { get; set; }
-    public int? AutoridadeId { get; set; }
-    public int? AgenteId { get; set; }
-    public int? ParceiroId { get; set; }
+    //public int? ClienteId { get; set; }
+    //public int? AutoridadeId { get; set; }
+    //public int? AgenteId { get; set; }
+    //public int? ParceiroId { get; set; }
 
     public StatusDispositivoModel StatusDispositivo { get; set; }
 }

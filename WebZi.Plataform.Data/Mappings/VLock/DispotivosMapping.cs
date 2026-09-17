@@ -4,7 +4,7 @@ using WebZi.Plataform.Domain.Models.VLock;
 
 namespace WebZi.Plataform.Data.Mappings.VLock;
 
-public class DispotiivoMapping : IEntityTypeConfiguration<DispositivosModel>
+public class DispotivosMapping : IEntityTypeConfiguration<DispositivosModel>
 {
     public void Configure(EntityTypeBuilder<DispositivosModel> builder)
     {
@@ -48,17 +48,17 @@ public class DispotiivoMapping : IEntityTypeConfiguration<DispositivosModel>
             .HasMaxLength(50)
             .IsUnicode(false);
 
-        builder.Property(x => x.ClienteId)
-            .HasColumnName("id_cliente");
+        //builder.Property(x => x.ClienteId)
+        //    .HasColumnName("id_cliente");
 
-        builder.Property(x => x.AutoridadeId)
-            .HasColumnName("id_autoridade");
+        //builder.Property(x => x.AutoridadeId)
+        //    .HasColumnName("id_autoridade");
 
-        builder.Property(x => x.AgenteId)
-            .HasColumnName("id_agente");
+        //builder.Property(x => x.AgenteId)
+        //    .HasColumnName("id_agente");
 
-        builder.Property(x => x.ParceiroId)
-            .HasColumnName("id_parceiro");
+        //builder.Property(x => x.ParceiroId)
+        //    .HasColumnName("id_parceiro");
         builder.HasOne(x => x.StatusDispositivo)
             .WithMany()
             .HasForeignKey(x => x.StatusId);

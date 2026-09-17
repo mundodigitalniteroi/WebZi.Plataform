@@ -32,5 +32,5 @@ public class SelecionarVistoriaPreLeilaoDTO
     public string FlagPossuiPlaca { get; set; } = "N";
     public string FlagPossuiVidroEletrico { get; set; } = "N";
     public string FlagPossuiTravaEletrica { get; set; } = "N";
-    public string MatriculaVistoriador { get; set; }
+    //public string MatriculaVistoriador { get; set; }
 }

@@ -21,7 +21,6 @@ using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.DTO.Veiculo;
 using WebZi.Plataform.Domain.DTO.Vistoria;
 using WebZi.Plataform.Data.Services.ClienteDeposito;
-using WebZi.Plataform.Data.Services;
 using WebZi.Plataform.Data.Services.AutoridadeDivisoes;
 using WebZi.Plataform.Data.Services.GRV;
 using WebZi.Plataform.Data.Services.Liberacao;
