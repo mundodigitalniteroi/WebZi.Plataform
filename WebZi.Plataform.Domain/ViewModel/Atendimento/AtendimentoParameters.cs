@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using WebZi.Plataform.Domain.ViewModel.Leilao;
 
 namespace WebZi.Plataform.Domain.ViewModel.Atendimento
 {
@@ -100,5 +101,45 @@ namespace WebZi.Plataform.Domain.ViewModel.Atendimento
         public string FlagPermissaoDataRetroativaFaturamento { get; set; } = "N";
 
         public DateTime? DataRetroativa { get; set; }
+    }
+
+    public class AtendimentoLeilaoParameters
+    {
+        [Required(ErrorMessage = "Propriedade obrigatória")]
+        public int IdentificadorProcesso { get; set; }
+
+        [Required(ErrorMessage = "Propriedade obrigatória")]
+        public byte IdentificadorQualificacaoResponsavel { get; set; }
+
+        [Required(ErrorMessage = "Propriedade obrigatória")]
+        public int IdentificadorUsuario { get; set; }
+
+        public string ResponsavelNome { get; set; }
+
+        public string ResponsavelDocumento { get; set; }
+
+        public string ResponsavelCNH { get; set; }
+
+        public string ResponsavelEndereco { get; set; }
+
+        public string ResponsavelNumero { get; set; }
+
+        public string ResponsavelComplemento { get; set; }
+
+        public string ResponsavelBairro { get; set; }
+
+        public string ResponsavelMunicipio { get; set; }
+
+        public string ResponsavelUF { get; set; }
+
+        public string ResponsavelCEP { get; set; }
+
+        public string ResponsavelDDD { get; set; }
+
+        public string ResponsavelTelefone { get; set; }
+
+        public string ProprietarioNome { get; set; }
+
+        public AtualizarArrematanteParameters? Arrematante { get; set; }
     }
 }

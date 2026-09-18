@@ -2,8 +2,11 @@ using System.ComponentModel.DataAnnotations;
 
 namespace WebZi.Plataform.Domain.ViewModel.Leilao;
 
-public class CadastrarArrematanteParameters
+public class AtualizarArrematanteParameters
 {
+    [Required(ErrorMessage = "O identificador do arrematante é obrigatório.")]
+    public int IdentificadorArrematante { get; set; }
+
     public int? IdentificadorProcesso { get; set; }
 
     [StringLength(255, ErrorMessage = "O campo {0} deve conter no máximo {1} caracteres.")]

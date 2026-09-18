@@ -29,6 +29,7 @@ using WebZi.Plataform.Domain.DTO.Faturamento.Cadastro;
 using WebZi.Plataform.Domain.DTO.Generic;
 using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.Enums;
+using WebZi.Plataform.Domain.Models.Arrematantes;
 using WebZi.Plataform.Domain.Models.Atendimento;
 using WebZi.Plataform.Domain.Models.Banco;
 using WebZi.Plataform.Domain.Models.Bucket;
@@ -43,6 +44,7 @@ using WebZi.Plataform.Domain.Models.WebServices.Boleto;
 using WebZi.Plataform.Domain.Options;
 using WebZi.Plataform.Domain.Services.GRV;
 using WebZi.Plataform.Domain.ViewModel.Atendimento;
+using WebZi.Plataform.Domain.ViewModel.Leilao;
 using WebZi.Plataform.Domain.ViewModel.Pagamento;
 using Z.EntityFramework.Plus;
 
@@ -1148,6 +1150,217 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             return ResultView;
         }
+
+
+        public async Task<AtendimentoCadastroDTO> CreateAtendimentoLeilaoAsync(AtendimentoLeilaoParameters AtendimentoInput, CancellationToken ct)
+        {
+            #region Consultas
+
+            GrvModel Grv = await _context.Grv
+                .Include(x => x.Cliente)
+                .Include(x => x.Deposito)
+                .Where(x => x.GrvId == AtendimentoInput.IdentificadorProcesso)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(cancellationToken: ct);
+
+            //var permitirEmissao = await _context.FaturamentoRegra
+            //    .AnyAsync(x =>
+            //        x.ClienteId == Grv.ClienteId && x.DepositoId == Grv.DepositoId &&
+            //        x.FaturamentoRegraTipoId == 11, cancellationToken: ct);
+
+            #endregion Consultas
+
+            #region Dados do Atendimento
+
+            AtendimentoModel Atendimento = new()
+            {
+                GrvId = AtendimentoInput.IdentificadorProcesso,
+
+                QualificacaoResponsavelId = AtendimentoInput.IdentificadorQualificacaoResponsavel,
+
+                UsuarioCadastroId = AtendimentoInput.IdentificadorUsuario,
+
+                DataCadastro = DateTime.Now,
+
+                ResponsavelNome = AtendimentoInput.ResponsavelNome.ToUpperTrim(),
+
+                ResponsavelDocumento = AtendimentoInput.ResponsavelDocumento?.Replace(".", "").Replace("/", "")
+                    .Replace("-", ""),
+
+                ResponsavelCnh = AtendimentoInput.ResponsavelCNH,
+
+                ResponsavelEndereco = AtendimentoInput.ResponsavelEndereco.ToUpperTrim(),
+
+                ResponsavelNumero = AtendimentoInput.ResponsavelNumero.ToUpperTrim(),
+
+                ResponsavelComplemento = AtendimentoInput.ResponsavelComplemento.ToUpperTrim(),
+
+                ResponsavelBairro = AtendimentoInput.ResponsavelBairro.ToUpperTrim(),
+
+                ResponsavelMunicipio = AtendimentoInput.ResponsavelMunicipio.ToUpperTrim(),
+
+                ResponsavelUF = AtendimentoInput.ResponsavelUF.ToUpperTrim(),
+
+                ResponsavelCEP = AtendimentoInput.ResponsavelCEP?.Replace("-", ""),
+
+                ResponsavelDDD = AtendimentoInput.ResponsavelDDD,
+
+                ResponsavelTelefone = AtendimentoInput.ResponsavelTelefone?.Replace("-", ""),
+
+                FormaLiberacao = null,
+                FormaLiberacaoCNH = null,
+                FormaLiberacaoCPF = null,
+                FormaLiberacaoNome = null,
+                FormaLiberacaoPlaca = null
+            };
+
+            #endregion Dados do Atendimento
+
+            AtendimentoCadastroDTO ResultView = new();
+
+            await using (var transaction = await _context.Database.BeginTransactionAsync(ct))
+            {
+                try
+                {
+                    _context.Atendimento.Add(Atendimento);
+
+                    GrvModel grv = await _context.Grv
+                        .AsTracking()
+                        .FirstOrDefaultAsync(x => x.GrvId == AtendimentoInput.IdentificadorProcesso, ct);
+
+                    grv.StatusOperacaoId = "6";
+                    grv.DataAlteracao = DateTime.Now;
+                    grv.UsuarioAlteracaoId = AtendimentoInput.IdentificadorUsuario;
+
+                    _context.Grv.Update(grv);
+
+                    // Atualizar dados do arrematante vinculado ao processo
+                    var arrematante = await _context.Arrematantes
+                        .AsTracking()
+                        .FirstOrDefaultAsync(x =>
+                            (AtendimentoInput.Arrematante != null && AtendimentoInput.Arrematante.IdentificadorArrematante > 0 && x.ArrematanteId == AtendimentoInput.Arrematante.IdentificadorArrematante) ||
+                            x.GrvId == AtendimentoInput.IdentificadorProcesso, ct);
+
+                    if (arrematante != null)
+                    {
+                        if (AtendimentoInput.Arrematante != null)
+                        {
+                            if (!string.IsNullOrWhiteSpace(AtendimentoInput.Arrematante.Nome))
+                                arrematante.Nome = AtendimentoInput.Arrematante.Nome.ToUpperTrim();
+
+                            if (!string.IsNullOrWhiteSpace(AtendimentoInput.Arrematante.CpfCnpj))
+                                arrematante.CpfCnpj = AtendimentoInput.Arrematante.CpfCnpj.Replace(".", "").Replace("/", "").Replace("-", "");
+
+                            if (!string.IsNullOrWhiteSpace(AtendimentoInput.Arrematante.TelefoneCelular))
+                                arrematante.TelefoneCelular = AtendimentoInput.Arrematante.TelefoneCelular.Replace("-", "").Replace("(", "").Replace(")", "").Replace(" ", "");
+
+                            if (!string.IsNullOrWhiteSpace(AtendimentoInput.Arrematante.Email))
+                                arrematante.Email = AtendimentoInput.Arrematante.Email.ToUpperTrim();
+
+                            if (!string.IsNullOrWhiteSpace(AtendimentoInput.Arrematante.Logradouro))
+                                arrematante.Logradouro = AtendimentoInput.Arrematante.Logradouro.ToUpperTrim();
+
+                            if (!string.IsNullOrWhiteSpace(AtendimentoInput.Arrematante.Numero))
+                                arrematante.Numero = AtendimentoInput.Arrematante.Numero.ToUpperTrim();
+
+                            if (AtendimentoInput.Arrematante.Complemento != null)
+                                arrematante.Complemento = AtendimentoInput.Arrematante.Complemento.ToUpperTrim();
+
+                            if (!string.IsNullOrWhiteSpace(AtendimentoInput.Arrematante.Bairro))
+                                arrematante.Bairro = AtendimentoInput.Arrematante.Bairro.ToUpperTrim();
+
+                            if (!string.IsNullOrWhiteSpace(AtendimentoInput.Arrematante.Cidade))
+                                arrematante.Cidade = AtendimentoInput.Arrematante.Cidade.ToUpperTrim();
+
+                            if (!string.IsNullOrWhiteSpace(AtendimentoInput.Arrematante.Estado))
+                                arrematante.Estado = AtendimentoInput.Arrematante.Estado.ToUpperTrim();
+
+                            if (!string.IsNullOrWhiteSpace(AtendimentoInput.Arrematante.Cep))
+                                arrematante.Cep = AtendimentoInput.Arrematante.Cep.Replace("-", "");
+
+                            if (!string.IsNullOrWhiteSpace(AtendimentoInput.Arrematante.NomeLeilao))
+                                arrematante.NomeLeilao = AtendimentoInput.Arrematante.NomeLeilao.ToUpperTrim();
+
+                            if (!string.IsNullOrWhiteSpace(AtendimentoInput.Arrematante.NumeroLote))
+                                arrematante.NumeroLote = AtendimentoInput.Arrematante.NumeroLote.ToUpperTrim();
+
+                            if (!string.IsNullOrWhiteSpace(AtendimentoInput.Arrematante.ValorArrematacao))
+                                arrematante.ValorArrematacao = AtendimentoInput.Arrematante.ValorArrematacao;
+
+                            if (!string.IsNullOrWhiteSpace(AtendimentoInput.Arrematante.ValorTaxaAdministrativa))
+                                arrematante.ValorTaxaAdministrativa = AtendimentoInput.Arrematante.ValorTaxaAdministrativa;
+
+                            if (!string.IsNullOrWhiteSpace(AtendimentoInput.Arrematante.ValorOutrasTaxas))
+                                arrematante.ValorOutrasTaxas = AtendimentoInput.Arrematante.ValorOutrasTaxas;
+
+                            if (!string.IsNullOrWhiteSpace(AtendimentoInput.Arrematante.ValorComissao))
+                                arrematante.ValorComissao = AtendimentoInput.Arrematante.ValorComissao;
+
+                            if (!string.IsNullOrWhiteSpace(AtendimentoInput.Arrematante.ValorTotal))
+                                arrematante.ValorTotal = AtendimentoInput.Arrematante.ValorTotal;
+
+                            if (AtendimentoInput.Arrematante.DataLeilao.HasValue)
+                                arrematante.DataLeilao = AtendimentoInput.Arrematante.DataLeilao;
+                        }
+                        else
+                        {
+                            if (!string.IsNullOrWhiteSpace(AtendimentoInput.ResponsavelNome))
+                                arrematante.Nome = AtendimentoInput.ResponsavelNome.ToUpperTrim();
+
+                            if (!string.IsNullOrWhiteSpace(AtendimentoInput.ResponsavelDocumento))
+                                arrematante.CpfCnpj = AtendimentoInput.ResponsavelDocumento.Replace(".", "").Replace("/", "").Replace("-", "");
+
+                            if (!string.IsNullOrWhiteSpace(AtendimentoInput.ResponsavelTelefone))
+                            {
+                                string ddd = AtendimentoInput.ResponsavelDDD ?? "";
+                                string tel = AtendimentoInput.ResponsavelTelefone.Replace("-", "").Replace("(", "").Replace(")", "").Replace(" ", "");
+                                arrematante.TelefoneCelular = $"{ddd}{tel}";
+                            }
+
+                            if (!string.IsNullOrWhiteSpace(AtendimentoInput.ResponsavelEndereco))
+                                arrematante.Logradouro = AtendimentoInput.ResponsavelEndereco.ToUpperTrim();
+
+                            if (!string.IsNullOrWhiteSpace(AtendimentoInput.ResponsavelNumero))
+                                arrematante.Numero = AtendimentoInput.ResponsavelNumero.ToUpperTrim();
+
+                            if (AtendimentoInput.ResponsavelComplemento != null)
+                                arrematante.Complemento = AtendimentoInput.ResponsavelComplemento.ToUpperTrim();
+
+                            if (!string.IsNullOrWhiteSpace(AtendimentoInput.ResponsavelBairro))
+                                arrematante.Bairro = AtendimentoInput.ResponsavelBairro.ToUpperTrim();
+
+                            if (!string.IsNullOrWhiteSpace(AtendimentoInput.ResponsavelMunicipio))
+                                arrematante.Cidade = AtendimentoInput.ResponsavelMunicipio.ToUpperTrim();
+
+                            if (!string.IsNullOrWhiteSpace(AtendimentoInput.ResponsavelUF))
+                                arrematante.Estado = AtendimentoInput.ResponsavelUF.ToUpperTrim();
+
+                            if (!string.IsNullOrWhiteSpace(AtendimentoInput.ResponsavelCEP))
+                                arrematante.Cep = AtendimentoInput.ResponsavelCEP.Replace("-", "");
+                        }
+
+                        _context.Arrematantes.Update(arrematante);
+                    }
+
+                    await _context.SaveChangesAsync(ct);
+                    await transaction.CommitAsync(ct);
+
+                    ResultView.IdentificadorAtendimento = Atendimento.AtendimentoId;
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync(ct);
+
+                    ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+
+                    return ResultView;
+                }
+            }
+            ResultView.Mensagem = MensagemViewHelper.SetCreateSuccess();
+
+            return ResultView;
+        }
+
 
         public async Task<MensagemDTO> UpdateAtendimentoAsync(
             AtualizarAtendimentoParameters AtendimentoInput, CancellationToken ct)

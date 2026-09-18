@@ -105,14 +105,110 @@ public class LeilaoController : ControllerBase
     }
 
 
-    [HttpPost]
-    public async Task<ActionResult<MensagemDTO>> Leiloado()
+    [HttpPost("CadastrarArrematante")]
+    public async Task<ActionResult<MensagemDTO>> CadastrarArrematante(CadastrarArrematanteParameters parameters, CancellationToken ct)
     {
         MensagemDTO ResultView = new();
-
-        return ResultView;
+        try
+        {
+            ResultView = await _provider.GetService<LeilaoService>().CadastrarArrematanteAsync(parameters, ct);
+            return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+        }
+        catch (Exception e)
+        {
+            ResultView = MensagemViewHelper.SetInternalServerError(e);
+            return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+        }
     }
 
+    [HttpPut("AtualizarArrematante")]
+    public async Task<ActionResult<MensagemDTO>> AtualizarArrematante(AtualizarArrematanteParameters parameters, CancellationToken ct)
+    {
+        MensagemDTO ResultView = new();
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var userId = User.GetUserId();
+        try
+        {
+            ResultView = await _provider.GetService<LeilaoService>().AtualizarArrematanteAsync(parameters, userId, ct);
+            return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+        }
+        catch (Exception e)
+        {
+            ResultView = MensagemViewHelper.SetInternalServerError(e);
+            return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+        }
+    }
+
+    [HttpDelete("DesvincularArrematante/{identificadorArrematante}")]
+    public async Task<ActionResult<MensagemDTO>> DesvincularArrematante(int identificadorArrematante, CancellationToken ct)
+    {
+        MensagemDTO ResultView = new();
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var userId = User.GetUserId();
+        try
+        {
+            ResultView = await _provider.GetService<LeilaoService>().DesvincularArrematanteAsync(identificadorArrematante, userId, ct);
+            return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+        }
+        catch (Exception e)
+        {
+            ResultView = MensagemViewHelper.SetInternalServerError(e);
+            return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+        }
+    }
+
+    [HttpPatch("DesvincularGrvDoLeilao/{identificadorProcesso}")]
+    public async Task<ActionResult<MensagemDTO>> DesvincularGrvDoLeilao(int identificadorProcesso, CancellationToken ct)
+    {
+        MensagemDTO ResultView = new();
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var userId = User.GetUserId();
+        try
+        {
+            ResultView = await _provider.GetService<LeilaoService>().DesvincularGrvDoLeilaoAsync(identificadorProcesso, userId, ct);
+            return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+        }
+        catch (Exception e)
+        {
+            ResultView = MensagemViewHelper.SetInternalServerError(e);
+            return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+        }
+    }
+
+    [HttpGet("SelecionarArrematantePorProcesso")]
+    public async Task<ActionResult<SelecionarArrematanteDTO>> SelecionarArrematantePorProcesso(int identificadorProcesso, CancellationToken ct)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        SelecionarArrematanteDTO ResultView = new();
+        try
+        {
+            ResultView = await _provider.GetService<LeilaoService>().SelecionarArrematantePorProcessoAsync(identificadorProcesso, ct);
+            return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+        }
+        catch (Exception e)
+        {
+            ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(e);
+            return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+        }
+    }
+
+    [HttpGet("DeclaracaoRetiradaVeiculoLeiloado")]
     public async Task<ActionResult<GuiaDeclaracaoRetiradaLeilaoDTO>> DeclaracaoRetiradaVeiculoLeiloado(int identificadorProcesso, CancellationToken ct)
     {
         GuiaDeclaracaoRetiradaLeilaoDTO ResultView = new();

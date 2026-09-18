@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using WebZi.Plataform.Domain.Models.GRV;
@@ -12,7 +13,6 @@ public class ArrematantesModel
     public string? NumeroProcesso { get; set; }
     public string? Nome { get; set; }
     public string? CpfCnpj { get; set; }
-    public string? TelefoneFixo { get; set; }
     public string? TelefoneCelular { get; set; }
     public string? Email { get; set; }
     public string? Logradouro { get; set; }

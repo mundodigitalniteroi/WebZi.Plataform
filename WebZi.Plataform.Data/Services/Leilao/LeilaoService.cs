@@ -39,13 +39,13 @@ namespace WebZi.Plataform.Data.Services.Leilao
         }
 
 
-        public async Task<MensagemDTO> CadastrarArrematante(CadastrarArrematanteParameters parameters, CancellationToken ct)
+        public async Task<MensagemDTO> CadastrarArrematanteAsync(CadastrarArrematanteParameters parameters, CancellationToken ct)
         {
             MensagemDTO ResultView = new();
 
-
             GrvModel Grv = await _context.Grv
-                .AsNoTracking()
+                .Include(x => x.StatusOperacao)
+                .AsTracking()
                 .FirstOrDefaultAsync(x => x.GrvId == parameters.IdentificadorProcesso, ct);
 
             if (parameters.IdentificadorProcesso >= 0 && Grv is null)
@@ -54,13 +54,22 @@ namespace WebZi.Plataform.Data.Services.Leilao
                 return ResultView;
             }
 
-            ArrematantesModel arrematante = new ArrematantesModel
+            if (Grv.StatusOperacaoId is not "1")
+            {
+                ResultView = MensagemViewHelper.SetBadRequest($"Grv não esta no status correto para cadastro de arrematante. {Grv.StatusOperacao.Descricao}");
+                return ResultView;
+            }
+            if (parameters.DataLeilao < Grv.DataHoraGuarda)
+            {
+                ResultView = MensagemViewHelper.SetBadRequest("A data do leilão não pode ser anterior à data de guarda do veículo.");
+                return ResultView;
+            }
+            ArrematantesModel arrematante = new()
             {
                 GrvId = parameters.IdentificadorProcesso,
                 NumeroProcesso = Grv.NumeroFormularioGrv,
                 Nome = parameters.Nome,
                 CpfCnpj = parameters.CpfCnpj,
-                TelefoneFixo = parameters.TelefoneFixo,
                 TelefoneCelular = parameters.TelefoneCelular,
                 Email = parameters.Email,
                 Logradouro = parameters.Logradouro,
@@ -80,12 +89,12 @@ namespace WebZi.Plataform.Data.Services.Leilao
                 DataLeilao = parameters.DataLeilao,
                 DataCadastro = DateTime.Now
             };
-
-
             try
             {
-
                 await _context.Arrematantes.AddAsync(arrematante, ct);
+
+                Grv.StatusOperacaoId = "3";
+                Grv.DataAlteracao = DateTime.Now;
 
                 await _context.SaveChangesAsync(ct);
 
@@ -96,6 +105,233 @@ namespace WebZi.Plataform.Data.Services.Leilao
                 ResultView = MensagemViewHelper.SetBadRequest(ex.Message);
                 return ResultView;
             }
+        }
+
+        public async Task<MensagemDTO> AtualizarArrematanteAsync(AtualizarArrematanteParameters parameters, int? usuarioId, CancellationToken ct)
+        {
+            var arrematante = await _context.Arrematantes
+                .Include(x => x.Grv)
+                .AsTracking()
+                .FirstOrDefaultAsync(x => x.ArrematanteId == parameters.IdentificadorArrematante, ct);
+
+            if (arrematante == null)
+            {
+                return MensagemViewHelper.SetNotFound("Arrematante não encontrado.");
+            }
+
+            arrematante.Nome = parameters.Nome;
+            arrematante.CpfCnpj = parameters.CpfCnpj;
+            arrematante.TelefoneCelular = parameters.TelefoneCelular;
+            arrematante.Email = parameters.Email;
+            arrematante.Logradouro = parameters.Logradouro;
+            arrematante.Numero = parameters.Numero;
+            arrematante.Complemento = parameters.Complemento;
+            arrematante.Bairro = parameters.Bairro;
+            arrematante.Cidade = parameters.Cidade;
+            arrematante.Estado = parameters.Estado;
+            arrematante.Cep = parameters.Cep;
+            arrematante.NomeLeilao = parameters.NomeLeilao;
+            arrematante.NumeroLote = parameters.NumeroLote;
+            arrematante.ValorArrematacao = parameters.ValorArrematacao;
+            arrematante.ValorTaxaAdministrativa = parameters.ValorTaxaAdministrativa;
+            arrematante.ValorOutrasTaxas = parameters.ValorOutrasTaxas;
+            arrematante.ValorComissao = parameters.ValorComissao;
+            arrematante.ValorTotal = parameters.ValorTotal;
+            arrematante.DataLeilao = parameters.DataLeilao;
+
+            try
+            {
+                await _context.SaveChangesAsync(ct);
+                return MensagemViewHelper.SetUpdateSuccess("Arrematante atualizado com sucesso.");
+            }
+            catch (Exception ex)
+            {
+                return MensagemViewHelper.SetBadRequest(ex.Message);
+            }
+        }
+
+        public async Task<MensagemDTO> DesvincularArrematanteAsync(int identificadorArrematante, int? usuarioId, CancellationToken ct)
+        {
+            var arrematante = await _context.Arrematantes
+                .Include(x => x.Grv)
+                .AsTracking()
+                .FirstOrDefaultAsync(x => x.ArrematanteId == identificadorArrematante, ct);
+
+            if (arrematante == null)
+            {
+                return MensagemViewHelper.SetNotFound("Arrematante não encontrado.");
+            }
+
+            if (arrematante.Grv != null)
+            {
+                if (arrematante.Grv.StatusOperacaoId == "3")
+                {
+                    arrematante.Grv.StatusOperacaoId = "1";
+                }
+                arrematante.Grv.UsuarioAlteracaoId = usuarioId;
+                arrematante.Grv.DataAlteracao = DateTime.Now;
+            }
+
+            _context.Arrematantes.Remove(arrematante);
+
+            try
+            {
+                await _context.SaveChangesAsync(ct);
+                return MensagemViewHelper.SetDeleteSuccess("Arrematante desvinculado e excluído com sucesso.");
+            }
+            catch (Exception ex)
+            {
+                return MensagemViewHelper.SetBadRequest(ex.Message);
+            }
+        }
+
+        public async Task<MensagemDTO> DesvincularGrvDoLeilaoAsync(int identificadorProcesso, int? usuarioId, CancellationToken ct)
+        {
+            var grv = await _context.Grv
+                .Include(x => x.StatusOperacao)
+                .AsTracking()
+                .FirstOrDefaultAsync(x => x.GrvId == identificadorProcesso, ct);
+
+            if (grv == null)
+            {
+                return MensagemViewHelper.SetNotFound("Processo não encontrado.");
+            }
+
+            var arrematante = await _context.Arrematantes
+                .FirstOrDefaultAsync(x => x.GrvId == identificadorProcesso, ct);
+
+            if (arrematante != null)
+            {
+                _context.Arrematantes.Remove(arrematante);
+            }
+
+            grv.StatusOperacaoId = "V";
+            grv.UsuarioAlteracaoId = usuarioId;
+            grv.DataAlteracao = DateTime.Now;
+
+            try
+            {
+                await _context.SaveChangesAsync(ct);
+                return MensagemViewHelper.SetUpdateSuccess("Processo desvinculado do leilão com sucesso.");
+            }
+            catch (Exception ex)
+            {
+                return MensagemViewHelper.SetBadRequest(ex.Message);
+            }
+        }
+
+        public async Task<SelecionarArrematanteDTO> SelecionarArrematantePorProcessoAsync(int identificadorProcesso, CancellationToken ct)
+        {
+            SelecionarArrematanteDTO resultView = new();
+
+            if (identificadorProcesso <= 0)
+            {
+                resultView.Mensagem = MensagemViewHelper.SetBadRequest("Identificador do processo inválido.");
+                return resultView;
+            }
+
+            var arrematante = await _context.Arrematantes
+                .Include(x => x.Grv)
+                .ThenInclude(x => x.Cor)
+                .Include(x => x.Grv)
+                .ThenInclude(x => x.MarcaModelo)
+                .Where(x => x.GrvId == identificadorProcesso)
+                .Select(x => new SelecionarArrematanteDTO
+                {
+                    Processo = new ArrematanteProcessoDTO
+                    {
+                        IdentificadorProcesso = x.GrvId,
+                        NumeroProcesso = x.NumeroProcesso,
+                        StatusOperacaoId = x.Grv.StatusOperacaoId,
+                        StatusOperacaoDescricao = x.Grv.StatusOperacao.Descricao
+                    },
+                    Veiculo = new ArrematanteVeiculoDTO
+                    {
+                        Placa = x.Grv.Placa,
+                        PlacaOstentada = x.Grv.PlacaOstentada,
+                        Chassi = x.Grv.Chassi,
+                        Renavam = x.Grv.Renavam,
+                        MarcaModelo = x.Grv.MarcaModelo.MarcaModelo,
+                        Cor = x.Grv.Cor.Cor,
+                        TipoVeiculo = x.Grv.TipoVeiculo.Descricao,
+                        VeiculoUF = x.Grv.VeiculoUF,
+                        DataHoraGuarda = x.Grv.DataHoraGuarda,
+                        ClienteNome = x.Grv.Cliente.Nome,
+                        DepositoNome = x.Grv.Deposito.Nome,
+                        DepositoEndereco = !string.IsNullOrEmpty(x.Grv.Deposito.EnderecoMob)
+                            ? x.Grv.Deposito.EnderecoMob
+                            : (x.Grv.Deposito.Logradouro + (string.IsNullOrEmpty(x.Grv.Deposito.NumeroEndereco) ? "" : ", " + x.Grv.Deposito.NumeroEndereco)),
+                        DepositoTelefone = x.Grv.Deposito.TelefoneMob
+                    },
+                    Arrematante = new ArrematanteDadosDTO
+                    {
+                        IdentificadorArrematante = x.ArrematanteId,
+                        Nome = x.Nome,
+                        CpfCnpj = x.CpfCnpj,
+                        TelefoneCelular = x.TelefoneCelular,
+                        Email = x.Email,
+                        Logradouro = x.Logradouro,
+                        Numero = x.Numero,
+                        Complemento = x.Complemento,
+                        Bairro = x.Bairro,
+                        Cidade = x.Cidade,
+                        Estado = x.Estado,
+                        Cep = x.Cep,
+                        DataCadastro = x.DataCadastro,
+                        Leilao = new ArrematanteLeilaoDTO
+                        {
+                            NomeLeilao = x.NomeLeilao,
+                            NumeroLote = x.NumeroLote,
+                            ValorArrematacao = x.ValorArrematacao,
+                            ValorTaxaAdministrativa = x.ValorTaxaAdministrativa,
+                            ValorOutrasTaxas = x.ValorOutrasTaxas,
+                            ValorComissao = x.ValorComissao,
+                            ValorTotal = x.ValorTotal,
+                            DataLeilao = x.DataLeilao
+                        }
+                    }
+                })
+                .FirstOrDefaultAsync(ct);
+
+            if (arrematante == null)
+            {
+                var grvExiste = await _context.Grv.AnyAsync(x => x.GrvId == identificadorProcesso, ct);
+                if (!grvExiste)
+                {
+                    resultView.Mensagem = MensagemViewHelper.SetNotFound("Processo não encontrado.");
+                    return resultView;
+                }
+
+                resultView.Mensagem = MensagemViewHelper.SetNotFound("Nenhum arrematante vinculado a este processo.");
+                return resultView;
+            }
+
+            var statusValidos = new[] { "3", "7", "6" };
+
+            if (string.IsNullOrEmpty(arrematante.Processo?.StatusOperacaoId) || !statusValidos.Contains(arrematante.Processo.StatusOperacaoId))
+            {
+                var statusDescricao = arrematante.Processo?.StatusOperacaoDescricao;
+                resultView.Mensagem = MensagemViewHelper.SetBadRequest($"O processo não está em status válido para consulta de arrematante (Status permitidos: 3, 6 ou 7). Status atual: {statusDescricao}");
+                return resultView;
+            }
+
+            if (arrematante.Veiculo != null)
+            {
+                var lote = await _context.LeilaoLote
+                    .Where(l => l.GrvId == identificadorProcesso)
+                    .OrderByDescending(l => l.LeilaoLoteId)
+                    .Select(l => new { l.AnoFabricacao, l.AnoModelo })
+                    .FirstOrDefaultAsync(ct);
+
+                if (lote != null)
+                {
+                    arrematante.Veiculo.AnoFabricacao = lote.AnoFabricacao;
+                    arrematante.Veiculo.AnoModelo = lote.AnoModelo;
+                }
+            }
+
+            arrematante.Mensagem = MensagemViewHelper.SetFound();
+            return arrematante;
         }
 
 
@@ -125,7 +361,7 @@ namespace WebZi.Plataform.Data.Services.Leilao
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.GrvId == GrvId, cancellationToken: ct);
 
-            if (Grv.StatusOperacaoId is not not "7")
+            if (Grv.StatusOperacaoId is not "6" and not "7")
             {
                 ResultView.Mensagem = MensagemViewHelper
                     .SetBadRequest(
@@ -234,86 +470,176 @@ namespace WebZi.Plataform.Data.Services.Leilao
 
         public async Task<MensagemDTO> ChangeStatusPreLeilaoAsync(IngressarLoteParameters parameters, int IdentificadorUsuario, CancellationToken ct)
         {
-            MensagemDTO ResultView = new();
-            if (parameters.NumerosDeProcesso == null || parameters.NumerosDeProcesso.Count == 0)
+            var temIds = parameters.IdentificadoresProcesso != null && parameters.IdentificadoresProcesso.Count > 0;
+            var temNumeros = parameters.NumerosDeProcesso != null && parameters.NumerosDeProcesso.Count > 0;
+
+            if (!temIds && !temNumeros)
             {
-                return MensagemViewHelper.SetBadRequest("Nenhum número de processo informado.");
+                return MensagemViewHelper.SetBadRequest("Nenhum processo informado. Forneça IdentificadoresProcesso ou NumerosDeProcesso.");
             }
 
-            var result = await _context.Grv
-                .Select(x => new
+            var targetGrvIds = new HashSet<int>();
+
+            // 1. Tratamento quando busca por IdentificadoresProcesso (ID do processo)
+            if (temIds)
+            {
+                var resultPorId = await _context.Grv
+                    .Select(x => new
+                    {
+                        x.GrvId,
+                        x.NumeroFormularioGrv,
+                        x.Placa,
+                        x.UsuarioAlteracaoId,
+                        x.DataAlteracao,
+                        x.StatusOperacaoId
+                    })
+                    .Where(x => parameters.IdentificadoresProcesso.Contains(x.GrvId))
+                    .ToListAsync(ct);
+
+                var idsNaoEncontrados = parameters.IdentificadoresProcesso
+                    .Where(id => !resultPorId.Select(x => x.GrvId).Contains(id))
+                    .ToList();
+
+                if (idsNaoEncontrados.Count > 0)
                 {
-                    x.GrvId,
-                    x.NumeroFormularioGrv,
-                    x.UsuarioAlteracaoId,
-                    x.DataAlteracao,
-                    x.StatusOperacaoId
-                })
-                .Where(x => parameters.NumerosDeProcesso.Contains(x.NumeroFormularioGrv))
-                .ToListAsync(ct);
-            var processosNaoEncontrados = parameters.NumerosDeProcesso
-                .Where(p => !result.Select(x => x.NumeroFormularioGrv).Contains(p))
-                .ToList();
+                    return MensagemViewHelper.SetBadRequest(
+                        $"Os seguintes IDs de processo não foram encontrados: {string.Join(", ", idsNaoEncontrados)}"
+                    );
+                }
 
-            var processosJaEmPreLeilao = parameters.NumerosDeProcesso
-                .Where(p => result.Any(x => x.NumeroFormularioGrv.Equals(p) && x.StatusOperacaoId.Equals("1")))
-                .ToList();
+                var idsJaEmPreLeilao = resultPorId
+                    .Where(x => x.StatusOperacaoId == "1")
+                    .Select(x => x.GrvId)
+                    .ToList();
 
-            var processosStatusIncorretos = parameters.NumerosDeProcesso
-                .Where(p => result.Any(x => x.NumeroFormularioGrv.Equals(p) && !x.StatusOperacaoId.Equals("V")))
-                .ToList();
+                if (idsJaEmPreLeilao.Count > 0)
+                {
+                    return MensagemViewHelper.SetBadRequest(
+                        $"Os seguintes IDs de processo já estão em pré-leilão: {string.Join(", ", idsJaEmPreLeilao)}"
+                    );
+                }
 
+                var idsStatusIncorretos = resultPorId
+                    .Where(x => x.StatusOperacaoId != "V")
+                    .Select(x => x.GrvId)
+                    .ToList();
 
-            if (processosNaoEncontrados.Count > 0)
-            {
-                return MensagemViewHelper.SetBadRequest(
-                    $"Os seguintes processos não foram encontrados: {string.Join(", ", processosNaoEncontrados)}"
-                );
+                if (idsStatusIncorretos.Count > 0)
+                {
+                    return MensagemViewHelper.SetBadRequest(
+                        $"Os seguintes IDs de processo não estão no status necessário (V) para inserção ao pré leilão: {string.Join(", ", idsStatusIncorretos)}"
+                    );
+                }
+
+                foreach (var item in resultPorId)
+                {
+                    targetGrvIds.Add(item.GrvId);
+                }
             }
 
-            if (processosJaEmPreLeilao.Count > 0)
+            // 2. Tratamento quando busca por NumerosDeProcesso
+            if (temNumeros)
             {
-                return MensagemViewHelper.SetBadRequest(
-                    $"Os seguintes processos já estão em pré-leilão: {string.Join(", ", processosJaEmPreLeilao)}"
-                );
+                var resultPorNumero = await _context.Grv
+                    .Select(x => new
+                    {
+                        x.GrvId,
+                        x.NumeroFormularioGrv,
+                        x.Placa,
+                        x.UsuarioAlteracaoId,
+                        x.DataAlteracao,
+                        x.StatusOperacaoId
+                    })
+                    .Where(x => parameters.NumerosDeProcesso.Contains(x.NumeroFormularioGrv))
+                    .ToListAsync(ct);
+
+                // Verificar duplicidade de números de processos no banco de dados
+                var gruposDuplicados = resultPorNumero
+                    .GroupBy(x => x.NumeroFormularioGrv)
+                    .Where(g => g.Count() > 1)
+                    .ToList();
+
+                if (gruposDuplicados.Count > 0)
+                {
+                    var listaDuplicados = gruposDuplicados.Select(g =>
+                    {
+                        var detalhes = string.Join(", ", g.Select(x => $"[ID: {x.GrvId}, Placa: {(string.IsNullOrWhiteSpace(x.Placa) ? "Sem Placa" : x.Placa)}]"));
+                        return $"Processo nº {g.Key}: {detalhes}";
+                    });
+
+                    return MensagemViewHelper.SetBadRequest(
+                        $"Foram encontrados múltiplos GRVs com o mesmo número de processo. Para prosseguir, informe os Identificadores de Processo (IDs). Detalhes: {string.Join(" | ", listaDuplicados)}"
+                    );
+                }
+
+                var processosNaoEncontrados = parameters.NumerosDeProcesso
+                    .Where(p => !resultPorNumero.Select(x => x.NumeroFormularioGrv).Contains(p))
+                    .ToList();
+
+                if (processosNaoEncontrados.Count > 0)
+                {
+                    return MensagemViewHelper.SetBadRequest(
+                        $"Os seguintes processos não foram encontrados: {string.Join(", ", processosNaoEncontrados)}"
+                    );
+                }
+
+                var processosJaEmPreLeilao = resultPorNumero
+                    .Where(x => x.StatusOperacaoId == "1")
+                    .Select(x => x.NumeroFormularioGrv)
+                    .Distinct()
+                    .ToList();
+
+                if (processosJaEmPreLeilao.Count > 0)
+                {
+                    return MensagemViewHelper.SetBadRequest(
+                        $"Os seguintes processos já estão em pré-leilão: {string.Join(", ", processosJaEmPreLeilao)}"
+                    );
+                }
+
+                var processosStatusIncorretos = resultPorNumero
+                    .Where(x => x.StatusOperacaoId != "V")
+                    .Select(x => x.NumeroFormularioGrv)
+                    .Distinct()
+                    .ToList();
+
+                if (processosStatusIncorretos.Count > 0)
+                {
+                    return MensagemViewHelper.SetBadRequest(
+                        $"Os seguintes processos não estão no status necessário (V) para inserção ao pré leilão: {string.Join(", ", processosStatusIncorretos)}"
+                    );
+                }
+
+                foreach (var item in resultPorNumero)
+                {
+                    targetGrvIds.Add(item.GrvId);
+                }
             }
 
-            if (processosStatusIncorretos.Count > 0)
+            if (targetGrvIds.Count == 0)
             {
-                return MensagemViewHelper.SetBadRequest(
-                    $"Os seguintes processos não estão no status necessario para inserção ao pré leilão: {string.Join(", ", processosStatusIncorretos)}"
-                );
+                return MensagemViewHelper.SetBadRequest("Nenhum processo válido encontrado para atualização.");
             }
 
             try
             {
-                if (result.Count is 1)
-                {
-                    await _context.Grv
-                        .Where(x => x.GrvId == result[0].GrvId)
-                        .ExecuteUpdateAsync(setters => setters
-                            .SetProperty(o => o.StatusOperacaoId, "1")
-                            .SetProperty(o => o.UsuarioAlteracaoId, IdentificadorUsuario)
-                            .SetProperty(o => o.DataAlteracao, DateTime.Now)
-                            , ct);
-                    return MensagemViewHelper.SetUpdateSuccess("Lote inserido em Pré Leilão! ");
-                }
+                var listaIds = targetGrvIds.ToList();
 
                 await _context.Grv
-                    .Where(x => result.Select(x => x.GrvId).Contains(x.GrvId))
+                    .Where(x => listaIds.Contains(x.GrvId))
                     .ExecuteUpdateAsync(setters => setters
                         .SetProperty(o => o.StatusOperacaoId, "1")
                         .SetProperty(o => o.UsuarioAlteracaoId, IdentificadorUsuario)
-                        .SetProperty(o => o.DataAlteracao, DateTime.Now)
-                        , ct);
-                return MensagemViewHelper.SetUpdateSuccess("Lote(s) inserido(s) em Pré Leilão!");
+                        .SetProperty(o => o.DataAlteracao, DateTime.Now),
+                        ct);
+
+                return MensagemViewHelper.SetUpdateSuccess(listaIds.Count == 1
+                    ? "Lote inserido em Pré Leilão!"
+                    : "Lote(s) inserido(s) em Pré Leilão!");
             }
             catch (Exception ex)
             {
-                ResultView = MensagemViewHelper.SetBadRequest(ex.Message);
-                return ResultView;
+                return MensagemViewHelper.SetBadRequest(ex.Message);
             }
-
         }
         public async Task<PreLeilaoListDTO> ListPreLeiloesAsync(ProcessosPreLeilaoParameters parameters)
         {

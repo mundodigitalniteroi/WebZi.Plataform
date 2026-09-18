@@ -663,41 +663,59 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.GrvId == Parameters.IdentificadorProcesso);
 
-            if (Grv.StatusOperacao.StatusOperacaoId != "T" && Grv.StatusOperacao.StatusOperacaoId != "U" &&
-                Grv.StatusOperacao.StatusOperacaoId != "R")
+            if (Grv is null)
+                return MensagemViewHelper.SetNotFound("Processo não encontrado");
+
+            if (Parameters.IdentificadorTipoLiberacao == 3)
             {
-                return MensagemViewHelper.SetBadRequest(
-                    $"O Status atual deste Processo não permite o cadastro da Entrega. " +
-                    $"Descrição do Status atual: {Grv.StatusOperacao.Descricao.ToUpper()}");
+                if (Grv.StatusOperacao.StatusOperacaoId != "3")
+                {
+                    return MensagemViewHelper.SetBadRequest(
+                        $"O Status atual deste Processo não permite o cadastro da Entrega de Leilão. " +
+                        $"Descrição do Status atual: {Grv.StatusOperacao.Descricao.ToUpper()}");
+                }
+            }
+            else
+            {
+                if (Grv.StatusOperacao.StatusOperacaoId != "T" && Grv.StatusOperacao.StatusOperacaoId != "U" &&
+                    Grv.StatusOperacao.StatusOperacaoId != "R")
+                {
+                    return MensagemViewHelper.SetBadRequest(
+                        $"O Status atual deste Processo não permite o cadastro da Entrega. " +
+                        $"Descrição do Status atual: {Grv.StatusOperacao.Descricao.ToUpper()}");
+                }
             }
 
-            List<FaturamentoModel> Faturamentos = await _context.Faturamento
-                .Include(x => x.Atendimento)
-                .Where(x => x.Atendimento.GrvId == Parameters.IdentificadorProcesso && x.Status != "C")
-                .AsNoTracking()
-                .ToListAsync();
-
-            if (Faturamentos == null)
+            if (Parameters.IdentificadorTipoLiberacao != 3)
             {
-                return MensagemViewHelper.SetNotFound(MensagemPadraoEnum.NaoEncontradoFaturamento);
-            }
+                List<FaturamentoModel> Faturamentos = await _context.Faturamento
+                    .Include(x => x.Atendimento)
+                    .Where(x => x.Atendimento.GrvId == Parameters.IdentificadorProcesso && x.Status != "C")
+                    .AsNoTracking()
+                    .ToListAsync();
 
-            if (Faturamentos.Exists(x => x.Status == "N"))
-            {
-                return MensagemViewHelper.SetBadRequest($"Este Processo possui uma Fatura não paga");
-            }
+                if (Faturamentos == null)
+                {
+                    return MensagemViewHelper.SetNotFound(MensagemPadraoEnum.NaoEncontradoFaturamento);
+                }
 
-            DateTime DataHoraPorDeposito = new DepositoService(_context)
-                .GetDataHoraPorDeposito(Grv.DepositoId);
+                if (Faturamentos.Exists(x => x.Status == "N"))
+                {
+                    return MensagemViewHelper.SetBadRequest($"Este Processo possui uma Fatura não paga");
+                }
 
-            FaturamentoModel UltimoFaturamento = Faturamentos
-                .OrderByDescending(x => x.DataCadastro)
-                .FirstOrDefault();
+                DateTime DataHoraPorDeposito = new DepositoService(_context)
+                    .GetDataHoraPorDeposito(Grv.DepositoId);
 
-            if (UltimoFaturamento.DataPrazoRetiradaVeiculo.Value.Date < DataHoraPorDeposito.Date)
-            {
-                return MensagemViewHelper.SetBadRequest(
-                    $"O prazo para a Entrega do veículo está vencida ({UltimoFaturamento.DataPrazoRetiradaVeiculo.Value.Date:dd/MM/yyyy}), a Entrega não poderá ser realizada");
+                FaturamentoModel UltimoFaturamento = Faturamentos
+                    .OrderByDescending(x => x.DataCadastro)
+                    .FirstOrDefault();
+
+                if (UltimoFaturamento.DataPrazoRetiradaVeiculo.Value.Date < DataHoraPorDeposito.Date)
+                {
+                    return MensagemViewHelper.SetBadRequest(
+                        $"O prazo para a Entrega do veículo está vencida ({UltimoFaturamento.DataPrazoRetiradaVeiculo.Value.Date:dd/MM/yyyy}), a Entrega não poderá ser realizada");
+                }
             }
 
             LiberacaoModel Liberacao = new()
@@ -742,12 +760,16 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                             });
                     }
 
+                    string statusDestino = Parameters.IdentificadorTipoLiberacao == 3 ? "7" : "E";
+
                     await _context.Grv
                         .Where(x => x.GrvId == Parameters.IdentificadorProcesso)
                         .UpdateAsync(x => new GrvModel()
                         {
-                            LiberacaoId = Liberacao.LiberacaoId, StatusOperacaoId = "E",
-                            UsuarioAlteracaoId = Parameters.IdentificadorUsuario
+                            LiberacaoId = Liberacao.LiberacaoId,
+                            StatusOperacaoId = statusDestino,
+                            UsuarioAlteracaoId = Parameters.IdentificadorUsuario,
+                            DataAlteracao = DateTime.Now
                         });
 
                     if (Parameters.ResponsavelFoto != null)
@@ -892,43 +914,62 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.GrvId == Parameters.IdentificadorProcesso, cancellationToken: ct);
 
+            if (Grv is null)
+                return MensagemViewHelper.SetNotFound("Processo não encontrado");
+
             var permitirEmissao = await _context.FaturamentoRegra
                 .AnyAsync(x =>
                     x.ClienteId == Grv.ClienteId && x.DepositoId == Grv.DepositoId &&
                     x.FaturamentoRegraTipoId == 11, cancellationToken: ct);
 
-            if (Grv.StatusOperacao.StatusOperacaoId != "T" && Grv.StatusOperacao.StatusOperacaoId != "U" &&
-                Grv.StatusOperacao.StatusOperacaoId != "R")
+            if (Parameters.IdentificadorTipoLiberacao == 3)
             {
-                return MensagemViewHelper.SetBadRequest(
-                    $"O Status atual deste Processo não permite o cadastro da Entrega. " +
-                    $"Descrição do Status atual: {Grv.StatusOperacao.Descricao.ToUpper()}");
-            }
-
-            List<FaturamentoModel> Faturamentos =
-                Grv.Atendimento?.ListagemFaturamento.OrderByDescending(x => x.DataCadastro).ToList();
-
-            if (Faturamentos == null || !Faturamentos.Any())
-            {
-                return MensagemViewHelper.SetNotFound(MensagemPadraoEnum.NaoEncontradoFaturamento);
-            }
-
-            if (Faturamentos.Exists(x => x.Status == "N"))
-            {
-                return MensagemViewHelper.SetBadRequest("Este Processo possui uma Fatura não paga");
-            }
-
-            DateTime DataHoraPorDeposito = new DepositoService(_context)
-                .GetDataHoraPorDeposito(Grv.DepositoId);
-
-            FaturamentoModel UltimoFaturamento = Faturamentos
-                .FirstOrDefault();
-
-            if(Grv.StatusOperacaoId != "R"){
-                if (UltimoFaturamento.DataPrazoRetiradaVeiculo.Value.Date < DataHoraPorDeposito.Date)
+                if (Grv.StatusOperacao.StatusOperacaoId != "3" && Grv.StatusOperacao.StatusOperacaoId != "6" && Grv.StatusOperacao.StatusOperacaoId != "2")
                 {
                     return MensagemViewHelper.SetBadRequest(
-                        $"O prazo para a Entrega do veículo está vencida ({UltimoFaturamento.DataPrazoRetiradaVeiculo.Value.Date:dd/MM/yyyy}), a Entrega não poderá ser realizada");
+                        $"O Status atual deste Processo não permite o cadastro da Entrega de Leilão. " +
+                        $"Descrição do Status atual: {Grv.StatusOperacao.Descricao.ToUpper()}");
+                }
+            }
+            else
+            {
+                if (Grv.StatusOperacao.StatusOperacaoId != "T" && Grv.StatusOperacao.StatusOperacaoId != "U" &&
+                    Grv.StatusOperacao.StatusOperacaoId != "R")
+                {
+                    return MensagemViewHelper.SetBadRequest(
+                        $"O Status atual deste Processo não permite o cadastro da Entrega. " +
+                        $"Descrição do Status atual: {Grv.StatusOperacao.Descricao.ToUpper()}");
+                }
+            }
+
+            if (Parameters.IdentificadorTipoLiberacao != 3)
+            {
+                List<FaturamentoModel> Faturamentos =
+                    Grv.Atendimento?.ListagemFaturamento.OrderByDescending(x => x.DataCadastro).ToList();
+
+                if (Faturamentos == null || !Faturamentos.Any())
+                {
+                    return MensagemViewHelper.SetNotFound(MensagemPadraoEnum.NaoEncontradoFaturamento);
+                }
+
+                if (Faturamentos.Exists(x => x.Status == "N"))
+                {
+                    return MensagemViewHelper.SetBadRequest("Este Processo possui uma Fatura não paga");
+                }
+
+                DateTime DataHoraPorDeposito = new DepositoService(_context)
+                    .GetDataHoraPorDeposito(Grv.DepositoId);
+
+                FaturamentoModel UltimoFaturamento = Faturamentos
+                    .FirstOrDefault();
+
+                if (Grv.StatusOperacaoId != "R")
+                {
+                    if (UltimoFaturamento.DataPrazoRetiradaVeiculo.Value.Date < DataHoraPorDeposito.Date)
+                    {
+                        return MensagemViewHelper.SetBadRequest(
+                            $"O prazo para a Entrega do veículo está vencida ({UltimoFaturamento.DataPrazoRetiradaVeiculo.Value.Date:dd/MM/yyyy}), a Entrega não poderá ser realizada");
+                    }
                 }
             }
 
@@ -1014,8 +1055,11 @@ namespace WebZi.Plataform.Data.Services.Liberacao
 
         private async Task AtualizarFormaLiberacaoAtendimentoAsync(EntregaParameters parameters, CancellationToken ct)
         {
+            if (!parameters.IdentificadorAtendimento.HasValue || parameters.IdentificadorAtendimento.Value <= 0)
+                return;
+
             await _context.Atendimento
-                .Where(x => x.AtendimentoId == parameters.IdentificadorAtendimento)
+                .Where(x => x.AtendimentoId == parameters.IdentificadorAtendimento.Value)
                 .UpdateAsync(x => new AtendimentoModel()
                 {
                     FormaLiberacao = parameters.FormaLiberacao.FormaLiberacao,
@@ -1039,7 +1083,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
         {
             if (_options.Value.Enable && permitirEmissao)
             {
-                if (!string.Equals(grv.StatusOperacaoId, "2") && !string.Equals(grv.StatusOperacaoId, "R"))
+                if (!string.Equals(grv.StatusOperacaoId, "2") && !string.Equals(grv.StatusOperacaoId, "3") && !string.Equals(grv.StatusOperacaoId, "R"))
                 {
                     await _provider
                         .GetService<WSNfseService>()
@@ -1051,29 +1095,17 @@ namespace WebZi.Plataform.Data.Services.Liberacao
         private async Task AtualizarStatusGrvEntregaAsync(EntregaParameters parameters, GrvModel grv, int liberacaoId,
             CancellationToken ct)
         {
-            if (string.Equals(grv.StatusOperacaoId, "T") || string.Equals(grv.StatusOperacaoId, "R") ||
-                string.Equals(grv.StatusOperacaoId, "U"))
-            {
-                await _context.Grv
-                    .Where(x => x.GrvId == parameters.IdentificadorProcesso)
-                    .UpdateAsync(x => new GrvModel()
-                    {
-                        LiberacaoId = liberacaoId,
-                        StatusOperacaoId = "E",
-                        UsuarioAlteracaoId = parameters.IdentificadorUsuario
-                    }, cancellationToken: ct);
-            }
-            else if (string.Equals(grv.StatusOperacaoId, "2") || string.Equals(grv.StatusOperacaoId, "6"))
-            {
-                await _context.Grv
-                    .Where(x => x.GrvId == parameters.IdentificadorProcesso)
-                    .UpdateAsync(x => new GrvModel()
-                    {
-                        LiberacaoId = liberacaoId,
-                        StatusOperacaoId = "7",
-                        UsuarioAlteracaoId = parameters.IdentificadorUsuario
-                    }, cancellationToken: ct);
-            }
+            string statusDestino = parameters.IdentificadorTipoLiberacao == 3 ? "7" : "E";
+
+            await _context.Grv
+                .Where(x => x.GrvId == parameters.IdentificadorProcesso)
+                .UpdateAsync(x => new GrvModel()
+                {
+                    LiberacaoId = liberacaoId,
+                    StatusOperacaoId = statusDestino,
+                    UsuarioAlteracaoId = parameters.IdentificadorUsuario,
+                    DataAlteracao = DateTime.Now
+                }, cancellationToken: ct);
         }
     }
 }

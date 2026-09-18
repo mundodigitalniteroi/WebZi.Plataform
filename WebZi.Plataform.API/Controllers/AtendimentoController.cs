@@ -70,6 +70,34 @@ namespace WebZi.Plataform.API.Controllers
             }
         }
 
+        [HttpPost("CadastrarAtendimentoLeilao")]
+        // TODO: [Authorize]
+        [IgnoreAntiforgeryToken]
+        public async Task<ActionResult<AtendimentoCadastroDTO>> CadastrarAtendimentoLeilao([FromBody] AtendimentoLeilaoParameters Atendimento, CancellationToken ct)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            AtendimentoCadastroDTO ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<AtendimentoService>()
+                    .CreateAtendimentoLeilaoAsync(Atendimento, ct);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
+
 
         [HttpPut("Atualizar")]
         public async Task<ActionResult<MensagemDTO>> Atualizar(AtualizarAtendimentoParameters parameters, CancellationToken ct)
@@ -119,7 +147,7 @@ namespace WebZi.Plataform.API.Controllers
         public async Task<ActionResult<MensagemDTO>> ExcluirAtendimento(
             [MaxLength(14, ErrorMessage = "Não pode ser menor ou maior que 14 caracteres")]
             string NumeroProcesso,
-            int UsuarioId, 
+            int UsuarioId,
             int ClienteId
         )
         {
@@ -210,7 +238,7 @@ namespace WebZi.Plataform.API.Controllers
 
             return ResultView;
         }
-        
+
         [HttpGet("SelecionarPorIdentificador")]
         // TODO: [Authorize]
         public async Task<ActionResult<AtendimentoDTO>> SelecionarPorIdentificador(int IdentificadorAtendimento,

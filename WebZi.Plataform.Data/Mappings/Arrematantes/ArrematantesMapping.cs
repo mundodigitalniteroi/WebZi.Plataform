@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System.Linq;
 using System.Text;
@@ -28,9 +28,6 @@ public class ArrematantesMapping : IEntityTypeConfiguration<ArrematantesModel>
         builder.Property(x => x.CpfCnpj)
             .HasColumnType("varchar(14)")
             .HasColumnName("cpf_cnpj");
-        builder.Property(x => x.TelefoneFixo)
-            .HasColumnType("varchar(20)")
-            .HasColumnName("telefone_fixo");
         builder.Property(x => x.TelefoneCelular)
             .HasColumnType("varchar(20)")
             .HasColumnName("telefone_celular");
@@ -59,7 +56,7 @@ public class ArrematantesMapping : IEntityTypeConfiguration<ArrematantesModel>
             .HasColumnType("varchar(10)")
             .HasColumnName("cep");
         builder.Property(x => x.NomeLeilao)
-            .HasColumnType("varchar(15")
+            .HasColumnType("varchar(15)")
             .HasColumnName("nome_leilao");
         builder.Property(x => x.NumeroLote)
             .HasColumnType("varchar(10)")
