@@ -1234,7 +1234,6 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
                     _context.Grv.Update(grv);
 
-                    // Atualizar dados do arrematante vinculado ao processo
                     var arrematante = await _context.Arrematantes
                         .AsTracking()
                         .FirstOrDefaultAsync(x =>
@@ -1340,6 +1339,58 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                         }
 
                         _context.Arrematantes.Update(arrematante);
+                    }
+                    else
+                    {
+                        arrematante = new ArrematantesModel
+                        {
+                            GrvId = AtendimentoInput.IdentificadorProcesso,
+                            NumeroProcesso = grv?.NumeroFormularioGrv,
+                            DataCadastro = DateTime.Now
+                        };
+
+                        if (AtendimentoInput.Arrematante != null)
+                        {
+                            arrematante.Nome = AtendimentoInput.Arrematante.Nome?.ToUpperTrim();
+                            arrematante.CpfCnpj = AtendimentoInput.Arrematante.CpfCnpj?.Replace(".", "").Replace("/", "").Replace("-", "");
+                            arrematante.TelefoneCelular = AtendimentoInput.Arrematante.TelefoneCelular?.Replace("-", "").Replace("(", "").Replace(")", "").Replace(" ", "");
+                            arrematante.Email = AtendimentoInput.Arrematante.Email?.ToUpperTrim();
+                            arrematante.Logradouro = AtendimentoInput.Arrematante.Logradouro?.ToUpperTrim();
+                            arrematante.Numero = AtendimentoInput.Arrematante.Numero?.ToUpperTrim();
+                            arrematante.Complemento = AtendimentoInput.Arrematante.Complemento?.ToUpperTrim();
+                            arrematante.Bairro = AtendimentoInput.Arrematante.Bairro?.ToUpperTrim();
+                            arrematante.Cidade = AtendimentoInput.Arrematante.Cidade?.ToUpperTrim();
+                            arrematante.Estado = AtendimentoInput.Arrematante.Estado?.ToUpperTrim();
+                            arrematante.Cep = AtendimentoInput.Arrematante.Cep?.Replace("-", "");
+                            arrematante.NomeLeilao = AtendimentoInput.Arrematante.NomeLeilao?.ToUpperTrim();
+                            arrematante.NumeroLote = AtendimentoInput.Arrematante.NumeroLote?.ToUpperTrim();
+                            arrematante.ValorArrematacao = AtendimentoInput.Arrematante.ValorArrematacao;
+                            arrematante.ValorTaxaAdministrativa = AtendimentoInput.Arrematante.ValorTaxaAdministrativa;
+                            arrematante.ValorOutrasTaxas = AtendimentoInput.Arrematante.ValorOutrasTaxas;
+                            arrematante.ValorComissao = AtendimentoInput.Arrematante.ValorComissao;
+                            arrematante.ValorTotal = AtendimentoInput.Arrematante.ValorTotal;
+                            arrematante.DataLeilao = AtendimentoInput.Arrematante.DataLeilao;
+                        }
+                        else
+                        {
+                            arrematante.Nome = AtendimentoInput.ResponsavelNome?.ToUpperTrim();
+                            arrematante.CpfCnpj = AtendimentoInput.ResponsavelDocumento?.Replace(".", "").Replace("/", "").Replace("-", "");
+                            if (!string.IsNullOrWhiteSpace(AtendimentoInput.ResponsavelTelefone))
+                            {
+                                string ddd = AtendimentoInput.ResponsavelDDD ?? "";
+                                string tel = AtendimentoInput.ResponsavelTelefone.Replace("-", "").Replace("(", "").Replace(")", "").Replace(" ", "");
+                                arrematante.TelefoneCelular = $"{ddd}{tel}";
+                            }
+                            arrematante.Logradouro = AtendimentoInput.ResponsavelEndereco?.ToUpperTrim();
+                            arrematante.Numero = AtendimentoInput.ResponsavelNumero?.ToUpperTrim();
+                            arrematante.Complemento = AtendimentoInput.ResponsavelComplemento?.ToUpperTrim();
+                            arrematante.Bairro = AtendimentoInput.ResponsavelBairro?.ToUpperTrim();
+                            arrematante.Cidade = AtendimentoInput.ResponsavelMunicipio?.ToUpperTrim();
+                            arrematante.Estado = AtendimentoInput.ResponsavelUF?.ToUpperTrim();
+                            arrematante.Cep = AtendimentoInput.ResponsavelCEP?.Replace("-", "");
+                        }
+
+                        await _context.Arrematantes.AddAsync(arrematante, ct);
                     }
 
                     await _context.SaveChangesAsync(ct);

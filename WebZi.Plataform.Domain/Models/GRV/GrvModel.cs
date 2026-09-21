@@ -1,4 +1,5 @@
-﻿using WebZi.Plataform.Domain.Models.Atendimento;
+﻿using WebZi.Plataform.Domain.Models.Arrematantes;
+using WebZi.Plataform.Domain.Models.Atendimento;
 using WebZi.Plataform.Domain.Models.Cliente;
 using WebZi.Plataform.Domain.Models.Condutor;
 using WebZi.Plataform.Domain.Models.Deposito;
@@ -199,6 +200,7 @@ namespace WebZi.Plataform.Domain.Models.GRV
 
         public virtual UsuarioModel UsuarioEdicao { get; set; }
 
+        public virtual ArrematantesModel Arrematante { get; set; }
         public virtual ICollection<CobrancaLegalModel> ListagemCobrancaLegal { get; set; }
 
         public virtual ICollection<CondutorEquipamentoOpcionalModel> ListagemCondutorEquipamentoOpcional { get; set; }

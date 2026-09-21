@@ -13,9 +13,6 @@ public class CadastrarArrematanteParameters
     public string? CpfCnpj { get; set; }
 
     [StringLength(20, ErrorMessage = "O campo {0} deve conter no máximo {1} caracteres.")]
-    public string? TelefoneFixo { get; set; }
-
-    [StringLength(20, ErrorMessage = "O campo {0} deve conter no máximo {1} caracteres.")]
     public string? TelefoneCelular { get; set; }
 
     [StringLength(255, ErrorMessage = "O campo {0} deve conter no máximo {1} caracteres.")]

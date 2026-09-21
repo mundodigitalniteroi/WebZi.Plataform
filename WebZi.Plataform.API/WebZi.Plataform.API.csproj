@@ -6,6 +6,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <SatelliteResourceLanguages>pt-BR</SatelliteResourceLanguages>
     <UserSecretsId>b1c1a964-633a-4f2d-898a-4bb76a9373c0</UserSecretsId>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

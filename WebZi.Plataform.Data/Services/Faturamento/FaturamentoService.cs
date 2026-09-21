@@ -1492,20 +1492,13 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             if (model.DataHoraInicialParaCalculo == DateTime.MinValue || model.DataHoraInicialParaCalculo == default)
             {
-                model.DataHoraInicialParaCalculo = Grv.DataHoraGuarda ?? Grv.DataHoraRemocao;
+                model.DataHoraInicialParaCalculo = Grv.DataHoraGuarda;
             }
 
             if (model.DataHoraFinalParaCalculo == DateTime.MinValue || model.DataHoraFinalParaCalculo == default)
             {
                 model.DataHoraFinalParaCalculo =
                     DataHoraPorDeposito != DateTime.MinValue ? DataHoraPorDeposito : DateTime.Now;
-            }
-
-            var now = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-3)).DateTime;
-
-            if (model.DataHoraFinalParaCalculo > now)
-            {
-                erros.Add("A Data/Hora Inicial para o Cálculo não pode ser maior do que a Data/Hora atual");
             }
 
             if (DataHoraPorDeposito != DateTime.MinValue && model.DataHoraInicialParaCalculo > DataHoraPorDeposito)

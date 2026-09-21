@@ -1,4 +1,7 @@
+using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using System.Globalization;
 using WebZi.Plataform.CrossCutting.Configuration;
 using WebZi.Plataform.CrossCutting.Date;
@@ -9,9 +12,12 @@ using WebZi.Plataform.CrossCutting.Veiculo;
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
+using WebZi.Plataform.Data.Services.Atendimento;
 using WebZi.Plataform.Data.Services.Cliente;
 using WebZi.Plataform.Data.Services.Deposito;
+using WebZi.Plataform.Data.Services.DetranHub;
 using WebZi.Plataform.Data.Services.Faturamento;
+using WebZi.Plataform.Data.Services.Localizacao;
 using WebZi.Plataform.Data.Services.Report;
 using WebZi.Plataform.Domain.DTO.Generic;
 using WebZi.Plataform.Domain.DTO.Leilao;
@@ -20,6 +26,7 @@ using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.Models.Arrematantes;
 using WebZi.Plataform.Domain.Models.GRV;
 using WebZi.Plataform.Domain.Models.Leilao;
+using WebZi.Plataform.Domain.Options;
 using WebZi.Plataform.Domain.Services.GRV;
 using WebZi.Plataform.Domain.ViewModel.Leilao;
 using WebZi.Plataform.Domain.ViewModel.Liberacao;
@@ -32,10 +39,32 @@ namespace WebZi.Plataform.Data.Services.Leilao
     public class LeilaoService
     {
         private readonly AppDbContext _context;
-
+        private readonly IMapper _mapper;
+        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IOptions<DetranHubOptions> _detranHubOptions;
+        private readonly IServiceProvider _provider;
         public LeilaoService(AppDbContext context)
         {
             _context = context;
+        }
+
+        public LeilaoService(AppDbContext context, IMapper mapper, IHttpClientFactory httpClientFactory,
+            IOptions<DetranHubOptions> detranHubOptions)
+        {
+            _context = context;
+            _mapper = mapper;
+            _httpClientFactory = httpClientFactory;
+            _detranHubOptions = detranHubOptions;
+        }
+
+        public LeilaoService(AppDbContext context, IMapper mapper, IHttpClientFactory httpClientFactory,
+            IOptions<DetranHubOptions> detranHubOptions, IServiceProvider provider)
+        {
+            _context = context;
+            _mapper = mapper;
+            _httpClientFactory = httpClientFactory;
+            _detranHubOptions = detranHubOptions;
+            _provider = provider;
         }
 
 
@@ -54,9 +83,9 @@ namespace WebZi.Plataform.Data.Services.Leilao
                 return ResultView;
             }
 
-            if (Grv.StatusOperacaoId is not "1")
+            if (Grv.StatusOperacaoId is not "1" and not "3")
             {
-                ResultView = MensagemViewHelper.SetBadRequest($"Grv não esta no status correto para cadastro de arrematante. {Grv.StatusOperacao.Descricao}");
+                ResultView = MensagemViewHelper.SetBadRequest($"Grv não esta no status correto para cadastro de arrematante. Status Atual: {Grv.StatusOperacao.Descricao}, Status Necessário: Pré-Leilão");
                 return ResultView;
             }
             if (parameters.DataLeilao < Grv.DataHoraGuarda)
@@ -112,7 +141,9 @@ namespace WebZi.Plataform.Data.Services.Leilao
             var arrematante = await _context.Arrematantes
                 .Include(x => x.Grv)
                 .AsTracking()
-                .FirstOrDefaultAsync(x => x.ArrematanteId == parameters.IdentificadorArrematante, ct);
+                .FirstOrDefaultAsync(x =>
+                    (parameters.IdentificadorArrematante > 0 && x.ArrematanteId == parameters.IdentificadorArrematante) ||
+                    (parameters.IdentificadorProcesso.HasValue && parameters.IdentificadorProcesso.Value > 0 && x.GrvId == parameters.IdentificadorProcesso.Value), ct);
 
             if (arrematante == null)
             {
@@ -164,7 +195,7 @@ namespace WebZi.Plataform.Data.Services.Leilao
 
             if (arrematante.Grv != null)
             {
-                if (arrematante.Grv.StatusOperacaoId == "3")
+                if (arrematante.Grv.StatusOperacaoId == "3" && arrematante.Grv.StatusOperacaoId == "6")
                 {
                     arrematante.Grv.StatusOperacaoId = "1";
                 }
@@ -176,6 +207,8 @@ namespace WebZi.Plataform.Data.Services.Leilao
 
             try
             {
+
+                await _provider.GetService<AtendimentoService>().DeleteAtendimentoAsync(arrematante.Grv.NumeroFormularioGrv, usuarioId.Value, arrematante.Grv.ClienteId);
                 await _context.SaveChangesAsync(ct);
                 return MensagemViewHelper.SetDeleteSuccess("Arrematante desvinculado e excluído com sucesso.");
             }
@@ -205,12 +238,17 @@ namespace WebZi.Plataform.Data.Services.Leilao
                 _context.Arrematantes.Remove(arrematante);
             }
 
+
             grv.StatusOperacaoId = "V";
             grv.UsuarioAlteracaoId = usuarioId;
             grv.DataAlteracao = DateTime.Now;
 
             try
             {
+                if(grv.StatusOperacaoId is "6")
+                {
+                    await _provider.GetService<AtendimentoService>().DeleteAtendimentoAsync(arrematante.Grv.NumeroFormularioGrv, usuarioId.Value, arrematante.Grv.ClienteId);
+                }
                 await _context.SaveChangesAsync(ct);
                 return MensagemViewHelper.SetUpdateSuccess("Processo desvinculado do leilão com sucesso.");
             }
@@ -220,122 +258,191 @@ namespace WebZi.Plataform.Data.Services.Leilao
             }
         }
 
-        public async Task<SelecionarArrematanteDTO> SelecionarArrematantePorProcessoAsync(int identificadorProcesso, CancellationToken ct)
+        public async Task<SelecionarArrematanteDTO> GetArrematantePorProcessoAsync(int identificadorProcesso, CancellationToken ct)
         {
-            SelecionarArrematanteDTO resultView = new();
-
             if (identificadorProcesso <= 0)
             {
-                resultView.Mensagem = MensagemViewHelper.SetBadRequest("Identificador do processo inválido.");
-                return resultView;
+                return new SelecionarArrematanteDTO
+                {
+                    Mensagem = MensagemViewHelper.SetBadRequest("Identificador do processo inválido.")
+                };
             }
 
-            var arrematante = await _context.Arrematantes
-                .Include(x => x.Grv)
-                .ThenInclude(x => x.Cor)
-                .Include(x => x.Grv)
-                .ThenInclude(x => x.MarcaModelo)
-                .Where(x => x.GrvId == identificadorProcesso)
-                .Select(x => new SelecionarArrematanteDTO
-                {
-                    Processo = new ArrematanteProcessoDTO
-                    {
-                        IdentificadorProcesso = x.GrvId,
-                        NumeroProcesso = x.NumeroProcesso,
-                        StatusOperacaoId = x.Grv.StatusOperacaoId,
-                        StatusOperacaoDescricao = x.Grv.StatusOperacao.Descricao
-                    },
-                    Veiculo = new ArrematanteVeiculoDTO
-                    {
-                        Placa = x.Grv.Placa,
-                        PlacaOstentada = x.Grv.PlacaOstentada,
-                        Chassi = x.Grv.Chassi,
-                        Renavam = x.Grv.Renavam,
-                        MarcaModelo = x.Grv.MarcaModelo.MarcaModelo,
-                        Cor = x.Grv.Cor.Cor,
-                        TipoVeiculo = x.Grv.TipoVeiculo.Descricao,
-                        VeiculoUF = x.Grv.VeiculoUF,
-                        DataHoraGuarda = x.Grv.DataHoraGuarda,
-                        ClienteNome = x.Grv.Cliente.Nome,
-                        DepositoNome = x.Grv.Deposito.Nome,
-                        DepositoEndereco = !string.IsNullOrEmpty(x.Grv.Deposito.EnderecoMob)
-                            ? x.Grv.Deposito.EnderecoMob
-                            : (x.Grv.Deposito.Logradouro + (string.IsNullOrEmpty(x.Grv.Deposito.NumeroEndereco) ? "" : ", " + x.Grv.Deposito.NumeroEndereco)),
-                        DepositoTelefone = x.Grv.Deposito.TelefoneMob
-                    },
-                    Arrematante = new ArrematanteDadosDTO
-                    {
-                        IdentificadorArrematante = x.ArrematanteId,
-                        Nome = x.Nome,
-                        CpfCnpj = x.CpfCnpj,
-                        TelefoneCelular = x.TelefoneCelular,
-                        Email = x.Email,
-                        Logradouro = x.Logradouro,
-                        Numero = x.Numero,
-                        Complemento = x.Complemento,
-                        Bairro = x.Bairro,
-                        Cidade = x.Cidade,
-                        Estado = x.Estado,
-                        Cep = x.Cep,
-                        DataCadastro = x.DataCadastro,
-                        Leilao = new ArrematanteLeilaoDTO
-                        {
-                            NomeLeilao = x.NomeLeilao,
-                            NumeroLote = x.NumeroLote,
-                            ValorArrematacao = x.ValorArrematacao,
-                            ValorTaxaAdministrativa = x.ValorTaxaAdministrativa,
-                            ValorOutrasTaxas = x.ValorOutrasTaxas,
-                            ValorComissao = x.ValorComissao,
-                            ValorTotal = x.ValorTotal,
-                            DataLeilao = x.DataLeilao
-                        }
-                    }
-                })
-                .FirstOrDefaultAsync(ct);
+            var grv = await _context.Grv
+                .Include(x => x.StatusOperacao)
+                .Include(x => x.Cor)
+                .Include(x => x.MarcaModelo)
+                .Include(x => x.TipoVeiculo)
+                .Include(x => x.Cliente)
+                .Include(x => x.Deposito)
+                .Include(x => x.Arrematante)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.GrvId == identificadorProcesso, ct);
 
-            if (arrematante == null)
+            if (grv == null)
             {
-                var grvExiste = await _context.Grv.AnyAsync(x => x.GrvId == identificadorProcesso, ct);
-                if (!grvExiste)
+                return new SelecionarArrematanteDTO
                 {
-                    resultView.Mensagem = MensagemViewHelper.SetNotFound("Processo não encontrado.");
-                    return resultView;
-                }
-
-                resultView.Mensagem = MensagemViewHelper.SetNotFound("Nenhum arrematante vinculado a este processo.");
-                return resultView;
+                    Mensagem = MensagemViewHelper.SetNotFound("Processo não encontrado.")
+                };
             }
 
-            var statusValidos = new[] { "3", "7", "6" };
-
-            if (string.IsNullOrEmpty(arrematante.Processo?.StatusOperacaoId) || !statusValidos.Contains(arrematante.Processo.StatusOperacaoId))
+            var statusPermitidos = new[] { "1", "3", "7", "6" };
+            if (string.IsNullOrEmpty(grv.StatusOperacaoId) || !statusPermitidos.Contains(grv.StatusOperacaoId))
             {
-                var statusDescricao = arrematante.Processo?.StatusOperacaoDescricao;
-                resultView.Mensagem = MensagemViewHelper.SetBadRequest($"O processo não está em status válido para consulta de arrematante (Status permitidos: 3, 6 ou 7). Status atual: {statusDescricao}");
-                return resultView;
+                return new SelecionarArrematanteDTO
+                {
+                    Mensagem = MensagemViewHelper.SetBadRequest($"O processo não está em status válido para consulta de arrematante (Status permitidos: 1, 3, 6 ou 7). Status atual: {grv.StatusOperacao?.Descricao}")
+                };
             }
 
-            if (arrematante.Veiculo != null)
+            var resultView = new SelecionarArrematanteDTO
             {
-                var lote = await _context.LeilaoLote
-                    .Where(l => l.GrvId == identificadorProcesso)
-                    .OrderByDescending(l => l.LeilaoLoteId)
-                    .Select(l => new { l.AnoFabricacao, l.AnoModelo })
-                    .FirstOrDefaultAsync(ct);
+                Processo = MapProcesso(grv),
+                Veiculo = MapVeiculo(grv),
+                Mensagem = MensagemViewHelper.SetFound()
+            };
 
-                if (lote != null)
+            if (grv.Arrematante != null)
+            {
+                resultView.Arrematante = MapArrematante(grv.Arrematante);
+            }
+            else
+            {
+                var leilaoArrematante = await _context.LeilaoArrematante
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(x => x.IdGrv == identificadorProcesso, ct);
+
+                if (leilaoArrematante != null)
                 {
-                    arrematante.Veiculo.AnoFabricacao = lote.AnoFabricacao;
-                    arrematante.Veiculo.AnoModelo = lote.AnoModelo;
+                    resultView.Arrematante = MapArrematante(leilaoArrematante);
                 }
             }
 
-            arrematante.Mensagem = MensagemViewHelper.SetFound();
-            return arrematante;
+            await ConsultaVeiculoDetranHubAsync(resultView.Veiculo);
+
+            return resultView;
+        }
+
+        private static ArrematanteProcessoDTO MapProcesso(GrvModel grv) => new()
+        {
+            IdentificadorProcesso = grv.GrvId,
+            NumeroProcesso = grv.NumeroFormularioGrv,
+            StatusOperacaoId = grv.StatusOperacaoId,
+            StatusOperacaoDescricao = grv.StatusOperacao?.Descricao
+        };
+
+        private static ArrematanteVeiculoDTO MapVeiculo(GrvModel grv) => new()
+        {
+            Placa = grv.Placa,
+            PlacaOstentada = grv.PlacaOstentada,
+            Chassi = grv.Chassi,
+            Renavam = grv.Renavam,
+            MarcaModelo = grv.MarcaModelo?.MarcaModelo,
+            Cor = grv.Cor?.Cor,
+            TipoVeiculo = grv.TipoVeiculo?.Descricao,
+            VeiculoUF = grv.VeiculoUF,
+            DataHoraGuarda = grv.DataHoraGuarda,
+            ClienteNome = grv.Cliente?.Nome,
+            DepositoNome = grv.Deposito?.Nome,
+            DepositoEndereco = !string.IsNullOrEmpty(grv.Deposito?.EnderecoMob)
+                ? grv.Deposito.EnderecoMob
+                : (grv.Deposito != null ? $"{grv.Deposito.Logradouro}{(string.IsNullOrEmpty(grv.Deposito.NumeroEndereco) ? "" : $", {grv.Deposito.NumeroEndereco}")}" : null),
+            DepositoTelefone = grv.Deposito?.TelefoneMob
+        };
+
+        private static ArrematanteDadosDTO MapArrematante(ArrematantesModel a) => new()
+        {
+            IdentificadorArrematante = a.ArrematanteId,
+            Nome = a.Nome,
+            CpfCnpj = a.CpfCnpj,
+            TelefoneFixo = null,
+            TelefoneCelular = a.TelefoneCelular,
+            Email = a.Email,
+            Logradouro = a.Logradouro,
+            Numero = a.Numero,
+            Complemento = a.Complemento,
+            Bairro = a.Bairro,
+            Cidade = a.Cidade,
+            Estado = a.Estado,
+            Cep = a.Cep,
+            DataCadastro = a.DataCadastro,
+            Leilao = new ArrematanteLeilaoDTO
+            {
+                NomeLeilao = a.NomeLeilao,
+                NumeroLote = a.NumeroLote,
+                ValorArrematacao = a.ValorArrematacao,
+                ValorTaxaAdministrativa = a.ValorTaxaAdministrativa,
+                ValorOutrasTaxas = a.ValorOutrasTaxas,
+                ValorComissao = a.ValorComissao,
+                ValorTotal = a.ValorTotal,
+                DataLeilao = a.DataLeilao
+            }
+        };
+
+        private static ArrematanteDadosDTO MapArrematante(ViewLeilaoArremanteteModel a) => new()
+        {
+            Nome = a.ArrematanteNomeArrematante,
+            CpfCnpj = a.ArrematanteCpfCnpj,
+            TelefoneFixo = a.ArrematanteTelefoneFixo,
+            TelefoneCelular = !string.IsNullOrWhiteSpace(a.ArrematanteTelefoneCelular)
+                ? a.ArrematanteTelefoneCelular
+                : a.ArrematanteTelefoneFixo,
+            Email = a.ArrematanteEmail,
+            Logradouro = a.ArrematanteLogradouro,
+            Numero = a.ArrematanteNumero,
+            Complemento = a.ArrematanteComplemento,
+            Bairro = a.ArrematanteBairro,
+            Cidade = a.ArrematanteCidade,
+            Estado = a.ArrematanteEstado,
+            Cep = a.ArrematanteCep,
+            Leilao = new ArrematanteLeilaoDTO()
+        };
+
+        private async Task ConsultaVeiculoDetranHubAsync(ArrematanteVeiculoDTO veiculo)
+        {
+            if (veiculo == null || (veiculo.Placa.IsNullOrWhiteSpace() && veiculo.Chassi.IsNullOrWhiteSpace()))
+                return;
+
+            var detranHubService = _detranHubOptions != null
+                ? new DetranHubService(_httpClientFactory, _mapper, _detranHubOptions)
+                : (_httpClientFactory != null && _mapper != null ? new DetranHubService(_httpClientFactory, _mapper) : null);
+
+            if (detranHubService == null)
+                return;
+
+            string placa = veiculo.Placa.IsPlaca() ? veiculo.Placa : null;
+            string chassi = placa == null ? veiculo.Chassi : null;
+
+            var detranHubResult = await detranHubService.SearchToPlateOrChassi(placa, chassi);
+            var veiculoHub = detranHubResult?.Veiculo;
+            if (veiculoHub == null)
+                return;
+
+            veiculo.AnoFabricacao ??= veiculoHub.AnoFabricacao?.ToString();
+            veiculo.AnoModelo ??= veiculoHub.AnoModelo?.ToString();
+
+            if (!string.IsNullOrWhiteSpace(veiculoHub.MarcaModelo))
+                veiculo.MarcaModelo = veiculoHub.MarcaModelo;
+
+            if (!string.IsNullOrWhiteSpace(veiculoHub.CorPrimaria))
+                veiculo.Cor = veiculoHub.CorPrimaria;
+
+            if (!string.IsNullOrWhiteSpace(veiculoHub.Renavam) && string.IsNullOrWhiteSpace(veiculo.Renavam))
+                veiculo.Renavam = veiculoHub.Renavam;
+
+            if (!string.IsNullOrWhiteSpace(veiculoHub.Chassi) && string.IsNullOrWhiteSpace(veiculo.Chassi))
+                veiculo.Chassi = veiculoHub.Chassi;
+
+            if (!string.IsNullOrWhiteSpace(veiculoHub.TipoVeiculo) && string.IsNullOrWhiteSpace(veiculo.TipoVeiculo))
+                veiculo.TipoVeiculo = veiculoHub.TipoVeiculo;
+
+            if (!string.IsNullOrWhiteSpace(veiculoHub.Uf) && string.IsNullOrWhiteSpace(veiculo.VeiculoUF))
+                veiculo.VeiculoUF = veiculoHub.Uf;
         }
 
 
-        public async Task<GuiaDeclaracaoRetiradaLeilaoDTO> CreateDeclaracaoRetirada(int GrvId, int UsuarioId, CancellationToken ct)
+        public async Task<GuiaDeclaracaoRetiradaLeilaoDTO> CreateDeclaracaoRetiradaAsync(int GrvId, int UsuarioId, CancellationToken ct)
         {
             GuiaDeclaracaoRetiradaLeilaoDTO ResultView = new()
             {
@@ -352,14 +459,22 @@ namespace WebZi.Plataform.Data.Services.Leilao
                 .Include(x => x.TipoVeiculo)
                 .Include(x => x.StatusOperacao)
                 .Include(x => x.Cliente)
-                .ThenInclude(x => x.Endereco)
+                    .ThenInclude(x => x.Endereco)
                 .Include(x => x.Deposito)
+                    .ThenInclude(x => x.Endereco)
                 .Include(x => x.Cor)
                 .Include(x => x.MarcaModelo)
                 .Include(x => x.Atendimento)
                 .Include(x => x.Liberacao)
+                .Include(x => x.Arrematante)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.GrvId == GrvId, cancellationToken: ct);
+
+            if (Grv == null)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound("Processo não encontrado.");
+                return ResultView;
+            }
 
             if (Grv.StatusOperacaoId is not "6" and not "7")
             {
@@ -369,98 +484,191 @@ namespace WebZi.Plataform.Data.Services.Leilao
 
                 return ResultView;
             }
-            else if (Grv.StatusOperacaoId == "E")
+
+            var culturaPtBr = CultureInfo.GetCultureInfo("pt-BR");
+            DateTime dataAtual = DateTime.Now;
+
+            ResultView.IdentificadorProcesso = Grv.GrvId;
+            ResultView.NumeroProcesso = Grv.NumeroFormularioGrv ?? string.Empty;
+            ResultView.Titulo = "DECLARAÇÃO DE RETIRADA DE VEÍCULO ARREMATADO";
+
+            ResultView.ClienteNome = Grv.Cliente?.Nome ?? string.Empty;
+            if (Grv.Cliente?.Endereco != null)
             {
-                if (Grv.Liberacao?.DataCadastro != null && DateTime.Now.Date > Grv.Liberacao.DataCadastro.Date)
+                ResultView.ClienteEndereco = new EnderecoService()
+                    .FormatarEndereco(Grv.Cliente.Endereco, Grv.Cliente.NumeroEndereco, Grv.Cliente.ComplementoEndereco);
+
+                if (!string.IsNullOrWhiteSpace(Grv.Cliente.Endereco.CEP))
                 {
-                    ResultView.Mensagem.Alertas
-                        .Add(
-                            $"Este Processo foi entregue em {Grv.Liberacao.DataCadastro:dd/MM/yyyy}, as informações impressas no Documento estão desatualizadas");
+                    ResultView.ClienteEndereco += $". CEP {Grv.Cliente.Endereco.CEP}";
+                }
+            }
+            else
+            {
+                ResultView.ClienteEndereco = string.Empty;
+            }
+
+            ResultView.DataEmissao = dataAtual.ToString("dd/MM/yyyy");
+            ResultView.HoraEmissao = dataAtual.ToString("HH:mm:ss");
+            ResultView.DataHoraEmissao = dataAtual.ToString("dd/MM/yyyy HH:mm:ss");
+
+            if (Grv.Arrematante != null)
+            {
+                string respNome = Grv.Arrematante.Nome ?? string.Empty;
+                string respDoc = Grv.Arrematante.CpfCnpj ?? string.Empty;
+                string depositoNome = Grv.Deposito?.Nome?.ToUpper() ?? string.Empty;
+
+                string numeroLote = Grv.Arrematante.NumeroLote ?? string.Empty;
+
+                DateTime dataRetirada = Grv.Liberacao?.DataCadastro ?? dataAtual;
+                string horaRetiradaStr = dataRetirada.ToString("HH\\hmm");
+                string dataRetiradaExtenso = dataRetirada.ToString("dd 'DE' MMMM 'DE' yyyy", culturaPtBr).ToUpper();
+
+                string dataLeilaoStr = string.Empty;
+                if (Grv.Arrematante.DataLeilao != null)
+                {
+                    dataLeilaoStr = Grv.Arrematante.DataLeilao.Value.ToString("dd/MM/yyyy");
+                }
+
+                ResultView.TextoDeclaracaoRetirada1 =
+                    $"Eu {respNome}, portador(a) do CPF {respDoc}, declaro que às {horaRetiradaStr} do dia " +
+                    $"{dataRetiradaExtenso} retirei do Depósito {depositoNome} o veículo, conforme descrito abaixo, referente  " +
+                    $"ao Lote nº {numeroLote}, do Leilão realizado no dia {dataLeilaoStr}.";
+
+                ResultView.NumeroLote = numeroLote;
+
+                var detranHubService = _detranHubOptions != null
+                    ? new DetranHubService(_httpClientFactory, _mapper, _detranHubOptions)
+                    : (_httpClientFactory != null && _mapper != null ? new DetranHubService(_httpClientFactory, _mapper) : null);
+
+                if (detranHubService != null)
+                {
+                    string placa = Grv.Placa.IsPlaca() ? Grv.Placa : null;
+                    string chassi = placa == null ? Grv.Chassi : null;
+
+                    var detranHubResult = await detranHubService.SearchToPlateOrChassi(placa, chassi);
+
+                    if (detranHubResult?.Veiculo != null)
+                    {
+                        var veiculoHub = detranHubResult.Veiculo;
+
+                        if (!string.IsNullOrWhiteSpace(veiculoHub.MarcaModelo))
+                            ResultView.VeiculoMarcaModelo = veiculoHub.MarcaModelo;
+
+                        if (!string.IsNullOrWhiteSpace(veiculoHub.Placa))
+                            ResultView.VeiculoPlaca = VeiculoHelper.FormatPlaca(veiculoHub.Placa);
+
+                        if (!string.IsNullOrWhiteSpace(veiculoHub.Renavam))
+                            ResultView.VeiculoRenavam = veiculoHub.Renavam;
+
+                        if (!string.IsNullOrWhiteSpace(veiculoHub.Chassi))
+                            ResultView.VeiculoChassi = veiculoHub.Chassi;
+
+                        if (!string.IsNullOrWhiteSpace(veiculoHub.CorPrimaria))
+                            ResultView.VeiculoCor = veiculoHub.CorPrimaria;
+
+                        if (veiculoHub.AnoFabricacao.HasValue)
+                            ResultView.VeiculoAnoFabricacao = veiculoHub.AnoFabricacao.Value.ToString();
+
+                        if (veiculoHub.AnoModelo.HasValue)
+                            ResultView.VeiculoAnoModelo = veiculoHub.AnoModelo.Value.ToString();
+                    }
+                }
+
+                ResultView.VeiculoAno = !string.IsNullOrWhiteSpace(ResultView.VeiculoAnoFabricacao) && !string.IsNullOrWhiteSpace(ResultView.VeiculoAnoModelo)
+                    ? (ResultView.VeiculoAnoFabricacao == ResultView.VeiculoAnoModelo ? ResultView.VeiculoAnoFabricacao : $"{ResultView.VeiculoAnoFabricacao}/{ResultView.VeiculoAnoModelo}")
+                    : (!string.IsNullOrWhiteSpace(ResultView.VeiculoAnoFabricacao) ? ResultView.VeiculoAnoFabricacao : ResultView.VeiculoAnoModelo);
+
+                ResultView.VeiculoMarcaModelo ??= Grv.MarcaModelo?.MarcaModelo;
+                ResultView.VeiculoPlaca ??= Grv.Placa;
+                ResultView.VeiculoRenavam ??= Grv.Renavam;
+                ResultView.VeiculoChassi ??= Grv.Chassi;
+                ResultView.VeiculoCor ??= Grv.Cor?.Cor;
+
+                ResultView.GrvEstacionamentoSetor = Grv.EstacionamentoSetor ?? string.Empty;
+                ResultView.GrvEstacionamentoNumeroVaga = Grv.EstacionamentoNumeroVaga ?? string.Empty;
+                ResultView.GrvNumeroChave = Grv.NumeroChave ?? string.Empty;
+
+                string valorArrematacaoStr = Grv.Arrematante.ValorTotal ?? string.Empty;
+                ResultView.ValorArrematacao = valorArrematacaoStr;
+
+                if (!string.IsNullOrWhiteSpace(valorArrematacaoStr))
+                {
+                    ResultView.TextoDeclaracaoRetirada2 = $"Declaro ter arrematado o Lote pelo valor de R$ {valorArrematacaoStr}.";
+                }
+                else
+                {
+                    ResultView.TextoDeclaracaoRetirada2 = "Declaro ter arrematado o Lote.";
+                }
+
+                ResultView.TextoDeclaracaoRetirada3 =
+                    "Declaro também que, no ato da retirada do veículo no Depósito, recebi os seguintes documentos:\n\n" +
+                    "- Nota Fiscal,\n\n" +
+                    "- Auto de Leilão";
+
+                string cidade = Grv.Deposito?.Endereco?.Municipio ?? "";
+                ResultView.CidadeData = $"{cidade.ToUpper()}, {dataAtual.ToString("dd 'DE' MMMM 'DE' yyyy", culturaPtBr).ToUpper()}";
+
+                ResultView.ProprietarioProcurador = respNome;
+                ResultView.ProprietarioCpf = respDoc;
+            }
+            else
+            {
+                var liberacaoLeilao = await _context.ViewLiberacaoLeilao
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(x => x.IdGrv == GrvId, cancellationToken: ct);
+
+                if (liberacaoLeilao != null)
+                {
+                    if (!string.IsNullOrWhiteSpace(liberacaoLeilao.Nome))
+                        ResultView.ClienteNome = liberacaoLeilao.Nome;
+
+                    if (!string.IsNullOrWhiteSpace(liberacaoLeilao.EnderecoCompleto))
+                        ResultView.ClienteEndereco = liberacaoLeilao.EnderecoCompleto;
+
+                    ResultView.NumeroProcesso = !string.IsNullOrWhiteSpace(liberacaoLeilao.Processo) ? liberacaoLeilao.Processo : ResultView.NumeroProcesso;
+                    ResultView.TextoDeclaracaoRetirada1 = liberacaoLeilao.Mensagem1;
+                    ResultView.NumeroLote = liberacaoLeilao.CodigoLote;
+                    ResultView.VeiculoMarcaModelo = liberacaoLeilao.MarcaModelo ?? Grv.MarcaModelo?.MarcaModelo;
+                    ResultView.VeiculoPlaca = liberacaoLeilao.Placa ?? Grv.Placa;
+                    ResultView.VeiculoRenavam = liberacaoLeilao.Renavam ?? Grv.Renavam;
+                    ResultView.VeiculoChassi = liberacaoLeilao.Chassi ?? Grv.Chassi;
+                    ResultView.VeiculoCor = liberacaoLeilao.Cor ?? Grv.Cor?.Cor;
+                    ResultView.VeiculoAno = liberacaoLeilao.Ano;
+                    ResultView.GrvEstacionamentoSetor = liberacaoLeilao.GrvEstacionamentoSetor ?? Grv.EstacionamentoSetor ?? string.Empty;
+                    ResultView.GrvEstacionamentoNumeroVaga = liberacaoLeilao.GrvEstacionamentoNumeroVaga ?? Grv.EstacionamentoNumeroVaga ?? string.Empty;
+                    ResultView.GrvNumeroChave = liberacaoLeilao.GrvNumeroChave ?? Grv.NumeroChave ?? string.Empty;
+                    ResultView.TextoDeclaracaoRetirada2 = liberacaoLeilao.Mensagem2;
+
+                    var docs = new List<string>();
+                    if (!string.IsNullOrWhiteSpace(liberacaoLeilao.Mensagem3)) docs.Add(liberacaoLeilao.Mensagem3);
+                    if (!string.IsNullOrWhiteSpace(liberacaoLeilao.Mensagem4)) docs.Add(liberacaoLeilao.Mensagem4);
+                    if (!string.IsNullOrWhiteSpace(liberacaoLeilao.Mensagem5)) docs.Add(liberacaoLeilao.Mensagem5);
+
+                    ResultView.TextoDeclaracaoRetirada3 = docs.Count > 0
+                        ? string.Join("\n\n", docs)
+                        : "Declaro também que, no ato da retirada do veículo no Depósito, recebi os seguintes documentos:\n\n- Nota Fiscal,\n\n- Auto de Leilão";
+
+                    ResultView.CidadeData = !string.IsNullOrWhiteSpace(liberacaoLeilao.Mensagem6)
+                        ? liberacaoLeilao.Mensagem6
+                        : $"{Grv.Deposito?.Endereco?.Municipio?.ToUpper() ?? "RIO DE JANEIRO"}, {dataAtual.ToString("dd 'DE' MMMM 'DE' yyyy", culturaPtBr).ToUpper()}";
+
+                    ResultView.ProprietarioProcurador = liberacaoLeilao.ArrematanteNomeArrematante?.Replace("Proprietário/Procurador: ", "").Trim() ?? (Grv.Atendimento?.ResponsavelNome ?? "");
+                    ResultView.ProprietarioCpf = liberacaoLeilao.ArrematanteCpfCnpj?.Replace("CPF: ", "").Trim() ?? (Grv.Atendimento?.ResponsavelDocumento ?? "");
                 }
             }
 
-            int? FaturamentoId = await new FaturamentoService(_context).GetUltimoFaturamentoIdAsync(GrvId);
-
-            ResultView.IdentificadorProcesso = Grv.GrvId;
-
-            ResultView.NumeroProcesso = Grv.NumeroFormularioGrv;
-
-            ResultView.ClienteNome = Grv?.Cliente.Nome ?? "";
-
-            //ResultView.ClienteEndereco = Grv.Cliente.Endereco ?? "";
-
-
-            //string depositoNome = GuiaPagamentoReboqueEstadia?.DepositoNome ?? Grv.Deposito?.Nome ?? "";
-            //string numFormulario = GuiaPagamentoReboqueEstadia?.NumeroFormularioGrv ?? Grv.NumeroFormularioGrv ?? "";
-
-            //ResultView.NumeroProcesso = $"Registro: {numFormulario}";
-
-
-
-            //string respNome = GuiaPagamentoReboqueEstadia?.AtendimentoResponsavelNome ?? Grv.Atendimento?.ResponsavelNome ?? "Não informado";
-            //string respDoc = GuiaPagamentoReboqueEstadia?.AtendimentoResponsavelDocumento ?? Grv.Atendimento?.ResponsavelDocumento ?? "Não informado";
-
-
-            //string depositoEndereco = GuiaPagamentoReboqueEstadia?.DepositoEndereco ?? "";
-
-            //ResultView.Titulo = "DECLARAÇÃO DE RETIRADA DE VEÍCULO ARREMATADO";
-
-            //ResultView.TextoDeclaracaoRetirada1 =
-            //                                    $"Eu {respNome}, portador(a) do CPF {respDoc}, declaro que às {DateTime.Now:HH:mm} do dia \n" +
-            //                                    "31 DE JULHO DE 2026 retirei do Depósito SAO GONCALO o veículo, conforme descrito abaixo, referente \n" +
-            //                                    "ao Lote nº 30, do Leilão realizado no dia 23/06/2026. ";
-
-            //ResultView.VeiculoMarcaModelo = GuiaPagamentoReboqueEstadia?.MarcaModelo ?? Grv.MarcaModelo?.MarcaModelo ?? "";
-
-            //ResultView.VeiculoPlaca = VeiculoHelper.FormatPlaca(GuiaPagamentoReboqueEstadia?.Placa ?? Grv.Placa ?? "");
-
-            //ResultView.VeiculoRenavam = GuiaPagamentoReboqueEstadia?.Renavam ?? Grv.Renavam ?? "";
-
-            //ResultView.VeiculoChassi = GuiaPagamentoReboqueEstadia?.Chassi ?? Grv.Chassi ?? "";
-
-            //ResultView.VeiculoCor = GuiaPagamentoReboqueEstadia?.Cor ?? "";
-
-            //ResultView.TextoDeclaracaoRetirada2 =
-            //    $@"Eu {respNome}, portador do CPF {respDoc}, declaro que no dia {DateTime.Now.ToString("dd 'de' MMMM 'de' yyyy", CultureInfo.GetCultureInfo("pt-BR"))}, " +
-            //    $"recebi do depósito {depositoNome} o veículo de placa {veicPlacaFormatada}, Marca/Modelo {veicMarcaModeloStr}, Cor {veicCorStr}, recolhido às {dataHoraGuardaStr.Right(5)} do dia {dataHoraGuardaStr.Left(10)}, " +
-            //    $"no endereco {depositoEndereco}";
-
-            //ResultView.TextoDeclaracaoRetirada3 =
-            //    $@"Declaro também que o veículo se encontrava nas mesmas condições, quando foi removido e ainda lacrado, " +
-            //    "conforme numeração abaixo descrita, sendo estes lacres conferidos na minha presença, nada havendo para reclamar agora ou no futuro.";
-
-            //ResultView.ProprietarioProcurador = respNome;
-
-            //ResultView.ProprietarioCpf = respDoc;
-
-            //string estSetor = GuiaPagamentoReboqueEstadia?.EstacionamentoSetor ?? Grv.EstacionamentoSetor;
-            //string estVaga = GuiaPagamentoReboqueEstadia?.EstacionamentoNumeroVaga ?? Grv.EstacionamentoNumeroVaga;
-            //string numChave = GuiaPagamentoReboqueEstadia?.NumeroChave ?? Grv.NumeroChave;
-
-            //ResultView.GrvEstacionamentoSetor = !string.IsNullOrWhiteSpace(estSetor)
-            //    ? estSetor
-            //    : "Não informado";
-
-            //ResultView.GrvEstacionamentoNumeroVaga = !string.IsNullOrWhiteSpace(estVaga)
-            //    ? estVaga
-            //    : "Não informado";
-
-            //ResultView.GrvNumeroChave = !string.IsNullOrWhiteSpace(numChave)
-            //    ? numChave
-            //    : "Não informado";
-
             ViewUsuarioModel Usuario = await _context.ViewUsuario
-                .FirstOrDefaultAsync(x => x.UsuarioId == UsuarioId);
+                .FirstOrDefaultAsync(x => x.UsuarioId == UsuarioId, cancellationToken: ct);
 
             if (Usuario != null)
             {
                 ResultView.UsuarioNome = Usuario.NomeCompleto;
                 ResultView.UsuarioMatricula = Usuario.Matricula;
+                ResultView.UsuarioCpf = !string.IsNullOrWhiteSpace(Usuario.CpfFormatado)
+                    ? Usuario.CpfFormatado
+                    : (!string.IsNullOrWhiteSpace(Usuario.Cpf) && Usuario.Cpf.Length == 11 ? DocumentHelper.FormatCPF(Usuario.Cpf) : Usuario.Matricula);
             }
-
-
-
-
 
             ResultView.Mensagem = MensagemViewHelper.SetOk(ResultView.Mensagem, "Documento gerado com sucesso");
 
@@ -480,7 +688,6 @@ namespace WebZi.Plataform.Data.Services.Leilao
 
             var targetGrvIds = new HashSet<int>();
 
-            // 1. Tratamento quando busca por IdentificadoresProcesso (ID do processo)
             if (temIds)
             {
                 var resultPorId = await _context.Grv
@@ -537,7 +744,6 @@ namespace WebZi.Plataform.Data.Services.Leilao
                 }
             }
 
-            // 2. Tratamento quando busca por NumerosDeProcesso
             if (temNumeros)
             {
                 var resultPorNumero = await _context.Grv
@@ -553,7 +759,6 @@ namespace WebZi.Plataform.Data.Services.Leilao
                     .Where(x => parameters.NumerosDeProcesso.Contains(x.NumeroFormularioGrv))
                     .ToListAsync(ct);
 
-                // Verificar duplicidade de números de processos no banco de dados
                 var gruposDuplicados = resultPorNumero
                     .GroupBy(x => x.NumeroFormularioGrv)
                     .Where(g => g.Count() > 1)

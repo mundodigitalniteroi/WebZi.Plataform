@@ -346,6 +346,10 @@ namespace WebZi.Plataform.Data.Database
 
         public DbSet<ArrematantesModel> Arrematantes { get; set; }
 
+        public DbSet<ViewLeilaoArremanteteModel> LeilaoArrematante { get; set; }
+
+        public DbSet<ViewLiberacaoLeilaoModel> ViewLiberacaoLeilao { get; set; }
+
         #endregion
 
         #region Liberação

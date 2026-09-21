@@ -400,6 +400,10 @@ namespace WebZi.Plataform.Data.Mappings.GRV
                 .HasOne(d => d.UsuarioClienteDepositoGrv)
                 .WithOne(p => p.Grv)
                 .OnDelete(DeleteBehavior.NoAction);
+            builder
+               .HasOne(d => d.Arrematante)
+               .WithOne(p => p.Grv)
+               .OnDelete(DeleteBehavior.NoAction);
         }
     }
 }
