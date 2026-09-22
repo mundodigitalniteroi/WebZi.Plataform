@@ -2204,8 +2204,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             {
                 ResultView.Listagem.Add(new ImageDTO
                 {
-                    Imagem = new HttpClientFactoryService(_httpClientFactory)
-                        .DownloadFile(BucketArquivo.Url)
+                    Imagem = BucketArquivo.Url
                 });
 
                 ResultView.Mensagem = MensagemViewHelper.SetFound();
@@ -2221,7 +2220,12 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
                 if (AtendimentoFotoResponsavel != null)
                 {
-                    ResultView.Listagem.Add(new ImageDTO { Imagem = AtendimentoFotoResponsavel.Foto });
+                    ResultView.Listagem.Add(new ImageDTO
+                    {
+                        Imagem = AtendimentoFotoResponsavel.Foto != null
+                            ? Convert.ToBase64String(AtendimentoFotoResponsavel.Foto)
+                            : string.Empty
+                    });
 
                     ResultView.Mensagem = MensagemViewHelper.SetFound();
 

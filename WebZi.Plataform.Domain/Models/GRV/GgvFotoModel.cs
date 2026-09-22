@@ -9,7 +9,7 @@ namespace WebZi.Plataform.Domain.Models.GRV
 
         public int IdGrv { get; set; }
 
-        public int IdUsuarioCadastro { get; set; }
+        public int? IdUsuarioCadastro { get; set; }
         public byte[] Foto { get; set; }
 
         public string TipoFoto { get; set; }
