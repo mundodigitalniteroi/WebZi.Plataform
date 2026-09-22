@@ -628,7 +628,7 @@ namespace WebZi.Plataform.Data.Services.GGV
                 }
             }
 
-            using (IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync(ct))
+            await using (IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync(ct))
             {
                 try
                 {

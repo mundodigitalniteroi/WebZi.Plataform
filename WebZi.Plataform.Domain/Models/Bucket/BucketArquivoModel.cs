@@ -1,4 +1,4 @@
-﻿using WebZi.Plataform.Domain.Models.Usuario;
+using WebZi.Plataform.Domain.Models.Usuario;
 
 namespace WebZi.Plataform.Domain.Models.Bucket
 {
@@ -11,11 +11,11 @@ namespace WebZi.Plataform.Domain.Models.Bucket
         // Representa o ID da Tabela mãe que gerou a imagem/arquivo
         public int TabelaOrigemId { get; set; }
 
-        public int UsuarioCadastroId { get; set; }
+        public int? UsuarioCadastroId { get; set; }
 
         public string NomeArquivo { get; set; }
 
-        public int TamanhoBytes { get; set; }
+        public int? TamanhoBytes { get; set; }
 
         public string Url { get; set; }
 
@@ -23,7 +23,7 @@ namespace WebZi.Plataform.Domain.Models.Bucket
 
         public string PermissaoAcesso { get; set; } = "PUBLICO";
 
-        public DateTime DataHoraCadastro { get; set; }
+        public DateTime? DataHoraCadastro { get; set; }
 
         /// <summary>
         /// Coluna usada apenas no cadastro das Fotos do GGV:

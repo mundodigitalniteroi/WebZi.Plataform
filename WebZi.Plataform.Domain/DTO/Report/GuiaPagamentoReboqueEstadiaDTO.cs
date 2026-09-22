@@ -141,7 +141,7 @@ namespace WebZi.Plataform.Domain.DTO.Report
 
         public string Rodape { get; set; }
 
-        public byte[] Logo { get; set; }
+        public string Logo { get; set; }
 
         public byte[] QrCode { get; set; }
 
