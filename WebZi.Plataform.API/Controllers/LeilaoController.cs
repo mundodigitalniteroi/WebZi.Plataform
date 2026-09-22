@@ -260,24 +260,24 @@ public class LeilaoController : ControllerBase
     }
 
     /// <summary>
-    /// Remove o processo (GRV) do fluxo de leilão e remove qualquer arrematante vinculado.
+    /// Remove o processo  do fluxo de leilão e remove qualquer arrematante vinculado.
     /// </summary>
     /// <remarks>
     /// Exclui o arrematante associado ao processo (se existir) e altera o status da operação da GRV para "V".
     /// </remarks>
-    /// <param name="identificadorProcesso">Identificador único do processo / GRV (GrvId).</param>
+    /// <param name="identificadorProcesso">Identificador único do processo (GrvId).</param>
     /// <param name="ct">Token de cancelamento da operação assíncrona.</param>
     /// <returns>Resultado da operação com status atualizado.</returns>
     /// <response code="200">Processo desvinculado do leilão com sucesso.</response>
     /// <response code="400">Requisição inválida ou erro no processamento.</response>
     /// <response code="404">Processo não encontrado.</response>
     /// <response code="500">Erro interno do servidor ao desvincular processo do leilão.</response>
-    [HttpDelete("{identificadorProcesso}/DesvincularGrvDoLeilao")]
+    [HttpDelete("{identificadorProcesso}/DesvincularLeilao")]
     [ProducesResponseType(typeof(MensagemDTO), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(MensagemDTO), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(MensagemDTO), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(MensagemDTO), StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<MensagemDTO>> DesvincularGrvDoLeilao(int identificadorProcesso, CancellationToken ct)
+    public async Task<ActionResult<MensagemDTO>> DesvincularLeilao(int identificadorProcesso, CancellationToken ct)
     {
         MensagemDTO ResultView = new();
         if (!ModelState.IsValid)
@@ -288,7 +288,7 @@ public class LeilaoController : ControllerBase
         var userId = User.GetUserId();
         try
         {
-            ResultView = await _provider.GetService<LeilaoService>().DesvincularGrvDoLeilaoAsync(identificadorProcesso, userId, ct);
+            ResultView = await _provider.GetService<LeilaoService>().DesvincularLeilaoAsync(identificadorProcesso, userId, ct);
             return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
         }
         catch (Exception e)

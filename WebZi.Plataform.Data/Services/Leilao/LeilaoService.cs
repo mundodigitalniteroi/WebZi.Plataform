@@ -208,10 +208,9 @@ namespace WebZi.Plataform.Data.Services.Leilao
             try
             {
 
-                if (arrematante.Grv.StatusOperacaoId == "1" && arrematante.Grv.StatusOperacaoId == "3" && arrematante.Grv.StatusOperacaoId == "6" && arrematante.Grv.StatusOperacaoId == "7")
-                {
+                if (arrematante != null && arrematante.Grv.StatusOperacaoId == "3" && arrematante.Grv.StatusOperacaoId == "6" && arrematante.Grv.StatusOperacaoId == "7")
                     await _provider.GetService<AtendimentoService>().DeleteAtendimentoAsync(arrematante.Grv.NumeroFormularioGrv, usuarioId.Value, arrematante.Grv.ClienteId);
-                }
+
                 await _context.SaveChangesAsync(ct);
                 return MensagemViewHelper.SetDeleteSuccess("Arrematante desvinculado e excluído com sucesso.");
             }
@@ -221,7 +220,7 @@ namespace WebZi.Plataform.Data.Services.Leilao
             }
         }
 
-        public async Task<MensagemDTO> DesvincularGrvDoLeilaoAsync(int identificadorProcesso, int? usuarioId, CancellationToken ct)
+        public async Task<MensagemDTO> DesvincularLeilaoAsync(int identificadorProcesso, int? usuarioId, CancellationToken ct)
         {
             var grv = await _context.Grv
                 .Include(x => x.StatusOperacao)
@@ -234,6 +233,7 @@ namespace WebZi.Plataform.Data.Services.Leilao
             }
 
             var arrematante = await _context.Arrematantes
+                .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.GrvId == identificadorProcesso, ct);
 
             if (arrematante != null)
@@ -248,10 +248,9 @@ namespace WebZi.Plataform.Data.Services.Leilao
 
             try
             {
-                if (arrematante.Grv.StatusOperacaoId == "1" && arrematante.Grv.StatusOperacaoId == "3" && arrematante.Grv.StatusOperacaoId == "6" && arrematante.Grv.StatusOperacaoId == "7")
-                {
+                if (arrematante != null && arrematante.Grv.StatusOperacaoId == "3" && arrematante.Grv.StatusOperacaoId == "6" && arrematante.Grv.StatusOperacaoId == "7")
                     await _provider.GetService<AtendimentoService>().DeleteAtendimentoAsync(grv.NumeroFormularioGrv, usuarioId.Value, grv.ClienteId);
-                }
+
                 await _context.SaveChangesAsync(ct);
                 return MensagemViewHelper.SetUpdateSuccess("Processo desvinculado do leilão com sucesso.");
             }
