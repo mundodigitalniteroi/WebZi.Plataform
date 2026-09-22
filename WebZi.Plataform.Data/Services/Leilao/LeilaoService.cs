@@ -208,7 +208,10 @@ namespace WebZi.Plataform.Data.Services.Leilao
             try
             {
 
-                await _provider.GetService<AtendimentoService>().DeleteAtendimentoAsync(arrematante.Grv.NumeroFormularioGrv, usuarioId.Value, arrematante.Grv.ClienteId);
+                if (arrematante.Grv.StatusOperacaoId == "1" && arrematante.Grv.StatusOperacaoId == "3" && arrematante.Grv.StatusOperacaoId == "6" && arrematante.Grv.StatusOperacaoId == "7")
+                {
+                    await _provider.GetService<AtendimentoService>().DeleteAtendimentoAsync(arrematante.Grv.NumeroFormularioGrv, usuarioId.Value, arrematante.Grv.ClienteId);
+                }
                 await _context.SaveChangesAsync(ct);
                 return MensagemViewHelper.SetDeleteSuccess("Arrematante desvinculado e excluído com sucesso.");
             }
@@ -245,9 +248,9 @@ namespace WebZi.Plataform.Data.Services.Leilao
 
             try
             {
-                if(grv.StatusOperacaoId is "6")
+                if (arrematante.Grv.StatusOperacaoId == "1" && arrematante.Grv.StatusOperacaoId == "3" && arrematante.Grv.StatusOperacaoId == "6" && arrematante.Grv.StatusOperacaoId == "7")
                 {
-                    await _provider.GetService<AtendimentoService>().DeleteAtendimentoAsync(arrematante.Grv.NumeroFormularioGrv, usuarioId.Value, arrematante.Grv.ClienteId);
+                    await _provider.GetService<AtendimentoService>().DeleteAtendimentoAsync(grv.NumeroFormularioGrv, usuarioId.Value, grv.ClienteId);
                 }
                 await _context.SaveChangesAsync(ct);
                 return MensagemViewHelper.SetUpdateSuccess("Processo desvinculado do leilão com sucesso.");
