@@ -977,6 +977,11 @@ namespace WebZi.Plataform.Data.Services.GGV
             return MensagemViewHelper.SetUpdateSuccess("Serviço associado alterado com sucesso");
         }
 
+
+        private async Task<TransalvadorEntradaPatioDTO> CreateEntradaPatio(TransalvadorEntradaPatioParameters parameters, CancellationToken ct)
+        {
+
+        }
         public async Task<MensagemDTO> DeleteServiceAssociationAsync(int GrvId, int UsuarioId,
             int faturamentoServicoGrvId, CancellationToken ct)
         {
