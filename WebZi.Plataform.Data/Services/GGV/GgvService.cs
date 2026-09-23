@@ -1,6 +1,7 @@
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.DependencyInjection;
 using WebZi.Plataform.CrossCutting.Number;
 using WebZi.Plataform.CrossCutting.Strings;
 using WebZi.Plataform.CrossCutting.Veiculo;
@@ -11,6 +12,7 @@ using WebZi.Plataform.Data.Services.Deposito;
 using WebZi.Plataform.Data.Services.Empresa;
 using WebZi.Plataform.Data.Services.Faturamento;
 using WebZi.Plataform.Data.Services.Sistema;
+using WebZi.Plataform.Data.Services.Transalvador;
 using WebZi.Plataform.Data.Services.Vistorias;
 using WebZi.Plataform.Data.Services.WebServices;
 using WebZi.Plataform.Domain.DTO.Generic;
@@ -27,6 +29,7 @@ using WebZi.Plataform.Domain.Models.Veiculo;
 using WebZi.Plataform.Domain.Models.Vistoria;
 using WebZi.Plataform.Domain.Services.GRV;
 using WebZi.Plataform.Domain.ViewModel.GGV;
+using WebZi.Plataform.Domain.ViewModel.Transalvador.Entrada;
 using WebZi.Plataform.Domain.Views.Faturamento;
 
 namespace WebZi.Plataform.Data.Services.GGV
@@ -36,12 +39,15 @@ namespace WebZi.Plataform.Data.Services.GGV
         private readonly AppDbContext _context;
         private readonly IMapper _mapper;
         private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IServiceProvider _provider;
 
-        public GgvService(AppDbContext context, IMapper mapper, IHttpClientFactory httpClientFactory)
+        public GgvService(AppDbContext context, IMapper mapper, IHttpClientFactory httpClientFactory,
+            IServiceProvider provider)
         {
             _context = context;
             _mapper = mapper;
             _httpClientFactory = httpClientFactory;
+            _provider = provider;
         }
 
         public async Task<MensagemDTO> UpdateGgvAsync(GgvParameters GgvPersistencia, CancellationToken ct)
@@ -55,7 +61,8 @@ namespace WebZi.Plataform.Data.Services.GGV
 
             GrvModel Grv = await _context.Grv
                 .Include(x => x.Vistoria)
-                .Include(x => x.ListagemFaturamentoServicoGrv)
+                .Include(x => x.ListagemFaturamentoServicoGrv).Include(grvModel => grvModel.TipoVeiculo!)
+                .Include(grvModel => grvModel.MarcaModelo!)
                 .FirstOrDefaultAsync(x => x.GrvId == GgvPersistencia.IdentificadorProcesso, cancellationToken: ct);
 
             DateTime DataHoraPorDeposito = new DepositoService(_context)
@@ -252,7 +259,8 @@ namespace WebZi.Plataform.Data.Services.GGV
                                 : item.ValorTipoCobrancaInformado;
 
                             FaturamentoServicoGrv.Valor = !string.IsNullOrWhiteSpace(item.ValorTipoCobrancaInformado) &&
-                                                          decimal.TryParse(item.ValorTipoCobrancaInformado.Replace(".", ","),
+                                                          decimal.TryParse(
+                                                              item.ValorTipoCobrancaInformado.Replace(".", ","),
                                                               out decimal valorInformadoUpdateH)
                                 ? valorInformadoUpdateH
                                 : FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.PrecoPadrao;
@@ -262,7 +270,7 @@ namespace WebZi.Plataform.Data.Services.GGV
                 }
             }
 
-            using (IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync(ct))
+            await using (IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync(ct))
             {
                 try
                 {
@@ -336,7 +344,8 @@ namespace WebZi.Plataform.Data.Services.GGV
             }
 
             GrvModel Grv = await _context.Grv
-                .Include(x => x.ListagemFaturamentoServicoGrv)
+                .Include(x => x.ListagemFaturamentoServicoGrv).Include(grvModel => grvModel.MarcaModelo)
+                .Include(grvModel => grvModel.TipoVeiculo)
                 .FirstOrDefaultAsync(x => x.GrvId == GgvPersistencia.IdentificadorProcesso, cancellationToken: ct);
 
             DateTime DataHoraPorDeposito = new DepositoService(_context)
@@ -618,7 +627,8 @@ namespace WebZi.Plataform.Data.Services.GGV
                                 : item.ValorTipoCobrancaInformado;
 
                             FaturamentoServicoGrv.Valor = !string.IsNullOrWhiteSpace(item.ValorTipoCobrancaInformado) &&
-                                                          decimal.TryParse(item.ValorTipoCobrancaInformado.Replace(".", ","),
+                                                          decimal.TryParse(
+                                                              item.ValorTipoCobrancaInformado.Replace(".", ","),
                                                               out decimal valorInformadoCreateH)
                                 ? valorInformadoCreateH
                                 : FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.PrecoPadrao;
@@ -634,6 +644,25 @@ namespace WebZi.Plataform.Data.Services.GGV
                 {
                     _context.Grv.Update(Grv);
 
+                    if (Grv.ClienteId is 22)
+                    {
+                        var result = await _provider.GetService<TransalvadorService>().EntradaVeiculoAsync(
+                            new EntradaPatioParameters()
+                            {
+                                TipoVeiculo = Grv.TipoVeiculo.Descricao,
+                                DataEntrada = Grv.DataHoraGuarda!.Value,
+                                Placa = Grv.Placa,
+                                Uf = Grv.VeiculoUF,
+                                MarcaModelo = Grv.MarcaModelo.MarcaModelo,
+                                NumeroProcesso = Grv.NumeroFormularioGrv,
+                                IdReboque = Grv.FlagComboio.Equals("N") ? Grv.ReboqueId?.ToString() : string.Empty,
+                                IdPatio = Grv.DepositoId,
+                                IdMotivo = Grv.MotivoApreensaoId!.Value
+                            }, ct);
+
+                        if ( result.HtmlStatusCode != HtmlStatusCodeEnum.Created)
+                            return result;
+                    }
                     // foreach (CondutorEquipamentoOpcionalModel item in ListagemCadastroCondutorEquipamentoOpcional)
                     // {
                     //     if (item.CondutorEquipamentoOpcionalId > 0)
@@ -908,11 +937,12 @@ namespace WebZi.Plataform.Data.Services.GGV
 
             FaturamentoServicoGrvModel servicoAssociado = await _context.FaturamentoServicoGrv
                 .Include(x => x.FaturamentoServicoTipoVeiculo)
-                    .ThenInclude(x => x.FaturamentoServicoAssociado)
-                        .ThenInclude(x => x.FaturamentoServicoTipo)
+                .ThenInclude(x => x.FaturamentoServicoAssociado)
+                .ThenInclude(x => x.FaturamentoServicoTipo)
                 .AsTracking()
                 .FirstOrDefaultAsync(
-                    x => x.GrvId == parameters.IdentificadorProcesso && x.FaturamentoServicoGrvId == parameters.IdentificadorServicoGrv,
+                    x => x.GrvId == parameters.IdentificadorProcesso &&
+                         x.FaturamentoServicoGrvId == parameters.IdentificadorServicoGrv,
                     cancellationToken: ct);
 
             if (servicoAssociado is null)
@@ -929,8 +959,10 @@ namespace WebZi.Plataform.Data.Services.GGV
                 parameters.ValorTipoCobrancaInformado = parameters.HoraMinuto;
             }
 
-            var tipoCobranca = servicoAssociado.FaturamentoServicoTipoVeiculo?.FaturamentoServicoAssociado?.FaturamentoServicoTipo?.TipoCobranca;
-            decimal precoPadrao = servicoAssociado.FaturamentoServicoTipoVeiculo?.FaturamentoServicoAssociado?.PrecoPadrao ?? 0;
+            var tipoCobranca = servicoAssociado.FaturamentoServicoTipoVeiculo?.FaturamentoServicoAssociado
+                ?.FaturamentoServicoTipo?.TipoCobranca;
+            decimal precoPadrao =
+                servicoAssociado.FaturamentoServicoTipoVeiculo?.FaturamentoServicoAssociado?.PrecoPadrao ?? 0;
 
             if (tipoCobranca == "H" || tipoCobranca == TipoCobrancaFaturamentoEnum.Horas)
             {
@@ -957,16 +989,16 @@ namespace WebZi.Plataform.Data.Services.GGV
                     : parameters.ValorTipoCobrancaInformado;
 
                 servicoAssociado.Valor = !string.IsNullOrWhiteSpace(parameters.ValorTipoCobrancaInformado) &&
-                                decimal.TryParse(parameters.ValorTipoCobrancaInformado.Replace(".", ","),
-                                    out decimal valorInformadoH)
+                                         decimal.TryParse(parameters.ValorTipoCobrancaInformado.Replace(".", ","),
+                                             out decimal valorInformadoH)
                     ? valorInformadoH
                     : precoPadrao;
             }
             else
             {
                 servicoAssociado.Valor = !string.IsNullOrWhiteSpace(parameters.ValorTipoCobrancaInformado) &&
-                                decimal.TryParse(parameters.ValorTipoCobrancaInformado.Replace(".", ","),
-                                    out decimal valorInformado)
+                                         decimal.TryParse(parameters.ValorTipoCobrancaInformado.Replace(".", ","),
+                                             out decimal valorInformado)
                     ? valorInformado
                     : precoPadrao;
             }
@@ -977,11 +1009,6 @@ namespace WebZi.Plataform.Data.Services.GGV
             return MensagemViewHelper.SetUpdateSuccess("Serviço associado alterado com sucesso");
         }
 
-
-        private async Task<TransalvadorEntradaPatioDTO> CreateEntradaPatio(TransalvadorEntradaPatioParameters parameters, CancellationToken ct)
-        {
-
-        }
         public async Task<MensagemDTO> DeleteServiceAssociationAsync(int GrvId, int UsuarioId,
             int faturamentoServicoGrvId, CancellationToken ct)
         {

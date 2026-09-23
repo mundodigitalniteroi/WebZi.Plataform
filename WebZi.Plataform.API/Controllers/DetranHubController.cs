@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.DetranHub;
@@ -19,7 +19,7 @@ public class DetranHubController : ControllerBase
     }
 
     [HttpGet("ConsultarPorPlacaOuChassi")]
-    public async Task<ActionResult<ConsultarPorPlacaOuChassiDTO>> ConsultarPorPlacaOuChassi(string? placa, string? chassi)
+    public async Task<ActionResult<ConsultarPorPlacaOuChassiDTO>> ConsultarPorPlacaOuChassi(string? placa, string? chassi, CancellationToken ct)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
@@ -30,7 +30,7 @@ public class DetranHubController : ControllerBase
         {
             ResultView = await _provider
                 .GetService<DetranHubService>()
-                .SearchToPlateOrChassi(placa, chassi);
+                .SearchToPlateOrChassi(placa, chassi, ct);
             return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
         }
         catch (Exception ex)

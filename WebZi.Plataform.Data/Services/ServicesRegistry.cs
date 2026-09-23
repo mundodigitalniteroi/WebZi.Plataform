@@ -20,6 +20,7 @@ using WebZi.Plataform.Data.Services.Pessoa;
 using WebZi.Plataform.Data.Services.Report;
 using WebZi.Plataform.Data.Services.Servico;
 using WebZi.Plataform.Data.Services.Sistema;
+using WebZi.Plataform.Data.Services.Transalvador;
 using WebZi.Plataform.Data.Services.Usuario;
 using WebZi.Plataform.Data.Services.Veiculo;
 using WebZi.Plataform.Data.Services.Vistorias;
@@ -101,12 +102,15 @@ namespace WebZi.Plataform.Data.Services
             services.AddScoped<WhatsAppService>();
             services.AddScoped<DetranHubService>();
             services.AddScoped<LiberacaoEspecialService>();
-            
+            services.AddScoped<TransalvadorService>();
+
             #region WebServices
+
             services.AddScoped<DetranAlagoasService>();
 
             services.AddScoped<DetranRioService>();
             services.AddScoped<WSNfseService>();
+
             #endregion
         }
     }

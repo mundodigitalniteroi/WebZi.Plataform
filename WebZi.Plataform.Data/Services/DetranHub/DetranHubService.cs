@@ -29,7 +29,7 @@ public class DetranHubService
         _options = options;
     }
 
-    public async Task<ConsultarPorPlacaOuChassiDTO> SearchToPlateOrChassi(string Placa, string Chassi)
+    public async Task<ConsultarPorPlacaOuChassiDTO> SearchToPlateOrChassi(string Placa, string Chassi, CancellationToken ct = default)
     {
         ConsultarPorPlacaOuChassiDTO ResultView = new();
         
@@ -64,10 +64,10 @@ public class DetranHubService
 
         try
         {
-            ConsltarRetorno = new HttpClientFactoryService(_httpClientFactory)
-                .PostWithApiKey<ConsultarDetranHubResponse>(
+            ConsltarRetorno = await new HttpClientFactoryService(_httpClientFactory)
+                .PostWithApiKeyAsync<ConsultarDetranHubResponse>(
                     _options.Value.BaseUrl,
-                    _options.Value.ApiKey, ConsultarParametros);
+                    _options.Value.ApiKey, ConsultarParametros, ct);
         }
         catch (Exception ex)
         {
