@@ -642,12 +642,10 @@ namespace WebZi.Plataform.Data.Services.GGV
             {
                 try
                 {
-                    _context.Grv.Update(Grv);
-
-                    if (Grv.ClienteId is 22)
+                    if (Grv.ClienteId is 48)
                     {
                         var result = await _provider.GetService<TransalvadorService>().EntradaVeiculoAsync(
-                            new EntradaPatioParameters()
+                            new EntradaPatioParameters
                             {
                                 TipoVeiculo = Grv.TipoVeiculo.Descricao,
                                 DataEntrada = Grv.DataHoraGuarda!.Value,
@@ -659,10 +657,12 @@ namespace WebZi.Plataform.Data.Services.GGV
                                 IdPatio = Grv.DepositoId,
                                 IdMotivo = Grv.MotivoApreensaoId!.Value
                             }, ct);
-
-                        if ( result.HtmlStatusCode != HtmlStatusCodeEnum.Created)
-                            return result;
+                        if (result.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Created)
+                            return result.Mensagem;
+                        Grv.IdEntradaTransalvador = result.Id;
                     }
+
+                    _context.Grv.Update(Grv);
                     // foreach (CondutorEquipamentoOpcionalModel item in ListagemCadastroCondutorEquipamentoOpcional)
                     // {
                     //     if (item.CondutorEquipamentoOpcionalId > 0)

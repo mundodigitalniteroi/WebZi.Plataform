@@ -366,6 +366,9 @@ namespace WebZi.Plataform.Data.Mappings.GRV
                 .IsUnicode(false)
                 .IsFixedLength();
 
+            builder.Property(x => x.IdEntradaTransalvador)
+                .HasColumnName("id_entrada_transalvador");
+
             builder
                 .HasOne(d => d.UsuarioCadastro)
                 .WithMany(p => p.ListagemUsuarioCadastroGrv)
@@ -401,9 +404,9 @@ namespace WebZi.Plataform.Data.Mappings.GRV
                 .WithOne(p => p.Grv)
                 .OnDelete(DeleteBehavior.NoAction);
             builder
-               .HasOne(d => d.Arrematante)
-               .WithOne(p => p.Grv)
-               .OnDelete(DeleteBehavior.NoAction);
+                .HasOne(d => d.Arrematante)
+                .WithOne(p => p.Grv)
+                .OnDelete(DeleteBehavior.NoAction);
         }
     }
 }

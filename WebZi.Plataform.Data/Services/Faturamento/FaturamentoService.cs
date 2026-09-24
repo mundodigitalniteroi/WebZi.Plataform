@@ -1798,7 +1798,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 return MensagemViewHelper.SetBadRequest("Este Cliente não está configurado para emitir PIX Dinâmico");
             }
 
-            using IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync(ct);
+            await using IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync(ct);
 
             try
             {

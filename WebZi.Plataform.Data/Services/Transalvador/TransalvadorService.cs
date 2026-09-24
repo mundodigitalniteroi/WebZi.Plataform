@@ -1,6 +1,8 @@
 using Microsoft.Extensions.Options;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Sistema;
+using WebZi.Plataform.Domain.DTO.Banco;
+using WebZi.Plataform.Domain.DTO.GGV;
 using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.DTO.Transalvador;
 using WebZi.Plataform.Domain.DTO.Transalvador.DAT.Consultar;
@@ -27,59 +29,89 @@ public class TransalvadorService
         _http = http;
     }
 
-    public async Task<MensagemDTO> EntradaVeiculoAsync(EntradaPatioParameters parameters, CancellationToken ct = default)
+    private const string EEntrada = "patio/veiculos/entrada";
+    private const string EEmitirDAT = "dat";
+    private const string EEmitirSegundaViaDAT = "dat/segunda-via";
+    private const string EConsultarStatusBancario = "dats/consultar-status";
+    private const string ELiberacao = "";
+
+    public async Task<EntradaVeiculorTransalvadorDTO> EntradaVeiculoAsync(EntradaPatioParameters parameters,
+        CancellationToken ct = default)
     {
         EntradaPatioDTO entradaPatioResponse = await new HttpClientFactoryService(_http)
             .PostBearerAuthAsync<EntradaPatioDTO>(
-                _options.Value.Url + "patio/veiculos/entrada",
+                _options.Value.Url + EEntrada,
                 _options.Value.EntradaPatioToken, parameters, ct);
 
-        if (entradaPatioResponse == null || !entradaPatioResponse.Success)
+        if (entradaPatioResponse is not { Success: true })
         {
-            return TratarRespostaErro(entradaPatioResponse, "Erro ao registrar entrada de veículo no pátio da Transalvador.");
+            return new EntradaVeiculorTransalvadorDTO
+            {
+                Mensagem = TratarRespostaErro(entradaPatioResponse,
+                    "Erro ao registrar entrada de veículo no pátio da Transalvador.")
+            };
         }
 
-        return MensagemViewHelper.SetCreateSuccess();
+        return new EntradaVeiculorTransalvadorDTO
+        {
+            Mensagem = MensagemViewHelper.SetCreateSuccess(),
+            Id = entradaPatioResponse.Data.Id
+        };
     }
 
-    public async Task<MensagemDTO> LiberacaoVeiculoAsync(LiberacaoPatioParameters parameters, CancellationToken ct = default)
+    public async Task<MensagemDTO> LiberacaoVeiculoAsync(LiberacaoPatioParameters parameters,
+        CancellationToken ct = default)
     {
         LiberacaoPatioDTO liberacaoPatioResponse = await new HttpClientFactoryService(_http)
             .PostBearerAuthAsync<LiberacaoPatioDTO>(
-                _options.Value.Url,
+                _options.Value.Url + ELiberacao,
                 _options.Value.LiberacaoToken, parameters, ct);
 
-        if (liberacaoPatioResponse == null || !liberacaoPatioResponse.Success)
+        if (liberacaoPatioResponse is not { Success: true })
         {
-            return TratarRespostaErro(liberacaoPatioResponse, "Erro ao registrar liberação de veículo no pátio da Transalvador.");
+            return TratarRespostaErro(liberacaoPatioResponse,
+                "Erro ao registrar liberação de veículo no pátio da Transalvador.");
         }
 
         return MensagemViewHelper.SetCreateSuccess();
     }
 
-    public async Task<MensagemDTO> GerarDATAsync(GerarDATParameters parameters, CancellationToken ct = default)
+    public async Task<DATDTO> GerarDATAsync(GerarDATParameters parameters, CancellationToken ct = default)
+    {
+        var gerarDatResponse = await new HttpClientFactoryService(_http)
+            .PostBearerAuthAsync<GerarDATDTO>(
+                _options.Value.Url + EEmitirDAT,
+                _options.Value.GerarDATToken, parameters, ct);
+
+        return MapearParaDATDTO(gerarDatResponse, "Erro ao gerar DAT na Transalvador.");
+    }
+
+
+    /*
+     * <summary>
+     * Emite a 2ª via de um DAT existente. Se vencido, aplica encargos de juros e multas de mora,
+     * recalculando os valores e atualizando o PIX.
+     * </summary>
+     */
+    public async Task<DATDTO> EmitirSegundaViaAsync(string numdat, CancellationToken ct = default)
     {
         GerarDATDTO gerarDatResponse = await new HttpClientFactoryService(_http)
             .PostBearerAuthAsync<GerarDATDTO>(
-                _options.Value.Url,
-                _options.Value.GerarDATToken, parameters, ct);
+                _options.Value.Url + EEmitirSegundaViaDAT,
+                _options.Value.GerarDATToken, numdat, ct);
 
-        if (gerarDatResponse == null || !gerarDatResponse.Success)
-        {
-            return TratarRespostaErro(gerarDatResponse, "Erro ao gerar DAT na Transalvador.");
-        }
-
-        return MensagemViewHelper.SetCreateSuccess();
+        return MapearParaDATDTO(gerarDatResponse, "Erro ao emitir 2ª via do DAT na Transalvador.");
     }
 
-    public async Task<MensagemDTO> ConsultarDATAsync(ConsultarDATParameters parameters, CancellationToken ct = default)
+    public async Task<MensagemDTO> ConsultarStatusBancarioAsync(ConsultarStatusBancarioParameters parameters,
+        CancellationToken ct = default)
     {
         RetornoBancarioDTO retornoBancarioResponse = await new HttpClientFactoryService(_http)
             .PostBearerAuthAsync<RetornoBancarioDTO>(
-                _options.Value.Url,
+                _options.Value.Url + EConsultarStatusBancario,
                 _options.Value.RetornoBancarioToken, parameters, ct);
 
-        if (retornoBancarioResponse == null || !retornoBancarioResponse.Success)
+        if (retornoBancarioResponse is not { Success: true })
         {
             return TratarRespostaErro(retornoBancarioResponse, "Erro ao consultar DAT na Transalvador.");
         }
@@ -87,7 +119,111 @@ public class TransalvadorService
         return MensagemViewHelper.SetCreateSuccess();
     }
 
-    private static MensagemDTO TratarRespostaErro(TransalvadorBaseDTO response, string defaultMessage = "Erro ao processar requisição na API da Transalvador.")
+    #region Mapeamento DAT
+
+    private static DATDTO MapearParaDATDTO(GerarDATDTO gerarDatResponse,
+        string defaultErrorMessage = "Erro ao gerar DAT na Transalvador.")
+    {
+        DATDTO result = new();
+
+        if (gerarDatResponse is not { Success: true } || gerarDatResponse.Data == null)
+        {
+            result.Mensagem = TratarRespostaErro(gerarDatResponse, defaultErrorMessage);
+            return result;
+        }
+
+        GerarDATDataDTO data = gerarDatResponse.Data;
+
+        result.Mensagem = MensagemViewHelper.SetCreateSuccess();
+
+        result.TituloDocumento = data.TituloDocumento;
+        result.NumeroDocumentoDat = data.NumeroDocumentoDat;
+        result.NumeroProcesso = data.NumeroProcesso;
+        result.DataDocumento = data.DataDocumento;
+        result.DataVencimento = data.DataVencimento;
+        result.Referencia = data.Referencia;
+        result.TipoSaldo = data.TipoSaldo;
+        result.PdfUrl = data.PdfUrl;
+        result.Instrucoes = data.Instrucoes;
+
+        if (data.Cedente != null)
+        {
+            result.CedenteRazaoSocial = data.Cedente.RazaoSocial;
+            result.CedenteSigla = data.Cedente.Sigla;
+            result.CedenteCnpj = data.Cedente.Cnpj;
+        }
+
+        if (data.Sacado != null)
+        {
+            result.SacadoNome = data.Sacado.Nome;
+            result.SacadoCpfCnpj = data.Sacado.CpfCnpj;
+            result.SacadoEndereco = data.Sacado.Endereco;
+            result.SacadoCep = data.Sacado.Cep;
+            result.SacadoCidade = data.Sacado.Cidade;
+            result.SacadoUf = data.Sacado.Uf;
+        }
+
+        if (data.Servico != null)
+        {
+            result.ServicoCodigo = data.Servico.Codigo;
+            result.ServicoDescricao = data.Servico.Descricao;
+            result.ServicoRotuloCompleto = data.Servico.RotuloCompleto;
+        }
+
+        if (data.DiscriminacaoIss != null)
+        {
+            result.PossuiIss = data.DiscriminacaoIss.PossuiIss;
+            result.IssAliquotaPercentual = data.DiscriminacaoIss.AliquotaPercentual;
+            result.IssPercentualBaseServico = data.DiscriminacaoIss.PercentualBaseServico;
+            result.IssValorBaseServicoDesconto = data.DiscriminacaoIss.ValorBaseServicoDesconto;
+            result.IssValorRetido = data.DiscriminacaoIss.ValorIssRetido;
+            result.IssTextoReferencia = data.DiscriminacaoIss.TextoReferencia;
+        }
+
+        if (data.Valores != null)
+        {
+            result.ValorDocumento = data.Valores.ValorDocumento;
+            result.DescontoAbatimento = data.Valores.DescontoAbatimento;
+            result.OutrasDeducoes = data.Valores.OutrasDeducoes;
+            result.JurosMultas = data.Valores.JurosMultas;
+            result.OutrosAcrescimos = data.Valores.OutrosAcrescimos;
+            result.ValorCobrado = data.Valores.ValorCobrado;
+        }
+
+        if (data.Pagamento != null)
+        {
+            result.LinhaDigitavel = data.Pagamento.LinhaDigitavel;
+            result.CodigoBarras = data.Pagamento.CodigoBarras;
+            result.PixCopiaECola = data.Pagamento.PixCopiaECola;
+            result.TxId = data.Pagamento.TxId;
+            result.QrCodeBase64 = data.Pagamento.QrCodeBase64;
+
+            if (!string.IsNullOrWhiteSpace(data.Pagamento.QrCodeBase64))
+            {
+                try
+                {
+                    string cleanBase64 = data.Pagamento.QrCodeBase64.Contains(",")
+                        ? data.Pagamento.QrCodeBase64.Split(',')[1]
+                        : data.Pagamento.QrCodeBase64;
+
+                    result.QrCode = Convert.FromBase64String(cleanBase64);
+                }
+                catch
+                {
+                    // Mantém QrCode nulo se houver erro ao converter Base64
+                }
+            }
+        }
+
+        return result;
+    }
+
+    #endregion Mapeamento DAT
+
+    #region Tratamento na Resposta de Erro
+
+    private static MensagemDTO TratarRespostaErro(TransalvadorBaseDTO response,
+        string defaultMessage = "Erro ao processar requisição na API da Transalvador.")
     {
         if (response == null)
         {
@@ -220,4 +356,6 @@ public class TransalvadorService
 
         return listaErros;
     }
+
+    #endregion
 }

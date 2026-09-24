@@ -57,6 +57,10 @@ public sealed class GerarDATDataDTO
     [JsonPropertyName("referencia")]
     public string Referencia { get; set; }
 
+    [JsonProperty("tipo_saldo")]
+    [JsonPropertyName("tipo_saldo")]
+    public string TipoSaldo { get; set; }
+
     [JsonProperty("pdf_url")]
     [JsonPropertyName("pdf_url")]
     public string PdfUrl { get; set; }
@@ -108,7 +112,7 @@ public sealed class ServicoDTO
 {
     [JsonProperty("codigo")]
     [JsonPropertyName("codigo")]
-    public string Codigo { get; set; }
+    public int? Codigo { get; set; }
 
     [JsonProperty("descricao")]
     [JsonPropertyName("descricao")]
@@ -132,6 +136,10 @@ public sealed class DiscriminacaoIssDTO
     [JsonProperty("percentual_base_servico")]
     [JsonPropertyName("percentual_base_servico")]
     public decimal? PercentualBaseServico { get; set; }
+
+    [JsonProperty("valor_base_servico_desconto")]
+    [JsonPropertyName("valor_base_servico_desconto")]
+    public decimal? ValorBaseServicoDesconto { get; set; }
 
     [JsonProperty("valor_iss_retido")]
     [JsonPropertyName("valor_iss_retido")]

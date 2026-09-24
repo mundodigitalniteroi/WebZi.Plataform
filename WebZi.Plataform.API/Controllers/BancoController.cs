@@ -3,12 +3,14 @@ using Microsoft.AspNetCore.Mvc;
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Banco;
+using WebZi.Plataform.Data.Services.Banco.DAT;
 using WebZi.Plataform.Data.Services.Banco.PIX;
 using WebZi.Plataform.Data.Services.Report;
 using WebZi.Plataform.Data.Services.WebServices;
 using WebZi.Plataform.Domain.DTO.Banco;
 using WebZi.Plataform.Domain.DTO.Banco.PIX;
 using WebZi.Plataform.Domain.DTO.Report;
+using WebZi.Plataform.Domain.DTO.Transalvador.DAT.Gerar;
 
 namespace WebZi.Plataform.API.Controllers
 {
@@ -53,7 +55,8 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("GerarPixDinamico")]
         // TODO: [Authorize]
-        public async Task<ActionResult<PixDinamicoCompletoDTO>> GerarPixDinamico(int IdentificadorFaturamento, int IdentificadorUsuario, CancellationToken ct)
+        public async Task<ActionResult<PixDinamicoCompletoDTO>> GerarPixDinamico(int IdentificadorFaturamento,
+            int IdentificadorUsuario, CancellationToken ct)
         {
             if (!ModelState.IsValid)
             {
@@ -75,8 +78,8 @@ namespace WebZi.Plataform.API.Controllers
                 }
 
                 GuiaPagamentoReboqueEstadiaDTO guiaPagamentoReboqueEstadiaDTO = await _provider
-                 .GetService<GuiaPagamentoReboqueEstadiaService>()
-                 .GetGuiaPagamentoReboqueEstadiaAsync(IdentificadorFaturamento, IdentificadorUsuario);
+                    .GetService<GuiaPagamentoReboqueEstadiaService>()
+                    .GetGuiaPagamentoReboqueEstadiaAsync(IdentificadorFaturamento, IdentificadorUsuario);
 
                 ResultView.PixDinamico = pixDinamicoDTO;
                 ResultView.GuiaPagamentoReboqueEstadia = guiaPagamentoReboqueEstadiaDTO;
@@ -95,7 +98,8 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("ConsultarPixDinamico")]
         // TODO: [Authorize]
-        public async Task<ActionResult<PixDinamicoCompletoDTO>> ConsultarPixDinamico(int IdentificadorFaturamento, int IdentificadorUsuario, CancellationToken ct)
+        public async Task<ActionResult<PixDinamicoCompletoDTO>> ConsultarPixDinamico(int IdentificadorFaturamento,
+            int IdentificadorUsuario, CancellationToken ct)
         {
             if (!ModelState.IsValid)
             {
@@ -117,8 +121,8 @@ namespace WebZi.Plataform.API.Controllers
                 }
 
                 GuiaPagamentoReboqueEstadiaDTO guiaPagamentoReboqueEstadiaDTO = await _provider
-                 .GetService<GuiaPagamentoReboqueEstadiaService>()
-                 .ConsultarGuiaPagamentoReboqueEstadiaAsync(IdentificadorFaturamento, IdentificadorUsuario);
+                    .GetService<GuiaPagamentoReboqueEstadiaService>()
+                    .ConsultarGuiaPagamentoReboqueEstadiaAsync(IdentificadorFaturamento, IdentificadorUsuario);
 
                 ResultView.PixDinamico = pixDinamicoDTO;
                 ResultView.GuiaPagamentoReboqueEstadia = guiaPagamentoReboqueEstadiaDTO;
@@ -137,7 +141,8 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("GerarPixEstatico")]
         // TODO: [Authorize]
-        public async Task<ActionResult<PixEstaticoCompletoDTO>> GerarPixEstatico(int IdentificadorFaturamento, int IdentificadorUsuario)
+        public async Task<ActionResult<PixEstaticoCompletoDTO>> GerarPixEstatico(int IdentificadorFaturamento,
+            int IdentificadorUsuario)
         {
             if (!ModelState.IsValid)
             {
@@ -156,9 +161,10 @@ namespace WebZi.Plataform.API.Controllers
                     ResultView.Mensagem = pixEstatico.Mensagem;
                     return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
                 }
+
                 GuiaPagamentoReboqueEstadiaDTO guiaPagamentoReboqueEstadia = await _provider
-                .GetService<GuiaPagamentoReboqueEstadiaService>()
-                .ConsultarGuiaPagamentoReboqueEstadiaAsync(IdentificadorFaturamento, IdentificadorUsuario);
+                    .GetService<GuiaPagamentoReboqueEstadiaService>()
+                    .ConsultarGuiaPagamentoReboqueEstadiaAsync(IdentificadorFaturamento, IdentificadorUsuario);
 
                 ResultView.PixEstatico = pixEstatico;
                 ResultView.GuiaPagamentoReboqueEstadia = guiaPagamentoReboqueEstadia;
@@ -172,9 +178,11 @@ namespace WebZi.Plataform.API.Controllers
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
         }
+
         [HttpGet("SenhasConfirmacao")]
         // TODO: [Authorize]
-        public async Task<ActionResult<SenhaPixEstaticoDTO>> SenhasConfirmacao(int IdentificadorFaturamento, int IdentificadorUsuario)
+        public async Task<ActionResult<SenhaPixEstaticoDTO>> SenhasConfirmacao(int IdentificadorFaturamento,
+            int IdentificadorUsuario)
         {
             if (!ModelState.IsValid)
             {
@@ -193,6 +201,7 @@ namespace WebZi.Plataform.API.Controllers
                 {
                     return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
                 }
+
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
             catch (Exception ex)
@@ -224,6 +233,52 @@ namespace WebZi.Plataform.API.Controllers
                 {
                     return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
                 }
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
+
+
+        [HttpGet("{identificadorAtendimento}/GerarDAT")]
+        public async Task<ActionResult<DATDTO>> GerarDAT(int identificadorFaturamento, CancellationToken ct)
+        {
+            DATDTO ResultView = new();
+
+            try
+            {
+                ResultView = await _provider.GetService<DATService>().GerarAsync(identificadorFaturamento, ct);
+
+                if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+                    return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
+        
+        [HttpGet("{identificadorAtendimento}/ConsultarDAT")]
+        public async Task<ActionResult<DATDTO>> ConsultarDAT(int identificadorFaturamento, CancellationToken ct)
+        {
+            DATDTO ResultView = new();
+
+            try
+            {
+                ResultView = await _provider.GetService<DATService>().ConsultarAsync(identificadorFaturamento, ct);
+
+                if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+                    return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
             catch (Exception ex)

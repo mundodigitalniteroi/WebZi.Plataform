@@ -2,6 +2,7 @@
 using WebZi.Plataform.Data.Services.Atendimento;
 using WebZi.Plataform.Data.Services.AutoridadeDivisoes;
 using WebZi.Plataform.Data.Services.Banco;
+using WebZi.Plataform.Data.Services.Banco.DAT;
 using WebZi.Plataform.Data.Services.Banco.PIX;
 using WebZi.Plataform.Data.Services.Cliente;
 using WebZi.Plataform.Data.Services.ClienteDeposito;
@@ -103,6 +104,7 @@ namespace WebZi.Plataform.Data.Services
             services.AddScoped<DetranHubService>();
             services.AddScoped<LiberacaoEspecialService>();
             services.AddScoped<TransalvadorService>();
+            services.AddScoped<DATService>();
 
             #region WebServices
 
