@@ -6,7 +6,9 @@ using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Transalvador;
 using WebZi.Plataform.Domain.DTO.Banco;
+using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.ViewModel.Transalvador.DAT.Gerar;
+using Z.EntityFramework.Plus;
 using static System.Int32;
 
 namespace WebZi.Plataform.Data.Services.Banco.DAT;
@@ -38,6 +40,8 @@ public class DATService
                 x.AtendimentoId,
                 x.ValorFaturado,
                 x.DataVencimento,
+                x.UsuarioCadastroId,
+                NumeroProcesso = x.Atendimento.Grv.NumeroFormularioGrv,
                 ResponsavelNome = x.Atendimento.ResponsavelNome,
                 ResponsavelDocumento = x.Atendimento.ResponsavelDocumento,
                 NotaFiscalEmail = x.Atendimento.NotaFiscalEmail,
@@ -73,6 +77,16 @@ public class DATService
             return ResultView;
         }
 
+        string? dataVencimento = null;
+        if (faturamento.DataVencimento > DateTime.MinValue)
+        {
+            DateTime dataAjustada = faturamento.DataVencimento.Date >= DateTime.Today
+                ? faturamento.DataVencimento.Date
+                : DateTime.Today;
+
+            dataVencimento = dataAjustada.ToString("yyyy-MM-dd");
+        }
+
         GerarDATParameters parameters = new()
         {
             IdVpa = faturamento.IdEntradaTransalvador.Value.ToString(),
@@ -81,9 +95,7 @@ public class DATService
             Email = string.IsNullOrWhiteSpace(faturamento.NotaFiscalEmail) ? null : faturamento.NotaFiscalEmail,
             Valor = faturamento.ValorFaturado,
             ReceitaId = receitaId,
-            DataVencimento = faturamento.DataVencimento > DateTime.MinValue || faturamento.DataVencimento == null
-                ? faturamento.DataVencimento.ToString("dd/MM/yyyy")
-                : null,
+            DataVencimento = dataVencimento,
         };
 
         var result = await _provider.GetRequiredService<TransalvadorService>().GerarDATAsync(parameters, ct);
@@ -92,10 +104,15 @@ public class DATService
         {
             await _context.Faturamento
                 .Where(x => x.FaturamentoId == faturamento.FaturamentoId)
-                .ExecuteUpdateAsync(s => s.SetProperty(f => f.NumeroDocumentoDat, result.NumeroDocumentoDat), ct);
+                .UpdateAsync(x => new FaturamentoModel()
+                {
+                    NumeroDocumentoDat = result.NumeroDocumentoDat,
+                    DataAlteracao = DateTime.Now
+                }, ct);
 
             result.IdentificadorAtendimento = faturamento.AtendimentoId;
             result.IdentificadorFaturamento = faturamento.FaturamentoId;
+            result.NumeroProcesso = faturamento.NumeroProcesso;
         }
 
         return result;
@@ -113,17 +130,24 @@ public class DATService
             {
                 x.AtendimentoId,
                 x.FaturamentoId,
-                x.NumeroDocumentoDat
+                x.NumeroDocumentoDat,
+                NumeroProcesso = x.Atendimento.Grv.NumeroFormularioGrv,
             })
             .FirstOrDefaultAsync(ct);
 
         if (faturamento == null)
         {
             ResultView.Mensagem =
-                MensagemViewHelper.SetNotFound("Faturamento não encontrado informado.");
+                MensagemViewHelper.SetNotFound("Faturamento não encontrado.");
             return ResultView;
         }
 
+        if (string.IsNullOrWhiteSpace(faturamento.NumeroDocumentoDat))
+        {
+            ResultView.Mensagem =
+                MensagemViewHelper.SetBadRequest("O faturamento não possui número de DAT emitido para consulta.");
+            return ResultView;
+        }
 
         var result = await _provider.GetRequiredService<TransalvadorService>()
             .EmitirSegundaViaAsync(faturamento.NumeroDocumentoDat, ct);
@@ -132,6 +156,7 @@ public class DATService
         {
             result.IdentificadorAtendimento = faturamento.AtendimentoId;
             result.IdentificadorFaturamento = faturamento.FaturamentoId;
+            result.NumeroProcesso = faturamento.NumeroProcesso;
         }
 
         return result;

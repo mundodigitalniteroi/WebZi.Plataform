@@ -81,7 +81,7 @@ public class TransalvadorService
         var gerarDatResponse = await new HttpClientFactoryService(_http)
             .PostBearerAuthAsync<GerarDATDTO>(
                 _options.Value.Url + EEmitirDAT,
-                _options.Value.GerarDATToken, parameters, ct);
+                _options.Value.DATToken, parameters, ct);
 
         return MapearParaDATDTO(gerarDatResponse, "Erro ao gerar DAT na Transalvador.");
     }
@@ -95,15 +95,21 @@ public class TransalvadorService
      */
     public async Task<DATDTO> EmitirSegundaViaAsync(string numdat, CancellationToken ct = default)
     {
+        EmitirSegundaViaDATParameters payload = new()
+        {
+            NumDat = numdat?.Trim()
+        };
+
         GerarDATDTO gerarDatResponse = await new HttpClientFactoryService(_http)
             .PostBearerAuthAsync<GerarDATDTO>(
                 _options.Value.Url + EEmitirSegundaViaDAT,
-                _options.Value.GerarDATToken, numdat, ct);
+                _options.Value.DATToken, payload, ct);
 
         return MapearParaDATDTO(gerarDatResponse, "Erro ao emitir 2ª via do DAT na Transalvador.");
     }
 
-    public async Task<MensagemDTO> ConsultarStatusBancarioAsync(ConsultarStatusBancarioParameters parameters,
+    public async Task<RetornoBancarioAtendimentoDTO> ConsultarStatusBancarioAsync(
+        ConsultarStatusBancarioParameters parameters,
         CancellationToken ct = default)
     {
         RetornoBancarioDTO retornoBancarioResponse = await new HttpClientFactoryService(_http)
@@ -111,12 +117,29 @@ public class TransalvadorService
                 _options.Value.Url + EConsultarStatusBancario,
                 _options.Value.RetornoBancarioToken, parameters, ct);
 
-        if (retornoBancarioResponse is not { Success: true })
+        if (retornoBancarioResponse is not { Success: true } || retornoBancarioResponse.Dados == null ||
+            retornoBancarioResponse.Dados.Count == 0)
         {
-            return TratarRespostaErro(retornoBancarioResponse, "Erro ao consultar DAT na Transalvador.");
+            return new RetornoBancarioAtendimentoDTO
+            {
+                Mensagem = TratarRespostaErro(retornoBancarioResponse,
+                    "Erro ao consultar status do DAT na Transalvador.")
+            };
         }
 
-        return MensagemViewHelper.SetCreateSuccess();
+        RetornoBancarioDataDTO dados = (!string.IsNullOrWhiteSpace(parameters.NumeroDat)
+            ? retornoBancarioResponse.Dados.FirstOrDefault(x => x.NumeroDat?.Trim() == parameters.NumeroDat.Trim())
+            : null) ?? retornoBancarioResponse.Dados.First();
+
+        return new RetornoBancarioAtendimentoDTO
+        {
+            Mensagem = MensagemViewHelper.SetFound(),
+            Status = dados.Status,
+            NumeroDat = dados.NumeroDat,
+            Valor = dados.Valor,
+            DataVencimento = dados.DataVencimento,
+            DataPagamento = dados.DataPagamento
+        };
     }
 
     #region Mapeamento DAT

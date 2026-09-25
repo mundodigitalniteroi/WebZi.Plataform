@@ -34,7 +34,7 @@ public sealed class GerarDATParameters
     public int ReceitaId { get; set; }
 
     /// <summary>
-    /// Data de vencimento do DAT (formato: dd/MM/yyyy).
+    /// Data de vencimento do DAT (formato: AAAA-MM-DD / yyyy-MM-dd).
     /// Se não for informada, o vencimento padrão é de 3 dias.
     /// </summary>
     [JsonProperty("data_vencimento")]

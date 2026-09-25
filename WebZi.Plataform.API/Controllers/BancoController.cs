@@ -245,7 +245,7 @@ namespace WebZi.Plataform.API.Controllers
         }
 
 
-        [HttpGet("{identificadorAtendimento}/GerarDAT")]
+        [HttpGet("{identificadorFaturamento}/GerarDAT")]
         public async Task<ActionResult<DATDTO>> GerarDAT(int identificadorFaturamento, CancellationToken ct)
         {
             DATDTO ResultView = new();
@@ -267,7 +267,7 @@ namespace WebZi.Plataform.API.Controllers
             }
         }
         
-        [HttpGet("{identificadorAtendimento}/ConsultarDAT")]
+        [HttpGet("{identificadorFaturamento}/ConsultarDAT")]
         public async Task<ActionResult<DATDTO>> ConsultarDAT(int identificadorFaturamento, CancellationToken ct)
         {
             DATDTO ResultView = new();

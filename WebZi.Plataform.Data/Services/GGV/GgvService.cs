@@ -36,6 +36,8 @@ namespace WebZi.Plataform.Data.Services.GGV
 {
     public class GgvService
     {
+        private const int ClienteTransalvadorId = 48;
+
         private readonly AppDbContext _context;
         private readonly IMapper _mapper;
         private readonly IHttpClientFactory _httpClientFactory;
@@ -638,30 +640,20 @@ namespace WebZi.Plataform.Data.Services.GGV
                 }
             }
 
+            if (Grv.ClienteId == ClienteTransalvadorId)
+            {
+                MensagemDTO transalvadorResult = await RegistrarEntradaTransalvadorAsync(Grv, ct);
+
+                if (transalvadorResult.HtmlStatusCode is not (HtmlStatusCodeEnum.Created or HtmlStatusCodeEnum.Ok))
+                {
+                    return transalvadorResult;
+                }
+            }
+
             await using (IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync(ct))
             {
                 try
                 {
-                    if (Grv.ClienteId is 48)
-                    {
-                        var result = await _provider.GetService<TransalvadorService>().EntradaVeiculoAsync(
-                            new EntradaPatioParameters
-                            {
-                                TipoVeiculo = Grv.TipoVeiculo.Descricao,
-                                DataEntrada = Grv.DataHoraGuarda!.Value,
-                                Placa = Grv.Placa,
-                                Uf = Grv.VeiculoUF,
-                                MarcaModelo = Grv.MarcaModelo.MarcaModelo,
-                                NumeroProcesso = Grv.NumeroFormularioGrv,
-                                IdReboque = Grv.FlagComboio.Equals("N") ? Grv.ReboqueId?.ToString() : string.Empty,
-                                IdPatio = Grv.DepositoId,
-                                IdMotivo = Grv.MotivoApreensaoId!.Value
-                            }, ct);
-                        if (result.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Created)
-                            return result.Mensagem;
-                        Grv.IdEntradaTransalvador = result.Id;
-                    }
-
                     _context.Grv.Update(Grv);
                     // foreach (CondutorEquipamentoOpcionalModel item in ListagemCadastroCondutorEquipamentoOpcional)
                     // {
@@ -1612,6 +1604,46 @@ namespace WebZi.Plataform.Data.Services.GGV
             }
 
             return erros.Count == 0 ? MensagemViewHelper.SetOk() : MensagemViewHelper.SetBadRequest(erros);
+        }
+
+        private async Task<MensagemDTO> RegistrarEntradaTransalvadorAsync(GrvModel grv, CancellationToken ct)
+        {
+            var sistemaExternoId = await _context.ClienteDeposito
+                .AsNoTracking()
+                .Where(x => x.ClienteId == grv.ClienteId && x.DepositoId == grv.DepositoId && x.FlagAtivo == "S")
+                .Select(x => x.SistemaExternoId)
+                .FirstOrDefaultAsync(ct);
+
+            if (!int.TryParse(sistemaExternoId, out var idPatio))
+            {
+                return MensagemViewHelper.SetBadRequest(
+                    "Identificador do pátio no sistema externo inválido ou não encontrado para o cliente Transalvador.");
+            }
+
+            var parameters = new EntradaPatioParameters
+            {
+                TipoVeiculo = grv.TipoVeiculo.Descricao ?? string.Empty,
+                DataEntrada = grv.DataHoraGuarda!.Value,
+                Placa = grv.Placa ?? string.Empty,
+                Uf = grv.VeiculoUF ?? string.Empty,
+                MarcaModelo = grv.MarcaModelo?.MarcaModelo ?? string.Empty,
+                NumeroProcesso = grv.NumeroFormularioGrv ?? string.Empty,
+                IdReboque = grv.FlagComboio == "N" ? grv.ReboqueId?.ToString() : string.Empty,
+                IdPatio = 33,
+                IdMotivo = 8
+            };
+
+            var transalvadorService = _provider.GetRequiredService<TransalvadorService>();
+            var result = await transalvadorService.EntradaVeiculoAsync(parameters, ct);
+
+            if (result.Mensagem.HtmlStatusCode is not (HtmlStatusCodeEnum.Created or HtmlStatusCodeEnum.Ok))
+            {
+                return result.Mensagem;
+            }
+
+            grv.IdEntradaTransalvador = result.Id;
+
+            return MensagemViewHelper.SetOk();
         }
     }
 }

@@ -5,6 +5,7 @@ using Microsoft.Extensions.Options;
 using System.Data;
 using System.Globalization;
 using System.Text.RegularExpressions;
+using Microsoft.Extensions.DependencyInjection;
 using WebZi.Plataform.CrossCutting.Date;
 using WebZi.Plataform.CrossCutting.Number;
 using WebZi.Plataform.CrossCutting.Strings;
@@ -19,8 +20,10 @@ using WebZi.Plataform.Data.Services.Deposito;
 using WebZi.Plataform.Data.Services.DetranHub;
 using WebZi.Plataform.Data.Services.Localizacao;
 using WebZi.Plataform.Data.Services.Sistema;
+using WebZi.Plataform.Data.Services.Transalvador;
 using WebZi.Plataform.Data.Services.WebServices;
 using WebZi.Plataform.Domain.DTO.Atendimento;
+using WebZi.Plataform.Domain.DTO.Banco;
 using WebZi.Plataform.Domain.DTO.Banco.PIX;
 using WebZi.Plataform.Domain.DTO.Faturamento;
 using WebZi.Plataform.Domain.DTO.Faturamento.Cadastro;
@@ -46,6 +49,7 @@ using WebZi.Plataform.Domain.Options;
 using WebZi.Plataform.Domain.Services.GRV;
 using WebZi.Plataform.Domain.ViewModel.Faturamento;
 using WebZi.Plataform.Domain.ViewModel.Pagamento;
+using WebZi.Plataform.Domain.ViewModel.Transalvador.DAT.Consultar;
 using WebZi.Plataform.Domain.Views.Faturamento;
 using WebZi.Plataform.Domain.Views.Localizacao;
 using Z.EntityFramework.Plus;
@@ -58,6 +62,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
         private readonly IMapper _mapper;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IOptions<DetranHubOptions> _detranHubOptions;
+        private readonly IServiceProvider _provider;
 
         public FaturamentoService(AppDbContext context)
         {
@@ -65,11 +70,12 @@ namespace WebZi.Plataform.Data.Services.Faturamento
         }
 
         public FaturamentoService(AppDbContext context, IMapper mapper, IHttpClientFactory httpClientFactory,
-            IOptions<DetranHubOptions> detranHubOptions = null)
+            IServiceProvider provider, IOptions<DetranHubOptions> detranHubOptions)
         {
             _context = context;
             _mapper = mapper;
             _httpClientFactory = httpClientFactory;
+            _provider = provider;
             _detranHubOptions = detranHubOptions;
         }
 
@@ -1875,7 +1881,9 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             if (Faturamento.Atendimento.Grv.StatusOperacaoId is not ("L" or "R" or "T"))
             {
-                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Status da operação do GRV não permite a confirmação de pagamento");
+                ResultView.Mensagem =
+                    MensagemViewHelper.SetBadRequest(
+                        "Status da operação do GRV não permite a confirmação de pagamento");
                 return ResultView;
             }
 
@@ -1925,6 +1933,29 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                         return ResultView;
                     }
                 }
+                else if (TipoMeioCobranca.Alias.Equals("DAT"))
+                {
+                    RetornoBancarioAtendimentoDTO statusDat = await _provider.GetService<TransalvadorService>()
+                        .ConsultarStatusBancarioAsync(
+                            new ConsultarStatusBancarioParameters()
+                            {
+                                NumeroDat = Faturamento.NumeroDocumentoDat
+                            }, ct);
+
+                    if (statusDat.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+                    {
+                        ResultView.Mensagem = statusDat.Mensagem;
+                        return ResultView;
+                    }
+
+                    if (string.IsNullOrWhiteSpace(statusDat.Status) ||
+                        !statusDat.Status.Equals("PAGO", StringComparison.OrdinalIgnoreCase))
+                    {
+                        ResultView.Mensagem =
+                            MensagemViewHelper.SetBadRequest("Pagamento ainda não confirmado");
+                        return ResultView;
+                    }
+                }
 
                 //Atualização do faturamento
                 await _context.Faturamento
@@ -1971,7 +2002,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             }
             catch (Exception ex)
             {
-                ResultView.Mensagem = MensagemViewHelper.SetBadRequest($"Ocorreu um erro ao confirmar o pagamento: {ex.Message}");
+                ResultView.Mensagem =
+                    MensagemViewHelper.SetBadRequest($"Ocorreu um erro ao confirmar o pagamento: {ex.Message}");
                 return ResultView;
             }
         }

@@ -2,8 +2,8 @@ using Newtonsoft.Json;
 using System.Text.Json.Serialization;
 
 namespace WebZi.Plataform.Domain.ViewModel.Transalvador.DAT.Consultar;
-
 public class ConsultarStatusBancarioParameters
+
 {
     [JsonProperty("numero_dat")]
     [JsonPropertyName("numero_dat")]
