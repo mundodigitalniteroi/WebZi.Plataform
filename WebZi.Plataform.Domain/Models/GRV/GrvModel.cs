@@ -214,7 +214,7 @@ namespace WebZi.Plataform.Domain.Models.GRV
         public virtual ICollection<LacreModel> ListagemLacre { get; set; }
 
         public virtual ViewUsuarioClienteDepositoGrvModel UsuarioClienteDepositoGrv { get; set; }
-        public int? IdEntradaTransalvador { get; set; }
+        public long? IdEntradaTransalvador { get; set; }
 
         //public virtual AlterdataModel Alterdata { get; set; }
 

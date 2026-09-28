@@ -7,23 +7,27 @@ public sealed class LiberacaoPatioParameters
 {
     [JsonProperty("id")]
     [JsonPropertyName("id")]
-    public int Id { get; set; }
+    public long Id { get; set; }
 
     [JsonProperty("data_liberacao")]
     [JsonPropertyName("data_liberacao")]
-    public string DataLiberacao { get; set; }
+    public DateTime DataLiberacao { get; set; }
 
     [JsonProperty("valor_diaria")]
     [JsonPropertyName("valor_diaria")]
     public decimal ValorDiaria { get; set; }
 
+    [JsonProperty("valor_guincho")]
+    [JsonPropertyName("valor_guincho")]
+    public decimal ValorGuincho { get; set; }
+
     [JsonProperty("num_dias")]
     [JsonPropertyName("num_dias")]
     public int NumDias { get; set; }
 
-    [JsonProperty("valor_guincho")]
-    [JsonPropertyName("valor_guincho")]
-    public decimal ValorGuincho { get; set; }
+    [JsonProperty("desconto")]
+    [JsonPropertyName("desconto")]
+    public decimal Desconto { get; set; }
 
     [JsonProperty("valor_total")]
     [JsonPropertyName("valor_total")]

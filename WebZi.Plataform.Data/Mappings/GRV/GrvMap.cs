@@ -367,6 +367,7 @@ namespace WebZi.Plataform.Data.Mappings.GRV
                 .IsFixedLength();
 
             builder.Property(x => x.IdEntradaTransalvador)
+                .HasColumnType("bigint")
                 .HasColumnName("id_entrada_transalvador");
 
             builder

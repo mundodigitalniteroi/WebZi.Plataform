@@ -23,7 +23,7 @@ public class LiberacaoPatioDataDTO
 
     [JsonProperty("desconto")]
     [JsonPropertyName("desconto")]
-    public int Desconto { get; set; }
+    public decimal Desconto { get; set; }
 
     [JsonProperty("valor_total")]
     [JsonPropertyName("valor_total")]

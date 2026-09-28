@@ -33,7 +33,7 @@ public class TransalvadorService
     private const string EEmitirDAT = "dat";
     private const string EEmitirSegundaViaDAT = "dat/segunda-via";
     private const string EConsultarStatusBancario = "dats/consultar-status";
-    private const string ELiberacao = "";
+    private const string ELiberacao = "patio/veiculos/liberacao";
 
     public async Task<EntradaVeiculorTransalvadorDTO> EntradaVeiculoAsync(EntradaPatioParameters parameters,
         CancellationToken ct = default)
@@ -69,6 +69,19 @@ public class TransalvadorService
 
         if (liberacaoPatioResponse is not { Success: true })
         {
+            string mensagem = liberacaoPatioResponse?.Message ?? liberacaoPatioResponse?.Mensagem ?? string.Empty;
+            List<string> erros = ExtrairErros(liberacaoPatioResponse?.Errors ?? liberacaoPatioResponse?.Erros, mensagem);
+
+            bool jaLiberado = mensagem.Contains("já foi confirmada anteriormente", StringComparison.OrdinalIgnoreCase)
+                || mensagem.Contains("ja foi confirmada anteriormente", StringComparison.OrdinalIgnoreCase)
+                || erros.Any(e => e.Contains("já foi confirmada anteriormente", StringComparison.OrdinalIgnoreCase)
+                               || e.Contains("ja foi confirmada anteriormente", StringComparison.OrdinalIgnoreCase));
+
+            if (jaLiberado)
+            {
+                return MensagemViewHelper.SetCreateSuccess();
+            }
+
             return TratarRespostaErro(liberacaoPatioResponse,
                 "Erro ao registrar liberação de veículo no pátio da Transalvador.");
         }
