@@ -422,6 +422,12 @@ namespace WebZi.Plataform.Data.Mappings.Faturamento.View
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("veiculo_descricao");
+
+            builder
+                .HasOne(d => d.ServicoAssociado)
+                .WithMany()
+                .HasForeignKey(d => d.FaturamentoServicoAssociadoId)
+                .OnDelete(DeleteBehavior.NoAction);
         }
     }
 }
