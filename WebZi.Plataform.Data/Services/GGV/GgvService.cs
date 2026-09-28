@@ -1191,60 +1191,60 @@ namespace WebZi.Plataform.Data.Services.GGV
                 }
             }
 
-            if (Grv.Deposito.GrvMinimoFotosExigidas > 0)
-            {
-                if (GgvPersistencia.ListagemFotos?.Count == 0)
-                {
-                    erros.Add("É necessário enviar pelo menos 1 Foto do Veículo");
-                }
-            }
-            else if (GgvPersistencia.ListagemFotos?.Count > 0)
-            {
-                if (Grv.Deposito.GrvMinimoFotosExigidas > GgvPersistencia.ListagemFotos.Count)
-                {
-                    erros.Add($"É necessário enviar pelo menos {Grv.Deposito.GrvMinimoFotosExigidas} Fotos do Veículo");
-                }
+            //if (Grv.Deposito.GrvMinimoFotosExigidas > 0)
+            //{
+            //    if (GgvPersistencia.ListagemFotos?.Count == 0)
+            //    {
+            //        erros.Add("É necessário enviar pelo menos 1 Foto do Veículo");
+            //    }
+            //}
+            //else if (GgvPersistencia.ListagemFotos?.Count > 0)
+            //{
+            //    if (Grv.Deposito.GrvMinimoFotosExigidas > GgvPersistencia.ListagemFotos.Count)
+            //    {
+            //        erros.Add($"É necessário enviar pelo menos {Grv.Deposito.GrvMinimoFotosExigidas} Fotos do Veículo");
+            //    }
 
-                int count = GgvPersistencia.ListagemFotos
-                    .Where(x => x.IdentificadorTipoCadastro <= 0)
-                    .Count();
+            //    int count = GgvPersistencia.ListagemFotos
+            //        .Where(x => x.IdentificadorTipoCadastro <= 0)
+            //        .Count();
 
-                if (count == 1)
-                {
-                    erros.Add($"Foi indentificado um Identificador do Tipo do Cadastro da Foto inválido");
-                }
-                else if (count > 1)
-                {
-                    erros.Add($"Foram indentificados {count} Identificador do Tipo do Cadastro da Foto inválido");
-                }
+            //    if (count == 1)
+            //    {
+            //        erros.Add($"Foi indentificado um Identificador do Tipo do Cadastro da Foto inválido");
+            //    }
+            //    else if (count > 1)
+            //    {
+            //        erros.Add($"Foram indentificados {count} Identificador do Tipo do Cadastro da Foto inválido");
+            //    }
 
-                TabelaGenericaService TabelaGenericaService = new(_context, _mapper);
+            //    TabelaGenericaService TabelaGenericaService = new(_context, _mapper);
 
-                List<int> ListagemTipoCadastroId = GgvPersistencia.ListagemFotos
-                    .Where(x => x.IdentificadorTipoCadastro > 0)
-                    .Select(x => x.IdentificadorTipoCadastro)
-                    .ToList();
+            //    List<int> ListagemTipoCadastroId = GgvPersistencia.ListagemFotos
+            //        .Where(x => x.IdentificadorTipoCadastro > 0)
+            //        .Select(x => x.IdentificadorTipoCadastro)
+            //        .ToList();
 
-                if (ListagemTipoCadastroId.Count > 0)
-                {
-                    List<TabelaGenericaModel> ListagemTipoCadastroFoto = await TabelaGenericaService
-                        .ListAsync("GGV_TIPO_CADASTRO_FOTO");
+            //    if (ListagemTipoCadastroId.Count > 0)
+            //    {
+            //        List<TabelaGenericaModel> ListagemTipoCadastroFoto = await TabelaGenericaService
+            //            .ListAsync("GGV_TIPO_CADASTRO_FOTO");
 
-                    List<int> ListagemTipoCadastroId2 = ListagemTipoCadastroFoto
-                        .Select(x => x.TabelaGenericaId)
-                        .ToList();
+            //        List<int> ListagemTipoCadastroId2 = ListagemTipoCadastroFoto
+            //            .Select(x => x.TabelaGenericaId)
+            //            .ToList();
 
-                    int result = ListagemTipoCadastroId
-                        .Where(x => ListagemTipoCadastroId2.All(x2 => x2 != x))
-                        .Count();
+            //        int result = ListagemTipoCadastroId
+            //            .Where(x => ListagemTipoCadastroId2.All(x2 => x2 != x))
+            //            .Count();
 
-                    if (result >= 1)
-                    {
-                        erros.Add(
-                            $"Foram indentificados {count} Identificador do Tipo do Cadastro da Foto inexistente");
-                    }
-                }
-            }
+            //        if (result >= 1)
+            //        {
+            //            erros.Add(
+            //                $"Foram indentificados {count} Identificador do Tipo do Cadastro da Foto inexistente");
+            //        }
+            //    }
+            //}
 
             // if (GgvPersistencia.ListagemEquipamentoOpcional?.Count > 0)
             // {

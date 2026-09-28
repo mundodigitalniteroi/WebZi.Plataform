@@ -1949,7 +1949,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     }
 
                     if (string.IsNullOrWhiteSpace(statusDat.Status) ||
-                        !statusDat.Status.Equals("PAGO", StringComparison.OrdinalIgnoreCase))
+                        statusDat.Status.Equals("PAGO"))
                     {
                         ResultView.Mensagem =
                             MensagemViewHelper.SetBadRequest("Pagamento ainda não confirmado");
