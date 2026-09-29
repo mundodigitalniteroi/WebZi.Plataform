@@ -1787,42 +1787,6 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 }
             }
 
-            new BucketService(_context, _httpClientFactory)
-                .DeleteFiles(BucketNomeTabelaOrigemEnum.FotoVeiculoGRV, Grv.GrvId);
-
-            new BucketService(_context, _httpClientFactory)
-                .DeleteFiles(BucketNomeTabelaOrigemEnum.FotoVeiculoGGV, Grv.GrvId);
-
-            if (Grv.ListagemCondutorDocumento?.Count > 0)
-            {
-                new BucketService(_context, _httpClientFactory)
-                    .DeleteFiles(BucketNomeTabelaOrigemEnum.DocumentoCondutor, Grv.ListagemCondutorDocumento
-                        .Select(x => x.CondutorDocumentoId)
-                        .ToList());
-            }
-
-            if (Grv.Atendimento != null)
-            {
-                new BucketService(_context, _httpClientFactory)
-                    .DeleteFiles(BucketNomeTabelaOrigemEnum.AtendimentoFotoResponsavel, Grv.Atendimento.AtendimentoId);
-
-                if (Faturamentos?.Count > 0)
-                {
-                    foreach (FaturamentoModel Faturamento in Faturamentos)
-                    {
-                        if (Faturamento.ListagemBoleto?.Count > 0)
-                        {
-                            foreach (BoletoModel FaturamentoBoleto in Faturamento.ListagemBoleto)
-                            {
-                                new BucketService(_context, _httpClientFactory)
-                                    .DeleteFiles(BucketNomeTabelaOrigemEnum.Boleto,
-                                        FaturamentoBoleto.FaturamentoBoletoId);
-                            }
-                        }
-                    }
-                }
-            }
-
             return MensagemViewHelper.SetOk("Processo excluído com sucesso");
         }
 

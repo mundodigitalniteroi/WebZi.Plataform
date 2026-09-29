@@ -1614,20 +1614,35 @@ namespace WebZi.Plataform.Data.Services.GGV
 
         private async Task<MensagemDTO> RegistrarEntradaTransalvadorAsync(GrvModel grv, CancellationToken ct)
         {
-            var sistemaExternoId = await _context.ClienteDeposito
-                .AsNoTracking()
-                .Where(x => x.ClienteId == grv.ClienteId && x.DepositoId == grv.DepositoId && x.FlagAtivo == "S")
-                .Select(x => x.SistemaExternoId)
-                .FirstOrDefaultAsync(ct);
-
-            if (!int.TryParse(sistemaExternoId, out var idPatio))
+            var sistemaExternoId = await _context.Deposito
+            .AsNoTracking()
+            .Where(x => x.DepositoId == grv.DepositoId)
+            .Select(x => x.SistemaExternoId)
+            .FirstOrDefaultAsync(ct);
+            if (!sistemaExternoId.HasValue || sistemaExternoId.Value <= 0)
             {
                 return MensagemViewHelper.SetBadRequest(
                     "Identificador do pátio no sistema externo inválido ou não encontrado para o cliente Transalvador.");
             }
+            int idPatio = sistemaExternoId.Value;
 
             var motivoApreenssao = _regex.Replace(grv.MotivoApreensao?.Descricao?.Normalize(System.Text.NormalizationForm.FormD) ?? string.Empty, "").ToUpper();
 
+            string codigoInfracao = null;
+            if (grv.MotivoApreensaoId == 1)
+            {
+                var rawCodigo = grv.ListagemEnquadramentoInfracao
+                    .Select(x => x.EnquadramentoInfracao.CodigoInfracao)
+                    .FirstOrDefault();
+
+                if (!string.IsNullOrWhiteSpace(rawCodigo))
+                {
+                    var codigoLimpo = rawCodigo.Replace("-", "").Trim();
+                    codigoInfracao = codigoLimpo.Length >= 2
+                        ? codigoLimpo.Insert(codigoLimpo.Length - 1, "-")
+                        : codigoLimpo;
+                }
+            }
 
             var parameters = new EntradaPatioParameters
             {
@@ -1640,10 +1655,7 @@ namespace WebZi.Plataform.Data.Services.GGV
                 PlacaReboque = grv.FlagComboio == "N" ? grv.Reboque.Placa?.ToString() : string.Empty,
                 IdPatio = idPatio,
                 MotivoApreensao = motivoApreenssao ?? string.Empty,
-                CodigoInfracao = grv.MotivoApreensaoId == 1 ?
-                            grv.ListagemEnquadramentoInfracao
-                                .Select(x => x.EnquadramentoInfracao.Artigo.Value)
-                                .FirstOrDefault().ToString() : null
+                CodigoInfracao = codigoInfracao
             };
 
             var transalvadorService = _provider.GetRequiredService<TransalvadorService>();

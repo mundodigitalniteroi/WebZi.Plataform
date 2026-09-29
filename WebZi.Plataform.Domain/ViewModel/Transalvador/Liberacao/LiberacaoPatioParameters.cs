@@ -5,8 +5,8 @@ namespace WebZi.Plataform.Domain.ViewModel.Transalvador.Liberacao;
 
 public sealed class LiberacaoPatioParameters
 {
-    [JsonProperty("id_vpa")]
-    [JsonPropertyName("id_vpa")]
+    [JsonProperty("id")]
+    [JsonPropertyName("id")]
     public long Id { get; set; }
 
     [JsonProperty("data_liberacao")]

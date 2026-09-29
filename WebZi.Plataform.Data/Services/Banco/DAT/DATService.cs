@@ -42,10 +42,10 @@ public class DATService
                 x.DataVencimento,
                 x.UsuarioCadastroId,
                 NumeroProcesso = x.Atendimento.Grv.NumeroFormularioGrv,
-                ResponsavelNome = x.Atendimento.ResponsavelNome,
-                ResponsavelDocumento = x.Atendimento.ResponsavelDocumento,
-                NotaFiscalEmail = x.Atendimento.NotaFiscalEmail,
-                IdEntradaTransalvador = x.Atendimento.Grv.IdEntradaTransalvador,
+                x.Atendimento.ResponsavelNome,
+                x.Atendimento.ResponsavelDocumento,
+                x.Atendimento.NotaFiscalEmail,
+                x.Atendimento.Grv.IdEntradaTransalvador,
                 ReceitaId = x.Atendimento.Grv.Deposito.ClientesDepositos
                     .Where(cd => cd.ClienteId == x.Atendimento.Grv.ClienteId && cd.FlagAtivo == "S")
                     .Select(cd => cd.SistemaExternoId)
