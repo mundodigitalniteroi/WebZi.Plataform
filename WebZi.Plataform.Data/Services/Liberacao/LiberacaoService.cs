@@ -947,7 +947,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                                 TipoComposicao = c.TipoComposicao,
                                 FaturamentoServicoTipoVeiculo = new FaturamentoServicoTipoVeiculoModel
                                 {
-                                    FaturamentoServicoAssociado =  new FaturamentoServicoAssociadoModel
+                                    FaturamentoServicoAssociado = new FaturamentoServicoAssociadoModel
                                     {
                                         FaturamentoServicoTipoId = c.FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.FaturamentoServicoTipoId
                                     }
@@ -1083,7 +1083,9 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                         ValorGuincho = valorGuincho,
                         NumDias = numDias,
                         Desconto = valorDesconto,
-                        ValorTotal = valorTotal
+                        ValorTotal = valorTotal,
+                        TipoLiberacao = Parameters.IdentificadorTipoLiberacao == 1 ? "NORMAL" : "ESPECIAL",
+                        TipoLiberacaoEspecial = Parameters.IdentificadorTipoLiberacao == 2 ? "SOLICITAÇÃO DO ORGÃO" : null,
                     };
 
                     var transalvadorService = _provider.GetRequiredService<TransalvadorService>();

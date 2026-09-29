@@ -42,6 +42,7 @@ namespace WebZi.Plataform.Data.Services.GGV
         private readonly IMapper _mapper;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IServiceProvider _provider;
+        private static readonly System.Text.RegularExpressions.Regex _regex = new System.Text.RegularExpressions.Regex(@"[\p{Mn}\s]+");
 
         public GgvService(AppDbContext context, IMapper mapper, IHttpClientFactory httpClientFactory,
             IServiceProvider provider)
@@ -346,8 +347,13 @@ namespace WebZi.Plataform.Data.Services.GGV
             }
 
             GrvModel Grv = await _context.Grv
-                .Include(x => x.ListagemFaturamentoServicoGrv).Include(grvModel => grvModel.MarcaModelo)
-                .Include(grvModel => grvModel.TipoVeiculo)
+                .Include(x => x.ListagemFaturamentoServicoGrv)
+                .Include(x => x.MarcaModelo)
+                .Include(x => x.TipoVeiculo)
+                .Include(x => x.Reboque)
+                .Include(x => x.MotivoApreensao)
+                .Include(x => x.ListagemEnquadramentoInfracao)
+                .ThenInclude(x => x.EnquadramentoInfracao)
                 .FirstOrDefaultAsync(x => x.GrvId == GgvPersistencia.IdentificadorProcesso, cancellationToken: ct);
 
             DateTime DataHoraPorDeposito = new DepositoService(_context)
@@ -1620,6 +1626,9 @@ namespace WebZi.Plataform.Data.Services.GGV
                     "Identificador do pátio no sistema externo inválido ou não encontrado para o cliente Transalvador.");
             }
 
+            var motivoApreenssao = _regex.Replace(grv.MotivoApreensao?.Descricao?.Normalize(System.Text.NormalizationForm.FormD) ?? string.Empty, "").ToUpper();
+
+
             var parameters = new EntradaPatioParameters
             {
                 TipoVeiculo = grv.TipoVeiculo.Descricao ?? string.Empty,
@@ -1628,9 +1637,13 @@ namespace WebZi.Plataform.Data.Services.GGV
                 Uf = grv.VeiculoUF ?? string.Empty,
                 MarcaModelo = grv.MarcaModelo?.MarcaModelo ?? string.Empty,
                 NumeroProcesso = grv.NumeroFormularioGrv ?? string.Empty,
-                IdReboque = grv.FlagComboio == "N" ? grv.ReboqueId?.ToString() : string.Empty,
-                IdPatio = 33,
-                IdMotivo = 8
+                PlacaReboque = grv.FlagComboio == "N" ? grv.Reboque.Placa?.ToString() : string.Empty,
+                IdPatio = idPatio,
+                MotivoApreensao = motivoApreenssao ?? string.Empty,
+                CodigoInfracao = grv.MotivoApreensaoId == 1 ?
+                            grv.ListagemEnquadramentoInfracao
+                                .Select(x => x.EnquadramentoInfracao.Artigo.Value)
+                                .FirstOrDefault().ToString() : null
             };
 
             var transalvadorService = _provider.GetRequiredService<TransalvadorService>();

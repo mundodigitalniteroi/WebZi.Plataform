@@ -25,9 +25,9 @@ public sealed class EntradaPatioParameters
     [JsonPropertyName("data_entrada")]
     public DateTime DataEntrada { get; set; }
 
-    [JsonProperty("cod_guincho")]
-    [JsonPropertyName("cod_guincho")]
-    public string IdReboque { get; set; }
+    [JsonProperty("num_placa_guincho")]
+    [JsonPropertyName("num_placa_guincho")]
+    public string PlacaReboque { get; set; }
 
     [JsonProperty("numero_trrv")]
     [JsonPropertyName("numero_trrv")]
@@ -37,7 +37,11 @@ public sealed class EntradaPatioParameters
     [JsonPropertyName("id_patio")]
     public int IdPatio { get; set; }
 
-    [JsonProperty("id_motivo")]
-    [JsonPropertyName("id_motivo")]
-    public int IdMotivo { get; set; }
+    [JsonProperty("codigo_motivo")]
+    [JsonPropertyName("codigo_motivo")]
+    public string MotivoApreensao { get; set; }
+    [JsonProperty("cod_infracao")]
+    [JsonPropertyName("cod_infracao")]
+    public string? CodigoInfracao { get; set; }
+
 }
