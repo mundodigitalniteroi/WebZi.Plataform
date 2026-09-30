@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
@@ -16,102 +16,107 @@ namespace WebZi.Plataform.Data.Services.Sistema
         {
             _httpClientFactory = httpClientFactory;
 
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
+            ServicePointManager.SecurityProtocol =
+                SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
         }
 
-        public async Task<bool> ResourceExists(string url)
+        public async Task<bool> ResourceExists(string url, CancellationToken ct = default)
         {
             HttpClient client = _httpClientFactory.CreateClient();
 
-            using HttpResponseMessage response = await client.GetAsync(url);
+            using HttpResponseMessage response = await client.GetAsync(url, ct);
 
             return response.IsSuccessStatusCode;
         }
 
-        public T Get<T>(string url) where T : class
+        public T Get<T>(string url, CancellationToken ct = default) where T : class
         {
-            return Task.Run(async () => await GetAsync<T>(url)).Result;
+            return Task.Run(async () => await GetAsync<T>(url, ct), ct).Result;
         }
 
-        public async Task<T> GetAsync<T>(string url) where T : class
+        public async Task<T> GetAsync<T>(string url, CancellationToken ct = default) where T : class
         {
             using HttpClient client = _httpClientFactory.CreateClient();
 
             return await client.GetFromJsonAsync<T>(url,
-                new JsonSerializerOptions(JsonSerializerDefaults.Web));
+                new JsonSerializerOptions(JsonSerializerDefaults.Web), ct);
         }
 
-        public T Post<T>(string url, object obj) where T : class
+        public T Post<T>(string url, object obj, CancellationToken ct = default) where T : class
         {
-            return Task.Run(async () => await PostAsync<T>(url, obj)).Result;
+            return Task.Run(async () => await PostAsync<T>(url, obj, ct), ct).Result;
         }
 
-        public async Task<T> PostAsync<T>(string url, object obj) where T : class
+        public async Task<T> PostAsync<T>(string url, object obj, CancellationToken ct = default) where T : class
         {
             using HttpClient client = _httpClientFactory.CreateClient();
 
             using StringContent stringContent = new(JsonHelper.Serialize(obj), Encoding.UTF8, "application/json");
 
-            using HttpResponseMessage result = await client.PostAsync(url, stringContent);
+            using HttpResponseMessage result = await client.PostAsync(url, stringContent, ct);
 
             if (!result.IsSuccessStatusCode)
             {
                 throw new Exception(((int)result.StatusCode).ToString());
             }
 
-            string json = await result.Content.ReadAsStringAsync();
+            string json = await result.Content.ReadAsStringAsync(ct);
 
             return JsonConvert.DeserializeObject<T>(json);
         }
-       
 
-        public T PostBasicAuth<T>(string url, string username, string password, object obj) where T : class
+        public T PostBasicAuth<T>(string url, string username, string password, object obj, CancellationToken ct = default) where T : class
         {
-            return Task.Run(async () => await PostBasicAuthAsync<T>(url, username, password, obj)).Result;
+            return Task.Run(async () => await PostBasicAuthAsync<T>(url, username, password, obj, ct), ct).Result;
         }
 
-        public async Task<T> PostBasicAuthAsync<T>(string url, string username, string password, object obj) where T : class
+        public async Task<T> PostBasicAuthAsync<T>(string url, string username, string password, object obj, CancellationToken ct = default)
+            where T : class
         {
             using HttpClient client = _httpClientFactory.CreateClient();
 
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.ASCII.GetBytes($"{username}:{password}")));
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic",
+                Convert.ToBase64String(Encoding.ASCII.GetBytes($"{username}:{password}")));
 
             using StringContent stringContent = new(JsonHelper.Serialize(obj), Encoding.UTF8, "application/json");
 
-            using HttpResponseMessage result = await client.PostAsync(url, stringContent);
+            using HttpResponseMessage result = await client.PostAsync(url, stringContent, ct);
 
-            string json = await result.Content.ReadAsStringAsync();
+            string json = await result.Content.ReadAsStringAsync(ct);
 
             return JsonConvert.DeserializeObject<T>(json);
         }
-        public T PostWithApiKey<T>(string url, string apiKey, object obj) where T : class
+
+        public T PostWithApiKey<T>(string url, string apiKey, object obj, CancellationToken ct = default) where T : class
         {
-            return Task.Run(async () => await PostWithApiKeyAsync<T>(url, apiKey, obj)).Result;
+            return Task.Run(async () => await PostWithApiKeyAsync<T>(url, apiKey, obj, ct), ct).Result;
         }
-        public async Task<T> PostWithApiKeyAsync<T>(string url, string apiKey, object obj) where T : class
+
+        public async Task<T> PostWithApiKeyAsync<T>(string url, string apiKey, object obj, CancellationToken ct = default) where T : class
         {
             using HttpClient client = _httpClientFactory.CreateClient();
             client.DefaultRequestHeaders.Add("X-API-Key", apiKey);
             using StringContent stringContent = new(JsonHelper.Serialize(obj), Encoding.UTF8, "application/json");
 
-            using HttpResponseMessage result = await client.PostAsync(url, stringContent);
+            using HttpResponseMessage result = await client.PostAsync(url, stringContent, ct);
 
             if (!result.IsSuccessStatusCode)
             {
                 throw new Exception(((int)result.StatusCode).ToString());
             }
 
-            string json = await result.Content.ReadAsStringAsync();
+            string json = await result.Content.ReadAsStringAsync(ct);
 
             return JsonConvert.DeserializeObject<T>(json);
         }
 
-        public T PostBearerAuth<T>(string url, string accessToken, object obj) where T : class
+        public T PostBearerAuth<T>(string url, string accessToken, object obj, CancellationToken ct = default) where T : class
         {
-            return Task.Run(async () => await PostBearerAuthAsync<T>(url, accessToken, obj)).Result;
+            return Task.Run(async () => await PostBearerAuthAsync<T>(url, accessToken, obj, ct), ct).Result;
         }
 
-        public async Task<T> PostBearerAuthAsync<T>(string url, string accessToken, object obj) where T : class
+        public async Task<T> PostBearerAuthAsync<T>(string url, string accessToken, object obj, CancellationToken ct = default)
+            where T : class
         {
             using HttpClient client = _httpClientFactory.CreateClient();
 
@@ -119,23 +124,25 @@ namespace WebZi.Plataform.Data.Services.Sistema
 
             using StringContent stringContent = new(JsonHelper.Serialize(obj), Encoding.UTF8, "application/json");
 
-            using HttpResponseMessage result = await client.PostAsync(url, stringContent);
+            using HttpResponseMessage result = await client.PostAsync(url, stringContent, ct);
 
-            string json = await result.Content.ReadAsStringAsync();
+            string json = await result.Content.ReadAsStringAsync(ct);
 
             return JsonConvert.DeserializeObject<T>(json);
         }
 
-        public T DeleteBasicAuth<T>(string url, string username, string password, object obj) where T : class
+        public T DeleteBasicAuth<T>(string url, string username, string password, object obj, CancellationToken ct = default) where T : class
         {
-            return Task.Run(async () => await DeleteBasicAuthAsync<T>(url, username, password, obj)).Result;
+            return Task.Run(async () => await DeleteBasicAuthAsync<T>(url, username, password, obj, ct), ct).Result;
         }
 
-        public async Task<T> DeleteBasicAuthAsync<T>(string url, string username, string password, object obj) where T : class
+        public async Task<T> DeleteBasicAuthAsync<T>(string url, string username, string password, object obj, CancellationToken ct = default)
+            where T : class
         {
             using HttpClient client = _httpClientFactory.CreateClient();
 
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.ASCII.GetBytes($"{username}:{password}")));
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic",
+                Convert.ToBase64String(Encoding.ASCII.GetBytes($"{username}:{password}")));
 
             using HttpRequestMessage request = new()
             {
@@ -144,24 +151,24 @@ namespace WebZi.Plataform.Data.Services.Sistema
                 RequestUri = new Uri(url)
             };
 
-            using HttpResponseMessage response = await client.SendAsync(request);
+            using HttpResponseMessage response = await client.SendAsync(request, ct);
 
-            return JsonHelper.DeserializeObject<T>(await response.Content.ReadAsStringAsync());
+            return JsonHelper.DeserializeObject<T>(await response.Content.ReadAsStringAsync(ct));
         }
 
-        public byte[] DownloadFile(string url)
+        public byte[] DownloadFile(string url, CancellationToken ct = default)
         {
-            return Task.Run(async () => await DownloadFileAsync(url)).Result;
+            return Task.Run(async () => await DownloadFileAsync(url, ct), ct).Result;
         }
 
-        public async Task<byte[]> DownloadFileAsync(string url)
+        public async Task<byte[]> DownloadFileAsync(string url, CancellationToken ct = default)
         {
             using HttpClient client = _httpClientFactory.CreateClient();
 
-            using HttpResponseMessage response = await client.GetAsync(url);
+            using HttpResponseMessage response = await client.GetAsync(url, ct);
 
             return await response.Content
-                .ReadAsByteArrayAsync()
+                .ReadAsByteArrayAsync(ct)
                 .ConfigureAwait(false);
         }
     }

@@ -40,14 +40,14 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             return ResultView;
         }
 
-        public async Task<TipoMeioCobrancaListDTO> ListAsync()
+        public async Task<TipoMeioCobrancaListDTO> ListAsync(CancellationToken ct)
         {
             TipoMeioCobrancaListDTO ResultView = new();
 
             List<TipoMeioCobrancaModel> result = await _context.TipoMeioCobranca
                 .Where(x => x.FlagAtivo == "S")
                 .AsNoTracking()
-                .ToListAsync();
+                .ToListAsync(cancellationToken: ct);
 
             if (result?.Count > 0)
             {

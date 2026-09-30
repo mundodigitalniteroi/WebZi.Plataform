@@ -2,11 +2,11 @@ using AutoMapper;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using System.Data;
 using System.Globalization;
 using System.Text;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using WebZi.Plataform.CrossCutting.Configuration;
 using WebZi.Plataform.CrossCutting.Date;
 using WebZi.Plataform.CrossCutting.Documents;
@@ -24,6 +24,7 @@ using WebZi.Plataform.Data.Services.Faturamento;
 using WebZi.Plataform.Data.Services.LiberacaoEspecial;
 using WebZi.Plataform.Data.Services.Localizacao;
 using WebZi.Plataform.Data.Services.Report;
+using WebZi.Plataform.Data.Services.Transalvador;
 using WebZi.Plataform.Data.Services.WebServices;
 using WebZi.Plataform.Domain.DTO.Generic;
 using WebZi.Plataform.Domain.DTO.Liberacao;
@@ -42,6 +43,8 @@ using WebZi.Plataform.Domain.Options;
 using WebZi.Plataform.Domain.Services.GRV;
 using WebZi.Plataform.Domain.ViewModel.Atendimento;
 using WebZi.Plataform.Domain.ViewModel.Liberacao;
+using WebZi.Plataform.Domain.ViewModel.Transalvador.Liberacao;
+using WebZi.Plataform.Domain.Views.Faturamento;
 using WebZi.Plataform.Domain.Views.Usuario;
 using Z.EntityFramework.Plus;
 
@@ -54,6 +57,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IServiceProvider _provider;
         private readonly IOptions<WSNfseOptions> _options;
+        private const int ClienteTransalvadorId = 48;
 
         public LiberacaoService(AppDbContext context)
         {
@@ -221,7 +225,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
 
             ResultView.VeiculoChassi = GuiaPagamentoReboqueEstadia?.Chassi ?? Grv.Chassi ?? string.Empty;
 
-            ResultView.VeiculoCor = GuiaPagamentoReboqueEstadia?.Cor ?? Grv.Cor?.Cor ?? string.Empty;
+            ResultView.VeiculoCor = GuiaPagamentoReboqueEstadia?.Cor  ?? "";
 
             string depositoEndereco = GuiaPagamentoReboqueEstadia?.DepositoEndereco ?? string.Empty;
 
@@ -982,12 +986,53 @@ namespace WebZi.Plataform.Data.Services.Liberacao
             if (TipoLiberacao is null)
                 return MensagemViewHelper.SetBadRequest("Não existe esse tipo de liberação");
 
-            GrvModel Grv = await _context.Grv
-                .Include(x => x.StatusOperacao)
-                .Include(x => x.Atendimento)
-                .ThenInclude(x => x.ListagemFaturamento.Where(x => x.Status != "C"))
+            var atendimento = await _context.Atendimento
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.GrvId == Parameters.IdentificadorProcesso, cancellationToken: ct);
+                .Where(x => x.GrvId == Parameters.IdentificadorProcesso)
+                .Select(x => new
+                {
+                    Grv = new GrvModel
+                    {
+                        GrvId = x.Grv.GrvId,
+                        ClienteId = x.Grv.ClienteId,
+                        DepositoId = x.Grv.DepositoId,
+                        StatusOperacaoId = x.Grv.StatusOperacaoId,
+                        IdEntradaTransalvador = x.Grv.IdEntradaTransalvador,
+                        StatusOperacao = new StatusOperacaoModel
+                        {
+                            StatusOperacaoId = x.Grv.StatusOperacao.StatusOperacaoId,
+                            Descricao = x.Grv.StatusOperacao.Descricao
+                        }
+                    },
+                    Faturamentos = x.ListagemFaturamento
+                        .Where(f => f.Status != "C")
+                        .OrderByDescending(f => f.DataCadastro)
+                        .Select(f => new FaturamentoModel
+                        {
+                            FaturamentoId = f.FaturamentoId,
+                            Status = f.Status,
+                            DataCadastro = f.DataCadastro,
+                            DataPrazoRetiradaVeiculo = f.DataPrazoRetiradaVeiculo,
+                            ValorFaturado = f.ValorFaturado,
+                            ListagemFaturamentoComposicao = f.ListagemFaturamentoComposicao.Select(c => new FaturamentoComposicaoModel
+                            {
+                                ValorComposicao = c.ValorComposicao,
+                                ValorDesconto = c.ValorDesconto,
+                                QuantidadeComposicao = c.QuantidadeComposicao,
+                                TipoComposicao = c.TipoComposicao,
+                                FaturamentoServicoTipoVeiculo = new FaturamentoServicoTipoVeiculoModel
+                                {
+                                    FaturamentoServicoAssociado = new FaturamentoServicoAssociadoModel
+                                    {
+                                        FaturamentoServicoTipoId = c.FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.FaturamentoServicoTipoId
+                                    }
+                                }
+                            }).ToList()
+                        }).ToList()
+                })
+                .FirstOrDefaultAsync(cancellationToken: ct);
+
+            var Grv = atendimento?.Grv;
 
             if (Grv is null)
                 return MensagemViewHelper.SetNotFound("Processo não encontrado");
@@ -1017,11 +1062,12 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                 }
             }
 
+            List<FaturamentoModel> Faturamentos = atendimento?.Faturamentos;
+
+            FaturamentoModel UltimoFaturamento = Faturamentos?.FirstOrDefault();
+
             if (Parameters.IdentificadorTipoLiberacao != 3)
             {
-                List<FaturamentoModel> Faturamentos =
-                    Grv.Atendimento?.ListagemFaturamento.OrderByDescending(x => x.DataCadastro).ToList();
-
                 if (Faturamentos == null || !Faturamentos.Any())
                 {
                     return MensagemViewHelper.SetNotFound(MensagemPadraoEnum.NaoEncontradoFaturamento);
@@ -1034,9 +1080,6 @@ namespace WebZi.Plataform.Data.Services.Liberacao
 
                 DateTime DataHoraPorDeposito = new DepositoService(_context)
                     .GetDataHoraPorDeposito(Grv.DepositoId);
-
-                FaturamentoModel UltimoFaturamento = Faturamentos
-                    .FirstOrDefault();
 
                 if (Grv.StatusOperacaoId != "R")
                 {
@@ -1080,6 +1123,54 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                     {
                         saidaReparo.DataRetorno = DateTime.Now;
                         saidaReparo.IdUsuario = Parameters.IdentificadorUsuario;
+                    }
+                }
+
+
+                if (Grv.ClienteId == ClienteTransalvadorId && Grv.IdEntradaTransalvador.HasValue)
+                {
+                    var composicoes = UltimoFaturamento?.ListagemFaturamentoComposicao;
+
+                    decimal valorDiaria = (decimal)(composicoes?
+                        .Where(x => x.FaturamentoServicoTipoVeiculo?.FaturamentoServicoAssociado?.FaturamentoServicoTipoId == 1
+                                 || x.TipoComposicao == TipoCobrancaFaturamentoEnum.Diárias)
+                        .Sum(x => x.ValorComposicao));
+
+                    decimal valorGuincho = (decimal)(composicoes?
+                        .Where(x => x.FaturamentoServicoTipoVeiculo?.FaturamentoServicoAssociado?.FaturamentoServicoTipoId == 2)
+                        .Sum(x => x.ValorComposicao));
+
+                    int numDias = (int)(composicoes?
+                        .Where(x => x.FaturamentoServicoTipoVeiculo?.FaturamentoServicoAssociado?.FaturamentoServicoTipoId == 1
+                                 || x.TipoComposicao == TipoCobrancaFaturamentoEnum.Diárias)
+                        .Sum(x => x.QuantidadeComposicao));
+
+                    decimal valorDesconto = (decimal)(composicoes?
+                        .Sum(x => x.ValorDesconto));
+
+                    decimal valorTotal = (decimal)UltimoFaturamento?.ValorFaturado;
+
+                    var liberacaoTransalvador = new LiberacaoPatioParameters()
+                    {
+                        Id = Grv.IdEntradaTransalvador.Value,
+                        DataLiberacao = Liberacao.DataCadastro,
+                        ValorDiaria = valorDiaria,
+                        ValorGuincho = valorGuincho,
+                        NumDias = numDias,
+                        Desconto = valorDesconto,
+                        ValorTotal = valorTotal,
+                        TipoLiberacao = Parameters.IdentificadorTipoLiberacao == 1 ? "NORMAL" : "ESPECIAL",
+                        TipoLiberacaoEspecial = Parameters.IdentificadorTipoLiberacao == 2 ? "SOLICITAÇÃO DO ORGÃO" : null,
+                    };
+
+                    var transalvadorService = _provider.GetRequiredService<TransalvadorService>();
+                    var result = await transalvadorService.LiberacaoVeiculoAsync(liberacaoTransalvador, ct);
+
+                    if (result.HtmlStatusCode is not (HtmlStatusCodeEnum.Created or HtmlStatusCodeEnum.Ok))
+                    {
+
+                        await transaction.RollbackAsync(ct);
+                        return result;
                     }
                 }
 

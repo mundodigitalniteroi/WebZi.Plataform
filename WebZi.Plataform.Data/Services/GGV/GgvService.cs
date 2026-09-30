@@ -1,6 +1,7 @@
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.DependencyInjection;
 using WebZi.Plataform.CrossCutting.Number;
 using WebZi.Plataform.CrossCutting.Strings;
 using WebZi.Plataform.CrossCutting.Veiculo;
@@ -11,6 +12,7 @@ using WebZi.Plataform.Data.Services.Deposito;
 using WebZi.Plataform.Data.Services.Empresa;
 using WebZi.Plataform.Data.Services.Faturamento;
 using WebZi.Plataform.Data.Services.Sistema;
+using WebZi.Plataform.Data.Services.Transalvador;
 using WebZi.Plataform.Data.Services.Vistorias;
 using WebZi.Plataform.Data.Services.WebServices;
 using WebZi.Plataform.Domain.DTO.Generic;
@@ -27,21 +29,28 @@ using WebZi.Plataform.Domain.Models.Veiculo;
 using WebZi.Plataform.Domain.Models.Vistoria;
 using WebZi.Plataform.Domain.Services.GRV;
 using WebZi.Plataform.Domain.ViewModel.GGV;
+using WebZi.Plataform.Domain.ViewModel.Transalvador.Entrada;
 using WebZi.Plataform.Domain.Views.Faturamento;
 
 namespace WebZi.Plataform.Data.Services.GGV
 {
     public class GgvService
     {
+        private const int ClienteTransalvadorId = 48;
+
         private readonly AppDbContext _context;
         private readonly IMapper _mapper;
         private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IServiceProvider _provider;
+        private static readonly System.Text.RegularExpressions.Regex _regex = new System.Text.RegularExpressions.Regex(@"[\p{Mn}\s]+");
 
-        public GgvService(AppDbContext context, IMapper mapper, IHttpClientFactory httpClientFactory)
+        public GgvService(AppDbContext context, IMapper mapper, IHttpClientFactory httpClientFactory,
+            IServiceProvider provider)
         {
             _context = context;
             _mapper = mapper;
             _httpClientFactory = httpClientFactory;
+            _provider = provider;
         }
 
         public async Task<MensagemDTO> UpdateGgvAsync(GgvParameters GgvPersistencia, CancellationToken ct)
@@ -55,7 +64,8 @@ namespace WebZi.Plataform.Data.Services.GGV
 
             GrvModel Grv = await _context.Grv
                 .Include(x => x.Vistoria)
-                .Include(x => x.ListagemFaturamentoServicoGrv)
+                .Include(x => x.ListagemFaturamentoServicoGrv).Include(grvModel => grvModel.TipoVeiculo!)
+                .Include(grvModel => grvModel.MarcaModelo!)
                 .FirstOrDefaultAsync(x => x.GrvId == GgvPersistencia.IdentificadorProcesso, cancellationToken: ct);
 
             DateTime DataHoraPorDeposito = new DepositoService(_context)
@@ -252,7 +262,8 @@ namespace WebZi.Plataform.Data.Services.GGV
                                 : item.ValorTipoCobrancaInformado;
 
                             FaturamentoServicoGrv.Valor = !string.IsNullOrWhiteSpace(item.ValorTipoCobrancaInformado) &&
-                                                          decimal.TryParse(item.ValorTipoCobrancaInformado.Replace(".", ","),
+                                                          decimal.TryParse(
+                                                              item.ValorTipoCobrancaInformado.Replace(".", ","),
                                                               out decimal valorInformadoUpdateH)
                                 ? valorInformadoUpdateH
                                 : FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.PrecoPadrao;
@@ -262,7 +273,7 @@ namespace WebZi.Plataform.Data.Services.GGV
                 }
             }
 
-            using (IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync(ct))
+            await using (IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync(ct))
             {
                 try
                 {
@@ -337,6 +348,12 @@ namespace WebZi.Plataform.Data.Services.GGV
 
             GrvModel Grv = await _context.Grv
                 .Include(x => x.ListagemFaturamentoServicoGrv)
+                .Include(x => x.MarcaModelo)
+                .Include(x => x.TipoVeiculo)
+                .Include(x => x.Reboque)
+                .Include(x => x.MotivoApreensao)
+                .Include(x => x.ListagemEnquadramentoInfracao)
+                .ThenInclude(x => x.EnquadramentoInfracao)
                 .FirstOrDefaultAsync(x => x.GrvId == GgvPersistencia.IdentificadorProcesso, cancellationToken: ct);
 
             DateTime DataHoraPorDeposito = new DepositoService(_context)
@@ -618,7 +635,8 @@ namespace WebZi.Plataform.Data.Services.GGV
                                 : item.ValorTipoCobrancaInformado;
 
                             FaturamentoServicoGrv.Valor = !string.IsNullOrWhiteSpace(item.ValorTipoCobrancaInformado) &&
-                                                          decimal.TryParse(item.ValorTipoCobrancaInformado.Replace(".", ","),
+                                                          decimal.TryParse(
+                                                              item.ValorTipoCobrancaInformado.Replace(".", ","),
                                                               out decimal valorInformadoCreateH)
                                 ? valorInformadoCreateH
                                 : FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.PrecoPadrao;
@@ -628,12 +646,21 @@ namespace WebZi.Plataform.Data.Services.GGV
                 }
             }
 
+            if (Grv.ClienteId == ClienteTransalvadorId)
+            {
+                MensagemDTO transalvadorResult = await RegistrarEntradaTransalvadorAsync(Grv, ct);
+
+                if (transalvadorResult.HtmlStatusCode is not (HtmlStatusCodeEnum.Created or HtmlStatusCodeEnum.Ok))
+                {
+                    return transalvadorResult;
+                }
+            }
+
             await using (IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync(ct))
             {
                 try
                 {
                     _context.Grv.Update(Grv);
-
                     // foreach (CondutorEquipamentoOpcionalModel item in ListagemCadastroCondutorEquipamentoOpcional)
                     // {
                     //     if (item.CondutorEquipamentoOpcionalId > 0)
@@ -908,11 +935,12 @@ namespace WebZi.Plataform.Data.Services.GGV
 
             FaturamentoServicoGrvModel servicoAssociado = await _context.FaturamentoServicoGrv
                 .Include(x => x.FaturamentoServicoTipoVeiculo)
-                    .ThenInclude(x => x.FaturamentoServicoAssociado)
-                        .ThenInclude(x => x.FaturamentoServicoTipo)
+                .ThenInclude(x => x.FaturamentoServicoAssociado)
+                .ThenInclude(x => x.FaturamentoServicoTipo)
                 .AsTracking()
                 .FirstOrDefaultAsync(
-                    x => x.GrvId == parameters.IdentificadorProcesso && x.FaturamentoServicoGrvId == parameters.IdentificadorServicoGrv,
+                    x => x.GrvId == parameters.IdentificadorProcesso &&
+                         x.FaturamentoServicoGrvId == parameters.IdentificadorServicoGrv,
                     cancellationToken: ct);
 
             if (servicoAssociado is null)
@@ -929,8 +957,10 @@ namespace WebZi.Plataform.Data.Services.GGV
                 parameters.ValorTipoCobrancaInformado = parameters.HoraMinuto;
             }
 
-            var tipoCobranca = servicoAssociado.FaturamentoServicoTipoVeiculo?.FaturamentoServicoAssociado?.FaturamentoServicoTipo?.TipoCobranca;
-            decimal precoPadrao = servicoAssociado.FaturamentoServicoTipoVeiculo?.FaturamentoServicoAssociado?.PrecoPadrao ?? 0;
+            var tipoCobranca = servicoAssociado.FaturamentoServicoTipoVeiculo?.FaturamentoServicoAssociado
+                ?.FaturamentoServicoTipo?.TipoCobranca;
+            decimal precoPadrao =
+                servicoAssociado.FaturamentoServicoTipoVeiculo?.FaturamentoServicoAssociado?.PrecoPadrao ?? 0;
 
             if (tipoCobranca == "H" || tipoCobranca == TipoCobrancaFaturamentoEnum.Horas)
             {
@@ -957,16 +987,16 @@ namespace WebZi.Plataform.Data.Services.GGV
                     : parameters.ValorTipoCobrancaInformado;
 
                 servicoAssociado.Valor = !string.IsNullOrWhiteSpace(parameters.ValorTipoCobrancaInformado) &&
-                                decimal.TryParse(parameters.ValorTipoCobrancaInformado.Replace(".", ","),
-                                    out decimal valorInformadoH)
+                                         decimal.TryParse(parameters.ValorTipoCobrancaInformado.Replace(".", ","),
+                                             out decimal valorInformadoH)
                     ? valorInformadoH
                     : precoPadrao;
             }
             else
             {
                 servicoAssociado.Valor = !string.IsNullOrWhiteSpace(parameters.ValorTipoCobrancaInformado) &&
-                                decimal.TryParse(parameters.ValorTipoCobrancaInformado.Replace(".", ","),
-                                    out decimal valorInformado)
+                                         decimal.TryParse(parameters.ValorTipoCobrancaInformado.Replace(".", ","),
+                                             out decimal valorInformado)
                     ? valorInformado
                     : precoPadrao;
             }
@@ -1167,60 +1197,60 @@ namespace WebZi.Plataform.Data.Services.GGV
                 }
             }
 
-            if (Grv.Deposito.GrvMinimoFotosExigidas > 0)
-            {
-                if (GgvPersistencia.ListagemFotos?.Count == 0)
-                {
-                    erros.Add("É necessário enviar pelo menos 1 Foto do Veículo");
-                }
-            }
-            else if (GgvPersistencia.ListagemFotos?.Count > 0)
-            {
-                if (Grv.Deposito.GrvMinimoFotosExigidas > GgvPersistencia.ListagemFotos.Count)
-                {
-                    erros.Add($"É necessário enviar pelo menos {Grv.Deposito.GrvMinimoFotosExigidas} Fotos do Veículo");
-                }
+            //if (Grv.Deposito.GrvMinimoFotosExigidas > 0)
+            //{
+            //    if (GgvPersistencia.ListagemFotos?.Count == 0)
+            //    {
+            //        erros.Add("É necessário enviar pelo menos 1 Foto do Veículo");
+            //    }
+            //}
+            //else if (GgvPersistencia.ListagemFotos?.Count > 0)
+            //{
+            //    if (Grv.Deposito.GrvMinimoFotosExigidas > GgvPersistencia.ListagemFotos.Count)
+            //    {
+            //        erros.Add($"É necessário enviar pelo menos {Grv.Deposito.GrvMinimoFotosExigidas} Fotos do Veículo");
+            //    }
 
-                int count = GgvPersistencia.ListagemFotos
-                    .Where(x => x.IdentificadorTipoCadastro <= 0)
-                    .Count();
+            //    int count = GgvPersistencia.ListagemFotos
+            //        .Where(x => x.IdentificadorTipoCadastro <= 0)
+            //        .Count();
 
-                if (count == 1)
-                {
-                    erros.Add($"Foi indentificado um Identificador do Tipo do Cadastro da Foto inválido");
-                }
-                else if (count > 1)
-                {
-                    erros.Add($"Foram indentificados {count} Identificador do Tipo do Cadastro da Foto inválido");
-                }
+            //    if (count == 1)
+            //    {
+            //        erros.Add($"Foi indentificado um Identificador do Tipo do Cadastro da Foto inválido");
+            //    }
+            //    else if (count > 1)
+            //    {
+            //        erros.Add($"Foram indentificados {count} Identificador do Tipo do Cadastro da Foto inválido");
+            //    }
 
-                TabelaGenericaService TabelaGenericaService = new(_context, _mapper);
+            //    TabelaGenericaService TabelaGenericaService = new(_context, _mapper);
 
-                List<int> ListagemTipoCadastroId = GgvPersistencia.ListagemFotos
-                    .Where(x => x.IdentificadorTipoCadastro > 0)
-                    .Select(x => x.IdentificadorTipoCadastro)
-                    .ToList();
+            //    List<int> ListagemTipoCadastroId = GgvPersistencia.ListagemFotos
+            //        .Where(x => x.IdentificadorTipoCadastro > 0)
+            //        .Select(x => x.IdentificadorTipoCadastro)
+            //        .ToList();
 
-                if (ListagemTipoCadastroId.Count > 0)
-                {
-                    List<TabelaGenericaModel> ListagemTipoCadastroFoto = await TabelaGenericaService
-                        .ListAsync("GGV_TIPO_CADASTRO_FOTO");
+            //    if (ListagemTipoCadastroId.Count > 0)
+            //    {
+            //        List<TabelaGenericaModel> ListagemTipoCadastroFoto = await TabelaGenericaService
+            //            .ListAsync("GGV_TIPO_CADASTRO_FOTO");
 
-                    List<int> ListagemTipoCadastroId2 = ListagemTipoCadastroFoto
-                        .Select(x => x.TabelaGenericaId)
-                        .ToList();
+            //        List<int> ListagemTipoCadastroId2 = ListagemTipoCadastroFoto
+            //            .Select(x => x.TabelaGenericaId)
+            //            .ToList();
 
-                    int result = ListagemTipoCadastroId
-                        .Where(x => ListagemTipoCadastroId2.All(x2 => x2 != x))
-                        .Count();
+            //        int result = ListagemTipoCadastroId
+            //            .Where(x => ListagemTipoCadastroId2.All(x2 => x2 != x))
+            //            .Count();
 
-                    if (result >= 1)
-                    {
-                        erros.Add(
-                            $"Foram indentificados {count} Identificador do Tipo do Cadastro da Foto inexistente");
-                    }
-                }
-            }
+            //        if (result >= 1)
+            //        {
+            //            erros.Add(
+            //                $"Foram indentificados {count} Identificador do Tipo do Cadastro da Foto inexistente");
+            //        }
+            //    }
+            //}
 
             // if (GgvPersistencia.ListagemEquipamentoOpcional?.Count > 0)
             // {
@@ -1580,6 +1610,65 @@ namespace WebZi.Plataform.Data.Services.GGV
             }
 
             return erros.Count == 0 ? MensagemViewHelper.SetOk() : MensagemViewHelper.SetBadRequest(erros);
+        }
+
+        private async Task<MensagemDTO> RegistrarEntradaTransalvadorAsync(GrvModel grv, CancellationToken ct)
+        {
+            var sistemaExternoId = await _context.Deposito
+            .AsNoTracking()
+            .Where(x => x.DepositoId == grv.DepositoId)
+            .Select(x => x.SistemaExternoId)
+            .FirstOrDefaultAsync(ct);
+            if (!sistemaExternoId.HasValue || sistemaExternoId.Value <= 0)
+            {
+                return MensagemViewHelper.SetBadRequest(
+                    "Identificador do pátio no sistema externo inválido ou não encontrado para o cliente Transalvador.");
+            }
+            int idPatio = sistemaExternoId.Value;
+
+            var motivoApreenssao = _regex.Replace(grv.MotivoApreensao?.Descricao?.Normalize(System.Text.NormalizationForm.FormD) ?? string.Empty, "").ToUpper();
+
+            string codigoInfracao = null;
+            if (grv.MotivoApreensaoId == 1)
+            {
+                var rawCodigo = grv.ListagemEnquadramentoInfracao
+                    .Select(x => x.EnquadramentoInfracao.CodigoInfracao)
+                    .FirstOrDefault();
+
+                if (!string.IsNullOrWhiteSpace(rawCodigo))
+                {
+                    var codigoLimpo = rawCodigo.Replace("-", "").Trim();
+                    codigoInfracao = codigoLimpo.Length >= 2
+                        ? codigoLimpo.Insert(codigoLimpo.Length - 1, "-")
+                        : codigoLimpo;
+                }
+            }
+
+            var parameters = new EntradaPatioParameters
+            {
+                TipoVeiculo = grv.TipoVeiculo.Descricao ?? string.Empty,
+                DataEntrada = grv.DataHoraGuarda!.Value,
+                Placa = grv.Placa ?? string.Empty,
+                Uf = grv.VeiculoUF ?? string.Empty,
+                MarcaModelo = grv.MarcaModelo?.MarcaModelo ?? string.Empty,
+                NumeroProcesso = grv.NumeroFormularioGrv ?? string.Empty,
+                PlacaReboque = grv.FlagComboio == "N" ? grv.Reboque.Placa?.ToString() : string.Empty,
+                IdPatio = idPatio,
+                MotivoApreensao = motivoApreenssao ?? string.Empty,
+                CodigoInfracao = codigoInfracao
+            };
+
+            var transalvadorService = _provider.GetRequiredService<TransalvadorService>();
+            var result = await transalvadorService.EntradaVeiculoAsync(parameters, ct);
+
+            if (result.Mensagem.HtmlStatusCode is not (HtmlStatusCodeEnum.Created or HtmlStatusCodeEnum.Ok))
+            {
+                return result.Mensagem;
+            }
+
+            grv.IdEntradaTransalvador = result.Id;
+
+            return MensagemViewHelper.SetOk();
         }
     }
 }

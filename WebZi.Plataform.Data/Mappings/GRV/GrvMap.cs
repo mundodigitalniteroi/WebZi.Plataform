@@ -367,6 +367,10 @@ namespace WebZi.Plataform.Data.Mappings.GRV
                 .IsUnicode(false)
                 .IsFixedLength();
 
+            builder.Property(x => x.IdEntradaTransalvador)
+                .HasColumnType("bigint")
+                .HasColumnName("id_entrada_transalvador");
+
             builder
                 .HasOne(d => d.UsuarioCadastro)
                 .WithMany(p => p.ListagemUsuarioCadastroGrv)
@@ -404,7 +408,6 @@ namespace WebZi.Plataform.Data.Mappings.GRV
             builder
                .HasOne(d => d.Arrematante)
                .WithOne(p => p.Grv)
-               .HasForeignKey<ArrematantesModel>(d => d.GrvId)
                .OnDelete(DeleteBehavior.NoAction);
         }
     }

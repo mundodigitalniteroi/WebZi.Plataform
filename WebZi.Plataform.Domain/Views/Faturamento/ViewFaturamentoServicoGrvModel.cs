@@ -1,4 +1,6 @@
-﻿namespace WebZi.Plataform.Domain.Views.Faturamento
+﻿using WebZi.Plataform.Domain.Models.Faturamento;
+
+namespace WebZi.Plataform.Domain.Views.Faturamento
 {
     public class ViewFaturamentoServicoGrvModel
     {
@@ -161,5 +163,6 @@
         public string ObservacaoDesconto { get; set; }
 
         public string NomeUsuarioDesconto { get; set; }
+        public FaturamentoServicoAssociadoModel ServicoAssociado { get; set; }
     }
 }

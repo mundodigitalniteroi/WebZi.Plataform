@@ -151,6 +151,10 @@ namespace WebZi.Plataform.Data.Mappings.Faturamento
                 .HasDefaultValueSql("('N')")
                 .IsFixedLength()
                 .HasColumnName("flag_usar_hora_diaria");
+            builder.Property(e => e.NumeroDocumentoDat)
+                .HasMaxLength(20)
+                .IsFixedLength()
+                .HasColumnName("numero_documento_dat");
         }
     }
 }
