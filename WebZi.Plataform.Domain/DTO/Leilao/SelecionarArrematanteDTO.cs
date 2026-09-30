@@ -8,6 +8,7 @@ public class SelecionarArrematanteDTO
 
     public ArrematanteProcessoDTO Processo { get; set; } = new();
 
+    public AtendimentoLeilaoDTO? Atendimento { get; set; }
     public ArrematanteVeiculoDTO Veiculo { get; set; } = new();
 
     public ArrematanteDadosDTO Arrematante { get; set; } = new();
@@ -21,6 +22,11 @@ public class ArrematanteProcessoDTO
     public string? StatusOperacaoDescricao { get; set; }
 }
 
+public class AtendimentoLeilaoDTO
+{
+    public string ResponsavelAtendimento { get; set; }
+    public DateTime DataAtendimento { get; set; }
+}
 public class ArrematanteVeiculoDTO
 {
     public string? Placa { get; set; }

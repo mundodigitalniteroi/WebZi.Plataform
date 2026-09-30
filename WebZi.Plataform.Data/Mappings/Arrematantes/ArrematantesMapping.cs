@@ -56,7 +56,7 @@ public class ArrematantesMapping : IEntityTypeConfiguration<ArrematantesModel>
             .HasColumnType("varchar(10)")
             .HasColumnName("cep");
         builder.Property(x => x.NomeLeilao)
-            .HasColumnType("varchar(15)")
+            .HasColumnType("varchar(50)")
             .HasColumnName("nome_leilao");
         builder.Property(x => x.NumeroLote)
             .HasColumnType("varchar(10)")

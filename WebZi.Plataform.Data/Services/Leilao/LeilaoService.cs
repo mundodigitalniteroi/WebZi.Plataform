@@ -74,6 +74,7 @@ namespace WebZi.Plataform.Data.Services.Leilao
 
             GrvModel Grv = await _context.Grv
                 .Include(x => x.StatusOperacao)
+                .Include(x => x.Arrematante)
                 .AsTracking()
                 .FirstOrDefaultAsync(x => x.GrvId == parameters.IdentificadorProcesso, ct);
 
@@ -321,6 +322,32 @@ namespace WebZi.Plataform.Data.Services.Leilao
                 }
             }
 
+            var atendimento = await _context.Atendimento
+                .Include(x => x.UsuarioCadastro)
+                    .ThenInclude(x => x.Pessoa)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.GrvId == identificadorProcesso, ct);
+
+            if (atendimento != null)
+            {
+                var usuario = atendimento.UsuarioCadastro;
+                string nomeUsuario = null;
+                if (usuario?.Pessoa != null)
+                {
+                    nomeUsuario = $"{usuario.Pessoa.Nome} {usuario.Pessoa.NomeMeio} {usuario.Pessoa.Sobrenome}".Replace("  ", " ").Trim();
+                }
+                if (string.IsNullOrWhiteSpace(nomeUsuario))
+                {
+                    nomeUsuario = usuario?.Login ?? atendimento.ResponsavelNome;
+                }
+
+                resultView.Atendimento = new AtendimentoLeilaoDTO
+                {
+                    ResponsavelAtendimento = nomeUsuario,
+                    DataAtendimento = atendimento.DataCadastro
+                };
+            }
+
             await ConsultaVeiculoDetranHubAsync(resultView.Veiculo);
 
             return resultView;
@@ -457,32 +484,54 @@ namespace WebZi.Plataform.Data.Services.Leilao
                 return ResultView;
             }
 
-            GrvModel Grv = await _context.Grv
-                .Include(x => x.TipoVeiculo)
-                .Include(x => x.StatusOperacao)
-                .Include(x => x.Cliente)
-                    .ThenInclude(x => x.Endereco)
-                .Include(x => x.Deposito)
-                    .ThenInclude(x => x.Endereco)
-                .Include(x => x.Cor)
-                .Include(x => x.MarcaModelo)
-                .Include(x => x.Atendimento)
-                .Include(x => x.Liberacao)
-                .Include(x => x.Arrematante)
+            var grv = await _context.Grv
+                .Where(x => x.GrvId == GrvId)
+                .Select(x => new
+                {
+                    x.GrvId,
+                    x.NumeroFormularioGrv,
+                    x.StatusOperacaoId,
+                    StatusOperacaoDescricao = x.StatusOperacao != null ? x.StatusOperacao.Descricao : null,
+                    ClienteNome = x.Cliente != null ? x.Cliente.Nome : null,
+                    ClienteEndereco = x.Cliente != null ? x.Cliente.Endereco : null,
+                    ClienteNumeroEndereco = x.Cliente != null ? x.Cliente.NumeroEndereco : null,
+                    ClienteComplementoEndereco = x.Cliente != null ? x.Cliente.ComplementoEndereco : null,
+                    DepositoNome = x.Deposito != null ? x.Deposito.Nome : null,
+                    DepositoMunicipio = x.Deposito != null && x.Deposito.Endereco != null ? x.Deposito.Endereco.Municipio : null,
+                    MarcaModelo = x.MarcaModelo != null ? x.MarcaModelo.MarcaModelo : null,
+                    x.Placa,
+                    x.Chassi,
+                    x.Renavam,
+                    Cor = x.Cor != null ? x.Cor.Cor : null,
+                    x.EstacionamentoSetor,
+                    x.EstacionamentoNumeroVaga,
+                    x.NumeroChave,
+                    LiberacaoDataCadastro = x.Liberacao != null ? (DateTime?)x.Liberacao.DataCadastro : null,
+                    AtendimentoResponsavelNome = x.Atendimento != null ? x.Atendimento.ResponsavelNome : null,
+                    AtendimentoResponsavelDocumento = x.Atendimento != null ? x.Atendimento.ResponsavelDocumento : null,
+                    Arrematante = x.Arrematante != null ? new
+                    {
+                        x.Arrematante.Nome,
+                        x.Arrematante.CpfCnpj,
+                        x.Arrematante.NumeroLote,
+                        x.Arrematante.DataLeilao,
+                        x.Arrematante.ValorTotal
+                    } : null
+                })
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.GrvId == GrvId, cancellationToken: ct);
+                .FirstOrDefaultAsync(cancellationToken: ct);
 
-            if (Grv == null)
+            if (grv == null)
             {
                 ResultView.Mensagem = MensagemViewHelper.SetNotFound("Processo não encontrado.");
                 return ResultView;
             }
 
-            if (Grv.StatusOperacaoId is not "6" and not "7")
+            if (grv.StatusOperacaoId is not "6" and not "7")
             {
                 ResultView.Mensagem = MensagemViewHelper
                     .SetBadRequest(
-                        $"O Status atual deste Processo não permite a geração do Documento. Status atual: {Grv.StatusOperacao?.Descricao}");
+                        $"O Status atual deste Processo não permite a geração do Documento. Status atual: {grv.StatusOperacaoDescricao}");
 
                 return ResultView;
             }
@@ -490,19 +539,19 @@ namespace WebZi.Plataform.Data.Services.Leilao
             var culturaPtBr = CultureInfo.GetCultureInfo("pt-BR");
             DateTime dataAtual = DateTime.Now;
 
-            ResultView.IdentificadorProcesso = Grv.GrvId;
-            ResultView.NumeroProcesso = Grv.NumeroFormularioGrv ?? string.Empty;
+            ResultView.IdentificadorProcesso = grv.GrvId;
+            ResultView.NumeroProcesso = grv.NumeroFormularioGrv ?? string.Empty;
             ResultView.Titulo = "DECLARAÇÃO DE RETIRADA DE VEÍCULO ARREMATADO";
 
-            ResultView.ClienteNome = Grv.Cliente?.Nome ?? string.Empty;
-            if (Grv.Cliente?.Endereco != null)
+            ResultView.ClienteNome = grv.ClienteNome ?? string.Empty;
+            if (grv.ClienteEndereco != null)
             {
-                ResultView.ClienteEndereco = new EnderecoService()
-                    .FormatarEndereco(Grv.Cliente.Endereco, Grv.Cliente.NumeroEndereco, Grv.Cliente.ComplementoEndereco);
+                ResultView.ClienteEndereco = new EnderecoService(_context, _mapper)
+                    .FormatarEndereco(grv.ClienteEndereco, grv.ClienteNumeroEndereco, grv.ClienteComplementoEndereco);
 
-                if (!string.IsNullOrWhiteSpace(Grv.Cliente.Endereco.CEP))
+                if (!string.IsNullOrWhiteSpace(grv.ClienteEndereco.CEP))
                 {
-                    ResultView.ClienteEndereco += $". CEP {Grv.Cliente.Endereco.CEP}";
+                    ResultView.ClienteEndereco += $". CEP {grv.ClienteEndereco.CEP}";
                 }
             }
             else
@@ -514,22 +563,24 @@ namespace WebZi.Plataform.Data.Services.Leilao
             ResultView.HoraEmissao = dataAtual.ToString("HH:mm:ss");
             ResultView.DataHoraEmissao = dataAtual.ToString("dd/MM/yyyy HH:mm:ss");
 
-            if (Grv.Arrematante != null)
+            if (grv.Arrematante != null)
             {
-                string respNome = Grv.Arrematante.Nome ?? string.Empty;
-                string respDoc = Grv.Arrematante.CpfCnpj ?? string.Empty;
-                string depositoNome = Grv.Deposito?.Nome?.ToUpper() ?? string.Empty;
+                string respNome = grv.Arrematante.Nome ?? string.Empty;
+                string respDoc = !string.IsNullOrWhiteSpace(grv.Arrematante.CpfCnpj)
+                    ? (grv.Arrematante.CpfCnpj.Length == 11 ? DocumentHelper.FormatCPF(grv.Arrematante.CpfCnpj) : DocumentHelper.FormatCNPJ(grv.Arrematante.CpfCnpj))
+                    : string.Empty;
+                string depositoNome = grv.DepositoNome?.ToUpper() ?? string.Empty;
 
-                string numeroLote = Grv.Arrematante.NumeroLote ?? string.Empty;
+                string numeroLote = grv.Arrematante.NumeroLote ?? string.Empty;
 
-                DateTime dataRetirada = Grv.Liberacao?.DataCadastro ?? dataAtual;
+                DateTime dataRetirada = grv.LiberacaoDataCadastro ?? dataAtual;
                 string horaRetiradaStr = dataRetirada.ToString("HH\\hmm");
                 string dataRetiradaExtenso = dataRetirada.ToString("dd 'DE' MMMM 'DE' yyyy", culturaPtBr).ToUpper();
 
                 string dataLeilaoStr = string.Empty;
-                if (Grv.Arrematante.DataLeilao != null)
+                if (grv.Arrematante.DataLeilao != null)
                 {
-                    dataLeilaoStr = Grv.Arrematante.DataLeilao.Value.ToString("dd/MM/yyyy");
+                    dataLeilaoStr = grv.Arrematante.DataLeilao.Value.ToString("dd/MM/yyyy");
                 }
 
                 ResultView.TextoDeclaracaoRetirada1 =
@@ -545,35 +596,42 @@ namespace WebZi.Plataform.Data.Services.Leilao
 
                 if (detranHubService != null)
                 {
-                    string placa = Grv.Placa.IsPlaca() ? Grv.Placa : null;
-                    string chassi = placa == null ? Grv.Chassi : null;
+                    string placa = !string.IsNullOrWhiteSpace(grv.Placa) && grv.Placa.IsPlaca() ? grv.Placa : null;
+                    string chassi = placa == null ? grv.Chassi : null;
 
-                    var detranHubResult = await detranHubService.SearchToPlateOrChassi(placa, chassi);
-
-                    if (detranHubResult?.Veiculo != null)
+                    try
                     {
-                        var veiculoHub = detranHubResult.Veiculo;
+                        var detranHubResult = await detranHubService.SearchToPlateOrChassi(placa, chassi);
 
-                        if (!string.IsNullOrWhiteSpace(veiculoHub.MarcaModelo))
-                            ResultView.VeiculoMarcaModelo = veiculoHub.MarcaModelo;
+                        if (detranHubResult?.Veiculo != null)
+                        {
+                            var veiculoHub = detranHubResult.Veiculo;
 
-                        if (!string.IsNullOrWhiteSpace(veiculoHub.Placa))
-                            ResultView.VeiculoPlaca = VeiculoHelper.FormatPlaca(veiculoHub.Placa);
+                            if (!string.IsNullOrWhiteSpace(veiculoHub.MarcaModelo))
+                                ResultView.VeiculoMarcaModelo = veiculoHub.MarcaModelo;
 
-                        if (!string.IsNullOrWhiteSpace(veiculoHub.Renavam))
-                            ResultView.VeiculoRenavam = veiculoHub.Renavam;
+                            if (!string.IsNullOrWhiteSpace(veiculoHub.Placa))
+                                ResultView.VeiculoPlaca = VeiculoHelper.FormatPlaca(veiculoHub.Placa);
 
-                        if (!string.IsNullOrWhiteSpace(veiculoHub.Chassi))
-                            ResultView.VeiculoChassi = veiculoHub.Chassi;
+                            if (!string.IsNullOrWhiteSpace(veiculoHub.Renavam))
+                                ResultView.VeiculoRenavam = veiculoHub.Renavam;
 
-                        if (!string.IsNullOrWhiteSpace(veiculoHub.CorPrimaria))
-                            ResultView.VeiculoCor = veiculoHub.CorPrimaria;
+                            if (!string.IsNullOrWhiteSpace(veiculoHub.Chassi))
+                                ResultView.VeiculoChassi = veiculoHub.Chassi;
 
-                        if (veiculoHub.AnoFabricacao.HasValue)
-                            ResultView.VeiculoAnoFabricacao = veiculoHub.AnoFabricacao.Value.ToString();
+                            if (!string.IsNullOrWhiteSpace(veiculoHub.CorPrimaria))
+                                ResultView.VeiculoCor = veiculoHub.CorPrimaria;
 
-                        if (veiculoHub.AnoModelo.HasValue)
-                            ResultView.VeiculoAnoModelo = veiculoHub.AnoModelo.Value.ToString();
+                            if (veiculoHub.AnoFabricacao.HasValue)
+                                ResultView.VeiculoAnoFabricacao = veiculoHub.AnoFabricacao.Value.ToString();
+
+                            if (veiculoHub.AnoModelo.HasValue)
+                                ResultView.VeiculoAnoModelo = veiculoHub.AnoModelo.Value.ToString();
+                        }
+                    }
+                    catch
+                    {
+                        // Fallback seguro caso falhe integração externa
                     }
                 }
 
@@ -581,17 +639,17 @@ namespace WebZi.Plataform.Data.Services.Leilao
                     ? (ResultView.VeiculoAnoFabricacao == ResultView.VeiculoAnoModelo ? ResultView.VeiculoAnoFabricacao : $"{ResultView.VeiculoAnoFabricacao}/{ResultView.VeiculoAnoModelo}")
                     : (!string.IsNullOrWhiteSpace(ResultView.VeiculoAnoFabricacao) ? ResultView.VeiculoAnoFabricacao : ResultView.VeiculoAnoModelo);
 
-                ResultView.VeiculoMarcaModelo ??= Grv.MarcaModelo?.MarcaModelo;
-                ResultView.VeiculoPlaca ??= Grv.Placa;
-                ResultView.VeiculoRenavam ??= Grv.Renavam;
-                ResultView.VeiculoChassi ??= Grv.Chassi;
-                ResultView.VeiculoCor ??= Grv.Cor?.Cor;
+                ResultView.VeiculoMarcaModelo ??= grv.MarcaModelo ?? string.Empty;
+                ResultView.VeiculoPlaca ??= !string.IsNullOrWhiteSpace(grv.Placa) ? VeiculoHelper.FormatPlaca(grv.Placa) : string.Empty;
+                ResultView.VeiculoRenavam ??= grv.Renavam ?? string.Empty;
+                ResultView.VeiculoChassi ??= grv.Chassi ?? string.Empty;
+                ResultView.VeiculoCor ??= grv.Cor ?? string.Empty;
 
-                ResultView.GrvEstacionamentoSetor = Grv.EstacionamentoSetor ?? string.Empty;
-                ResultView.GrvEstacionamentoNumeroVaga = Grv.EstacionamentoNumeroVaga ?? string.Empty;
-                ResultView.GrvNumeroChave = Grv.NumeroChave ?? string.Empty;
+                ResultView.GrvEstacionamentoSetor = grv.EstacionamentoSetor ?? string.Empty;
+                ResultView.GrvEstacionamentoNumeroVaga = grv.EstacionamentoNumeroVaga ?? string.Empty;
+                ResultView.GrvNumeroChave = grv.NumeroChave ?? string.Empty;
 
-                string valorArrematacaoStr = Grv.Arrematante.ValorTotal ?? string.Empty;
+                string valorArrematacaoStr = grv.Arrematante.ValorTotal ?? string.Empty;
                 ResultView.ValorArrematacao = valorArrematacaoStr;
 
                 if (!string.IsNullOrWhiteSpace(valorArrematacaoStr))
@@ -608,7 +666,7 @@ namespace WebZi.Plataform.Data.Services.Leilao
                     "- Nota Fiscal,\n\n" +
                     "- Auto de Leilão";
 
-                string cidade = Grv.Deposito?.Endereco?.Municipio ?? "";
+                string cidade = grv.DepositoMunicipio ?? string.Empty;
                 ResultView.CidadeData = $"{cidade.ToUpper()}, {dataAtual.ToString("dd 'DE' MMMM 'DE' yyyy", culturaPtBr).ToUpper()}";
 
                 ResultView.ProprietarioProcurador = respNome;
@@ -617,8 +675,33 @@ namespace WebZi.Plataform.Data.Services.Leilao
             else
             {
                 var liberacaoLeilao = await _context.ViewLiberacaoLeilao
+                    .Where(x => x.IdGrv == GrvId)
+                    .Select(x => new
+                    {
+                        x.Nome,
+                        x.EnderecoCompleto,
+                        x.Processo,
+                        x.Mensagem1,
+                        x.CodigoLote,
+                        x.MarcaModelo,
+                        x.Placa,
+                        x.Renavam,
+                        x.Chassi,
+                        x.Cor,
+                        x.Ano,
+                        x.GrvEstacionamentoSetor,
+                        x.GrvEstacionamentoNumeroVaga,
+                        x.GrvNumeroChave,
+                        x.Mensagem2,
+                        x.Mensagem3,
+                        x.Mensagem4,
+                        x.Mensagem5,
+                        x.Mensagem6,
+                        x.ArrematanteNomeArrematante,
+                        x.ArrematanteCpfCnpj
+                    })
                     .AsNoTracking()
-                    .FirstOrDefaultAsync(x => x.IdGrv == GrvId, cancellationToken: ct);
+                    .FirstOrDefaultAsync(cancellationToken: ct);
 
                 if (liberacaoLeilao != null)
                 {
@@ -629,18 +712,18 @@ namespace WebZi.Plataform.Data.Services.Leilao
                         ResultView.ClienteEndereco = liberacaoLeilao.EnderecoCompleto;
 
                     ResultView.NumeroProcesso = !string.IsNullOrWhiteSpace(liberacaoLeilao.Processo) ? liberacaoLeilao.Processo : ResultView.NumeroProcesso;
-                    ResultView.TextoDeclaracaoRetirada1 = liberacaoLeilao.Mensagem1;
-                    ResultView.NumeroLote = liberacaoLeilao.CodigoLote;
-                    ResultView.VeiculoMarcaModelo = liberacaoLeilao.MarcaModelo ?? Grv.MarcaModelo?.MarcaModelo;
-                    ResultView.VeiculoPlaca = liberacaoLeilao.Placa ?? Grv.Placa;
-                    ResultView.VeiculoRenavam = liberacaoLeilao.Renavam ?? Grv.Renavam;
-                    ResultView.VeiculoChassi = liberacaoLeilao.Chassi ?? Grv.Chassi;
-                    ResultView.VeiculoCor = liberacaoLeilao.Cor ?? Grv.Cor?.Cor;
-                    ResultView.VeiculoAno = liberacaoLeilao.Ano;
-                    ResultView.GrvEstacionamentoSetor = liberacaoLeilao.GrvEstacionamentoSetor ?? Grv.EstacionamentoSetor ?? string.Empty;
-                    ResultView.GrvEstacionamentoNumeroVaga = liberacaoLeilao.GrvEstacionamentoNumeroVaga ?? Grv.EstacionamentoNumeroVaga ?? string.Empty;
-                    ResultView.GrvNumeroChave = liberacaoLeilao.GrvNumeroChave ?? Grv.NumeroChave ?? string.Empty;
-                    ResultView.TextoDeclaracaoRetirada2 = liberacaoLeilao.Mensagem2;
+                    ResultView.TextoDeclaracaoRetirada1 = liberacaoLeilao.Mensagem1 ?? string.Empty;
+                    ResultView.NumeroLote = liberacaoLeilao.CodigoLote ?? string.Empty;
+                    ResultView.VeiculoMarcaModelo = liberacaoLeilao.MarcaModelo ?? grv.MarcaModelo ?? string.Empty;
+                    ResultView.VeiculoPlaca = liberacaoLeilao.Placa ?? (!string.IsNullOrWhiteSpace(grv.Placa) ? VeiculoHelper.FormatPlaca(grv.Placa) : string.Empty);
+                    ResultView.VeiculoRenavam = liberacaoLeilao.Renavam ?? grv.Renavam ?? string.Empty;
+                    ResultView.VeiculoChassi = liberacaoLeilao.Chassi ?? grv.Chassi ?? string.Empty;
+                    ResultView.VeiculoCor = liberacaoLeilao.Cor ?? grv.Cor ?? string.Empty;
+                    ResultView.VeiculoAno = liberacaoLeilao.Ano ?? string.Empty;
+                    ResultView.GrvEstacionamentoSetor = liberacaoLeilao.GrvEstacionamentoSetor ?? grv.EstacionamentoSetor ?? string.Empty;
+                    ResultView.GrvEstacionamentoNumeroVaga = liberacaoLeilao.GrvEstacionamentoNumeroVaga ?? grv.EstacionamentoNumeroVaga ?? string.Empty;
+                    ResultView.GrvNumeroChave = liberacaoLeilao.GrvNumeroChave ?? grv.NumeroChave ?? string.Empty;
+                    ResultView.TextoDeclaracaoRetirada2 = liberacaoLeilao.Mensagem2 ?? string.Empty;
 
                     var docs = new List<string>();
                     if (!string.IsNullOrWhiteSpace(liberacaoLeilao.Mensagem3)) docs.Add(liberacaoLeilao.Mensagem3);
@@ -651,25 +734,51 @@ namespace WebZi.Plataform.Data.Services.Leilao
                         ? string.Join("\n\n", docs)
                         : "Declaro também que, no ato da retirada do veículo no Depósito, recebi os seguintes documentos:\n\n- Nota Fiscal,\n\n- Auto de Leilão";
 
+                    string cidadeDeposito = grv.DepositoMunicipio?.ToUpper() ?? "RIO DE JANEIRO";
                     ResultView.CidadeData = !string.IsNullOrWhiteSpace(liberacaoLeilao.Mensagem6)
                         ? liberacaoLeilao.Mensagem6
-                        : $"{Grv.Deposito?.Endereco?.Municipio?.ToUpper() ?? "RIO DE JANEIRO"}, {dataAtual.ToString("dd 'DE' MMMM 'DE' yyyy", culturaPtBr).ToUpper()}";
+                        : $"{cidadeDeposito}, {dataAtual.ToString("dd 'DE' MMMM 'DE' yyyy", culturaPtBr).ToUpper()}";
 
-                    ResultView.ProprietarioProcurador = liberacaoLeilao.ArrematanteNomeArrematante?.Replace("Proprietário/Procurador: ", "").Trim() ?? (Grv.Atendimento?.ResponsavelNome ?? "");
-                    ResultView.ProprietarioCpf = liberacaoLeilao.ArrematanteCpfCnpj?.Replace("CPF: ", "").Trim() ?? (Grv.Atendimento?.ResponsavelDocumento ?? "");
+                    ResultView.ProprietarioProcurador = liberacaoLeilao.ArrematanteNomeArrematante?.Replace("Proprietário/Procurador: ", "").Trim() ?? grv.AtendimentoResponsavelNome ?? string.Empty;
+                    ResultView.ProprietarioCpf = liberacaoLeilao.ArrematanteCpfCnpj?.Replace("CPF: ", "").Trim() ?? (!string.IsNullOrWhiteSpace(grv.AtendimentoResponsavelDocumento) ? DocumentHelper.FormatCPF(grv.AtendimentoResponsavelDocumento) : string.Empty);
+                }
+                else
+                {
+                    ResultView.VeiculoMarcaModelo = grv.MarcaModelo ?? string.Empty;
+                    ResultView.VeiculoPlaca = !string.IsNullOrWhiteSpace(grv.Placa) ? VeiculoHelper.FormatPlaca(grv.Placa) : string.Empty;
+                    ResultView.VeiculoRenavam = grv.Renavam ?? string.Empty;
+                    ResultView.VeiculoChassi = grv.Chassi ?? string.Empty;
+                    ResultView.VeiculoCor = grv.Cor ?? string.Empty;
+                    ResultView.GrvEstacionamentoSetor = grv.EstacionamentoSetor ?? string.Empty;
+                    ResultView.GrvEstacionamentoNumeroVaga = grv.EstacionamentoNumeroVaga ?? string.Empty;
+                    ResultView.GrvNumeroChave = grv.NumeroChave ?? string.Empty;
+                    ResultView.ProprietarioProcurador = grv.AtendimentoResponsavelNome ?? string.Empty;
+                    ResultView.ProprietarioCpf = !string.IsNullOrWhiteSpace(grv.AtendimentoResponsavelDocumento) ? DocumentHelper.FormatCPF(grv.AtendimentoResponsavelDocumento) : string.Empty;
+                    string cidadeDeposito = grv.DepositoMunicipio?.ToUpper() ?? "RIO DE JANEIRO";
+                    ResultView.CidadeData = $"{cidadeDeposito}, {dataAtual.ToString("dd 'DE' MMMM 'DE' yyyy", culturaPtBr).ToUpper()}";
+                    ResultView.TextoDeclaracaoRetirada3 = "Declaro também que, no ato da retirada do veículo no Depósito, recebi os seguintes documentos:\n\n- Nota Fiscal,\n\n- Auto de Leilão";
                 }
             }
 
-            ViewUsuarioModel Usuario = await _context.ViewUsuario
-                .FirstOrDefaultAsync(x => x.UsuarioId == UsuarioId, cancellationToken: ct);
+            var usuario = await _context.ViewUsuario
+                .Where(x => x.UsuarioId == UsuarioId)
+                .Select(x => new
+                {
+                    x.NomeCompleto,
+                    x.Matricula,
+                    x.CpfFormatado,
+                    x.Cpf
+                })
+                .AsNoTracking()
+                .FirstOrDefaultAsync(cancellationToken: ct);
 
-            if (Usuario != null)
+            if (usuario != null)
             {
-                ResultView.UsuarioNome = Usuario.NomeCompleto;
-                ResultView.UsuarioMatricula = Usuario.Matricula;
-                ResultView.UsuarioCpf = !string.IsNullOrWhiteSpace(Usuario.CpfFormatado)
-                    ? Usuario.CpfFormatado
-                    : (!string.IsNullOrWhiteSpace(Usuario.Cpf) && Usuario.Cpf.Length == 11 ? DocumentHelper.FormatCPF(Usuario.Cpf) : Usuario.Matricula);
+                ResultView.UsuarioNome = usuario.NomeCompleto;
+                ResultView.UsuarioMatricula = usuario.Matricula;
+                ResultView.UsuarioCpf = !string.IsNullOrWhiteSpace(usuario.CpfFormatado)
+                    ? usuario.CpfFormatado
+                    : (!string.IsNullOrWhiteSpace(usuario.Cpf) && usuario.Cpf.Length == 11 ? DocumentHelper.FormatCPF(usuario.Cpf) : usuario.Matricula);
             }
 
             ResultView.Mensagem = MensagemViewHelper.SetOk(ResultView.Mensagem, "Documento gerado com sucesso");

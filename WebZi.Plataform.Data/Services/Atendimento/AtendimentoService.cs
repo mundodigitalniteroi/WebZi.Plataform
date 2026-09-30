@@ -1236,9 +1236,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
                     var arrematante = await _context.Arrematantes
                         .AsTracking()
-                        .FirstOrDefaultAsync(x =>
-                            (AtendimentoInput.Arrematante != null && AtendimentoInput.Arrematante.IdentificadorArrematante > 0 && x.ArrematanteId == AtendimentoInput.Arrematante.IdentificadorArrematante) ||
-                            x.GrvId == AtendimentoInput.IdentificadorProcesso, ct);
+                        .FirstOrDefaultAsync(x => x.GrvId == AtendimentoInput.IdentificadorProcesso, ct);
 
                     if (arrematante != null)
                     {
@@ -1300,45 +1298,8 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
                             if (AtendimentoInput.Arrematante.DataLeilao.HasValue)
                                 arrematante.DataLeilao = AtendimentoInput.Arrematante.DataLeilao;
+                            _context.Arrematantes.Update(arrematante);
                         }
-                        else
-                        {
-                            if (!string.IsNullOrWhiteSpace(AtendimentoInput.ResponsavelNome))
-                                arrematante.Nome = AtendimentoInput.ResponsavelNome.ToUpperTrim();
-
-                            if (!string.IsNullOrWhiteSpace(AtendimentoInput.ResponsavelDocumento))
-                                arrematante.CpfCnpj = AtendimentoInput.ResponsavelDocumento.Replace(".", "").Replace("/", "").Replace("-", "");
-
-                            if (!string.IsNullOrWhiteSpace(AtendimentoInput.ResponsavelTelefone))
-                            {
-                                string ddd = AtendimentoInput.ResponsavelDDD ?? "";
-                                string tel = AtendimentoInput.ResponsavelTelefone.Replace("-", "").Replace("(", "").Replace(")", "").Replace(" ", "");
-                                arrematante.TelefoneCelular = $"{ddd}{tel}";
-                            }
-
-                            if (!string.IsNullOrWhiteSpace(AtendimentoInput.ResponsavelEndereco))
-                                arrematante.Logradouro = AtendimentoInput.ResponsavelEndereco.ToUpperTrim();
-
-                            if (!string.IsNullOrWhiteSpace(AtendimentoInput.ResponsavelNumero))
-                                arrematante.Numero = AtendimentoInput.ResponsavelNumero.ToUpperTrim();
-
-                            if (AtendimentoInput.ResponsavelComplemento != null)
-                                arrematante.Complemento = AtendimentoInput.ResponsavelComplemento.ToUpperTrim();
-
-                            if (!string.IsNullOrWhiteSpace(AtendimentoInput.ResponsavelBairro))
-                                arrematante.Bairro = AtendimentoInput.ResponsavelBairro.ToUpperTrim();
-
-                            if (!string.IsNullOrWhiteSpace(AtendimentoInput.ResponsavelMunicipio))
-                                arrematante.Cidade = AtendimentoInput.ResponsavelMunicipio.ToUpperTrim();
-
-                            if (!string.IsNullOrWhiteSpace(AtendimentoInput.ResponsavelUF))
-                                arrematante.Estado = AtendimentoInput.ResponsavelUF.ToUpperTrim();
-
-                            if (!string.IsNullOrWhiteSpace(AtendimentoInput.ResponsavelCEP))
-                                arrematante.Cep = AtendimentoInput.ResponsavelCEP.Replace("-", "");
-                        }
-
-                        _context.Arrematantes.Update(arrematante);
                     }
                     else
                     {
@@ -1346,50 +1307,27 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                         {
                             GrvId = AtendimentoInput.IdentificadorProcesso,
                             NumeroProcesso = grv?.NumeroFormularioGrv,
-                            DataCadastro = DateTime.Now
+                            DataCadastro = DateTime.Now,
+                            Nome = AtendimentoInput.Arrematante.Nome?.ToUpperTrim(),
+                            CpfCnpj = AtendimentoInput.Arrematante.CpfCnpj?.Replace(".", "").Replace("/", "").Replace("-", ""),
+                            TelefoneCelular = AtendimentoInput.Arrematante.TelefoneCelular?.Replace("-", "").Replace("(", "").Replace(")", "").Replace(" ", ""),
+                            Email = AtendimentoInput.Arrematante.Email?.ToUpperTrim(),
+                            Logradouro = AtendimentoInput.Arrematante.Logradouro?.ToUpperTrim(),
+                            Numero = AtendimentoInput.Arrematante.Numero?.ToUpperTrim(),
+                            Complemento = AtendimentoInput.Arrematante.Complemento?.ToUpperTrim(),
+                            Bairro = AtendimentoInput.Arrematante.Bairro?.ToUpperTrim(),
+                            Cidade = AtendimentoInput.Arrematante.Cidade?.ToUpperTrim(),
+                            Estado = AtendimentoInput.Arrematante.Estado?.ToUpperTrim(),
+                            Cep = AtendimentoInput.Arrematante.Cep?.Replace("-", ""),
+                            NomeLeilao = AtendimentoInput.Arrematante.NomeLeilao?.ToUpperTrim(),
+                            NumeroLote = AtendimentoInput.Arrematante.NumeroLote?.ToUpperTrim(),
+                            ValorArrematacao = AtendimentoInput.Arrematante.ValorArrematacao,
+                            ValorTaxaAdministrativa = AtendimentoInput.Arrematante.ValorTaxaAdministrativa,
+                            ValorOutrasTaxas = AtendimentoInput.Arrematante.ValorOutrasTaxas,
+                            ValorComissao = AtendimentoInput.Arrematante.ValorComissao,
+                            ValorTotal = AtendimentoInput.Arrematante.ValorTotal,
+                            DataLeilao = AtendimentoInput.Arrematante.DataLeilao
                         };
-
-                        if (AtendimentoInput.Arrematante != null)
-                        {
-                            arrematante.Nome = AtendimentoInput.Arrematante.Nome?.ToUpperTrim();
-                            arrematante.CpfCnpj = AtendimentoInput.Arrematante.CpfCnpj?.Replace(".", "").Replace("/", "").Replace("-", "");
-                            arrematante.TelefoneCelular = AtendimentoInput.Arrematante.TelefoneCelular?.Replace("-", "").Replace("(", "").Replace(")", "").Replace(" ", "");
-                            arrematante.Email = AtendimentoInput.Arrematante.Email?.ToUpperTrim();
-                            arrematante.Logradouro = AtendimentoInput.Arrematante.Logradouro?.ToUpperTrim();
-                            arrematante.Numero = AtendimentoInput.Arrematante.Numero?.ToUpperTrim();
-                            arrematante.Complemento = AtendimentoInput.Arrematante.Complemento?.ToUpperTrim();
-                            arrematante.Bairro = AtendimentoInput.Arrematante.Bairro?.ToUpperTrim();
-                            arrematante.Cidade = AtendimentoInput.Arrematante.Cidade?.ToUpperTrim();
-                            arrematante.Estado = AtendimentoInput.Arrematante.Estado?.ToUpperTrim();
-                            arrematante.Cep = AtendimentoInput.Arrematante.Cep?.Replace("-", "");
-                            arrematante.NomeLeilao = AtendimentoInput.Arrematante.NomeLeilao?.ToUpperTrim();
-                            arrematante.NumeroLote = AtendimentoInput.Arrematante.NumeroLote?.ToUpperTrim();
-                            arrematante.ValorArrematacao = AtendimentoInput.Arrematante.ValorArrematacao;
-                            arrematante.ValorTaxaAdministrativa = AtendimentoInput.Arrematante.ValorTaxaAdministrativa;
-                            arrematante.ValorOutrasTaxas = AtendimentoInput.Arrematante.ValorOutrasTaxas;
-                            arrematante.ValorComissao = AtendimentoInput.Arrematante.ValorComissao;
-                            arrematante.ValorTotal = AtendimentoInput.Arrematante.ValorTotal;
-                            arrematante.DataLeilao = AtendimentoInput.Arrematante.DataLeilao;
-                        }
-                        else
-                        {
-                            arrematante.Nome = AtendimentoInput.ResponsavelNome?.ToUpperTrim();
-                            arrematante.CpfCnpj = AtendimentoInput.ResponsavelDocumento?.Replace(".", "").Replace("/", "").Replace("-", "");
-                            if (!string.IsNullOrWhiteSpace(AtendimentoInput.ResponsavelTelefone))
-                            {
-                                string ddd = AtendimentoInput.ResponsavelDDD ?? "";
-                                string tel = AtendimentoInput.ResponsavelTelefone.Replace("-", "").Replace("(", "").Replace(")", "").Replace(" ", "");
-                                arrematante.TelefoneCelular = $"{ddd}{tel}";
-                            }
-                            arrematante.Logradouro = AtendimentoInput.ResponsavelEndereco?.ToUpperTrim();
-                            arrematante.Numero = AtendimentoInput.ResponsavelNumero?.ToUpperTrim();
-                            arrematante.Complemento = AtendimentoInput.ResponsavelComplemento?.ToUpperTrim();
-                            arrematante.Bairro = AtendimentoInput.ResponsavelBairro?.ToUpperTrim();
-                            arrematante.Cidade = AtendimentoInput.ResponsavelMunicipio?.ToUpperTrim();
-                            arrematante.Estado = AtendimentoInput.ResponsavelUF?.ToUpperTrim();
-                            arrematante.Cep = AtendimentoInput.ResponsavelCEP?.Replace("-", "");
-                        }
-
                         await _context.Arrematantes.AddAsync(arrematante, ct);
                     }
 

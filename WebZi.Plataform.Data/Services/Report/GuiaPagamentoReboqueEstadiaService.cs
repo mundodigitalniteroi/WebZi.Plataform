@@ -44,11 +44,18 @@ namespace WebZi.Plataform.Data.Services.Report
 
         private GuiaPagamentoReboqueEstadiaDTO FillAtendimento(GuiaPagamentoReboqueEstadiaDTO GuiaPagamentoEstadiaReboque, AtendimentoModel Atendimento)
         {
-            GuiaPagamentoEstadiaReboque.QualificacaoResponsavel = Atendimento.QualificacaoResponsavel.Descricao;
+            if (Atendimento == null)
+            {
+                return GuiaPagamentoEstadiaReboque;
+            }
+
+            GuiaPagamentoEstadiaReboque.QualificacaoResponsavel = Atendimento.QualificacaoResponsavel?.Descricao;
 
             GuiaPagamentoEstadiaReboque.AtendimentoResponsavelNome = Atendimento.ResponsavelNome;
 
-            GuiaPagamentoEstadiaReboque.AtendimentoResponsavelDocumento = DocumentHelper.FormatCPF(Atendimento.ResponsavelDocumento);
+            GuiaPagamentoEstadiaReboque.AtendimentoResponsavelDocumento = !string.IsNullOrWhiteSpace(Atendimento.ResponsavelDocumento)
+                ? DocumentHelper.FormatCPF(Atendimento.ResponsavelDocumento)
+                : null;
 
             GuiaPagamentoEstadiaReboque.AtendimentoResponsavelEndereco = Atendimento.ResponsavelEndereco;
 
@@ -72,13 +79,16 @@ namespace WebZi.Plataform.Data.Services.Report
 
             GuiaPagamentoEstadiaReboque.AtendimentoFormaLiberacaoPlaca = Atendimento.FormaLiberacaoPlaca;
 
-            if (Atendimento.ResponsavelDocumento.Length == 11)
+            if (!string.IsNullOrWhiteSpace(Atendimento.ResponsavelDocumento))
             {
-                GuiaPagamentoEstadiaReboque.Identificador = "Identificador (CPF): " + DocumentHelper.FormatCPF(Atendimento.ResponsavelDocumento);
-            }
-            else
-            {
-                GuiaPagamentoEstadiaReboque.Identificador = "Identificador (CNPJ): " + DocumentHelper.FormatCNPJ(Atendimento.ResponsavelDocumento);
+                if (Atendimento.ResponsavelDocumento.Length == 11)
+                {
+                    GuiaPagamentoEstadiaReboque.Identificador = "Identificador (CPF): " + DocumentHelper.FormatCPF(Atendimento.ResponsavelDocumento);
+                }
+                else
+                {
+                    GuiaPagamentoEstadiaReboque.Identificador = "Identificador (CNPJ): " + DocumentHelper.FormatCNPJ(Atendimento.ResponsavelDocumento);
+                }
             }
 
             return GuiaPagamentoEstadiaReboque;
@@ -86,24 +96,39 @@ namespace WebZi.Plataform.Data.Services.Report
 
         private GuiaPagamentoReboqueEstadiaDTO FillCliente(GuiaPagamentoReboqueEstadiaDTO GuiaPagamentoEstadiaReboque, GrvModel Grv)
         {
+            if (Grv?.Cliente == null)
+            {
+                return GuiaPagamentoEstadiaReboque;
+            }
+
             GuiaPagamentoEstadiaReboque.ClienteNome = Grv.Cliente.Nome;
 
-            GuiaPagamentoEstadiaReboque.ClienteCNPJ = DocumentHelper.FormatCNPJ(Grv.Cliente.CNPJ);
+            GuiaPagamentoEstadiaReboque.ClienteCNPJ = !string.IsNullOrWhiteSpace(Grv.Cliente.CNPJ)
+                ? DocumentHelper.FormatCNPJ(Grv.Cliente.CNPJ)
+                : null;
 
-            GuiaPagamentoEstadiaReboque.ClienteEndereco = new EnderecoService(_context, _mapper)
-                .FormatarEndereco(Grv.Cliente.Endereco, Grv.Cliente.NumeroEndereco, Grv.Cliente.ComplementoEndereco);
+            if (Grv.Cliente.Endereco != null)
+            {
+                GuiaPagamentoEstadiaReboque.ClienteEndereco = new EnderecoService(_context, _mapper)
+                    .FormatarEndereco(Grv.Cliente.Endereco, Grv.Cliente.NumeroEndereco, Grv.Cliente.ComplementoEndereco);
+            }
 
-            GuiaPagamentoEstadiaReboque.ClienteDadosBancarios = "Banco: " + Grv.Cliente.AgenciaBancaria.Banco.Nome + ". Ag: " + Grv.Cliente.AgenciaBancaria.CodigoAgencia + ". CC: " + Grv.Cliente.AgenciaBancaria.ContaCorrente + "-" + Grv.Cliente.AgenciaBancaria.DigitoVerificador;
-
-            GuiaPagamentoEstadiaReboque.ClienteDadosBancarios = GuiaPagamentoEstadiaReboque.ClienteDadosBancarios.Replace("..", ".");
+            if (Grv.Cliente.AgenciaBancaria != null)
+            {
+                string bancoNome = Grv.Cliente.AgenciaBancaria.Banco?.Nome ?? string.Empty;
+                GuiaPagamentoEstadiaReboque.ClienteDadosBancarios = "Banco: " + bancoNome + ". Ag: " + Grv.Cliente.AgenciaBancaria.CodigoAgencia + ". CC: " + Grv.Cliente.AgenciaBancaria.ContaCorrente + "-" + Grv.Cliente.AgenciaBancaria.DigitoVerificador;
+                GuiaPagamentoEstadiaReboque.ClienteDadosBancarios = GuiaPagamentoEstadiaReboque.ClienteDadosBancarios.Replace("..", ".");
+            }
 
             if (Grv.Cliente.FlagClienteRealizaFaturamentoArrecadacao == "S")
             {
-                GuiaPagamentoEstadiaReboque.CreditoDe = "Crédito de: " + Grv.Cliente.Nome + " (CNPJ: " + DocumentHelper.FormatCNPJ(Grv.Cliente.CNPJ) + ")";
+                string clienteCnpj = !string.IsNullOrWhiteSpace(Grv.Cliente.CNPJ) ? DocumentHelper.FormatCNPJ(Grv.Cliente.CNPJ) : string.Empty;
+                GuiaPagamentoEstadiaReboque.CreditoDe = "Crédito de: " + Grv.Cliente.Nome + " (CNPJ: " + clienteCnpj + ")";
             }
-            else
+            else if (Grv.Cliente.Empresa != null)
             {
-                GuiaPagamentoEstadiaReboque.CreditoDe = "Crédito de: " + Grv.Cliente.Empresa.Nome + " (CNPJ: " + DocumentHelper.FormatCNPJ(Grv.Cliente.Empresa.CNPJ) + ")";
+                string empresaCnpj = !string.IsNullOrWhiteSpace(Grv.Cliente.Empresa.CNPJ) ? DocumentHelper.FormatCNPJ(Grv.Cliente.Empresa.CNPJ) : string.Empty;
+                GuiaPagamentoEstadiaReboque.CreditoDe = "Crédito de: " + Grv.Cliente.Empresa.Nome + " (CNPJ: " + empresaCnpj + ")";
             }
 
             return GuiaPagamentoEstadiaReboque;
@@ -117,113 +142,126 @@ namespace WebZi.Plataform.Data.Services.Report
             decimal ValorDemaisServicos = 0;
             decimal ValorTotalDesconto = 0;
 
-            foreach (FaturamentoComposicaoModel Composicao in Faturamento.ListagemFaturamentoComposicao)
+            if (Faturamento?.ListagemFaturamentoComposicao != null)
             {
-                if (Composicao.ValorDesconto.HasValue && Composicao.ValorDesconto.Value > 0)
+                foreach (FaturamentoComposicaoModel Composicao in Faturamento.ListagemFaturamentoComposicao)
                 {
-                    ValorTotalDesconto += Composicao.ValorDesconto.Value;
-                }
-                if (Composicao.FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.FaturamentoServicoTipo.OrdemImpressao == 1)
-                {
-                    GuiaPagamentoEstadiaReboque.QuantidadeEstadias = (int)Composicao.QuantidadeComposicao;
-
-                    GuiaPagamentoEstadiaReboque.PrecoEstadias = NumberHelper.FormatMoney(Composicao.ValorTipoComposicao);
-
-                    GuiaPagamentoEstadiaReboque.ValorFaturadoEstadias = NumberHelper.FormatMoney(Composicao.ValorFaturado);
-
                     if (Composicao.ValorDesconto.HasValue && Composicao.ValorDesconto.Value > 0)
                     {
-                        GuiaPagamentoEstadiaReboque.TipoDescontoEstadias = Composicao.TipoDesconto ?? string.Empty;
-                        GuiaPagamentoEstadiaReboque.ValorDescontoEstadias = NumberHelper.FormatMoney(Composicao.ValorDesconto.Value);
+                        ValorTotalDesconto += Composicao.ValorDesconto.Value;
                     }
-                }
-                else if (Composicao.FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.FaturamentoServicoTipo.OrdemImpressao == 2)
-                {
-                    GuiaPagamentoEstadiaReboque.PrecoReboque = NumberHelper.FormatMoney(Composicao.ValorTipoComposicao);
 
-                    GuiaPagamentoEstadiaReboque.ValorFaturadoReboque = NumberHelper.FormatMoney(Composicao.ValorFaturado);
+                    int? ordemImpressao = Composicao.FaturamentoServicoTipoVeiculo?.FaturamentoServicoAssociado?.FaturamentoServicoTipo?.OrdemImpressao;
 
-                    if (Composicao.ValorDesconto.HasValue && Composicao.ValorDesconto.Value > 0)
+                    if (ordemImpressao == 1)
                     {
-                        GuiaPagamentoEstadiaReboque.TipoDescontoReboque = Composicao.TipoDesconto ?? string.Empty;
-                        GuiaPagamentoEstadiaReboque.ValorDescontoReboque = NumberHelper.FormatMoney(Composicao.ValorDesconto.Value);
+                        GuiaPagamentoEstadiaReboque.QuantidadeEstadias = (int)Composicao.QuantidadeComposicao;
+
+                        GuiaPagamentoEstadiaReboque.PrecoEstadias = NumberHelper.FormatMoney(Composicao.ValorTipoComposicao);
+
+                        GuiaPagamentoEstadiaReboque.ValorFaturadoEstadias = NumberHelper.FormatMoney(Composicao.ValorFaturado);
+
+                        if (Composicao.ValorDesconto.HasValue && Composicao.ValorDesconto.Value > 0)
+                        {
+                            GuiaPagamentoEstadiaReboque.TipoDescontoEstadias = Composicao.TipoDesconto ?? string.Empty;
+                            GuiaPagamentoEstadiaReboque.ValorDescontoEstadias = NumberHelper.FormatMoney(Composicao.ValorDesconto.Value);
+                        }
                     }
-                }
-                else if (Composicao.FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.FaturamentoServicoTipo.OrdemImpressao == 3)
-                {
-                    GuiaPagamentoEstadiaReboque.QuantidadeQuilometragem = ((int)Composicao.QuantidadeComposicao).ToString();
-
-                    GuiaPagamentoEstadiaReboque.PrecoQuilometragem = NumberHelper.FormatMoney(Composicao.ValorTipoComposicao);
-
-                    GuiaPagamentoEstadiaReboque.ValorFaturadoQuilometragem = NumberHelper.FormatMoney(Composicao.ValorFaturado);
-
-                    if (Composicao.ValorDesconto.HasValue && Composicao.ValorDesconto.Value > 0)
+                    else if (ordemImpressao == 2)
                     {
-                        GuiaPagamentoEstadiaReboque.TipoDescontoQuilometragem = Composicao.TipoDesconto ?? string.Empty;
-                        GuiaPagamentoEstadiaReboque.ValorDescontoQuilometragem = NumberHelper.FormatMoney(Composicao.ValorDesconto.Value);
-                    }
-                }
-                else
-                {
-                    ValorDemaisServicos += Composicao.ValorFaturado;
-                }
+                        GuiaPagamentoEstadiaReboque.PrecoReboque = NumberHelper.FormatMoney(Composicao.ValorTipoComposicao);
 
-                if (ValorDemaisServicos > 0)
-                {
-                    GuiaPagamentoEstadiaReboque.ValorDemaisServicos += NumberHelper.FormatMoney(ValorDemaisServicos);
+                        GuiaPagamentoEstadiaReboque.ValorFaturadoReboque = NumberHelper.FormatMoney(Composicao.ValorFaturado);
+
+                        if (Composicao.ValorDesconto.HasValue && Composicao.ValorDesconto.Value > 0)
+                        {
+                            GuiaPagamentoEstadiaReboque.TipoDescontoReboque = Composicao.TipoDesconto ?? string.Empty;
+                            GuiaPagamentoEstadiaReboque.ValorDescontoReboque = NumberHelper.FormatMoney(Composicao.ValorDesconto.Value);
+                        }
+                    }
+                    else if (ordemImpressao == 3)
+                    {
+                        GuiaPagamentoEstadiaReboque.QuantidadeQuilometragem = ((int)Composicao.QuantidadeComposicao).ToString();
+
+                        GuiaPagamentoEstadiaReboque.PrecoQuilometragem = NumberHelper.FormatMoney(Composicao.ValorTipoComposicao);
+
+                        GuiaPagamentoEstadiaReboque.ValorFaturadoQuilometragem = NumberHelper.FormatMoney(Composicao.ValorFaturado);
+
+                        if (Composicao.ValorDesconto.HasValue && Composicao.ValorDesconto.Value > 0)
+                        {
+                            GuiaPagamentoEstadiaReboque.TipoDescontoQuilometragem = Composicao.TipoDesconto ?? string.Empty;
+                            GuiaPagamentoEstadiaReboque.ValorDescontoQuilometragem = NumberHelper.FormatMoney(Composicao.ValorDesconto.Value);
+                        }
+                    }
+                    else
+                    {
+                        ValorDemaisServicos += Composicao.ValorFaturado;
+                    }
+
+                    if (ValorDemaisServicos > 0)
+                    {
+                        GuiaPagamentoEstadiaReboque.ValorDemaisServicos = NumberHelper.FormatMoney(ValorDemaisServicos);
+                    }
                 }
             }
+
             if (ValorTotalDesconto > 0)
             {
                 GuiaPagamentoEstadiaReboque.ValorTotalDesconto = NumberHelper.FormatMoney(ValorTotalDesconto);
             }
 
-            GuiaPagamentoEstadiaReboque.ListagemServico =
-                _mapper.Map<List<SimulacaoFaturamentoComposicaoDTO>>(Faturamento.ListagemFaturamentoComposicao);
+            if (Faturamento?.ListagemFaturamentoComposicao != null)
+            {
+                GuiaPagamentoEstadiaReboque.ListagemServico =
+                    _mapper.Map<List<SimulacaoFaturamentoComposicaoDTO>>(Faturamento.ListagemFaturamentoComposicao);
+            }
 
             List<TabelaGenericaModel> ListagemTipoCobranca = await new TabelaGenericaService(_context)
                 .ListAsync("FAT_TIPO_COBRANCA");
 
-            foreach (var Servico in GuiaPagamentoEstadiaReboque.ListagemServico)
+            if (GuiaPagamentoEstadiaReboque.ListagemServico != null)
             {
-                var faturamentoServicoTipoVeiculo = await _context.FaturamentoServicoTipoVeiculo
-                    .Include(x => x.FaturamentoServicoAssociado)
-                        .ThenInclude(faturamentoServicoAssociadoModel => faturamentoServicoAssociadoModel.FaturamentoServicoTipo)
-                    .Include(x => x.FaturamentoServicosGrvs)
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(x => x.FaturamentoServicoTipoVeiculoId == Servico.IdentificadorFaturamentoServicoTipoVeiculo);
-
-                var servicoGrv = faturamentoServicoTipoVeiculo?.FaturamentoServicosGrvs
-                    ?.FirstOrDefault(x => x.GrvId == GrvId);
-
-                Servico.IdentificadorServicoGrv = servicoGrv?.FaturamentoServicoGrvId;
-                Servico.TempoTrabalhado = servicoGrv?.TempoTrabalhado;
-
-                if (Servico.TipoServico == TipoCobrancaFaturamentoEnum.Horas || Servico.TipoServico == "H")
+                foreach (var Servico in GuiaPagamentoEstadiaReboque.ListagemServico)
                 {
-                    Servico.QuantidadeServico = null;
+                    var faturamentoServicoTipoVeiculo = await _context.FaturamentoServicoTipoVeiculo
+                        .Include(x => x.FaturamentoServicoAssociado)
+                            .ThenInclude(faturamentoServicoAssociadoModel => faturamentoServicoAssociadoModel.FaturamentoServicoTipo)
+                        .Include(x => x.FaturamentoServicosGrvs)
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync(x => x.FaturamentoServicoTipoVeiculoId == Servico.IdentificadorFaturamentoServicoTipoVeiculo);
+
+                    var servicoGrv = faturamentoServicoTipoVeiculo?.FaturamentoServicosGrvs
+                        ?.FirstOrDefault(x => x.GrvId == GrvId);
+
+                    Servico.IdentificadorServicoGrv = servicoGrv?.FaturamentoServicoGrvId;
+                    Servico.TempoTrabalhado = servicoGrv?.TempoTrabalhado;
+
+                    if (Servico.TipoServico == TipoCobrancaFaturamentoEnum.Horas || Servico.TipoServico == "H")
+                    {
+                        Servico.QuantidadeServico = null;
+                    }
+
+                    Servico.IdentificadorFaturamentoServicoAssociado =
+                        faturamentoServicoTipoVeiculo?.FaturamentoServicoAssociadoId;
+
+                    Servico.DescricaoTipoServico = ListagemTipoCobranca
+                        ?.FirstOrDefault(x => x.ValorCadastro == Servico.TipoServico)?.Descricao;
+
+                    Servico.NomeServico = faturamentoServicoTipoVeiculo?.FaturamentoServicoAssociado?.Descricao;
+
+                    if (faturamentoServicoTipoVeiculo?.FaturamentoServicoAssociado != null)
+                    {
+                        Servico.DataVigenciaInicial = faturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.DataVigenciaInicial;
+                        Servico.DataVigenciaFinal = faturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.DataVigenciaFinal;
+                    }
+
+                    Servico.FlagServicoObrigatorio =
+                        faturamentoServicoTipoVeiculo?.FaturamentoServicoAssociado?.FlagServicoObrigatorio == "S" ||
+                        faturamentoServicoTipoVeiculo?.FaturamentoServicoAssociado?.FaturamentoServicoTipo
+                            ?.FlagServicoObrigatorio == "S"
+                            ? "S"
+                            : "N";
                 }
-
-                Servico.IdentificadorFaturamentoServicoAssociado =
-                    faturamentoServicoTipoVeiculo?.FaturamentoServicoAssociadoId;
-
-                Servico.DescricaoTipoServico = ListagemTipoCobranca
-                    .FirstOrDefault(x => x.ValorCadastro == Servico.TipoServico)?.Descricao;
-
-                Servico.NomeServico = faturamentoServicoTipoVeiculo?.FaturamentoServicoAssociado?.Descricao;
-
-                if (faturamentoServicoTipoVeiculo?.FaturamentoServicoAssociado != null)
-                {
-                    Servico.DataVigenciaInicial = faturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.DataVigenciaInicial;
-                    Servico.DataVigenciaFinal = faturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.DataVigenciaFinal;
-                }
-
-                Servico.FlagServicoObrigatorio =
-                    faturamentoServicoTipoVeiculo?.FaturamentoServicoAssociado?.FlagServicoObrigatorio == "S" ||
-                    faturamentoServicoTipoVeiculo?.FaturamentoServicoAssociado?.FaturamentoServicoTipo
-                        ?.FlagServicoObrigatorio == "S"
-                        ? "S"
-                        : "N";
             }
 
             return GuiaPagamentoEstadiaReboque;
@@ -231,8 +269,20 @@ namespace WebZi.Plataform.Data.Services.Report
 
         private GuiaPagamentoReboqueEstadiaDTO FillDataHoraAtual(GuiaPagamentoReboqueEstadiaDTO GuiaPagamentoEstadiaReboque, int DepositoId)
         {
-            DateTime DataHoraAtual = new DepositoService(_context, _mapper)
-                .GetDataHoraPorDeposito(DepositoId);
+            DateTime DataHoraAtual = DateTime.Now;
+
+            try
+            {
+                if (DepositoId > 0)
+                {
+                    DataHoraAtual = new DepositoService(_context, _mapper)
+                        .GetDataHoraPorDeposito(DepositoId);
+                }
+            }
+            catch
+            {
+                DataHoraAtual = DateTime.Now;
+            }
 
             GuiaPagamentoEstadiaReboque.DataHoraAtual = DataHoraAtual.ToString("dd/MM/yyyy HH:mm");
 
@@ -245,14 +295,27 @@ namespace WebZi.Plataform.Data.Services.Report
             return GuiaPagamentoEstadiaReboque;
         }
 
-        
+
         private GuiaPagamentoReboqueEstadiaDTO FillDataHoraPersistido(GuiaPagamentoReboqueEstadiaDTO guiaPagamentoEstadiaReboque, AtendimentoModel atendimento, FaturamentoModel faturamento)
         {
             DateTime DataHoraPersistida;
 
-            if (faturamento.DataEmissaoDocumento.HasValue) DataHoraPersistida = faturamento.DataEmissaoDocumento.Value;
-            if (atendimento.DataImpressao.HasValue) DataHoraPersistida = atendimento.DataImpressao.Value;
-            else DataHoraPersistida = faturamento.DataCadastro;
+            if (faturamento?.DataEmissaoDocumento.HasValue == true)
+            {
+                DataHoraPersistida = faturamento.DataEmissaoDocumento.Value;
+            }
+            else if (atendimento?.DataImpressao.HasValue == true)
+            {
+                DataHoraPersistida = atendimento.DataImpressao.Value;
+            }
+            else if (faturamento != null)
+            {
+                DataHoraPersistida = faturamento.DataCadastro;
+            }
+            else
+            {
+                DataHoraPersistida = DateTime.Now;
+            }
 
             guiaPagamentoEstadiaReboque.DataHoraAtual = DataHoraPersistida.ToString("dd/MM/yyyy HH:mm");
 
@@ -266,27 +329,38 @@ namespace WebZi.Plataform.Data.Services.Report
         }
         private GuiaPagamentoReboqueEstadiaDTO FillDeposito(GuiaPagamentoReboqueEstadiaDTO GuiaPagamentoEstadiaReboque, GrvModel Grv)
         {
+            if (Grv?.Deposito == null)
+            {
+                return GuiaPagamentoEstadiaReboque;
+            }
+
             GuiaPagamentoEstadiaReboque.DepositoNome = Grv.Deposito.Nome;
 
-            GuiaPagamentoEstadiaReboque.DepositoEndereco = new EnderecoService(_context, _mapper)
-                .FormatarEndereco(Grv.Deposito.Endereco, Grv.Deposito.NumeroEndereco, Grv.Deposito.ComplementoEndereco);
+            if (Grv.Deposito.Endereco != null)
+            {
+                GuiaPagamentoEstadiaReboque.DepositoEndereco = new EnderecoService(_context, _mapper)
+                    .FormatarEndereco(Grv.Deposito.Endereco, Grv.Deposito.NumeroEndereco, Grv.Deposito.ComplementoEndereco);
 
-            GuiaPagamentoEstadiaReboque.DepositoMunicipio = Grv.Deposito.Endereco.Municipio.ToTitleCase();
+                GuiaPagamentoEstadiaReboque.DepositoMunicipio = Grv.Deposito.Endereco.Municipio?.ToTitleCase();
+            }
 
             return GuiaPagamentoEstadiaReboque;
         }
 
         private GuiaPagamentoReboqueEstadiaDTO FillFaturamento(GuiaPagamentoReboqueEstadiaDTO GuiaPagamentoEstadiaReboque, FaturamentoModel Faturamento)
         {
+            if (Faturamento == null)
+            {
+                return GuiaPagamentoEstadiaReboque;
+            }
+
             GuiaPagamentoEstadiaReboque.FaturamentoNumeroIdentificacao = Faturamento.NumeroIdentificacao;
 
             GuiaPagamentoEstadiaReboque.StatusPagamento = Faturamento.Status;
-            
+
             GuiaPagamentoEstadiaReboque.FaturamentoValorFaturado = Faturamento.ValorFaturado.FormatMoney();
 
             GuiaPagamentoEstadiaReboque.FaturamentoDataVencimento = Faturamento.DataVencimento.ToString("dd/MM/yyyy");
-
-            // GuiaPagamentoEstadiaReboque.PrazoRetiradaVeiculo = Faturamento.DataPrazoRetiradaVeiculo.Value.ToString("dd/MM/yyyy HH:mm") + "hrs";
 
             if (Faturamento.DataPrazoRetiradaVeiculo.HasValue)
             {
@@ -312,6 +386,11 @@ namespace WebZi.Plataform.Data.Services.Report
 
         private GuiaPagamentoReboqueEstadiaDTO FillGrv(GuiaPagamentoReboqueEstadiaDTO GuiaPagamentoEstadiaReboque, GrvModel Grv)
         {
+            if (Grv == null)
+            {
+                return GuiaPagamentoEstadiaReboque;
+            }
+
             if (!string.IsNullOrWhiteSpace(Grv.Placa))
             {
                 GuiaPagamentoEstadiaReboque.PlacaChassi = Grv.Placa;
@@ -329,13 +408,16 @@ namespace WebZi.Plataform.Data.Services.Report
 
             GuiaPagamentoEstadiaReboque.NumeroFormularioGrv = Grv.NumeroFormularioGrv;
 
-            GuiaPagamentoEstadiaReboque.DataHoraRemocao = Grv.DataHoraGuarda.Value.ToString("dd/MM/yyyy HH:mm");
+            if (Grv.DataHoraGuarda.HasValue)
+            {
+                GuiaPagamentoEstadiaReboque.DataHoraRemocao = Grv.DataHoraGuarda.Value.ToString("dd/MM/yyyy HH:mm");
 
-            GuiaPagamentoEstadiaReboque.DataHoraGuarda = Grv.DataHoraGuarda.Value.ToString("dd/MM/yyyy HH:mm");
+                GuiaPagamentoEstadiaReboque.DataHoraGuarda = Grv.DataHoraGuarda.Value.ToString("dd/MM/yyyy HH:mm");
 
-            GuiaPagamentoEstadiaReboque.DataGuarda = Grv.DataHoraGuarda.Value.ToString("dd/MM/yyyy");
+                GuiaPagamentoEstadiaReboque.DataGuarda = Grv.DataHoraGuarda.Value.ToString("dd/MM/yyyy");
 
-            GuiaPagamentoEstadiaReboque.HoraGuarda = Grv.DataHoraGuarda.Value.ToString("HH:mm");
+                GuiaPagamentoEstadiaReboque.HoraGuarda = Grv.DataHoraGuarda.Value.ToString("HH:mm");
+            }
 
             GuiaPagamentoEstadiaReboque.EstacionamentoSetor = Grv.EstacionamentoSetor;
 
@@ -345,16 +427,16 @@ namespace WebZi.Plataform.Data.Services.Report
 
             if (Grv.FlagComboio == "N")
             {
-                GuiaPagamentoEstadiaReboque.ReboquistaNome = Grv.Reboquista.Nome;
+                GuiaPagamentoEstadiaReboque.ReboquistaNome = Grv.Reboquista?.Nome;
 
-                GuiaPagamentoEstadiaReboque.ReboquePlaca = Grv.Reboque.Placa;
+                GuiaPagamentoEstadiaReboque.ReboquePlaca = Grv.Reboque?.Placa;
             }
 
-            GuiaPagamentoEstadiaReboque.MarcaModelo = Grv.MarcaModelo.MarcaModelo;
+            GuiaPagamentoEstadiaReboque.MarcaModelo = Grv.MarcaModelo?.MarcaModelo;
 
-            GuiaPagamentoEstadiaReboque.Cor = Grv.Cor.Cor;
+            GuiaPagamentoEstadiaReboque.Cor = Grv.Cor?.Cor;
 
-            GuiaPagamentoEstadiaReboque.TipoVeiculo = Grv.TipoVeiculo.Descricao;
+            GuiaPagamentoEstadiaReboque.TipoVeiculo = Grv.TipoVeiculo?.Descricao;
 
             return GuiaPagamentoEstadiaReboque;
         }
@@ -366,23 +448,37 @@ namespace WebZi.Plataform.Data.Services.Report
                 .AsNoTracking()
                 .FirstOrDefault(x => x.UsuarioId == UsuarioId);
 
-            StringBuilder NomeCompleto = new();
+            string nomeCompleto = string.Empty;
 
-            NomeCompleto.Append(Usuario.Pessoa.Nome);
-
-            if (!string.IsNullOrWhiteSpace(Usuario.Pessoa.NomeMeio))
+            if (Usuario?.Pessoa != null)
             {
-                NomeCompleto.Append(" " + Usuario.Pessoa.NomeMeio);
+                StringBuilder sbNome = new();
+
+                sbNome.Append(Usuario.Pessoa.Nome);
+
+                if (!string.IsNullOrWhiteSpace(Usuario.Pessoa.NomeMeio))
+                {
+                    sbNome.Append(" " + Usuario.Pessoa.NomeMeio);
+                }
+
+                if (!string.IsNullOrWhiteSpace(Usuario.Pessoa.Sobrenome))
+                {
+                    sbNome.Append(" " + Usuario.Pessoa.Sobrenome);
+                }
+
+                nomeCompleto = sbNome.ToString();
             }
 
-            NomeCompleto.Append(" " + Usuario.Pessoa.Sobrenome);
+            DateTime dataHora = GuiaPagamentoEstadiaReboque.DataHoraAtualDateTime != default
+                ? GuiaPagamentoEstadiaReboque.DataHoraAtualDateTime
+                : DateTime.Now;
 
             GuiaPagamentoEstadiaReboque.Rodape = "Impressão realizada em " +
-                GuiaPagamentoEstadiaReboque.DataHoraAtualDateTime.ToString("dd/MM/yyyy") +
+                dataHora.ToString("dd/MM/yyyy") +
                 " às " +
-                GuiaPagamentoEstadiaReboque.DataHoraAtualDateTime.ToShortTimeString() +
+                dataHora.ToShortTimeString() +
                 ". " +
-                "USUÁRIO: " + NomeCompleto;
+                "USUÁRIO: " + nomeCompleto;
 
             return GuiaPagamentoEstadiaReboque;
         }
@@ -431,10 +527,10 @@ namespace WebZi.Plataform.Data.Services.Report
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.Atendimento.AtendimentoId == Faturamento.AtendimentoId);
 
-            PixDinamicoModel pixDinamico = Faturamento.ListagemPixDinamico
+            PixDinamicoModel pixDinamico = Faturamento?.ListagemPixDinamico
                 ?.OrderByDescending(x => x.DataCadastro)
                 .FirstOrDefault();
-            PixEstaticoModel pixEstatico = Faturamento.ListagemPixEstatico
+            PixEstaticoModel pixEstatico = Faturamento?.ListagemPixEstatico
                 ?.OrderByDescending(x => x.DataCadastro)
                 .FirstOrDefault();
             #endregion
@@ -467,7 +563,7 @@ namespace WebZi.Plataform.Data.Services.Report
             //    return ResultView;
             //}
 
-          
+
 
             if (Grv == null)
             {
@@ -483,7 +579,7 @@ namespace WebZi.Plataform.Data.Services.Report
                 return ResultView;
             }
 
-            
+
 
             GuiaPagamentoReboqueEstadiaDTO GuiaPagamentoEstadiaReboque = new();
 
@@ -501,7 +597,7 @@ namespace WebZi.Plataform.Data.Services.Report
             GuiaPagamentoEstadiaReboque = FillDeposito(GuiaPagamentoEstadiaReboque, Grv);
 
             // DATA/HORA
-            GuiaPagamentoEstadiaReboque = FillDataHoraAtual(GuiaPagamentoEstadiaReboque, Grv.Deposito.DepositoId);
+            GuiaPagamentoEstadiaReboque = FillDataHoraAtual(GuiaPagamentoEstadiaReboque, Grv.Deposito?.DepositoId ?? 0);
 
             // FATURAMENTO
             GuiaPagamentoEstadiaReboque = FillFaturamento(GuiaPagamentoEstadiaReboque, Faturamento);
@@ -513,17 +609,20 @@ namespace WebZi.Plataform.Data.Services.Report
             GuiaPagamentoEstadiaReboque = FillRodape(GuiaPagamentoEstadiaReboque, UsuarioId);
 
             // LOGOMARCA
-            ImageListDTO Listagem = await new ClienteService(_context, _mapper, _httpClientFactory)
-                .GetLogomarcaAsync(Grv.ClienteId);
+            if (Grv.ClienteId > 0)
+            {
+                ImageListDTO Listagem = await new ClienteService(_context, _mapper, _httpClientFactory)
+                    .GetLogomarcaAsync(Grv.ClienteId);
 
-            GuiaPagamentoEstadiaReboque.Logo = Listagem.Listagem
-                .FirstOrDefault()
-                .Imagem;
+                GuiaPagamentoEstadiaReboque.Logo = Listagem?.Listagem
+                    ?.FirstOrDefault()
+                    ?.Imagem;
+            }
 
             if (pixDinamico != null)
             {
                 GuiaPagamentoEstadiaReboque.PixChave = pixDinamico.Chave;
-                
+
                 if (!string.IsNullOrWhiteSpace(pixDinamico.QrCode))
                 {
                     try
@@ -555,7 +654,7 @@ namespace WebZi.Plataform.Data.Services.Report
             if (pixEstatico != null)
             {
                 GuiaPagamentoEstadiaReboque.PixChave = pixEstatico.Chave;
-                
+
                 if (!string.IsNullOrWhiteSpace(pixEstatico.QRCode))
                 {
                     try
@@ -626,10 +725,10 @@ namespace WebZi.Plataform.Data.Services.Report
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.Atendimento.AtendimentoId == Faturamento.AtendimentoId);
 
-            PixDinamicoModel pixDinamico = Faturamento.ListagemPixDinamico
+            PixDinamicoModel pixDinamico = Faturamento?.ListagemPixDinamico
                 ?.OrderByDescending(x => x.DataCadastro)
                 .FirstOrDefault();
-            PixEstaticoModel pixEstatico = Faturamento.ListagemPixEstatico
+            PixEstaticoModel pixEstatico = Faturamento?.ListagemPixEstatico
                 ?.OrderByDescending(x => x.DataCadastro)
                 .FirstOrDefault();
             #endregion
@@ -702,12 +801,15 @@ namespace WebZi.Plataform.Data.Services.Report
             GuiaPagamentoEstadiaReboque = FillRodape(GuiaPagamentoEstadiaReboque, UsuarioId);
 
             // LOGOMARCA
-            ImageListDTO Listagem = await new ClienteService(_context, _mapper, _httpClientFactory)
-                .GetLogomarcaAsync(Grv.ClienteId);
+            if (Grv.ClienteId > 0)
+            {
+                ImageListDTO Listagem = await new ClienteService(_context, _mapper, _httpClientFactory)
+                    .GetLogomarcaAsync(Grv.ClienteId);
 
-            GuiaPagamentoEstadiaReboque.Logo = Listagem.Listagem
-                .FirstOrDefault()
-                .Imagem;
+                GuiaPagamentoEstadiaReboque.Logo = Listagem?.Listagem
+                    ?.FirstOrDefault()
+                    ?.Imagem;
+            }
 
             if (pixDinamico != null)
             {
