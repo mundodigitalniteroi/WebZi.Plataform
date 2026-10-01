@@ -1205,13 +1205,8 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
                 ResponsavelDDD = AtendimentoInput.ResponsavelDDD,
 
-                ResponsavelTelefone = AtendimentoInput.ResponsavelTelefone?.Replace("-", ""),
+                ResponsavelTelefone = AtendimentoInput.ResponsavelTelefone?.Replace("-", "")
 
-                FormaLiberacao = null,
-                FormaLiberacaoCNH = null,
-                FormaLiberacaoCPF = null,
-                FormaLiberacaoNome = null,
-                FormaLiberacaoPlaca = null
             };
 
             #endregion Dados do Atendimento
