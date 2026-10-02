@@ -361,5 +361,30 @@ namespace WebZi.Plataform.API.Controllers
                 return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
             }
         }
+
+        [HttpPatch("RetornoSaidaParaReparo")]
+        public async Task<ActionResult<MensagemDTO>> RetornoSaidaParaReparo(
+             RetornoSaidaParaReparoParameters parameters, CancellationToken ct)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            MensagemDTO ResultView = new();
+            try
+            {
+                ResultView = await _provider
+                    .GetService<AtendimentoService>()
+                    .RetornoSaidaParaReparoAsync(parameters, ct);
+
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView = MensagemViewHelper.SetInternalServerError(ex);
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+        }
     }
 }

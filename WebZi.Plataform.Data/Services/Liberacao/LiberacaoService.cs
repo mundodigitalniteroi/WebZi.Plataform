@@ -1251,9 +1251,16 @@ namespace WebZi.Plataform.Data.Services.Liberacao
             {
                 if (!string.Equals(grv.StatusOperacaoId, "2") && !string.Equals(grv.StatusOperacaoId, "3") && !string.Equals(grv.StatusOperacaoId, "R"))
                 {
-                    await _provider
-                        .GetService<WSNfseService>()
-                        .CreateNfseAsync(grv.GrvId, usuarioId, ct);
+                    bool jaTemNotaEmitida = await _context.Nfe
+                        .AsNoTracking()
+                        .AnyAsync(x => x.GrvId == grv.GrvId && x.Status != "N", cancellationToken: ct);
+
+                    if (!jaTemNotaEmitida)
+                    {
+                        await _provider
+                            .GetService<WSNfseService>()
+                            .CreateNfseAsync(grv.GrvId, usuarioId, ct);
+                    }
                 }
             }
         }
