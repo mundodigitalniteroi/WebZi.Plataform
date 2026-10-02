@@ -90,7 +90,8 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             _options = options;
         }
 
-        public async Task<MensagemDTO> CheckInformacoesParaCadastroAsync(AtendimentoParameters AtendimentoCadastro, CancellationToken ct)
+        public async Task<MensagemDTO> CheckInformacoesParaCadastroAsync(AtendimentoParameters AtendimentoCadastro,
+            CancellationToken ct)
         {
             if (AtendimentoCadastro.IdentificadorTipoMeioCobranca <= 0)
             {
@@ -117,7 +118,8 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             UsuarioModel Usuario = await _context.Usuario
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.UsuarioId == AtendimentoCadastro.IdentificadorUsuario, cancellationToken: ct);
+                .FirstOrDefaultAsync(x => x.UsuarioId == AtendimentoCadastro.IdentificadorUsuario,
+                    cancellationToken: ct);
 
             if (!new[] { "B", "D", "V", "L", "E", "1", "2", "3", "4", "7" }.Contains(Grv.StatusOperacaoId))
             {
@@ -285,7 +287,9 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 TipoDocumentoIdentificacaoModel TipoDocumentoIdentificacao = await _context.TipoDocumentoIdentificacao
                     .AsNoTracking()
                     .FirstOrDefaultAsync(w =>
-                        w.TipoDocumentoIdentificacaoId == AtendimentoCadastro.IdentificadorProprietarioTipoDocumento, cancellationToken: ct);
+                            w.TipoDocumentoIdentificacaoId ==
+                            AtendimentoCadastro.IdentificadorProprietarioTipoDocumento,
+                        cancellationToken: ct);
 
                 if (TipoDocumentoIdentificacao == null)
                 {
@@ -451,7 +455,8 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             TipoMeioCobrancaModel TipoMeioCobranca = await _context.TipoMeioCobranca
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.TipoMeioCobrancaId == AtendimentoCadastro.IdentificadorTipoMeioCobranca, cancellationToken: ct);
+                .FirstOrDefaultAsync(x => x.TipoMeioCobrancaId == AtendimentoCadastro.IdentificadorTipoMeioCobranca,
+                    cancellationToken: ct);
 
             if (TipoMeioCobranca == null)
             {
@@ -497,10 +502,13 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             var permitirEdicao = await _context.PerfilAcessoUsuario
                 .AsNoTracking()
                 .AnyAsync(x => x.UsuarioId == AtualizarAtendimento.IdentificadorUsuario
-                               && (x.PerfilAcessoId == (int)PerfisDeAcessoEnum.AtendimentoEditProd || x.PerfilAcessoId == (int)PerfisDeAcessoEnum.AtendimentoEditHomolog)
+                               && (x.PerfilAcessoId == (int)PerfisDeAcessoEnum.AtendimentoEditProd ||
+                                   x.PerfilAcessoId == (int)PerfisDeAcessoEnum.AtendimentoEditHomolog)
                                && _context.SistemaPerfilAcessoSubModulos
-                                   .Any(s => (s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.AtendimentoEditProd || s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.AtendimentoEditHomolog)
-                                             && s.IdSubModulo == (int)SubModuloEnum.EditarAtendimento), cancellationToken: ct);
+                                   .Any(s => (s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.AtendimentoEditProd ||
+                                              s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.AtendimentoEditHomolog)
+                                             && s.IdSubModulo == (int)SubModuloEnum.EditarAtendimento),
+                    cancellationToken: ct);
             if (!permitirEdicao)
             {
                 Erros.Add("Não possui permissão para edição do atendimento");
@@ -533,15 +541,14 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             UsuarioModel Usuario = await _context.Usuario
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.UsuarioId == AtualizarAtendimento.IdentificadorUsuario, cancellationToken: ct);
+                .FirstOrDefaultAsync(x => x.UsuarioId == AtualizarAtendimento.IdentificadorUsuario,
+                    cancellationToken: ct);
 
             if (Grv.Atendimento == null)
             {
                 return MensagemViewHelper.SetBadRequest(
                     $"Este Processo não possui um Atendimento cadastrado.");
             }
-
-
 
             #endregion Consultas
 
@@ -691,7 +698,9 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 TipoDocumentoIdentificacaoModel TipoDocumentoIdentificacao = await _context.TipoDocumentoIdentificacao
                     .AsNoTracking()
                     .FirstOrDefaultAsync(w =>
-                        w.TipoDocumentoIdentificacaoId == AtualizarAtendimento.IdentificadorProprietarioTipoDocumento, cancellationToken: ct);
+                            w.TipoDocumentoIdentificacaoId ==
+                            AtualizarAtendimento.IdentificadorProprietarioTipoDocumento,
+                        cancellationToken: ct);
 
                 if (TipoDocumentoIdentificacao == null)
                 {
@@ -725,9 +734,11 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             var permiteEdicaoNf = await _context.PerfilAcessoUsuario
                 .AsNoTracking()
                 .AnyAsync(x => x.UsuarioId == AtualizarAtendimento.IdentificadorUsuario
-                               && (x.PerfilAcessoId == (int)PerfisDeAcessoEnum.NfeEditHomolog || x.PerfilAcessoId == (int)PerfisDeAcessoEnum.NfeEditProd)
+                               && (x.PerfilAcessoId == (int)PerfisDeAcessoEnum.NfeEditHomolog ||
+                                   x.PerfilAcessoId == (int)PerfisDeAcessoEnum.NfeEditProd)
                                && _context.SistemaPerfilAcessoSubModulos
-                                   .Any(s => (s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.NfeEditHomolog || s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.NfeEditProd)
+                                   .Any(s => (s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.NfeEditHomolog ||
+                                              s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.NfeEditProd)
                                              && s.IdSubModulo == (int)SubModuloEnum.EditarNfe), cancellationToken: ct);
 
 
@@ -944,7 +955,8 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             return mensagem;
         }
 
-        public async Task<AtendimentoCadastroDTO> CreateAtendimentoAsync(AtendimentoParameters AtendimentoInput, CancellationToken ct)
+        public async Task<AtendimentoCadastroDTO> CreateAtendimentoAsync(AtendimentoParameters AtendimentoInput,
+            CancellationToken ct)
         {
             #region Consultas
 
@@ -1152,7 +1164,8 @@ namespace WebZi.Plataform.Data.Services.Atendimento
         }
 
 
-        public async Task<AtendimentoCadastroDTO> CreateAtendimentoLeilaoAsync(AtendimentoLeilaoParameters AtendimentoInput, CancellationToken ct)
+        public async Task<AtendimentoCadastroDTO> CreateAtendimentoLeilaoAsync(
+            AtendimentoLeilaoParameters AtendimentoInput, CancellationToken ct)
         {
             #region Consultas
 
@@ -1206,7 +1219,6 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 ResponsavelDDD = AtendimentoInput.ResponsavelDDD,
 
                 ResponsavelTelefone = AtendimentoInput.ResponsavelTelefone?.Replace("-", "")
-
             };
 
             #endregion Dados do Atendimento
@@ -1241,10 +1253,12 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                                 arrematante.Nome = AtendimentoInput.Arrematante.Nome.ToUpperTrim();
 
                             if (!string.IsNullOrWhiteSpace(AtendimentoInput.Arrematante.CpfCnpj))
-                                arrematante.CpfCnpj = AtendimentoInput.Arrematante.CpfCnpj.Replace(".", "").Replace("/", "").Replace("-", "");
+                                arrematante.CpfCnpj = AtendimentoInput.Arrematante.CpfCnpj.Replace(".", "")
+                                    .Replace("/", "").Replace("-", "");
 
                             if (!string.IsNullOrWhiteSpace(AtendimentoInput.Arrematante.TelefoneCelular))
-                                arrematante.TelefoneCelular = AtendimentoInput.Arrematante.TelefoneCelular.Replace("-", "").Replace("(", "").Replace(")", "").Replace(" ", "");
+                                arrematante.TelefoneCelular = AtendimentoInput.Arrematante.TelefoneCelular
+                                    .Replace("-", "").Replace("(", "").Replace(")", "").Replace(" ", "");
 
                             if (!string.IsNullOrWhiteSpace(AtendimentoInput.Arrematante.Email))
                                 arrematante.Email = AtendimentoInput.Arrematante.Email.ToUpperTrim();
@@ -1280,7 +1294,8 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                                 arrematante.ValorArrematacao = AtendimentoInput.Arrematante.ValorArrematacao;
 
                             if (!string.IsNullOrWhiteSpace(AtendimentoInput.Arrematante.ValorTaxaAdministrativa))
-                                arrematante.ValorTaxaAdministrativa = AtendimentoInput.Arrematante.ValorTaxaAdministrativa;
+                                arrematante.ValorTaxaAdministrativa =
+                                    AtendimentoInput.Arrematante.ValorTaxaAdministrativa;
 
                             if (!string.IsNullOrWhiteSpace(AtendimentoInput.Arrematante.ValorOutrasTaxas))
                                 arrematante.ValorOutrasTaxas = AtendimentoInput.Arrematante.ValorOutrasTaxas;
@@ -1304,8 +1319,10 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                             NumeroProcesso = grv?.NumeroFormularioGrv,
                             DataCadastro = DateTime.Now,
                             Nome = AtendimentoInput.Arrematante.Nome?.ToUpperTrim(),
-                            CpfCnpj = AtendimentoInput.Arrematante.CpfCnpj?.Replace(".", "").Replace("/", "").Replace("-", ""),
-                            TelefoneCelular = AtendimentoInput.Arrematante.TelefoneCelular?.Replace("-", "").Replace("(", "").Replace(")", "").Replace(" ", ""),
+                            CpfCnpj = AtendimentoInput.Arrematante.CpfCnpj?.Replace(".", "").Replace("/", "")
+                                .Replace("-", ""),
+                            TelefoneCelular = AtendimentoInput.Arrematante.TelefoneCelular?.Replace("-", "")
+                                .Replace("(", "").Replace(")", "").Replace(" ", ""),
                             Email = AtendimentoInput.Arrematante.Email?.ToUpperTrim(),
                             Logradouro = AtendimentoInput.Arrematante.Logradouro?.ToUpperTrim(),
                             Numero = AtendimentoInput.Arrematante.Numero?.ToUpperTrim(),
@@ -1340,6 +1357,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                     return ResultView;
                 }
             }
+
             ResultView.Mensagem = MensagemViewHelper.SetCreateSuccess();
 
             return ResultView;
@@ -1503,7 +1521,8 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             {
                 DataHoraInicialParaCalculo = Grv.DataHoraGuarda.Value,
 
-                DataHoraFinalParaCalculo = (FlagPermissaoDataRetroativaFaturamento && DataRetroativa.HasValue && DataRetroativa.Value > DateTime.MinValue)
+                DataHoraFinalParaCalculo = (FlagPermissaoDataRetroativaFaturamento && DataRetroativa.HasValue &&
+                                            DataRetroativa.Value > DateTime.MinValue)
                     ? DataRetroativa.Value
                     : DateTime.MinValue,
 
@@ -1586,9 +1605,11 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             var permiteExclusao = await _context.PerfilAcessoUsuario
                 .AsNoTracking()
                 .AnyAsync(x => x.UsuarioId == UsuarioId
-                               && (x.PerfilAcessoId == (int)PerfisDeAcessoEnum.AtendimentoEditHomolog || x.PerfilAcessoId == (int)PerfisDeAcessoEnum.AtendimentoEditProd)
+                               && (x.PerfilAcessoId == (int)PerfisDeAcessoEnum.AtendimentoEditHomolog ||
+                                   x.PerfilAcessoId == (int)PerfisDeAcessoEnum.AtendimentoEditProd)
                                && _context.SistemaPerfilAcessoSubModulos
-                                   .Any(s => (s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.AtendimentoEditHomolog || s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.AtendimentoEditProd)
+                                   .Any(s => (s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.AtendimentoEditHomolog ||
+                                              s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.AtendimentoEditProd)
                                              && s.IdSubModulo == (int)SubModuloEnum.ExcluirAtendimento));
 
             if (UsuarioPermissao == null)
@@ -2012,7 +2033,8 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
                     await _context.SaveChangesAsync(ct);
                     await _transaction.CommitAsync(ct);
-                    ResultView = MensagemViewHelper.SetUpdateSuccess("Atualização da data de previsão do retorno do veiculo");
+                    ResultView =
+                        MensagemViewHelper.SetUpdateSuccess("Atualização da data de previsão do retorno do veiculo");
                     return ResultView;
                 }
                 catch (Exception ex)
@@ -2347,6 +2369,16 @@ namespace WebZi.Plataform.Data.Services.Atendimento
         {
             if (_options.Value.Enable && permitirEmissao)
             {
+                bool jaPossuiNotaEmitida = await _context.Nfe
+                    .AsNoTracking()
+                    .AnyAsync(x => x.GrvId == parameters.IdentificadorProcesso && x.Status != "N",
+                        cancellationToken: ct);
+
+                if (jaPossuiNotaEmitida)
+                {
+                    return;
+                }
+
                 await _provider.GetService<WSNfseService>()
                     .CreateNfseAsync(parameters.IdentificadorProcesso, parameters.IdentificadorUsuario, ct);
             }
