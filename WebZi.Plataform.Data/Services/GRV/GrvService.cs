@@ -787,7 +787,7 @@ namespace WebZi.Plataform.Data.Services.GRV
                 ? null
                 : await _vLockContext.Dispositivos
                     .AsNoTracking()
-                    .FirstOrDefaultAsync(x => x.Imei == GrvPersistencia.CodigoImeiVlock, ct);
+                    .FirstOrDefaultAsync(x => x.DeviceId == GrvPersistencia.CodigoImeiVlock, ct);
 
             ResultadoCadastroGrvDTO ResultView = new();
 

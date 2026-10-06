@@ -48,17 +48,23 @@ public class DispotivosMapping : IEntityTypeConfiguration<DispositivosModel>
             .HasMaxLength(50)
             .IsUnicode(false);
 
-        //builder.Property(x => x.ClienteId)
-        //    .HasColumnName("id_cliente");
+        builder.Property(x => x.ClienteId)
+            .HasColumnName("id_cliente");
 
-        //builder.Property(x => x.AutoridadeId)
-        //    .HasColumnName("id_autoridade");
+        builder.Property(x => x.AutoridadeId)
+            .HasColumnName("id_autoridade");
 
-        //builder.Property(x => x.AgenteId)
-        //    .HasColumnName("id_agente");
+        builder.Property(x => x.AgenteId)
+            .HasColumnName("id_agente");
 
-        //builder.Property(x => x.ParceiroId)
-        //    .HasColumnName("id_parceiro");
+        builder.Property(x => x.ParceiroId)
+            .HasColumnName("id_parceiro");
+
+        builder.Property(x => x.DeviceId)
+         .HasColumnName("device_id")
+         .HasMaxLength(50)
+         .IsUnicode(false);
+
         builder.HasOne(x => x.StatusDispositivo)
             .WithMany()
             .HasForeignKey(x => x.StatusId);
