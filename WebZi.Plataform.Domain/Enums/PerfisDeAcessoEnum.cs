@@ -8,7 +8,7 @@ public enum PerfisDeAcessoEnum
     GrvEditProd = 81,
     NfeEditHomolog = 81,
     GerenciarUsuariosHomolog = 82,
-    GerenciarUsuariosProd = 87,
+    GerenciarUsuariosProd = 71,
     AtendimentoEditProd = 84,
     NfeEditProd = 86,
 }

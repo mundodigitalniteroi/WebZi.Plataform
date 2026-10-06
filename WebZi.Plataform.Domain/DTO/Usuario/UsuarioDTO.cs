@@ -10,6 +10,7 @@ namespace WebZi.Plataform.Domain.DTO.Usuario
         public int IdentificadorUsuario { get; set; }
         public string Login { get; set; }
         public string Nome { get; set; }
+        public string Matricula { get; set; }
 
         public string Token { get; set; }
         public int SequencialNumeroFormulario { get; set; }

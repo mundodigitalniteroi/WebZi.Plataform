@@ -13,9 +13,9 @@ public enum SubModuloEnum
     EditarUsuarioHomolog = 170,
     ResetarSenhaDoUsuarioHomolog = 171,
     ConsultarPessoaHomolog = 172,
-    VerPerfisDeAcessoProd = 170,
-    CadastrarUsuarioProd = 171,
-    EditarUsuarioProd = 172,
-    ResetarSenhaDoUsuarioProd = 173,
+    VerPerfisDeAcessoProd = 153,
+    CadastrarUsuarioProd = 154,
+    EditarUsuarioProd = 155,
+    ResetarSenhaDoUsuarioProd = 157,
     ConsultarPessoaProd = 174
 }
