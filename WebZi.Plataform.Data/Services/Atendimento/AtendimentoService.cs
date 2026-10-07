@@ -1797,7 +1797,8 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             if (parameters.IdentificadorAtendimento <= 0)
             {
-                ResultView.Mensagem = MensagemViewHelper.SetBadRequest(MensagemPadraoEnum.IdentificadorAtendimentoInvalido);
+                ResultView.Mensagem =
+                    MensagemViewHelper.SetBadRequest(MensagemPadraoEnum.IdentificadorAtendimentoInvalido);
                 return ResultView;
             }
 
@@ -1815,7 +1816,9 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             if (parameters.DataSaida > parameters.DataPrevisaoRetorno)
             {
-                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("A Data da Saída não pode ser maior do que a Data da Previsão de Retorno");
+                ResultView.Mensagem =
+                    MensagemViewHelper.SetBadRequest(
+                        "A Data da Saída não pode ser maior do que a Data da Previsão de Retorno");
                 return ResultView;
             }
 
@@ -1944,7 +1947,8 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                     }, ct);
                 }
 
-                await ProcessarEmissaoNfseSaidaReparoAsync(atendimento.Grv.GrvId, parameters.IdentificadorUsuario, permitirEmissao, ct);
+                await ProcessarEmissaoNfseSaidaReparoAsync(atendimento.Grv.GrvId, parameters.IdentificadorUsuario,
+                    permitirEmissao, ct);
 
                 await _context.SaveChangesAsync(ct);
                 await _transaction.CommitAsync(ct);
@@ -2385,6 +2389,14 @@ namespace WebZi.Plataform.Data.Services.Atendimento
         {
             if (_options.Value.Enable && permitirEmissao)
             {
+                bool jaPossuiNotaEmitida = await _context.Nfe
+                    .AsNoTracking()
+                    .AnyAsync(x => x.GrvId == grvId && x.Status != "N",
+                        cancellationToken: ct);
+
+                if (jaPossuiNotaEmitida)
+                    return;
+
                 await _provider.GetService<WSNfseService>()
                     .CreateNfseAsync(grvId, usuarioId, ct);
             }

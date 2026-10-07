@@ -222,7 +222,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<GrvService>()
-                    .UpdateStatusToUAsync(parameters.IdentificadorProcesso, parameters.IdentificadorUsuario, ct);
+                    .UpdateStatusParaLiberacaoEspecialAsync(parameters.IdentificadorProcesso, parameters.IdentificadorUsuario, ct);
 
                 if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
                 {

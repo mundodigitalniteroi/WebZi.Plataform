@@ -547,7 +547,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             return ResultView;
         }
 
-        public async Task<MensagemDTO> UpdateStatusToUAsync(int grvId, int usuarioId, CancellationToken ct)
+        public async Task<MensagemDTO> UpdateStatusParaLiberacaoEspecialAsync(int grvId, int usuarioId, CancellationToken ct)
         {
             MensagemDTO ResultView = ValidateInputGrv(grvId, usuarioId);
 
