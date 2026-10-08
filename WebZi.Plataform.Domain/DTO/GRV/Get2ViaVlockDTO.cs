@@ -65,6 +65,12 @@ namespace WebZi.Plataform.Domain.DTO.GRV
 
         public string Longitude { get; set; } = string.Empty;
 
+        public string EnderecoAcautelamento { get; set; } = string.Empty;
+
+        public string LatitudeAcautelamento { get; set; } = string.Empty;
+
+        public string LongitudeAcautelamento { get; set; } = string.Empty;
+
         public string NomeCondutor { get; set; } = string.Empty;
 
         public string TelefoneCondutor { get; set; } = string.Empty;
@@ -72,6 +78,8 @@ namespace WebZi.Plataform.Domain.DTO.GRV
         public string TelefoneDddCondutor { get; set; } = string.Empty;
 
         public string Observacoes { get; set; } = string.Empty;
+
+        public string Lacre { get; set; } = string.Empty;
 
         public List<InfracaoVlockDTO> Infracoes { get; set; } = new();
     }

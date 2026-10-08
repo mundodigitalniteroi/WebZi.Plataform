@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace WebZi.Plataform.Domain.ViewModel.GRV.Cadastro;
 
@@ -40,6 +40,8 @@ public class GrvVLockParameters
     public string DeviceIdVlock { get; set; }
 
     [MaxLength(7)] public string? Placa { get; set; }
+
+    [MaxLength(20)] public string? Lacre { get; set; }
 
     [MaxLength(24)] public string? Chassi { get; set; }
 

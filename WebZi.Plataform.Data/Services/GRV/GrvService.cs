@@ -771,6 +771,19 @@ namespace WebZi.Plataform.Data.Services.GRV
                     .Map<List<EnquadramentoInfracaoGrvModel>>(GrvPersistencia.ListagemEnquadramentoInfracao);
             }
 
+            if (!string.IsNullOrWhiteSpace(GrvPersistencia.Lacre))
+            {
+                grv.FlagEstadoLacre = "S";
+                grv.ListagemLacre = new List<LacreModel>
+                {
+                    new()
+                    {
+                        UsuarioCadastroId = GrvPersistencia.IdentificadorUsuario,
+                        Lacre = GrvPersistencia.Lacre.ToUpperTrim().ToNullIfEmpty()
+                    }
+                };
+            }
+
 
             ClienteDepositoModel ClienteDeposito = _context.ClienteDeposito
                 .Include(x => x.Cliente)
@@ -2600,6 +2613,8 @@ namespace WebZi.Plataform.Data.Services.GRV
                     UF = x.EnderecoLocalizacaoVeiculoUF,
                     x.Latitude,
                     x.Longitude,
+                    x.LatitudeAcautelamento,
+                    x.LongitudeAcautelamento,
                     NomeCondutor = x.Condutor != null ? x.Condutor.Nome : null,
                     TelefoneCondutor = x.Condutor != null ? x.Condutor.Telefone : null,
                     TelefoneDddCondutor = x.Condutor != null ? x.Condutor.TelefoneDDD : null,
@@ -2610,7 +2625,8 @@ namespace WebZi.Plataform.Data.Services.GRV
                         Codigo =
                             i.EnquadramentoInfracao != null ? i.EnquadramentoInfracao.CodigoInfracao : string.Empty,
                         Descricao = i.EnquadramentoInfracao != null ? i.EnquadramentoInfracao.Descricao : string.Empty
-                    }).ToList()
+                    }).ToList(),
+                    Lacre = x.ListagemLacre.OrderByDescending(l => l.LacreId).Select(l => l.Lacre).FirstOrDefault()
                 })
                 .AsNoTracking()
                 .FirstOrDefaultAsync(ct)!;
@@ -2704,10 +2720,13 @@ namespace WebZi.Plataform.Data.Services.GRV
             resultView.EnderecoCompleto = enderecoCompleto;
             resultView.Latitude = grv.Latitude ?? string.Empty;
             resultView.Longitude = grv.Longitude ?? string.Empty;
+            resultView.LatitudeAcautelamento = grv.LatitudeAcautelamento ?? string.Empty;
+            resultView.LongitudeAcautelamento = grv.LongitudeAcautelamento ?? string.Empty;
             resultView.NomeCondutor = grv.NomeCondutor ?? string.Empty;
             resultView.TelefoneCondutor = grv.TelefoneCondutor ?? string.Empty;
             resultView.TelefoneDddCondutor = grv.TelefoneDddCondutor ?? string.Empty;
             resultView.Observacoes = grv.Observacoes ?? string.Empty;
+            resultView.Lacre = grv.Lacre ?? string.Empty;
             resultView.Infracoes = grv.Infracoes ?? new List<InfracaoVlockDTO>();
             resultView.Mensagem = MensagemViewHelper.SetFound();
 
