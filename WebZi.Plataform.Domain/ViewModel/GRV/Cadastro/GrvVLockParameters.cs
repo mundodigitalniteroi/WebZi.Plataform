@@ -37,7 +37,7 @@ public class GrvVLockParameters
     [MaxLength(150)] public string NomeAgente { get; set; }
 
     [Required(ErrorMessage = "Propriedade obrigatória")]
-    public string CodigoImeiVlock { get; set; }
+    public string DeviceIdVlock { get; set; }
 
     [MaxLength(7)] public string? Placa { get; set; }
 

@@ -783,11 +783,11 @@ namespace WebZi.Plataform.Data.Services.GRV
                 grv.StatusOperacaoId = "B";
             }
 
-            var dispositivo = string.IsNullOrWhiteSpace(GrvPersistencia.CodigoImeiVlock)
+            var dispositivo = string.IsNullOrWhiteSpace(GrvPersistencia.DeviceIdVlock)
                 ? null
                 : await _vLockContext.Dispositivos
                     .AsNoTracking()
-                    .FirstOrDefaultAsync(x => x.DeviceId == GrvPersistencia.CodigoImeiVlock, ct);
+                    .FirstOrDefaultAsync(x => x.DeviceId == GrvPersistencia.DeviceIdVlock, ct);
 
             ResultadoCadastroGrvDTO ResultView = new();
 
@@ -1040,7 +1040,7 @@ namespace WebZi.Plataform.Data.Services.GRV
                 foreach (string item in GrvPersistencia.ListagemLacre)
                 {
                     grv.ListagemLacre.Add(new LacreModel
-                    { UsuarioCadastroId = GrvPersistencia.IdentificadorUsuario, Lacre = item });
+                        { UsuarioCadastroId = GrvPersistencia.IdentificadorUsuario, Lacre = item });
                 }
             }
 
@@ -2553,6 +2553,165 @@ namespace WebZi.Plataform.Data.Services.GRV
             ResultView.Mensagem = MensagemViewHelper.SetFound(totalRegistros);
 
             return ResultView;
+        }
+
+        public async Task<Get2ViaVlockDTO> Get2ViaVlockAsync(string numeroProcesso, int identificadorUsuario,
+            CancellationToken ct)
+        {
+            Get2ViaVlockDTO resultView = new();
+
+            if (string.IsNullOrWhiteSpace(numeroProcesso))
+            {
+                resultView.Mensagem = MensagemViewHelper.SetBadRequest("Informe o Número do Processo.");
+                return resultView;
+            }
+
+
+            var grv = await _context.Grv
+                .Where(x => x.NumeroFormularioGrv == numeroProcesso)
+                .Select(x => new
+                {
+                    IdentificadorProcesso = x.GrvId,
+                    NumeroProcesso = x.NumeroFormularioGrv,
+                    DataHora = (DateTime?)x.DataHoraRemocao,
+                    x.Placa,
+                    TipoVeiculo = x.TipoVeiculo != null ? x.TipoVeiculo.Descricao : null,
+                    MarcaModelo = x.MarcaModelo != null ? x.MarcaModelo.MarcaModelo : null,
+                    Cor = x.Cor != null ? x.Cor.Cor : null,
+                    x.Chassi,
+                    x.Renavam,
+                    Cliente = x.Cliente != null ? x.Cliente.Nome : null,
+                    Deposito = x.Deposito != null ? x.Deposito.Nome : null,
+                    DivisaoAutoridade = x.AutoridadeResponsavel != null ? x.AutoridadeResponsavel.Divisao : null,
+                    OrgaoEmissorDescricao =
+                        x.AutoridadeResponsavel != null && x.AutoridadeResponsavel.OrgaoEmissor != null
+                            ? x.AutoridadeResponsavel.OrgaoEmissor.Descricao
+                            : null,
+                    OrgaoEmissorSigla = x.AutoridadeResponsavel != null && x.AutoridadeResponsavel.OrgaoEmissor != null
+                        ? x.AutoridadeResponsavel.OrgaoEmissor.Sigla
+                        : null,
+                    Agente = x.NomeAutoridadeResponsavel,
+                    MatriculaAgente = x.MatriculaAutoridadeResponsavel,
+                    MotivoApreensao = x.MotivoApreensao != null ? x.MotivoApreensao.Descricao : null,
+                    Logradouro = x.EnderecoLocalizacaoVeiculoLogradouro,
+                    Numero = x.EnderecoLocalizacaoVeiculoNumero,
+                    Bairro = x.EnderecoLocalizacaoVeiculoBairro,
+                    Municipio = x.EnderecoLocalizacaoVeiculoMunicipio,
+                    UF = x.EnderecoLocalizacaoVeiculoUF,
+                    x.Latitude,
+                    x.Longitude,
+                    NomeCondutor = x.Condutor != null ? x.Condutor.Nome : null,
+                    TelefoneCondutor = x.Condutor != null ? x.Condutor.Telefone : null,
+                    TelefoneDddCondutor = x.Condutor != null ? x.Condutor.TelefoneDDD : null,
+                    Observacoes = x.Divergencia1,
+                    Infracoes = x.ListagemEnquadramentoInfracao.Select(i => new InfracaoVlockDTO
+                    {
+                        AutoNumero = i.NumeroInfracao ?? string.Empty,
+                        Codigo =
+                            i.EnquadramentoInfracao != null ? i.EnquadramentoInfracao.CodigoInfracao : string.Empty,
+                        Descricao = i.EnquadramentoInfracao != null ? i.EnquadramentoInfracao.Descricao : string.Empty
+                    }).ToList()
+                })
+                .AsNoTracking()
+                .FirstOrDefaultAsync(ct)!;
+
+            if (grv == null)
+            {
+                resultView.Mensagem = MensagemViewHelper.SetNotFound("Processo não encontrado.");
+                return resultView;
+            }
+
+            string deviceId = string.Empty;
+            try
+            {
+                var recolhimento = await _vLockContext.Recolhimentos
+                    .AsNoTracking()
+                    .Where(x => x.IdGrv == grv.IdentificadorProcesso && x.Ativo)
+                    .OrderByDescending(x => x.Id)
+                    .FirstOrDefaultAsync(ct);
+
+                if (recolhimento != null)
+                {
+                    var dispositivo = await _vLockContext.Dispositivos
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync(x => x.Id == recolhimento.IdDispositivo, ct);
+
+                    deviceId = dispositivo?.DeviceId ?? dispositivo?.Imei ?? string.Empty;
+                }
+            }
+            catch
+            {
+            }
+
+
+            var partsEndereco = new List<string>();
+            if (!string.IsNullOrWhiteSpace(grv.Logradouro))
+            {
+                var logNum = grv.Logradouro;
+                if (!string.IsNullOrWhiteSpace(grv.Numero))
+                {
+                    logNum += $", {grv.Numero}";
+                }
+
+                partsEndereco.Add(logNum);
+            }
+
+            if (!string.IsNullOrWhiteSpace(grv.Bairro))
+            {
+                partsEndereco.Add(grv.Bairro);
+            }
+
+            if (!string.IsNullOrWhiteSpace(grv.Municipio))
+            {
+                var cidUf = grv.Municipio;
+                if (!string.IsNullOrWhiteSpace(grv.UF))
+                {
+                    cidUf += $" - {grv.UF}";
+                }
+
+                partsEndereco.Add(cidUf);
+            }
+
+            var enderecoCompleto = partsEndereco.Count > 0 ? string.Join(" - ", partsEndereco) : string.Empty;
+
+            var autDivisao = grv.DivisaoAutoridade ?? string.Empty;
+            var orgaoEmissor = grv.OrgaoEmissorDescricao
+                               ?? grv.OrgaoEmissorSigla
+                               ?? autDivisao;
+
+            resultView.IdentificadorProcesso = grv.IdentificadorProcesso;
+            resultView.NumeroProcesso = grv.NumeroProcesso ?? string.Empty;
+            resultView.DataHora = grv.DataHora;
+            resultView.DeviceId = deviceId;
+            resultView.Placa = grv.Placa ?? string.Empty;
+            resultView.TipoVeiculo = grv.TipoVeiculo ?? string.Empty;
+            resultView.MarcaModelo = grv.MarcaModelo ?? string.Empty;
+            resultView.Cor = grv.Cor ?? string.Empty;
+            resultView.Chassi = grv.Chassi ?? string.Empty;
+            resultView.Renavam = grv.Renavam ?? string.Empty;
+            resultView.Cliente = grv.Cliente ?? string.Empty;
+            resultView.Deposito = grv.Deposito ?? string.Empty;
+            resultView.Autoridade = !string.IsNullOrWhiteSpace(autDivisao) ? autDivisao : orgaoEmissor;
+            resultView.Agente = grv.Agente ?? string.Empty;
+            resultView.MatriculaAgente = grv.MatriculaAgente ?? string.Empty;
+            resultView.OrgaoEmissor = orgaoEmissor;
+            resultView.MotivoApreensao = grv.MotivoApreensao ?? string.Empty;
+            resultView.Endereco = grv.Logradouro ?? string.Empty;
+            resultView.EnderecoNumero = grv.Numero ?? string.Empty;
+            resultView.EnderecoBairro = grv.Bairro ?? string.Empty;
+            resultView.EnderecoMunicipio = grv.Municipio ?? string.Empty;
+            resultView.EnderecoUF = grv.UF ?? string.Empty;
+            resultView.EnderecoCompleto = enderecoCompleto;
+            resultView.Latitude = grv.Latitude ?? string.Empty;
+            resultView.Longitude = grv.Longitude ?? string.Empty;
+            resultView.NomeCondutor = grv.NomeCondutor ?? string.Empty;
+            resultView.TelefoneCondutor = grv.TelefoneCondutor ?? string.Empty;
+            resultView.TelefoneDddCondutor = grv.TelefoneDddCondutor ?? string.Empty;
+            resultView.Observacoes = grv.Observacoes ?? string.Empty;
+            resultView.Infracoes = grv.Infracoes ?? new List<InfracaoVlockDTO>();
+            resultView.Mensagem = MensagemViewHelper.SetFound();
+
+            return resultView;
         }
 
         public MensagemDTO ValidateInputGrv(int GrvId, int UsuarioId)

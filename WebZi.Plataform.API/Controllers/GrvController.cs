@@ -34,7 +34,8 @@ namespace WebZi.Plataform.API.Controllers
         [HttpPost("Cadastrar")]
         // TODO: [Authorize]
         [IgnoreAntiforgeryToken]
-        public async Task<ActionResult<ResultadoCadastroGrvDTO>> Cadastrar([FromBody] GrvParameters Grv, CancellationToken ct)
+        public async Task<ActionResult<ResultadoCadastroGrvDTO>> Cadastrar([FromBody] GrvParameters Grv,
+            CancellationToken ct)
         {
             if (!ModelState.IsValid)
             {
@@ -90,7 +91,8 @@ namespace WebZi.Plataform.API.Controllers
         [HttpPut("Atualizar")]
         // TODO: [Authorize]
         [IgnoreAntiforgeryToken]
-        public async Task<ActionResult<MensagemDTO>> Atualizar([FromBody] GrvAtualizarParameters Grv, CancellationToken ct)
+        public async Task<ActionResult<MensagemDTO>> Atualizar([FromBody] GrvAtualizarParameters Grv,
+            CancellationToken ct)
         {
             if (!ModelState.IsValid)
             {
@@ -661,7 +663,8 @@ namespace WebZi.Plataform.API.Controllers
         [HttpPost("ValidarInformacoesParaCadastro")]
         [IgnoreAntiforgeryToken]
         // TODO: [Authorize]
-        public async Task<ActionResult<MensagemDTO>> ValidarInformacoesParaCadastro([FromBody] GrvParameters Grv, CancellationToken ct)
+        public async Task<ActionResult<MensagemDTO>> ValidarInformacoesParaCadastro([FromBody] GrvParameters Grv,
+            CancellationToken ct)
         {
             if (!ModelState.IsValid)
             {
