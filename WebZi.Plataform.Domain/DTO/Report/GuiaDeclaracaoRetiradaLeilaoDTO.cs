@@ -9,6 +9,7 @@ namespace WebZi.Plataform.Domain.DTO.Report
         public int IdentificadorProcesso { get; set; }
 
         public string NumeroProcesso { get; set; }
+        public string NomeLeilao { get; set; }
 
         public string Titulo { get; set; }
 

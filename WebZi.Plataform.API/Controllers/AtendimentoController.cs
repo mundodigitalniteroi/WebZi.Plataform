@@ -362,7 +362,7 @@ namespace WebZi.Plataform.API.Controllers
             }
         }
 
-        [HttpPatch("RetornoSaidaParaReparo")]
+        [HttpPut("RetornoSaidaParaReparo")]
         public async Task<ActionResult<MensagemDTO>> RetornoSaidaParaReparo(
              RetornoSaidaParaReparoParameters parameters, CancellationToken ct)
         {

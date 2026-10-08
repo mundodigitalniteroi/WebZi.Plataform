@@ -2051,33 +2051,39 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             RetornoSaidaParaReparoParameters parameters,
             CancellationToken ct)
         {
-            var atendimento = await _context.Atendimento
-                .Include(x => x.Grv)
-                .FirstOrDefaultAsync(x => x.GrvId == parameters.IdentificadorAtendimento, cancellationToken: ct);
+            int? grvId = await _context.Atendimento
+                .Where(x => x.AtendimentoId == parameters.IdentificadorAtendimento)
+                .Select(x => (int?)x.GrvId)
+                .FirstOrDefaultAsync(ct);
 
-            if (atendimento == null)
-            {
+            if (grvId == null)
                 return MensagemViewHelper.SetNotFound("Processo não encontrado");
-            }
 
             await using IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync(ct);
             try
             {
-                AtendimentoSaidaParaReparoModel saidaReparo = null;
-                saidaReparo = await _context.SaidaReparo
-                    .FirstOrDefaultAsync(x => x.Id == parameters.IdentificadorSaidaReparo, cancellationToken: ct);
+                int rowsSaida = await _context.SaidaReparo
+                    .Where(x => x.Id == parameters.IdentificadorSaidaReparo)
+                    .ExecuteUpdateAsync(s => s
+                        .SetProperty(x => x.DataRetorno, DateTime.Now)
+                        .SetProperty(x => x.IdUsuario, parameters.IdentificadorUsuario), ct);
 
-                if (saidaReparo != null)
+                if (rowsSaida == 0)
+                    return MensagemViewHelper.SetNotFound("Saida para Reparo não registrada");
+
+                int rowsGrv = await _context.Grv
+                    .Where(x => x.GrvId == grvId.Value)
+                    .ExecuteUpdateAsync(s => s
+                        .SetProperty(x => x.StatusOperacaoId, "T")
+                        .SetProperty(x => x.DataAlteracao, DateTime.Now)
+                        .SetProperty(x => x.UsuarioAlteracaoId, parameters.IdentificadorUsuario), ct);
+
+                if (rowsGrv == 0)
                 {
-                    saidaReparo.DataRetorno = DateTime.Now;
-                    saidaReparo.IdUsuario = parameters.IdentificadorUsuario;
+                    await transaction.RollbackAsync(ct);
+                    return MensagemViewHelper.SetNotFound("GRV não encontrado");
                 }
 
-                atendimento.Grv.StatusOperacaoId = "T";
-                atendimento.Grv.DataAlteracao = DateTime.Now;
-                atendimento.Grv.UsuarioAlteracaoId = parameters.IdentificadorUsuario;
-
-                await _context.SaveChangesAsync(ct);
                 await transaction.CommitAsync(ct);
 
                 return MensagemViewHelper.SetUpdateSuccess("Status alterado para Aguardando Entrega com sucesso");
