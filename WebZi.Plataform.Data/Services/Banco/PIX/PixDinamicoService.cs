@@ -420,7 +420,16 @@ namespace WebZi.Plataform.Data.Services.Banco.PIX
                     }
                 }
 
-                _context.PixDinamico.Update(pixDinamico);
+                await _context.PixDinamico
+                    .Where(x => x.PixDinamicoId == pixDinamico.PixDinamicoId)
+                    .ExecuteUpdateAsync(s => s
+                        .SetProperty(x => x.PixDinamicoTipoStatusGeracaoId, pixDinamico.PixDinamicoTipoStatusGeracaoId)
+                        .SetProperty(x => x.Revisao, pixDinamico.Revisao)
+                        .SetProperty(x => x.DataAlteracao, pixDinamico.DataAlteracao)
+                        .SetProperty(x => x.PixHorario, pixDinamico.PixHorario)
+                        .SetProperty(x => x.PagadorNome, pixDinamico.PagadorNome)
+                        .SetProperty(x => x.PagadorCnpj, pixDinamico.PagadorCnpj)
+                        .SetProperty(x => x.PagadorCpf, pixDinamico.PagadorCpf), ct);
 
                 await _context.PixDinamicoConsulta.AddAsync(pixDinamicoConsulta, ct);
                 await _context.SaveChangesAsync(ct);
