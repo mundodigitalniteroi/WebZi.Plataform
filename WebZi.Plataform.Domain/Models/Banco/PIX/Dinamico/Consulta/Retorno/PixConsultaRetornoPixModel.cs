@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using System;
+using Newtonsoft.Json;
 
 namespace WebZi.Plataform.Domain.Models.Banco.PIX.Dinamico.Consulta.Retorno
 {

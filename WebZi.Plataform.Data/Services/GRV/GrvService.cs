@@ -547,7 +547,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
             return ResultView;
         }
 
-        public async Task<MensagemDTO> UpdateStatusParaLiberacaoEspecialAsync(int grvId, int usuarioId, CancellationToken ct)
+        public async Task<MensagemDTO> UpdateStatusParaLiberacaoEspecialAsync(int grvId, int usuarioId,
+            CancellationToken ct)
         {
             MensagemDTO ResultView = ValidateInputGrv(grvId, usuarioId);
 
@@ -2209,18 +2210,27 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             #endregion
 
-            var result = await query
-                .OrderByDescending(x => x.DataCadastro)
-                .Take(100)
-                .AsNoTracking()
-                .ToListAsync();
+            int totalCount = await query.CountAsync();
 
-            if (result?.Count == 0)
+            if (totalCount == 0)
             {
                 ResultView.Mensagem = MensagemViewHelper.SetNotFound("A pesquisa não retornou registro");
 
                 return ResultView;
             }
+
+            var queryPaginada = query.OrderByDescending(x => x.DataCadastro);
+
+            if (GrvPesquisa.Skip.HasValue && GrvPesquisa.Skip.Value > 0)
+                queryPaginada = (IOrderedQueryable<GrvModel>)queryPaginada.Skip(GrvPesquisa.Skip.Value);
+            if (GrvPesquisa.Take.HasValue && GrvPesquisa.Take.Value > 0)
+                queryPaginada = (IOrderedQueryable<GrvModel>)queryPaginada.Take(GrvPesquisa.Take.Value);
+            else
+                queryPaginada = (IOrderedQueryable<GrvModel>)queryPaginada.Take(100);
+
+            var result = await queryPaginada
+                .AsNoTracking()
+                .ToListAsync();
 
             foreach (GrvModel Grv in result)
             {
@@ -2256,7 +2266,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 });
             }
 
-            ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
+            ResultView.Mensagem = MensagemViewHelper.SetFound(totalCount);
 
             return ResultView;
         }

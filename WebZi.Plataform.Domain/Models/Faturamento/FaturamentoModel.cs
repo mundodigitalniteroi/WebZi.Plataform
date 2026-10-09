@@ -1,4 +1,6 @@
-﻿using WebZi.Plataform.Domain.Models.Atendimento;
+﻿using System;
+using System.Collections.Generic;
+using WebZi.Plataform.Domain.Models.Atendimento;
 using WebZi.Plataform.Domain.Models.Banco;
 using WebZi.Plataform.Domain.Models.Banco.PIX.Dinamico.Persistencia;
 using WebZi.Plataform.Domain.Models.Banco.PIX.Estatico;

@@ -1,4 +1,6 @@
-﻿using WebZi.Plataform.Domain.Models.Faturamento;
+﻿using System;
+using System.Collections.Generic;
+using WebZi.Plataform.Domain.Models.Faturamento;
 
 namespace WebZi.Plataform.Domain.Models.Banco.PIX.Dinamico.Persistencia
 {

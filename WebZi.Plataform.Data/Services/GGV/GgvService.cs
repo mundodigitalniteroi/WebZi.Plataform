@@ -651,9 +651,7 @@ namespace WebZi.Plataform.Data.Services.GGV
                 MensagemDTO transalvadorResult = await RegistrarEntradaTransalvadorAsync(Grv, ct);
 
                 if (transalvadorResult.HtmlStatusCode is not (HtmlStatusCodeEnum.Created or HtmlStatusCodeEnum.Ok))
-                {
                     return transalvadorResult;
-                }
             }
 
             await using (IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync(ct))
@@ -1622,7 +1620,7 @@ namespace WebZi.Plataform.Data.Services.GGV
             if (!sistemaExternoId.HasValue || sistemaExternoId.Value <= 0)
             {
                 return MensagemViewHelper.SetBadRequest(
-                    "Identificador do pátio no sistema externo inválido ou não encontrado para o cliente Transalvador.");
+                    "pátio no sistema externo inválido ou não encontrado para o cliente.");
             }
             int idPatio = sistemaExternoId.Value;
 
@@ -1652,9 +1650,9 @@ namespace WebZi.Plataform.Data.Services.GGV
                 Uf = grv.VeiculoUF ?? string.Empty,
                 MarcaModelo = grv.MarcaModelo?.MarcaModelo ?? string.Empty,
                 NumeroProcesso = grv.NumeroFormularioGrv ?? string.Empty,
-                PlacaReboque = grv.FlagComboio == "N" ? grv.Reboque.Placa?.ToString() : string.Empty,
+                PlacaReboque = grv.FlagComboio == "N" ? grv.Reboque.Placa : string.Empty,
                 IdPatio = idPatio,
-                MotivoApreensao = motivoApreenssao ?? string.Empty,
+                MotivoApreensao = motivoApreenssao,
                 CodigoInfracao = codigoInfracao
             };
 

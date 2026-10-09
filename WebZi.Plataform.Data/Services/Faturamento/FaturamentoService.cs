@@ -1890,7 +1890,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             try
             {
                 TipoMeioCobrancaModel TipoMeioCobranca = await _context.TipoMeioCobranca
-                    .FirstOrDefaultAsync(x => x.TipoMeioCobrancaId == Faturamento.TipoMeioCobrancaId, ct);
+                    .FirstOrDefaultAsync(x => x.TipoMeioCobrancaId == Faturamento.TipoMeioCobrancaId, ct)!;
 
                 // Se o Tipo de Cobrança for PIX Dinâmico
                 if (TipoMeioCobranca.Alias.Equals("PIXDIN"))
@@ -1906,20 +1906,10 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                                 .AsNoTracking()
                                 .FirstOrDefaultAsync(x =>
                                     x.PixDinamicoTipoStatusGeracaoId ==
-                                    pixDinamico.IdentificadorPixDinamicoTipoStatusGeracao, cancellationToken: ct);
+                                    pixDinamico.IdentificadorPixDinamicoTipoStatusGeracao, cancellationToken: ct)!;
                         ResultView.Mensagem = MensagemViewHelper.SetBadRequest(
                             $"Pix ainda não confirmado, status atual: {statusPix?.Descricao}");
                         return ResultView;
-                    }
-                    else
-                    {
-                        await _context.PixDinamico
-                            .Where(x => x.FaturamentoId == parameters.IdentificadorFaturamento)
-                            .UpdateAsync(x => new PixDinamicoModel
-                            {
-                                PixDinamicoTipoStatusGeracaoId = 2,
-                                DataAlteracao = DateTime.Now
-                            }, ct);
                     }
                 }
                 else if (TipoMeioCobranca.Alias.Equals("CCRED") || TipoMeioCobranca.Alias.Equals("CDEBI"))

@@ -311,9 +311,9 @@ namespace WebZi.Plataform.Data.Services.Banco.PIX
             if (pixDinamico.PixDinamicoTipoStatusGeracaoId == 2) // CONCLUIDA
             {
                 ResultView = _mapper.Map<PixDinamicoDTO>(pixDinamico);
-
+            
                 ResultView.Mensagem = MensagemViewHelper.SetCreateSuccess("Pagamento PIX Dinâmico concluido!");
-
+            
                 return ResultView;
             }
 
