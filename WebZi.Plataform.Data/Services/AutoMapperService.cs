@@ -451,6 +451,8 @@ namespace WebZi.Plataform.Data.Services
             CreateMap<UsuarioModel, UsuarioDTO>()
                 .ForMember(dest => dest.IdentificadorUsuario, from => from.MapFrom(src => src.UsuarioId))
                 .ForMember(dest => dest.Login, from => from.MapFrom(src => src.Login))
+                .ForMember(dest => dest.Nome, from => from.MapFrom(src => src.Pessoa.Nome))
+                .ForMember(dest => dest.Matricula, from => from.MapFrom(src => src.Matricula))
                 .ForMember(dest => dest.SequencialNumeroFormulario,
                     from => from.MapFrom(x => x.NumeroFormularioGrvSequencia))
                 .ForMember(dest => dest.FlagMfa, from => from.MapFrom(src => src.FlagMfa));
