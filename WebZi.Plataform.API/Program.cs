@@ -1,3 +1,4 @@
+using System.Reflection;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -30,6 +31,13 @@ static void ConfigureServices(WebApplicationBuilder builder)
         .AddEndpointsApiExplorer()
         .AddSwaggerGen(options =>
         {
+            var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+            var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFilename);
+            if (File.Exists(xmlPath))
+            {
+                options.IncludeXmlComments(xmlPath);
+            }
+
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
                 Name = "Authorization",
@@ -68,6 +76,7 @@ static void ConfigureServices(WebApplicationBuilder builder)
     builder.Services.Configure<EvolutionOptions>(config.GetSection("EvolutionApi"));
     builder.Services.Configure<JwtOptions>(config.GetSection("Jwt"));
     builder.Services.Configure<DetranHubOptions>(config.GetSection("DetranHub"));
+    builder.Services.Configure<TransalvadorApiOptions>(config.GetSection("TransalvadorApi"));
     builder.Services
         .AddAuthentication(options =>
         {

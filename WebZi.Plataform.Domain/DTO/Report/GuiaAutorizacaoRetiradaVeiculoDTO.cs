@@ -1,4 +1,4 @@
-﻿using WebZi.Plataform.Domain.DTO.Sistema;
+using WebZi.Plataform.Domain.DTO.Sistema;
 
 namespace WebZi.Plataform.Domain.DTO.Report
 {
@@ -78,7 +78,7 @@ namespace WebZi.Plataform.Domain.DTO.Report
 
         public string QRCodeString { get; set; }
 
-        public byte[] Logo { get; set; }
+        public string Logo { get; set; }
 
         public byte[] QRCode { get; set; }
     }

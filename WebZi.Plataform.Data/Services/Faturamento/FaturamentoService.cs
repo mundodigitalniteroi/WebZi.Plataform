@@ -5,6 +5,7 @@ using Microsoft.Extensions.Options;
 using System.Data;
 using System.Globalization;
 using System.Text.RegularExpressions;
+using Microsoft.Extensions.DependencyInjection;
 using WebZi.Plataform.CrossCutting.Date;
 using WebZi.Plataform.CrossCutting.Number;
 using WebZi.Plataform.CrossCutting.Strings;
@@ -19,8 +20,10 @@ using WebZi.Plataform.Data.Services.Deposito;
 using WebZi.Plataform.Data.Services.DetranHub;
 using WebZi.Plataform.Data.Services.Localizacao;
 using WebZi.Plataform.Data.Services.Sistema;
+using WebZi.Plataform.Data.Services.Transalvador;
 using WebZi.Plataform.Data.Services.WebServices;
 using WebZi.Plataform.Domain.DTO.Atendimento;
+using WebZi.Plataform.Domain.DTO.Banco;
 using WebZi.Plataform.Domain.DTO.Banco.PIX;
 using WebZi.Plataform.Domain.DTO.Faturamento;
 using WebZi.Plataform.Domain.DTO.Faturamento.Cadastro;
@@ -35,6 +38,7 @@ using WebZi.Plataform.Domain.DTO.WebServices.Nfse;
 using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Atendimento;
 using WebZi.Plataform.Domain.Models.Banco;
+using WebZi.Plataform.Domain.Models.Banco.PIX.Dinamico.Persistencia;
 using WebZi.Plataform.Domain.Models.Bucket;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.GRV;
@@ -45,6 +49,7 @@ using WebZi.Plataform.Domain.Options;
 using WebZi.Plataform.Domain.Services.GRV;
 using WebZi.Plataform.Domain.ViewModel.Faturamento;
 using WebZi.Plataform.Domain.ViewModel.Pagamento;
+using WebZi.Plataform.Domain.ViewModel.Transalvador.DAT.Consultar;
 using WebZi.Plataform.Domain.Views.Faturamento;
 using WebZi.Plataform.Domain.Views.Localizacao;
 using Z.EntityFramework.Plus;
@@ -57,6 +62,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
         private readonly IMapper _mapper;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IOptions<DetranHubOptions> _detranHubOptions;
+        private readonly IServiceProvider _provider;
 
         public FaturamentoService(AppDbContext context)
         {
@@ -64,11 +70,12 @@ namespace WebZi.Plataform.Data.Services.Faturamento
         }
 
         public FaturamentoService(AppDbContext context, IMapper mapper, IHttpClientFactory httpClientFactory,
-            IOptions<DetranHubOptions> detranHubOptions = null)
+            IServiceProvider provider, IOptions<DetranHubOptions> detranHubOptions)
         {
             _context = context;
             _mapper = mapper;
             _httpClientFactory = httpClientFactory;
+            _provider = provider;
             _detranHubOptions = detranHubOptions;
         }
 
@@ -797,9 +804,13 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     }
                     else
                     {
-                        FaturamentoComposicao.QuantidadeComposicao = FaturamentoServicoGrv.QuantidadeDesconto.HasValue && FaturamentoServicoGrv.QuantidadeDesconto.Value > 0
-                            ? FaturamentoServicoGrv.QuantidadeDesconto.Value
-                            : (FaturamentoServicoGrv.Valor.HasValue ? Math.Round(FaturamentoServicoGrv.Valor.Value, 2) : 1);
+                        FaturamentoComposicao.QuantidadeComposicao =
+                            FaturamentoServicoGrv.QuantidadeDesconto.HasValue &&
+                            FaturamentoServicoGrv.QuantidadeDesconto.Value > 0
+                                ? FaturamentoServicoGrv.QuantidadeDesconto.Value
+                                : (FaturamentoServicoGrv.Valor.HasValue
+                                    ? Math.Round(FaturamentoServicoGrv.Valor.Value, 2)
+                                    : 1);
                     }
 
                     if (FaturamentoComposicao.QuantidadeComposicao == 0)
@@ -1487,20 +1498,13 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             if (model.DataHoraInicialParaCalculo == DateTime.MinValue || model.DataHoraInicialParaCalculo == default)
             {
-                model.DataHoraInicialParaCalculo = Grv.DataHoraGuarda ?? Grv.DataHoraRemocao;
+                model.DataHoraInicialParaCalculo = Grv.DataHoraGuarda;
             }
 
             if (model.DataHoraFinalParaCalculo == DateTime.MinValue || model.DataHoraFinalParaCalculo == default)
             {
                 model.DataHoraFinalParaCalculo =
                     DataHoraPorDeposito != DateTime.MinValue ? DataHoraPorDeposito : DateTime.Now;
-            }
-
-            var now = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(-3)).DateTime;
-
-            if (model.DataHoraFinalParaCalculo > now)
-            {
-                erros.Add("A Data/Hora Inicial para o Cálculo não pode ser maior do que a Data/Hora atual");
             }
 
             if (DataHoraPorDeposito != DateTime.MinValue && model.DataHoraInicialParaCalculo > DataHoraPorDeposito)
@@ -1800,7 +1804,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 return MensagemViewHelper.SetBadRequest("Este Cliente não está configurado para emitir PIX Dinâmico");
             }
 
-            using IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync(ct);
+            await using IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync(ct);
 
             try
             {
@@ -1824,14 +1828,13 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             return MensagemViewHelper.SetOk("Forma de Pagamento alterada com sucesso");
         }
 
-        public async Task<FaturamentoDTO> ConfirmarPagamentoAsync(int faturamentoId, int usuarioId,
-            List<PagamentoParameterCartao> cartoes, bool saidaParaReparo, CancellationToken ct)
+        public async Task<FaturamentoDTO> ConfirmarPagamentoAsync(PagamentoParameters parameters, CancellationToken ct)
         {
             FaturamentoDTO ResultView = new();
 
             List<string> erros = new();
 
-            if (faturamentoId <= 0)
+            if (parameters.IdentificadorFaturamento <= 0)
             {
                 erros.Add(MensagemPadraoEnum.IdentificadorFaturamentoInvalido);
             }
@@ -1849,7 +1852,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 .ThenInclude(x => x.Grv)
                 .ThenInclude(x => x.Cliente)
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.FaturamentoId == faturamentoId, cancellationToken: ct);
+                .FirstOrDefaultAsync(x => x.FaturamentoId == parameters.IdentificadorFaturamento,
+                    cancellationToken: ct);
 
             if (Faturamento == null)
             {
@@ -1875,99 +1879,123 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             ResultView.IdentificadorAtendimento = Faturamento.Atendimento.Grv.Atendimento.AtendimentoId;
 
-            if (Faturamento.Atendimento.Grv.StatusOperacaoId is "L" or "R") // L = AGUARDANDO PAGAMENTO R = Saída Para Reparo
+            if (Faturamento.Atendimento.Grv.StatusOperacaoId is not ("L" or "R" or "T"))
             {
-                try
-                {
-                    TipoMeioCobrancaModel TipoMeioCobranca = await _context.TipoMeioCobranca
-                        .FirstOrDefaultAsync(x => x.TipoMeioCobrancaId == Faturamento.TipoMeioCobrancaId, ct);
-
-                    // Se o Tipo de Cobrança for PIX Dinâmico
-                    if (TipoMeioCobranca.Alias.Equals("PIXDIN"))
-                    {
-                        PixDinamicoDTO pixDinamico = new();
-                        pixDinamico = await new PixDinamicoService(_context, _mapper, _httpClientFactory)
-                            .ConsultaAsync(faturamentoId, usuarioId);
-
-                        if (pixDinamico.IdentificadorPixDinamicoTipoStatusGeracao != 2)
-                        {
-                            ResultView.Mensagem = MensagemViewHelper.SetBadRequest(
-                                $"Pix ainda não confirmado, status atual: ${pixDinamico.IdentificadorPixDinamicoTipoStatusGeracao}");
-                            return ResultView;
-                        }
-                    }
-                    else if (TipoMeioCobranca.Alias.Equals("CCRED") || TipoMeioCobranca.Alias.Equals("CDEBI"))
-                    {
-                        var faturamentoCartao = await CreateFaturamentoCartao(Faturamento, cartoes, ct);
-
-                        if (faturamentoCartao.HtmlStatusCode == HtmlStatusCodeEnum.BadRequest)
-                        {
-                            ResultView.Mensagem =
-                                MensagemViewHelper.SetBadRequest("Erro ao efetuar pagamento com cartão");
-                            return ResultView;
-                        }
-                    }
-                    //else if(TipoMeioCobranca.Alias.Equals("GPER"))
-                    //{
-                    //    //PEMITE PAGAMENTO DIRETO PARA TESTES E APRESENTAÇÕES
-                    //}
-                    //else
-                    //{
-                    //    //TODO: Tratar outras formas de pagamento
-                    //    ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Forma de pagamento não permitida");
-                    //    return ResultView;
-
-                    //}
-
-                    //Atualização do faturamento
-                    await _context.Faturamento
-                        .Where(x => x.FaturamentoId == faturamentoId)
-                        .UpdateAsync(x => new FaturamentoModel()
-                        {
-                            Status = "P",
-                            UsuarioAlteracaoId = usuarioId,
-                            DataPrazoRetiradaVeiculo = DateTime.Now.AddDays(1),
-                            ValorPagamento = Faturamento.ValorFaturado,
-                            DataPagamento = DateTime.Now
-                        }, ct);
-
-                    //Atualização da Forma Liberação
-                    await _context.Atendimento
-                        .Where(x => x.AtendimentoId == Faturamento.AtendimentoId)
-                        .UpdateAsync(x => new AtendimentoModel()
-                        {
-                            FormaLiberacaoNome = Faturamento.Atendimento.ResponsavelNome,
-                            FormaLiberacaoCNH = Faturamento.Atendimento.ResponsavelCnh,
-                            FormaLiberacaoCPF = Faturamento.Atendimento.ResponsavelDocumento,
-                            FormaLiberacao = "C",
-                            UsuarioAlteracaoId = usuarioId,
-                            FlagPagamentoFinanciado = "N"
-                        }, ct);
-
-                    if (!saidaParaReparo)
-                    {
-                        await _context.Grv
-                            .Where(x => x.GrvId == Faturamento.Atendimento.GrvId)
-                            .UpdateAsync(x => new GrvModel()
-                            {
-                                StatusOperacaoId = "T",
-                                DataAlteracao = DateTime.Now,
-                                UsuarioAlteracaoId = usuarioId
-                            }, ct);
-                    }
-
-                    await _context.SaveChangesAsync(ct);
-
-                    ResultView.Faturamento.Status = "P";
-                }
-                catch (Exception ex)
-                {
-                    ResultView.Mensagem = MensagemViewHelper.SetBadRequest(ex.Message);
-                    return ResultView;
-                }
+                ResultView.Mensagem =
+                    MensagemViewHelper.SetBadRequest(
+                        "Status da operação do GRV não permite a confirmação de pagamento");
+                return ResultView;
             }
 
-            return ResultView;
+            try
+            {
+                TipoMeioCobrancaModel TipoMeioCobranca = await _context.TipoMeioCobranca
+                    .FirstOrDefaultAsync(x => x.TipoMeioCobrancaId == Faturamento.TipoMeioCobrancaId, ct)!;
+
+                // Se o Tipo de Cobrança for PIX Dinâmico
+                if (TipoMeioCobranca.Alias.Equals("PIXDIN"))
+                {
+                    PixDinamicoDTO pixDinamico = new();
+                    pixDinamico = await new PixDinamicoService(_context, _mapper, _httpClientFactory)
+                        .ConsultaAsync(parameters.IdentificadorFaturamento, parameters.IdentificadorUsuario, ct);
+                    if (pixDinamico.IdentificadorPixDinamicoTipoStatusGeracao != 2 &&
+                        !parameters.ConfirmoPagamentoComSenha)
+                    {
+                        var statusPix =
+                            await _context.PixDinamicoTipoStatusGeracao
+                                .AsNoTracking()
+                                .FirstOrDefaultAsync(x =>
+                                    x.PixDinamicoTipoStatusGeracaoId ==
+                                    pixDinamico.IdentificadorPixDinamicoTipoStatusGeracao, cancellationToken: ct)!;
+                        ResultView.Mensagem = MensagemViewHelper.SetBadRequest(
+                            $"Pix ainda não confirmado, status atual: {statusPix?.Descricao}");
+                        return ResultView;
+                    }
+                }
+                else if (TipoMeioCobranca.Alias.Equals("CCRED") || TipoMeioCobranca.Alias.Equals("CDEBI"))
+                {
+                    var faturamentoCartao = await CreateFaturamentoCartao(Faturamento, parameters.Cartoes, ct);
+
+                    if (faturamentoCartao.HtmlStatusCode == HtmlStatusCodeEnum.BadRequest)
+                    {
+                        ResultView.Mensagem =
+                            MensagemViewHelper.SetBadRequest("Erro ao efetuar pagamento com cartão");
+                        return ResultView;
+                    }
+                }
+                else if (TipoMeioCobranca.Alias.Equals("DAT"))
+                {
+                    RetornoBancarioAtendimentoDTO statusDat = await _provider.GetService<TransalvadorService>()
+                        .ConsultarStatusBancarioAsync(
+                            new ConsultarStatusBancarioParameters()
+                            {
+                                NumeroDat = Faturamento.NumeroDocumentoDat
+                            }, ct);
+
+                    if (statusDat.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+                    {
+                        ResultView.Mensagem = statusDat.Mensagem;
+                        return ResultView;
+                    }
+
+                    if (string.IsNullOrWhiteSpace(statusDat.Status) ||
+                        statusDat.Status.Equals("PAGO"))
+                    {
+                        ResultView.Mensagem =
+                            MensagemViewHelper.SetBadRequest("Pagamento ainda não confirmado");
+                        return ResultView;
+                    }
+                }
+
+                //Atualização do faturamento
+                await _context.Faturamento
+                    .Where(x => x.FaturamentoId == parameters.IdentificadorFaturamento)
+                    .UpdateAsync(x => new FaturamentoModel()
+                    {
+                        Status = "P",
+                        UsuarioAlteracaoId = parameters.IdentificadorUsuario,
+                        DataPrazoRetiradaVeiculo = DateTime.Now.AddDays(1),
+                        ValorPagamento = Faturamento.ValorFaturado,
+                        DataPagamento = DateTime.Now
+                    }, ct);
+
+                //Atualização da Forma Liberação
+                await _context.Atendimento
+                    .Where(x => x.AtendimentoId == Faturamento.AtendimentoId)
+                    .UpdateAsync(x => new AtendimentoModel()
+                    {
+                        FormaLiberacaoNome = Faturamento.Atendimento.ResponsavelNome,
+                        FormaLiberacaoCNH = Faturamento.Atendimento.ResponsavelCnh,
+                        FormaLiberacaoCPF = Faturamento.Atendimento.ResponsavelDocumento,
+                        FormaLiberacao = "C",
+                        UsuarioAlteracaoId = parameters.IdentificadorUsuario,
+                        FlagPagamentoFinanciado = "N"
+                    }, ct);
+
+                if (!parameters.SaidaParaReparo)
+                {
+                    await _context.Grv
+                        .Where(x => x.GrvId == Faturamento.Atendimento.GrvId)
+                        .UpdateAsync(x => new GrvModel()
+                        {
+                            StatusOperacaoId = "T",
+                            DataAlteracao = DateTime.Now,
+                            UsuarioAlteracaoId = parameters.IdentificadorUsuario
+                        }, ct);
+                }
+
+                await _context.SaveChangesAsync(ct);
+
+                ResultView.Faturamento.Status = "P";
+                ResultView.Mensagem = MensagemViewHelper.SetUpdateSuccess("Pagamento confirmado com sucesso");
+                return ResultView;
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem =
+                    MensagemViewHelper.SetBadRequest($"Ocorreu um erro ao confirmar o pagamento: {ex.Message}");
+                return ResultView;
+            }
         }
 
         public async Task<FaturamentoConsultaDTO> ConsultarFaturamentoAsync(int identificadorFaturamento,
@@ -2479,10 +2507,10 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             }
         }
 
-        public async Task<MensagemDTO> GerarFaturamentoSaidaReparoAsync(
+        public async Task<MensagemDTO> GerarFaturamentoAdicionalAsync(
             int identificadorProcesso,
-            int identificadorSaidaReparo,
             int identificadorUsuario,
+            int? identificadorSaidaReparo = null,
             CancellationToken ct = default)
         {
             try
@@ -2497,13 +2525,12 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     return MensagemViewHelper.SetNotFound("Processo (GRV) não encontrado.");
                 }
 
-                AtendimentoSaidaParaReparoModel saidaReparo = await _context.SaidaReparo
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(x => x.Id == identificadorSaidaReparo, ct);
-
-                if (saidaReparo == null)
+                AtendimentoSaidaParaReparoModel saidaReparo = null;
+                if (identificadorSaidaReparo.HasValue && identificadorSaidaReparo.Value > 0)
                 {
-                    return MensagemViewHelper.SetNotFound("Registro de saída para reparo não encontrado.");
+                    saidaReparo = await _context.SaidaReparo
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync(x => x.Id == identificadorSaidaReparo.Value, ct);
                 }
 
                 FaturamentoModel ultimoFaturamento = await _context.Faturamento
@@ -2518,11 +2545,21 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                         "Nenhum faturamento anterior encontrado para a geração do faturamento adicional.");
                 }
 
+                DateTime dataInicialCalculo;
+                if (saidaReparo != null)
+                {
+                    dataInicialCalculo = saidaReparo.DataSaida.AddDays(1);
+                }
+                else
+                {
+                    dataInicialCalculo = ultimoFaturamento.DataPagamento.Value.AddDays(1);
+                }
+
                 DateTime DataHoraPorDeposito = new DepositoService(_context)
                     .GetDataHoraPorDeposito(grv.DepositoId);
                 CalculoFaturamentoParametroModel parametrosCalculo = new()
                 {
-                    DataHoraInicialParaCalculo = saidaReparo.DataSaida,
+                    DataHoraInicialParaCalculo = dataInicialCalculo,
                     DataHoraFinalParaCalculo =
                         DataHoraPorDeposito != DateTime.MinValue ? DataHoraPorDeposito : DateTime.Now,
                     DataHoraPorDeposito = DataHoraPorDeposito,
@@ -2553,7 +2590,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
                 await _context.Faturamento.AddAsync(faturamentoAdicional, ct);
                 await _context.SaveChangesAsync(ct);
-                return MensagemViewHelper.SetCreateSuccess();
+                return MensagemViewHelper.SetCreateSuccess("Faturamento adicional gerado com sucesso");
             }
             catch (Exception ex)
             {

@@ -180,11 +180,15 @@ namespace WebZi.Plataform.Domain.Services.GRV
             var possuiPermissaoEdicao = await _context.PerfilAcessoUsuario
                 .AsNoTracking()
                 .AnyAsync(x => x.UsuarioId == GrvPersistencia.IdentificadorUsuario
-                               && (x.PerfilAcessoId == (int)PerfisDeAcessoEnum.GrvEditProd || x.PerfilAcessoId == (int)PerfisDeAcessoEnum.GrvEditHomolog)
+                               && (x.PerfilAcessoId == (int)PerfisDeAcessoEnum.GrvEditProd ||
+                                   x.PerfilAcessoId == (int)PerfisDeAcessoEnum.GrvEditHomolog)
                                && _context.SistemaPerfilAcessoSubModulos
-                                   .Any(s => (s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.GrvEditProd || s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.GrvEditHomolog)
-                                             && (s.IdSubModulo == (int)SubModuloEnum.EditarGrvProd || s.IdSubModulo == (int)SubModuloEnum.EditarGrvHomolog)), cancellationToken: ct);
-            
+                                   .Any(s => (s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.GrvEditProd ||
+                                              s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.GrvEditHomolog)
+                                             && (s.IdSubModulo == (int)SubModuloEnum.EditarGrvProd ||
+                                                 s.IdSubModulo == (int)SubModuloEnum.EditarGrvHomolog)),
+                    cancellationToken: ct);
+
             if (!possuiPermissaoEdicao)
                 return MensagemViewHelper.SetBadRequest(
                     "O usuário não possui permissão para edição do GRV.");
@@ -207,9 +211,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             grv.MarcaModeloId = GrvPersistencia.IdentificadorMarcaModelo;
             grv.MotivoApreensaoId = GrvPersistencia.IdentificadorMotivoApreensao;
             grv.NumeroFormularioGrv = GrvPersistencia.NumeroProcesso;
-            grv.FaturamentoProdutoId = GrvPersistencia.IdentificadorMotivoApreensao == 4
-                ? "DRF"
-                : GrvPersistencia.CodigoProduto;
+            grv.FaturamentoProdutoId = GrvPersistencia.CodigoProduto;
             grv.MatriculaAutoridadeResponsavel =
                 GrvPersistencia.MatriculaAutoridadeResponsavel.ToUpperTrim().ToNullIfEmpty();
             grv.NomeAutoridadeResponsavel = GrvPersistencia.NomeAutoridadeResponsavel.ToUpperTrim().ToNullIfEmpty();
@@ -473,7 +475,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 {
                     _context.SetUserContextInfo(GrvPersistencia.IdentificadorUsuario);
 
-                    if (GrvPersistencia.IdentificadorMotivoApreensao == 4)
+                    if (GrvPersistencia.IdentificadorMotivoApreensao == 4 && GrvPersistencia.DRFA != null)
                     {
                         var result = await _provider
                             .GetService<DRFAService>()
@@ -483,31 +485,6 @@ namespace WebZi.Plataform.Domain.Services.GRV
                             await transaction.RollbackAsync(ct);
                             ResultView = result;
                             return ResultView;
-                        }
-                    }
-
-                    if (ClienteDeposito.Cliente.FlagClientePossuiCodigoIdentificacao == "S")
-                    {
-                        var clienteCodigoIdentificacao = await _context.ClienteCodigoIdentificacao
-                            .FirstOrDefaultAsync(x => x.GrvId == grv.GrvId, cancellationToken: ct);
-
-                        if (clienteCodigoIdentificacao == null)
-                        {
-                            clienteCodigoIdentificacao = new ClienteCodigoIdentificacaoModel
-                            {
-                                GrvId = grv.GrvId,
-                                UsuarioCadastroId = GrvPersistencia.IdentificadorUsuario,
-                                CodigoIdentificacao = GrvPersistencia.CodigoIdentificacaoCliente,
-                                DataCadastro = DateTime.Now
-                            };
-                            _context.ClienteCodigoIdentificacao.Add(clienteCodigoIdentificacao);
-                        }
-                        else
-                        {
-                            clienteCodigoIdentificacao.CodigoIdentificacao = GrvPersistencia.CodigoIdentificacaoCliente;
-                            clienteCodigoIdentificacao.UsuarioAlteracaoId = GrvPersistencia.IdentificadorUsuario;
-                            clienteCodigoIdentificacao.DataAlteracao = DateTime.Now;
-                            _context.ClienteCodigoIdentificacao.Update(clienteCodigoIdentificacao);
                         }
                     }
 
@@ -570,7 +547,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
             return ResultView;
         }
 
-        public async Task<MensagemDTO> UpdateStatusToUAsync(int grvId, int usuarioId, CancellationToken ct)
+        public async Task<MensagemDTO> UpdateStatusParaLiberacaoEspecialAsync(int grvId, int usuarioId,
+            CancellationToken ct)
         {
             MensagemDTO ResultView = ValidateInputGrv(grvId, usuarioId);
 
@@ -821,7 +799,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             ResultadoCadastroGrvDTO ResultView = new();
 
-            using (IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync(ct))
+            await using (IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync(ct))
             {
                 _context.SetUserContextInfo(GrvPersistencia.IdentificadorUsuario);
                 try
@@ -839,7 +817,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
                     await _context.SaveChangesAsync(ct);
 
-                    if (GrvPersistencia.IdentificadorMotivoApreensao == 4)
+                    if (GrvPersistencia.IdentificadorMotivoApreensao == 4 && GrvPersistencia.DRFA != null)
                     {
                         var result = await _provider
                             .GetService<DRFAService>()
@@ -860,7 +838,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
                             UsuarioCadastroId = GrvPersistencia.IdentificadorUsuario,
 
-                            CodigoIdentificacao = GrvPersistencia.CodigoIdentificacaoCliente
+                            CodigoIdentificacao = grv.NumeroFormularioGrv
                         };
 
                         _context.ClienteCodigoIdentificacao.Add(ClienteCodigoIdentificacao);
@@ -875,7 +853,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 }
                 catch (Exception ex)
                 {
-                    await transaction.RollbackAsync();
+                    await transaction.RollbackAsync(ct);
 
                     ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
 
@@ -2232,18 +2210,27 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             #endregion
 
-            var result = await query
-                .OrderByDescending(x => x.DataCadastro)
-                .Take(100)
-                .AsNoTracking()
-                .ToListAsync();
+            int totalCount = await query.CountAsync();
 
-            if (result?.Count == 0)
+            if (totalCount == 0)
             {
                 ResultView.Mensagem = MensagemViewHelper.SetNotFound("A pesquisa não retornou registro");
 
                 return ResultView;
             }
+
+            var queryPaginada = query.OrderByDescending(x => x.DataCadastro);
+
+            if (GrvPesquisa.Skip.HasValue && GrvPesquisa.Skip.Value > 0)
+                queryPaginada = (IOrderedQueryable<GrvModel>)queryPaginada.Skip(GrvPesquisa.Skip.Value);
+            if (GrvPesquisa.Take.HasValue && GrvPesquisa.Take.Value > 0)
+                queryPaginada = (IOrderedQueryable<GrvModel>)queryPaginada.Take(GrvPesquisa.Take.Value);
+            else
+                queryPaginada = (IOrderedQueryable<GrvModel>)queryPaginada.Take(100);
+
+            var result = await queryPaginada
+                .AsNoTracking()
+                .ToListAsync();
 
             foreach (GrvModel Grv in result)
             {
@@ -2279,7 +2266,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 });
             }
 
-            ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
+            ResultView.Mensagem = MensagemViewHelper.SetFound(totalCount);
 
             return ResultView;
         }
@@ -2475,7 +2462,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
             return MensagemViewHelper.SetOk("O Status da Operação não foi alterado");
         }
 
-        public async Task<MensagemDTO> CheckInformacoesPersistenciaAsync(GrvParameters GrvPersistencia, CancellationToken ct)
+        public async Task<MensagemDTO> CheckInformacoesPersistenciaAsync(GrvParameters GrvPersistencia,
+            CancellationToken ct)
         {
             if (GrvPersistencia == null)
             {
@@ -2751,11 +2739,6 @@ namespace WebZi.Plataform.Domain.Services.GRV
             {
                 ResultView.AvisosImpeditivos.Add(MensagemPadraoEnum.NaoEncontradoCliente);
             }
-            else if (Cliente.FlagClientePossuiCodigoIdentificacao == "S"
-                     && string.IsNullOrWhiteSpace(GrvPersistencia.CodigoIdentificacaoCliente))
-            {
-                ResultView.AvisosImpeditivos.Add($"Informe o {Cliente.LabelClienteCodigoIdentificacao}");
-            }
 
             DepositoModel Deposito = await _context.Deposito
                 .AsNoTracking()
@@ -2769,7 +2752,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
             ClienteDepositoModel ClienteDeposito = await _context.ClienteDeposito
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.ClienteId == GrvPersistencia.IdentificadorCliente
-                                          && x.DepositoId == GrvPersistencia.IdentificadorDeposito, cancellationToken: ct);
+                                          && x.DepositoId == GrvPersistencia.IdentificadorDeposito,
+                    cancellationToken: ct);
 
             if (ClienteDeposito == null)
             {
@@ -2799,7 +2783,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             TipoVeiculoModel TipoVeiculo = await _context.TipoVeiculo
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.TipoVeiculoId == GrvPersistencia.IdentificadorTipoVeiculo, cancellationToken: ct);
+                .FirstOrDefaultAsync(x => x.TipoVeiculoId == GrvPersistencia.IdentificadorTipoVeiculo,
+                    cancellationToken: ct);
 
             if (TipoVeiculo == null)
             {
@@ -2810,7 +2795,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
             {
                 ReboquistaModel Reboquista = await _context.Reboquista
                     .AsNoTracking()
-                    .FirstOrDefaultAsync(x => x.ReboquistaId == GrvPersistencia.IdentificadorReboquista, cancellationToken: ct);
+                    .FirstOrDefaultAsync(x => x.ReboquistaId == GrvPersistencia.IdentificadorReboquista,
+                        cancellationToken: ct);
 
                 if (Reboquista == null)
                 {
@@ -2819,7 +2805,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
                 ReboqueModel Reboque = await _context.Reboque
                     .AsNoTracking()
-                    .FirstOrDefaultAsync(x => x.ReboqueId == GrvPersistencia.IdentificadorReboque, cancellationToken: ct);
+                    .FirstOrDefaultAsync(x => x.ReboqueId == GrvPersistencia.IdentificadorReboque,
+                        cancellationToken: ct);
 
                 if (Reboque == null)
                 {
@@ -2831,7 +2818,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 .Include(x => x.OrgaoEmissor)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x =>
-                    x.AutoridadeResponsavelId == GrvPersistencia.IdentificadorAutoridadeResponsavel, cancellationToken: ct);
+                        x.AutoridadeResponsavelId == GrvPersistencia.IdentificadorAutoridadeResponsavel,
+                    cancellationToken: ct);
 
             if (AutoridadeResponsavel == null)
             {
@@ -2857,7 +2845,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             MarcaModeloModel MarcaModelo = await _context.MarcaModelo
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.MarcaModeloId == GrvPersistencia.IdentificadorMarcaModelo, cancellationToken: ct);
+                .FirstOrDefaultAsync(x => x.MarcaModeloId == GrvPersistencia.IdentificadorMarcaModelo,
+                    cancellationToken: ct);
 
             if (MarcaModelo == null)
             {
@@ -2866,7 +2855,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             MotivoApreensaoModel MotivoApreensao = await _context.MotivoApreensao
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.MotivoApreensaoId == GrvPersistencia.IdentificadorMotivoApreensao, cancellationToken: ct);
+                .FirstOrDefaultAsync(x => x.MotivoApreensaoId == GrvPersistencia.IdentificadorMotivoApreensao,
+                    cancellationToken: ct);
 
             if (MotivoApreensao == null)
             {
@@ -2939,7 +2929,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             FaturamentoProdutoModel Produtos = await _context.FaturamentoProduto
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.FaturamentoProdutoId == GrvPersistencia.CodigoProduto, cancellationToken: ct);
+                .FirstOrDefaultAsync(x => x.FaturamentoProdutoId == GrvPersistencia.CodigoProduto,
+                    cancellationToken: ct);
 
             if (Produtos == null)
             {
@@ -3048,20 +3039,20 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 }
             }
 
-        var grv = await _context.Grv.AsNoTracking()
-            .FirstOrDefaultAsync(x =>
-                x.ClienteId == GrvPersistencia.IdentificadorCliente &&
-                x.DepositoId == GrvPersistencia.IdentificadorDeposito &&
-                x.FaturamentoProdutoId == GrvPersistencia.CodigoProduto &&
-                x.StatusOperacaoId != "E" &&
-                x.StatusOperacaoId != "7" &&
-                (
-                    (!string.IsNullOrWhiteSpace(GrvPersistencia.Placa) &&
-                    x.Placa == GrvPersistencia.Placa)
-                    ||
-                    (!string.IsNullOrWhiteSpace(GrvPersistencia.Chassi) &&
-                    x.Chassi == GrvPersistencia.Chassi)
-                ), cancellationToken: ct);
+            var grv = await _context.Grv.AsNoTracking()
+                .FirstOrDefaultAsync(x =>
+                    x.ClienteId == GrvPersistencia.IdentificadorCliente &&
+                    x.DepositoId == GrvPersistencia.IdentificadorDeposito &&
+                    x.FaturamentoProdutoId == GrvPersistencia.CodigoProduto &&
+                    x.StatusOperacaoId != "E" &&
+                    x.StatusOperacaoId != "7" &&
+                    (
+                        (!string.IsNullOrWhiteSpace(GrvPersistencia.Placa) &&
+                         x.Placa == GrvPersistencia.Placa)
+                        ||
+                        (!string.IsNullOrWhiteSpace(GrvPersistencia.Chassi) &&
+                         x.Chassi == GrvPersistencia.Chassi)
+                    ), cancellationToken: ct);
 
 
             if (grv is not null)

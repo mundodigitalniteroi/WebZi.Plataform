@@ -122,7 +122,12 @@ namespace WebZi.Plataform.Data.Services.Cliente
                     .AsNoTracking()
                     .FirstOrDefaultAsync();
 
-                ResultView.Listagem.Add(new ImageDTO { Imagem = ConfiguracaoLogo.LogoPadraoSistema });
+                ResultView.Listagem.Add(new ImageDTO
+                {
+                    Imagem = ConfiguracaoLogo?.LogoPadraoSistema != null
+                        ? Convert.ToBase64String(ConfiguracaoLogo.LogoPadraoSistema)
+                        : string.Empty
+                });
 
                 ResultView.Mensagem = MensagemViewHelper.SetFound();
 

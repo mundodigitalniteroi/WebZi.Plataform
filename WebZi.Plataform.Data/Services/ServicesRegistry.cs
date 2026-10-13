@@ -2,6 +2,7 @@
 using WebZi.Plataform.Data.Services.Atendimento;
 using WebZi.Plataform.Data.Services.AutoridadeDivisoes;
 using WebZi.Plataform.Data.Services.Banco;
+using WebZi.Plataform.Data.Services.Banco.DAT;
 using WebZi.Plataform.Data.Services.Banco.PIX;
 using WebZi.Plataform.Data.Services.Cliente;
 using WebZi.Plataform.Data.Services.ClienteDeposito;
@@ -20,6 +21,7 @@ using WebZi.Plataform.Data.Services.Pessoa;
 using WebZi.Plataform.Data.Services.Report;
 using WebZi.Plataform.Data.Services.Servico;
 using WebZi.Plataform.Data.Services.Sistema;
+using WebZi.Plataform.Data.Services.Transalvador;
 using WebZi.Plataform.Data.Services.Usuario;
 using WebZi.Plataform.Data.Services.Veiculo;
 using WebZi.Plataform.Data.Services.Vistorias;
@@ -101,12 +103,16 @@ namespace WebZi.Plataform.Data.Services
             services.AddScoped<WhatsAppService>();
             services.AddScoped<DetranHubService>();
             services.AddScoped<LiberacaoEspecialService>();
-            
+            services.AddScoped<TransalvadorService>();
+            services.AddScoped<DATService>();
+
             #region WebServices
+
             services.AddScoped<DetranAlagoasService>();
 
             services.AddScoped<DetranRioService>();
             services.AddScoped<WSNfseService>();
+
             #endregion
         }
     }

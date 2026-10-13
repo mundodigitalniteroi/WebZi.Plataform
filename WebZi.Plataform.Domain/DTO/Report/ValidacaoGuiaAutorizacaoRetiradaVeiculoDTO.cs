@@ -1,4 +1,4 @@
-﻿using WebZi.Plataform.Domain.DTO.Sistema;
+using WebZi.Plataform.Domain.DTO.Sistema;
 
 namespace WebZi.Plataform.Domain.DTO.Report
 {
@@ -60,6 +60,6 @@ namespace WebZi.Plataform.Domain.DTO.Report
 
         public List<string> ListagemLacre { get; set; }
 
-        public byte[] FotoResponsavel { get; set; }
+        public string FotoResponsavel { get; set; }
     }
 }

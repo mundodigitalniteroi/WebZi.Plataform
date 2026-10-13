@@ -1,4 +1,4 @@
-﻿using System.Text.RegularExpressions;
+using System.Text.RegularExpressions;
 using WebZi.Plataform.CrossCutting.Strings;
 
 namespace WebZi.Plataform.CrossCutting.Documents
@@ -208,12 +208,36 @@ namespace WebZi.Plataform.CrossCutting.Documents
 
         public static string FormatCNPJ(this string cnpj)
         {
-            return string.Format(@"{0:00\.000\.000/0000-00}", long.Parse(cnpj));
+            if (string.IsNullOrWhiteSpace(cnpj))
+            {
+                return string.Empty;
+            }
+
+            string digits = cnpj.GetNumbers();
+
+            if (long.TryParse(digits, out long val) && digits.Length == 14)
+            {
+                return string.Format(@"{0:00\.000\.000/0000-00}", val);
+            }
+
+            return cnpj;
         }
 
         public static string FormatCPF(this string cpf)
         {
-            return string.Format(@"{0:000\.000\.000-00}", long.Parse(cpf));
+            if (string.IsNullOrWhiteSpace(cpf))
+            {
+                return string.Empty;
+            }
+
+            string digits = cpf.GetNumbers();
+
+            if (long.TryParse(digits, out long val) && digits.Length == 11)
+            {
+                return string.Format(@"{0:000\.000\.000-00}", val);
+            }
+
+            return cpf;
         }
     }
 }

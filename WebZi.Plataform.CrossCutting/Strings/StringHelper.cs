@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.Runtime.InteropServices.JavaScript;
 using System.Security.Cryptography;
 using System.Text;
@@ -51,7 +51,12 @@ namespace WebZi.Plataform.CrossCutting.Strings
 
         public static string Left(this string input, int lengh)
         {
-            return !input.IsNull() ? input[..lengh] : input;
+            if (input.IsNull())
+            {
+                return input;
+            }
+
+            return input.Length <= lengh ? input : input[..lengh];
         }
 
         public static string Mid(this string input, int position)
@@ -118,7 +123,12 @@ namespace WebZi.Plataform.CrossCutting.Strings
 
         public static string Right(this string input, int lengh)
         {
-            return !input.IsNull() ? input.Substring(input.Length - lengh, lengh) : input;
+            if (input.IsNull())
+            {
+                return input;
+            }
+
+            return input.Length <= lengh ? input : input.Substring(input.Length - lengh, lengh);
         }
 
         public static string ToCamelCase(this string input) // toCamelCase

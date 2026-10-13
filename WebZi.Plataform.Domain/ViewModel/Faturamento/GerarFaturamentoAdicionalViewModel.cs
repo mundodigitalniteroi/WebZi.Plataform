@@ -2,13 +2,11 @@ using System.ComponentModel.DataAnnotations;
 
 namespace WebZi.Plataform.Domain.ViewModel.Faturamento
 {
-    public class GerarFaturamentoSaidaReparoViewModel
+    public class GerarFaturamentoAdicionalViewModel
     {
         [Required(ErrorMessage = "Propriedade obrigatória")]
         public int IdentificadorProcesso { get; set; }
 
-        [Required(ErrorMessage = "Propriedade obrigatória")]
-        public int IdentificadorSaidaReparo { get; set; }
-
+        public int? IdentificadorSaidaReparo { get; set; }
     }
 }

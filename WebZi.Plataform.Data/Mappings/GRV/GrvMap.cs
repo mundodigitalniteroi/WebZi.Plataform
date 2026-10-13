@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using WebZi.Plataform.Domain.Models.Arrematantes;
 using WebZi.Plataform.Domain.Models.GRV;
 
 namespace WebZi.Plataform.Data.Mappings.GRV
@@ -366,6 +367,10 @@ namespace WebZi.Plataform.Data.Mappings.GRV
                 .IsUnicode(false)
                 .IsFixedLength();
 
+            builder.Property(x => x.IdEntradaTransalvador)
+                .HasColumnType("bigint")
+                .HasColumnName("id_entrada_transalvador");
+
             builder
                 .HasOne(d => d.UsuarioCadastro)
                 .WithMany(p => p.ListagemUsuarioCadastroGrv)
@@ -400,6 +405,10 @@ namespace WebZi.Plataform.Data.Mappings.GRV
                 .HasOne(d => d.UsuarioClienteDepositoGrv)
                 .WithOne(p => p.Grv)
                 .OnDelete(DeleteBehavior.NoAction);
+            builder
+               .HasOne(d => d.Arrematante)
+               .WithOne(p => p.Grv)
+               .OnDelete(DeleteBehavior.NoAction);
         }
     }
 }

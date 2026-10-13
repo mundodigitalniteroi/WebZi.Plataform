@@ -31,5 +31,9 @@ namespace WebZi.Plataform.Domain.ViewModel.GRV.Pesquisa
 
         [Required(ErrorMessage = "Propriedade obrigatória")]
         public int IdentificadorUsuario { get; set; }
+
+        public int? Take { get; set; }
+
+        public int? Skip { get; set; }
     }
 }

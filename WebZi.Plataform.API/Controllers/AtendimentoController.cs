@@ -71,6 +71,34 @@ namespace WebZi.Plataform.API.Controllers
             }
         }
 
+        [HttpPost("CadastrarAtendimentoLeilao")]
+        // TODO: [Authorize]
+        [IgnoreAntiforgeryToken]
+        public async Task<ActionResult<AtendimentoCadastroDTO>> CadastrarAtendimentoLeilao([FromBody] AtendimentoLeilaoParameters Atendimento, CancellationToken ct)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            AtendimentoCadastroDTO ResultView = new();
+
+            try
+            {
+                ResultView = await _provider
+                    .GetService<AtendimentoService>()
+                    .CreateAtendimentoLeilaoAsync(Atendimento, ct);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
+
 
         [HttpPut("Atualizar")]
         public async Task<ActionResult<MensagemDTO>> Atualizar(AtualizarAtendimentoParameters parameters,
@@ -197,7 +225,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<GrvService>()
-                    .UpdateStatusToUAsync(parameters.IdentificadorProcesso, parameters.IdentificadorUsuario, ct);
+                    .UpdateStatusParaLiberacaoEspecialAsync(parameters.IdentificadorProcesso, parameters.IdentificadorUsuario, ct);
 
                 if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
                 {
@@ -329,6 +357,31 @@ namespace WebZi.Plataform.API.Controllers
                 ResultView = await _provider
                     .GetService<AtendimentoService>()
                     .UpdateSaidaReparo(parameters, ct);
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView = MensagemViewHelper.SetInternalServerError(ex);
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+            }
+        }
+
+        [HttpPut("RetornoSaidaParaReparo")]
+        public async Task<ActionResult<MensagemDTO>> RetornoSaidaParaReparo(
+             RetornoSaidaParaReparoParameters parameters, CancellationToken ct)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            MensagemDTO ResultView = new();
+            try
+            {
+                ResultView = await _provider
+                    .GetService<AtendimentoService>()
+                    .RetornoSaidaParaReparoAsync(parameters, ct);
+
                 return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
             }
             catch (Exception ex)

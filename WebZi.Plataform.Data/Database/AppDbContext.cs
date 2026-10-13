@@ -4,6 +4,7 @@ using System.Reflection;
 using WebZi.Plataform.CrossCutting.Configuration;
 using WebZi.Plataform.Data.Mappings.Nfe;
 using WebZi.Plataform.Data.Mappings.Usuario;
+using WebZi.Plataform.Domain.Models.Arrematantes;
 using WebZi.Plataform.Domain.Models.Atendimento;
 using WebZi.Plataform.Domain.Models.Banco;
 using WebZi.Plataform.Domain.Models.Banco.PIX.Dinamico.Persistencia;
@@ -351,6 +352,12 @@ namespace WebZi.Plataform.Data.Database
         public DbSet<LeilaoStatusModel> LeilaoStatus { get; set; }
 
         public DbSet<LiberacaoLeilaoModel> LiberacaoLeilao { get; set; }
+
+        public DbSet<ArrematantesModel> Arrematantes { get; set; }
+
+        public DbSet<ViewLeilaoArremanteteModel> LeilaoArrematante { get; set; }
+
+        public DbSet<ViewLiberacaoLeilaoModel> ViewLiberacaoLeilao { get; set; }
 
         #endregion
 

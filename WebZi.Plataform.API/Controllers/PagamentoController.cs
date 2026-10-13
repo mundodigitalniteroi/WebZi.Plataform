@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using WebZi.Plataform.CrossCutting.Web;
+using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Atendimento;
 using WebZi.Plataform.Data.Services.Faturamento;
 using WebZi.Plataform.Domain.DTO.Faturamento;
@@ -21,7 +23,6 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpPost("ValidarInformacoesParaPagamento")]
-        // TODO: [Authorize]
         [IgnoreAntiforgeryToken]
         public async Task<ActionResult<MensagemDTO>> ValidarInformacoesParaPagamento(
             [FromBody] PagamentoParameters Atendimento)
@@ -31,26 +32,20 @@ namespace WebZi.Plataform.API.Controllers
                 return BadRequest(ModelState);
             }
 
-            MensagemDTO mensagem = await _provider
+            MensagemDTO ResultView = new();
+            ResultView = await _provider
                 .GetService<AtendimentoService>()
                 .CheckInformacoesParaPagamentoAsync(Atendimento);
 
-            if (mensagem.Erros.Count == 0)
+            if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
             {
-                mensagem.HtmlStatusCode = CrossCutting.Web.HtmlStatusCodeEnum.Ok;
-
-                return Ok(mensagem);
+                return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
             }
-            else
-            {
-                mensagem.HtmlStatusCode = CrossCutting.Web.HtmlStatusCodeEnum.BadRequest;
 
-                return BadRequest(mensagem);
-            }
+            return ResultView;
         }
 
         [HttpPost("ConfirmarPagamento")]
-        // TODO: [Authorize]
         [IgnoreAntiforgeryToken]
         public async Task<ActionResult<FaturamentoDTO>> ConfirmarPagamento([FromBody] PagamentoParameters model,
             CancellationToken ct)
@@ -60,22 +55,21 @@ namespace WebZi.Plataform.API.Controllers
                 return BadRequest(ModelState);
             }
 
-            FaturamentoDTO faturamento = await _provider
-                .GetService<FaturamentoService>()
-                .ConfirmarPagamentoAsync(model.IdentificadorFaturamento, model.IdentificadorUsuario, model.Cartoes,
-                    model.SaidaParaReparo, ct);
+            FaturamentoDTO ResultView = new();
 
-            if (faturamento.Mensagem.Erros.Count == 0)
+            try
             {
-                faturamento.Mensagem.HtmlStatusCode = CrossCutting.Web.HtmlStatusCodeEnum.Ok;
+                ResultView = await _provider
+                    .GetService<FaturamentoService>()
+                    .ConfirmarPagamentoAsync(model, ct);
 
-                return Ok(faturamento);
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
-            else
+            catch (Exception ex)
             {
-                faturamento.Mensagem.HtmlStatusCode = CrossCutting.Web.HtmlStatusCodeEnum.BadRequest;
+                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
 
-                return BadRequest(faturamento);
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
         }
     }

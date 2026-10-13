@@ -673,7 +673,7 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("ListarTipoMeioCobranca")]
         // TODO: [Authorize]
-        public async Task<ActionResult<TipoMeioCobrancaListDTO>> ListarTipoMeioCobranca()
+        public async Task<ActionResult<TipoMeioCobrancaListDTO>> ListarTipoMeioCobranca(CancellationToken ct)
         {
             if (!ModelState.IsValid)
             {
@@ -686,7 +686,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<TipoMeioCobrancaService>()
-                    .ListAsync();
+                    .ListAsync(ct);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }

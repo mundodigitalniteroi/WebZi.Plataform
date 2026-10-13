@@ -310,9 +310,9 @@ public class FaturamentoController : ControllerBase
         }
     }
 
-    [HttpPost("GerarFaturamentoSaidaReparo")]
-    public async Task<ActionResult<MensagemDTO>> GerarFaturamentoSaidaReparo(
-        [FromBody] GerarFaturamentoSaidaReparoViewModel parametros,
+    [HttpPost("GerarFaturamentoAdicional")]
+    public async Task<ActionResult<MensagemDTO>> GerarFaturamentoAdicional(
+        [FromBody] GerarFaturamentoAdicionalViewModel parametros,
         CancellationToken ct)
     {
         if (!ModelState.IsValid)
@@ -326,8 +326,9 @@ public class FaturamentoController : ControllerBase
         {
             resultView = await _provider
                 .GetService<FaturamentoService>()
-                .GerarFaturamentoSaidaReparoAsync(parametros.IdentificadorProcesso, parametros.IdentificadorSaidaReparo,
+                .GerarFaturamentoAdicionalAsync(parametros.IdentificadorProcesso,
                     userId!.Value,
+                    parametros.IdentificadorSaidaReparo,
                     ct);
 
             return StatusCode((int)resultView.HtmlStatusCode, resultView);

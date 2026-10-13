@@ -3,12 +3,14 @@ using Microsoft.AspNetCore.Mvc;
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Banco;
+using WebZi.Plataform.Data.Services.Banco.DAT;
 using WebZi.Plataform.Data.Services.Banco.PIX;
 using WebZi.Plataform.Data.Services.Report;
 using WebZi.Plataform.Data.Services.WebServices;
 using WebZi.Plataform.Domain.DTO.Banco;
 using WebZi.Plataform.Domain.DTO.Banco.PIX;
 using WebZi.Plataform.Domain.DTO.Report;
+using WebZi.Plataform.Domain.DTO.Transalvador.DAT.Gerar;
 
 namespace WebZi.Plataform.API.Controllers
 {
@@ -54,7 +56,7 @@ namespace WebZi.Plataform.API.Controllers
         [HttpGet("GerarPixDinamico")]
         // TODO: [Authorize]
         public async Task<ActionResult<PixDinamicoCompletoDTO>> GerarPixDinamico(int IdentificadorFaturamento,
-            int IdentificadorUsuario)
+            int IdentificadorUsuario, CancellationToken ct)
         {
             if (!ModelState.IsValid)
             {
@@ -67,7 +69,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 PixDinamicoDTO pixDinamicoDTO = await _provider
                     .GetService<PixDinamicoService>()
-                    .CreateAsync(IdentificadorFaturamento, IdentificadorUsuario);
+                    .CreateAsync(IdentificadorFaturamento, IdentificadorUsuario, ct);
 
                 if (pixDinamicoDTO.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
                 {
@@ -97,7 +99,7 @@ namespace WebZi.Plataform.API.Controllers
         [HttpGet("ConsultarPixDinamico")]
         // TODO: [Authorize]
         public async Task<ActionResult<PixDinamicoCompletoDTO>> ConsultarPixDinamico(int IdentificadorFaturamento,
-            int IdentificadorUsuario)
+            int IdentificadorUsuario, CancellationToken ct)
         {
             if (!ModelState.IsValid)
             {
@@ -110,7 +112,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 PixDinamicoDTO pixDinamicoDTO = await _provider
                     .GetService<PixDinamicoService>()
-                    .ConsultaAsync(IdentificadorFaturamento, IdentificadorUsuario);
+                    .ConsultaAsync(IdentificadorFaturamento, IdentificadorUsuario, ct);
 
                 if (pixDinamicoDTO.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
                 {
@@ -231,6 +233,51 @@ namespace WebZi.Plataform.API.Controllers
                 {
                     return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
                 }
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
+
+
+        [HttpGet("{identificadorFaturamento}/GerarDAT")]
+        public async Task<ActionResult<DATDTO>> GerarDAT(int identificadorFaturamento, CancellationToken ct)
+        {
+            DATDTO ResultView = new();
+
+            try
+            {
+                ResultView = await _provider.GetService<DATService>().GerarAsync(identificadorFaturamento, ct);
+
+                if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+                    return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+
+                return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+            }
+        }
+        
+        [HttpGet("{identificadorFaturamento}/ConsultarDAT")]
+        public async Task<ActionResult<DATDTO>> ConsultarDAT(int identificadorFaturamento, CancellationToken ct)
+        {
+            DATDTO ResultView = new();
+
+            try
+            {
+                ResultView = await _provider.GetService<DATService>().ConsultarAsync(identificadorFaturamento, ct);
+
+                if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+                    return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }

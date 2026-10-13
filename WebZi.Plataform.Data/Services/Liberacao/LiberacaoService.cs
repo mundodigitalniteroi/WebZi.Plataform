@@ -2,11 +2,11 @@ using AutoMapper;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using System.Data;
 using System.Globalization;
 using System.Text;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using WebZi.Plataform.CrossCutting.Configuration;
 using WebZi.Plataform.CrossCutting.Date;
 using WebZi.Plataform.CrossCutting.Documents;
@@ -24,6 +24,7 @@ using WebZi.Plataform.Data.Services.Faturamento;
 using WebZi.Plataform.Data.Services.LiberacaoEspecial;
 using WebZi.Plataform.Data.Services.Localizacao;
 using WebZi.Plataform.Data.Services.Report;
+using WebZi.Plataform.Data.Services.Transalvador;
 using WebZi.Plataform.Data.Services.WebServices;
 using WebZi.Plataform.Domain.DTO.Generic;
 using WebZi.Plataform.Domain.DTO.Liberacao;
@@ -42,6 +43,8 @@ using WebZi.Plataform.Domain.Options;
 using WebZi.Plataform.Domain.Services.GRV;
 using WebZi.Plataform.Domain.ViewModel.Atendimento;
 using WebZi.Plataform.Domain.ViewModel.Liberacao;
+using WebZi.Plataform.Domain.ViewModel.Transalvador.Liberacao;
+using WebZi.Plataform.Domain.Views.Faturamento;
 using WebZi.Plataform.Domain.Views.Usuario;
 using Z.EntityFramework.Plus;
 
@@ -54,6 +57,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IServiceProvider _provider;
         private readonly IOptions<WSNfseOptions> _options;
+        private const int ClienteTransalvadorId = 48;
 
         public LiberacaoService(AppDbContext context)
         {
@@ -120,6 +124,13 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.GrvId == GrvId);
 
+            if (Grv == null)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest(MensagemPadraoEnum.NaoEncontradoGrv);
+
+                return ResultView;
+            }
+
             if (Grv.StatusOperacaoId is not "R" and not "T" and not "E" and not "U" and not "7")
             {
                 ResultView.Mensagem = MensagemViewHelper
@@ -143,28 +154,37 @@ namespace WebZi.Plataform.Data.Services.Liberacao
             GuiaPagamentoReboqueEstadiaDTO GuiaPagamentoReboqueEstadia = null;
             if (FaturamentoId.HasValue && FaturamentoId.Value > 0)
             {
-                GuiaPagamentoReboqueEstadia = await new GuiaPagamentoReboqueEstadiaService(_context, _mapper, _httpClientFactory)
-                    .GetGuiaPagamentoReboqueEstadiaAsync(FaturamentoId.Value, UsuarioId, true);
+                try
+                {
+                    GuiaPagamentoReboqueEstadia =
+                        await new GuiaPagamentoReboqueEstadiaService(_context, _mapper, _httpClientFactory)
+                            .GetGuiaPagamentoReboqueEstadiaAsync(FaturamentoId.Value, UsuarioId, true);
+                }
+                catch
+                {
+                    GuiaPagamentoReboqueEstadia = null;
+                }
             }
 
             var prazo = GuiaPagamentoReboqueEstadia?.PrazoRetiradaVeiculo;
 
             var prazoFormatado = !string.IsNullOrEmpty(prazo) && prazo.Length >= 10
                 ? prazo.Substring(0, 10)
-                : prazo ?? "";
+                : prazo ?? string.Empty;
 
             ResultView.IdentificadorProcesso = Grv.GrvId;
 
             ResultView.NumeroProcesso = Grv.NumeroFormularioGrv;
 
-            ResultView.ClienteNome = GuiaPagamentoReboqueEstadia?.ClienteNome ?? Grv.Cliente?.Nome ?? "";
+            ResultView.ClienteNome = GuiaPagamentoReboqueEstadia?.ClienteNome ?? Grv.Cliente?.Nome ?? string.Empty;
 
-            ResultView.ClienteEndereco = GuiaPagamentoReboqueEstadia?.ClienteEndereco ?? "";
+            ResultView.ClienteEndereco = GuiaPagamentoReboqueEstadia?.ClienteEndereco ?? string.Empty;
 
             ResultView.DadosCodigoAutorizacao = "Link para validação";
 
-            string depositoNome = GuiaPagamentoReboqueEstadia?.DepositoNome ?? Grv.Deposito?.Nome ?? "";
-            string numFormulario = GuiaPagamentoReboqueEstadia?.NumeroFormularioGrv ?? Grv.NumeroFormularioGrv ?? "";
+            string depositoNome = GuiaPagamentoReboqueEstadia?.DepositoNome ?? Grv.Deposito?.Nome ?? string.Empty;
+            string numFormulario = GuiaPagamentoReboqueEstadia?.NumeroFormularioGrv ??
+                                   Grv.NumeroFormularioGrv ?? string.Empty;
 
             ResultView.DadosProcessoGrv = "Dados do Processo Processo: " +
                                           numFormulario + " - " + "Depósito: " +
@@ -172,16 +192,18 @@ namespace WebZi.Plataform.Data.Services.Liberacao
 
             ResultView.DadosTipoProcesso = "REGISTRO DE APREENSÃO";
 
-            string reboquePlaca = GuiaPagamentoReboqueEstadia?.ReboquePlaca ?? Grv.Reboque?.Placa ?? "";
+            string reboquePlaca = GuiaPagamentoReboqueEstadia?.ReboquePlaca ?? Grv.Reboque?.Placa ?? string.Empty;
             ResultView.DadosReboque = !string.IsNullOrWhiteSpace(reboquePlaca)
                 ? VeiculoHelper.FormatPlaca(reboquePlaca)
                 : string.Empty;
 
-            string dataHoraGuardaStr = GuiaPagamentoReboqueEstadia?.DataHoraGuarda ?? (Grv.DataHoraGuarda != null ? DateTimeHelper.FormatDateTime(Grv.DataHoraGuarda, DateTimeHelper.DateTimeFormat.DateTimeFormatted) : "");
+            string dataHoraGuardaStr = GuiaPagamentoReboqueEstadia?.DataHoraGuarda ?? (Grv.DataHoraGuarda != null
+                ? DateTimeHelper.FormatDateTime(Grv.DataHoraGuarda, DateTimeHelper.DateTimeFormat.DateTimeFormatted)
+                : string.Empty);
 
-            ResultView.DadosDataEntrada = dataHoraGuardaStr.Left(10);
+            ResultView.DadosDataEntrada = dataHoraGuardaStr.Left(10) ?? string.Empty;
 
-            ResultView.DadosHoraEntrada = dataHoraGuardaStr.Right(5);
+            ResultView.DadosHoraEntrada = dataHoraGuardaStr.Right(5) ?? string.Empty;
 
             int qtdEstadias = GuiaPagamentoReboqueEstadia?.QuantidadeEstadias ?? 0;
             ResultView.DadosPermanencia = qtdEstadias == 1
@@ -197,19 +219,21 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                 DateTimeHelper.DateTimeFormat.DateTimeFormatted);
 
 
-            ResultView.VeiculoTipo = Grv.TipoVeiculo?.Descricao ?? "";
+            ResultView.VeiculoTipo = Grv.TipoVeiculo?.Descricao ?? string.Empty;
 
-            ResultView.VeiculoMarcaModelo = GuiaPagamentoReboqueEstadia?.MarcaModelo ?? Grv.MarcaModelo?.MarcaModelo ?? "";
+            ResultView.VeiculoMarcaModelo = GuiaPagamentoReboqueEstadia?.MarcaModelo ??
+                                            Grv.MarcaModelo?.MarcaModelo ?? string.Empty;
 
-            ResultView.VeiculoPlaca = VeiculoHelper.FormatPlaca(GuiaPagamentoReboqueEstadia?.Placa ?? Grv.Placa ?? "");
+            ResultView.VeiculoPlaca =
+                VeiculoHelper.FormatPlaca(GuiaPagamentoReboqueEstadia?.Placa ?? Grv.Placa ?? string.Empty);
 
-            ResultView.VeiculoRenavam = GuiaPagamentoReboqueEstadia?.Renavam ?? Grv.Renavam ?? "";
+            ResultView.VeiculoRenavam = GuiaPagamentoReboqueEstadia?.Renavam ?? Grv.Renavam ?? string.Empty;
 
-            ResultView.VeiculoChassi = GuiaPagamentoReboqueEstadia?.Chassi ?? Grv.Chassi ?? "";
+            ResultView.VeiculoChassi = GuiaPagamentoReboqueEstadia?.Chassi ?? Grv.Chassi ?? string.Empty;
 
-            ResultView.VeiculoCor = GuiaPagamentoReboqueEstadia?.Cor  ?? "";
+            ResultView.VeiculoCor = GuiaPagamentoReboqueEstadia?.Cor ?? "";
 
-            string depositoEndereco = GuiaPagamentoReboqueEstadia?.DepositoEndereco ?? "";
+            string depositoEndereco = GuiaPagamentoReboqueEstadia?.DepositoEndereco ?? string.Empty;
 
             ResultView.TextoApresentacao =
                 "Este documento deverá ser apresentado no Depósito de Veículos localizado no endereço " +
@@ -217,15 +241,24 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                 prazoFormatado +
                 ", para que a retirada do veículo seja autorizada. A não apresentação até a data informada acarretará na cobrança de estadias adicionais.";
 
-            string respNome = GuiaPagamentoReboqueEstadia?.AtendimentoResponsavelNome ?? Grv.Atendimento?.ResponsavelNome ?? "Não informado";
-            string respDoc = GuiaPagamentoReboqueEstadia?.AtendimentoResponsavelDocumento ?? Grv.Atendimento?.ResponsavelDocumento ?? "Não informado";
-            string veicPlacaFormatada = VeiculoHelper.FormatPlaca(GuiaPagamentoReboqueEstadia?.Placa ?? Grv.Placa ?? "");
-            string veicMarcaModeloStr = GuiaPagamentoReboqueEstadia?.MarcaModelo ?? Grv.MarcaModelo?.MarcaModelo ?? "";
-            string veicCorStr = GuiaPagamentoReboqueEstadia?.Cor ?? Grv.Cor?.Cor ?? "";
+            string respNome = GuiaPagamentoReboqueEstadia?.AtendimentoResponsavelNome ??
+                              Grv.Atendimento?.ResponsavelNome ?? "Não informado";
+            string respDoc = GuiaPagamentoReboqueEstadia?.AtendimentoResponsavelDocumento ??
+                             (!string.IsNullOrWhiteSpace(Grv.Atendimento?.ResponsavelDocumento)
+                                 ? DocumentHelper.FormatCPF(Grv.Atendimento.ResponsavelDocumento)
+                                 : "Não informado");
+            string veicPlacaFormatada =
+                VeiculoHelper.FormatPlaca(GuiaPagamentoReboqueEstadia?.Placa ?? Grv.Placa ?? string.Empty);
+            string veicMarcaModeloStr =
+                GuiaPagamentoReboqueEstadia?.MarcaModelo ?? Grv.MarcaModelo?.MarcaModelo ?? string.Empty;
+            string veicCorStr = GuiaPagamentoReboqueEstadia?.Cor ?? Grv.Cor?.Cor ?? string.Empty;
+
+            string dataEntradaSafe = dataHoraGuardaStr.Left(10) ?? string.Empty;
+            string horaEntradaSafe = dataHoraGuardaStr.Right(5) ?? string.Empty;
 
             ResultView.TextoDeclaracaoRetirada1 =
                 $@"Eu {respNome}, portador do CPF {respDoc}, declaro que no dia {DateTime.Now.ToString("dd 'de' MMMM 'de' yyyy", CultureInfo.GetCultureInfo("pt-BR"))}, " +
-                $"recebi do depósito {depositoNome} o veículo de placa {veicPlacaFormatada}, Marca/Modelo {veicMarcaModeloStr}, Cor {veicCorStr}, recolhido às {dataHoraGuardaStr.Right(5)} do dia {dataHoraGuardaStr.Left(10)}, " +
+                $"recebi do depósito {depositoNome} o veículo de placa {veicPlacaFormatada}, Marca/Modelo {veicMarcaModeloStr}, Cor {veicCorStr}, recolhido às {horaEntradaSafe} do dia {dataEntradaSafe}, " +
                 $"no endereco {depositoEndereco}";
 
             ResultView.TextoDeclaracaoRetirada2 =
@@ -273,14 +306,18 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                 {
                     ResultView.AtendimentoFormaLiberacao = "Condutor habilitado";
                     ResultView.AtendimentoFormaLiberacaoCpfPlaca =
-                        DocumentHelper.FormatCPF(GuiaPagamentoReboqueEstadia.AtendimentoFormaLiberacaoCPF);
+                        !string.IsNullOrWhiteSpace(GuiaPagamentoReboqueEstadia.AtendimentoFormaLiberacaoCPF)
+                            ? DocumentHelper.FormatCPF(GuiaPagamentoReboqueEstadia.AtendimentoFormaLiberacaoCPF)
+                            : string.Empty;
                     ResultView.LabelAtendimentoFormaLiberacaoCpfPlaca = "CPF:";
                 }
                 else if (GuiaPagamentoReboqueEstadia.AtendimentoFormaLiberacao == "R")
                 {
                     ResultView.AtendimentoFormaLiberacao = "Reboque";
                     ResultView.AtendimentoFormaLiberacaoCpfPlaca =
-                        VeiculoHelper.FormatPlaca(GuiaPagamentoReboqueEstadia.AtendimentoFormaLiberacaoPlaca);
+                        !string.IsNullOrWhiteSpace(GuiaPagamentoReboqueEstadia.AtendimentoFormaLiberacaoPlaca)
+                            ? VeiculoHelper.FormatPlaca(GuiaPagamentoReboqueEstadia.AtendimentoFormaLiberacaoPlaca)
+                            : string.Empty;
                     ResultView.LabelAtendimentoFormaLiberacaoCpfPlaca = "Placa:";
                 }
                 else
@@ -288,6 +325,34 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                     ResultView.AtendimentoFormaLiberacao = "Não informado";
                     ResultView.AtendimentoFormaLiberacaoNome = "Não informado";
                     ResultView.AtendimentoFormaLiberacaoCNH = "Não informado";
+                }
+            }
+            else if (Grv.Atendimento != null)
+            {
+                ResultView.AtendimentoFormaLiberacaoNome = Grv.Atendimento.FormaLiberacaoNome ?? "Não informado";
+                ResultView.AtendimentoFormaLiberacaoCNH = Grv.Atendimento.FormaLiberacaoCNH ?? "Não informado";
+
+                if (Grv.Atendimento.FormaLiberacao == "C")
+                {
+                    ResultView.AtendimentoFormaLiberacao = "Condutor habilitado";
+                    ResultView.AtendimentoFormaLiberacaoCpfPlaca =
+                        !string.IsNullOrWhiteSpace(Grv.Atendimento.FormaLiberacaoCPF)
+                            ? DocumentHelper.FormatCPF(Grv.Atendimento.FormaLiberacaoCPF)
+                            : string.Empty;
+                    ResultView.LabelAtendimentoFormaLiberacaoCpfPlaca = "CPF:";
+                }
+                else if (Grv.Atendimento.FormaLiberacao == "R")
+                {
+                    ResultView.AtendimentoFormaLiberacao = "Reboque";
+                    ResultView.AtendimentoFormaLiberacaoCpfPlaca =
+                        !string.IsNullOrWhiteSpace(Grv.Atendimento.FormaLiberacaoPlaca)
+                            ? VeiculoHelper.FormatPlaca(Grv.Atendimento.FormaLiberacaoPlaca)
+                            : string.Empty;
+                    ResultView.LabelAtendimentoFormaLiberacaoCpfPlaca = "Placa:";
+                }
+                else
+                {
+                    ResultView.AtendimentoFormaLiberacao = "Não informado";
                 }
             }
             else
@@ -300,10 +365,13 @@ namespace WebZi.Plataform.Data.Services.Liberacao
             #endregion FORMA DE LIBERAÇÃO
 
             // LOGOMARCA
-            ImageListDTO Listagem = await new ClienteService(_context, _mapper, _httpClientFactory)
-                .GetLogomarcaAsync(Grv.ClienteId);
+            if (Grv.ClienteId > 0)
+            {
+                ImageListDTO Listagem = await new ClienteService(_context, _mapper, _httpClientFactory)
+                    .GetLogomarcaAsync(Grv.ClienteId);
 
-            ResultView.Logo = Listagem?.Listagem?.FirstOrDefault()?.Imagem;
+                ResultView.Logo = Listagem?.Listagem?.FirstOrDefault()?.Imagem;
+            }
 
             string key = AppSettingsHelper.GetValue("Segredo", "QRCode");
 
@@ -492,7 +560,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
             }
             else if (Grv.StatusOperacaoId == "E")
             {
-                if (DateTime.Now.Date > Grv.Liberacao.DataCadastro.Date)
+                if (Grv.Liberacao?.DataCadastro != null && DateTime.Now.Date > Grv.Liberacao.DataCadastro.Date)
                 {
                     ResultView.Mensagem.Alertas.Add(
                         $"Este Processo foi entregue em {Grv.Liberacao.DataCadastro:dd/MM/yyyy}");
@@ -501,58 +569,85 @@ namespace WebZi.Plataform.Data.Services.Liberacao
 
             string EnderecoDeposito = string.Empty;
 
-            if (Grv.Deposito.Endereco != null)
+            if (Grv.Deposito != null)
             {
-                EnderecoDeposito = new EnderecoService(_context, _mapper)
-                    .FormatarEndereco(Grv.Deposito.Endereco, Grv.Deposito.NumeroEndereco,
-                        Grv.Deposito.ComplementoEndereco);
-            }
-            else
-            {
-                BairroModel Bairro = new();
-
-                if (Grv.Deposito.BairroId != null)
+                if (Grv.Deposito.Endereco != null)
                 {
-                    Bairro = await _context.Bairro
-                        .Include(x => x.Municipio)
-                        .AsNoTracking()
-                        .FirstOrDefaultAsync(x => x.BairroId == Grv.Deposito.BairroId);
-
                     EnderecoDeposito = new EnderecoService(_context, _mapper)
-                        .FormatarEndereco(string.Empty,
-                            Grv.Deposito.Logradouro,
-                            Grv.Deposito.NumeroEndereco,
-                            Grv.Deposito.ComplementoEndereco,
-                            Bairro.NomePtbr,
-                            Bairro.Municipio.NomePtbr,
-                            Bairro.Municipio.UF);
+                        .FormatarEndereco(Grv.Deposito.Endereco, Grv.Deposito.NumeroEndereco,
+                            Grv.Deposito.ComplementoEndereco);
                 }
                 else
                 {
-                    EnderecoDeposito = new EnderecoService(_context, _mapper)
-                        .FormatarEndereco(string.Empty,
-                            Grv.Deposito.Logradouro,
-                            Grv.Deposito.NumeroEndereco,
-                            Grv.Deposito.ComplementoEndereco,
-                            string.Empty,
-                            string.Empty,
-                            string.Empty);
+                    BairroModel Bairro = null;
+
+                    if (Grv.Deposito.BairroId != null)
+                    {
+                        Bairro = await _context.Bairro
+                            .Include(x => x.Municipio)
+                            .AsNoTracking()
+                            .FirstOrDefaultAsync(x => x.BairroId == Grv.Deposito.BairroId);
+                    }
+
+                    if (Bairro != null)
+                    {
+                        EnderecoDeposito = new EnderecoService(_context, _mapper)
+                            .FormatarEndereco(string.Empty,
+                                Grv.Deposito.Logradouro,
+                                Grv.Deposito.NumeroEndereco,
+                                Grv.Deposito.ComplementoEndereco,
+                                Bairro.NomePtbr,
+                                Bairro.Municipio?.NomePtbr,
+                                Bairro.Municipio?.UF);
+                    }
+                    else
+                    {
+                        EnderecoDeposito = new EnderecoService(_context, _mapper)
+                            .FormatarEndereco(string.Empty,
+                                Grv.Deposito.Logradouro,
+                                Grv.Deposito.NumeroEndereco,
+                                Grv.Deposito.ComplementoEndereco,
+                                string.Empty,
+                                string.Empty,
+                                string.Empty);
+                    }
                 }
+            }
+
+            string respNome = Grv.Atendimento?.ResponsavelNome;
+            string respDoc = Grv.Atendimento?.ResponsavelDocumento;
+            string docFormatado = string.Empty;
+
+            if (!string.IsNullOrWhiteSpace(respDoc))
+            {
+                docFormatado = respDoc.Length == 11
+                    ? DocumentHelper.FormatCPF(respDoc)
+                    : DocumentHelper.FormatCNPJ(respDoc);
+            }
+
+            string usuarioResponsavel = null;
+            if (Grv.Atendimento?.UsuarioCadastroId != null && Grv.Atendimento.UsuarioCadastroId > 0)
+            {
+                usuarioResponsavel = await _context.Usuario
+                    .Where(x => x.UsuarioId == Grv.Atendimento.UsuarioCadastroId)
+                    .Select(x => x.Login)
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync();
             }
 
             ResultView = new()
             {
                 IdentificadorProcesso = splitted[0].ToInt(),
 
-                Cliente = Grv.Cliente.Nome,
+                Cliente = Grv.Cliente?.Nome,
 
-                Deposito = Grv.Deposito.Nome,
+                Deposito = Grv.Deposito?.Nome,
 
                 EnderecoDeposito = EnderecoDeposito,
 
                 NumeroProcesso = Grv.NumeroFormularioGrv,
 
-                DataHoraGuarda = Grv.DataHoraGuarda.Value,
+                DataHoraGuarda = Grv.DataHoraGuarda ?? DateTime.MinValue,
 
                 Placa = Grv.Placa,
 
@@ -560,11 +655,11 @@ namespace WebZi.Plataform.Data.Services.Liberacao
 
                 Renavam = Grv.Renavam,
 
-                TipoVeiculo = Grv.TipoVeiculo.Descricao,
+                TipoVeiculo = Grv.TipoVeiculo?.Descricao,
 
-                MarcaModelo = Grv.MarcaModelo.MarcaModelo,
+                MarcaModelo = Grv.MarcaModelo?.MarcaModelo,
 
-                Cor = Grv.Cor.CorSecundaria,
+                Cor = Grv.Cor?.CorSecundaria ?? Grv.Cor?.Cor,
 
                 Setor = Grv.EstacionamentoSetor,
 
@@ -574,47 +669,44 @@ namespace WebZi.Plataform.Data.Services.Liberacao
 
                 DataHoraAutorizacaoRetirada = DateTime.Now,
 
-                UsuarioResponsavelAtendimento = await _context.Usuario
-                    .Where(x => x.UsuarioId == Grv.Atendimento.UsuarioCadastroId)
-                    .Select(x => x.Login)
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(),
+                UsuarioResponsavelAtendimento = usuarioResponsavel,
 
-                PessoaResponsavelLiberacao = Grv.Atendimento.ResponsavelNome.Trim(),
+                PessoaResponsavelLiberacao = respNome?.Trim(),
 
-                DocumentoPessoaResponsavelLiberacao = Grv.Atendimento.ResponsavelDocumento.Length == 11
-                    ? DocumentHelper.FormatCPF(Grv.Atendimento.ResponsavelDocumento)
-                    : DocumentHelper.FormatCNPJ(Grv.Atendimento.ResponsavelDocumento),
+                DocumentoPessoaResponsavelLiberacao = docFormatado,
 
-                ResponsavelNome = Grv.Atendimento.ResponsavelNome,
+                ResponsavelNome = respNome,
 
-                ResponsavelCPF = DocumentHelper.FormatCPF(Grv.Atendimento.ResponsavelDocumento),
+                ResponsavelCPF = !string.IsNullOrWhiteSpace(respDoc) ? DocumentHelper.FormatCPF(respDoc) : null,
 
-                ResponsavelCNH = Grv.Atendimento.ResponsavelCnh,
+                ResponsavelCNH = Grv.Atendimento?.ResponsavelCnh,
 
-                FormaLiberacaoCNH = Grv.Atendimento.FormaLiberacaoCNH,
+                FormaLiberacaoCNH = Grv.Atendimento?.FormaLiberacaoCNH,
 
-                FormaLiberacaoCPF = Grv.Atendimento.FormaLiberacaoCPF,
+                FormaLiberacaoCPF = Grv.Atendimento?.FormaLiberacaoCPF,
 
-                FormaLiberacaoPlaca = Grv.Atendimento.FormaLiberacaoPlaca,
+                FormaLiberacaoPlaca = Grv.Atendimento?.FormaLiberacaoPlaca,
 
                 Mensagem = MensagemViewHelper.SetOk()
             };
 
-            if (Grv.Atendimento.FormaLiberacao != null)
+            if (Grv.Atendimento != null)
             {
-                if (Grv.Atendimento.FormaLiberacao.Equals("C"))
+                if (Grv.Atendimento.FormaLiberacao != null)
                 {
-                    ResultView.FormaLiberacao = "Condutor Habilitado";
+                    if (Grv.Atendimento.FormaLiberacao.Equals("C"))
+                    {
+                        ResultView.FormaLiberacao = "Condutor Habilitado";
+                    }
+                    else
+                    {
+                        ResultView.FormaLiberacao = "Reboque";
+                    }
                 }
                 else
                 {
-                    ResultView.FormaLiberacao = "Reboque";
+                    ResultView.FormaLiberacao = "Especial";
                 }
-            }
-            else
-            {
-                ResultView.FormaLiberacao = "Especial";
             }
 
             if (Grv.ListagemLacre?.Count > 0)
@@ -627,14 +719,17 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                     .ToList());
             }
 
-            ImageListDTO FotoResponsavel = await new AtendimentoService(_context, _mapper, _httpClientFactory)
-                .GetFotoResponsavelAsync(Grv.Atendimento.AtendimentoId, UsuarioId);
-
-            if (FotoResponsavel.Listagem?.Count > 0)
+            if (Grv.Atendimento != null)
             {
-                ResultView.FotoResponsavel = FotoResponsavel.Listagem
-                    .FirstOrDefault()
-                    .Imagem;
+                ImageListDTO FotoResponsavel = await new AtendimentoService(_context, _mapper, _httpClientFactory)
+                    .GetFotoResponsavelAsync(Grv.Atendimento.AtendimentoId, UsuarioId);
+
+                if (FotoResponsavel?.Listagem?.Count > 0)
+                {
+                    ResultView.FotoResponsavel = FotoResponsavel.Listagem
+                        .FirstOrDefault()?
+                        .Imagem;
+                }
             }
 
             return ResultView;
@@ -663,41 +758,59 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.GrvId == Parameters.IdentificadorProcesso);
 
-            if (Grv.StatusOperacao.StatusOperacaoId != "T" && Grv.StatusOperacao.StatusOperacaoId != "U" &&
-                Grv.StatusOperacao.StatusOperacaoId != "R")
+            if (Grv is null)
+                return MensagemViewHelper.SetNotFound("Processo não encontrado");
+
+            if (Parameters.IdentificadorTipoLiberacao == 3)
             {
-                return MensagemViewHelper.SetBadRequest(
-                    $"O Status atual deste Processo não permite o cadastro da Entrega. " +
-                    $"Descrição do Status atual: {Grv.StatusOperacao.Descricao.ToUpper()}");
+                if (Grv.StatusOperacao.StatusOperacaoId != "3")
+                {
+                    return MensagemViewHelper.SetBadRequest(
+                        $"O Status atual deste Processo não permite o cadastro da Entrega de Leilão. " +
+                        $"Descrição do Status atual: {Grv.StatusOperacao.Descricao.ToUpper()}");
+                }
+            }
+            else
+            {
+                if (Grv.StatusOperacao.StatusOperacaoId != "T" && Grv.StatusOperacao.StatusOperacaoId != "U" &&
+                    Grv.StatusOperacao.StatusOperacaoId != "R")
+                {
+                    return MensagemViewHelper.SetBadRequest(
+                        $"O Status atual deste Processo não permite o cadastro da Entrega. " +
+                        $"Descrição do Status atual: {Grv.StatusOperacao.Descricao.ToUpper()}");
+                }
             }
 
-            List<FaturamentoModel> Faturamentos = await _context.Faturamento
-                .Include(x => x.Atendimento)
-                .Where(x => x.Atendimento.GrvId == Parameters.IdentificadorProcesso && x.Status != "C")
-                .AsNoTracking()
-                .ToListAsync();
-
-            if (Faturamentos == null)
+            if (Parameters.IdentificadorTipoLiberacao != 3)
             {
-                return MensagemViewHelper.SetNotFound(MensagemPadraoEnum.NaoEncontradoFaturamento);
-            }
+                List<FaturamentoModel> Faturamentos = await _context.Faturamento
+                    .Include(x => x.Atendimento)
+                    .Where(x => x.Atendimento.GrvId == Parameters.IdentificadorProcesso && x.Status != "C")
+                    .AsNoTracking()
+                    .ToListAsync();
 
-            if (Faturamentos.Exists(x => x.Status == "N"))
-            {
-                return MensagemViewHelper.SetBadRequest($"Este Processo possui uma Fatura não paga");
-            }
+                if (Faturamentos == null)
+                {
+                    return MensagemViewHelper.SetNotFound(MensagemPadraoEnum.NaoEncontradoFaturamento);
+                }
 
-            DateTime DataHoraPorDeposito = new DepositoService(_context)
-                .GetDataHoraPorDeposito(Grv.DepositoId);
+                if (Faturamentos.Exists(x => x.Status == "N"))
+                {
+                    return MensagemViewHelper.SetBadRequest($"Este Processo possui uma Fatura não paga");
+                }
 
-            FaturamentoModel UltimoFaturamento = Faturamentos
-                .OrderByDescending(x => x.DataCadastro)
-                .FirstOrDefault();
+                DateTime DataHoraPorDeposito = new DepositoService(_context)
+                    .GetDataHoraPorDeposito(Grv.DepositoId);
 
-            if (UltimoFaturamento.DataPrazoRetiradaVeiculo.Value.Date < DataHoraPorDeposito.Date)
-            {
-                return MensagemViewHelper.SetBadRequest(
-                    $"O prazo para a Entrega do veículo está vencida ({UltimoFaturamento.DataPrazoRetiradaVeiculo.Value.Date:dd/MM/yyyy}), a Entrega não poderá ser realizada");
+                FaturamentoModel UltimoFaturamento = Faturamentos
+                    .OrderByDescending(x => x.DataCadastro)
+                    .FirstOrDefault();
+
+                if (UltimoFaturamento.DataPrazoRetiradaVeiculo.Value.Date < DataHoraPorDeposito.Date)
+                {
+                    return MensagemViewHelper.SetBadRequest(
+                        $"O prazo para a Entrega do veículo está vencida ({UltimoFaturamento.DataPrazoRetiradaVeiculo.Value.Date:dd/MM/yyyy}), a Entrega não poderá ser realizada");
+                }
             }
 
             LiberacaoModel Liberacao = new()
@@ -742,12 +855,16 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                             });
                     }
 
+                    string statusDestino = Parameters.IdentificadorTipoLiberacao == 3 ? "7" : "E";
+
                     await _context.Grv
                         .Where(x => x.GrvId == Parameters.IdentificadorProcesso)
                         .UpdateAsync(x => new GrvModel()
                         {
-                            LiberacaoId = Liberacao.LiberacaoId, StatusOperacaoId = "E",
-                            UsuarioAlteracaoId = Parameters.IdentificadorUsuario
+                            LiberacaoId = Liberacao.LiberacaoId,
+                            StatusOperacaoId = statusDestino,
+                            UsuarioAlteracaoId = Parameters.IdentificadorUsuario,
+                            DataAlteracao = DateTime.Now
                         });
 
                     if (Parameters.ResponsavelFoto != null)
@@ -885,50 +1002,111 @@ namespace WebZi.Plataform.Data.Services.Liberacao
             if (TipoLiberacao is null)
                 return MensagemViewHelper.SetBadRequest("Não existe esse tipo de liberação");
 
-            GrvModel Grv = await _context.Grv
-                .Include(x => x.StatusOperacao)
-                .Include(x => x.Atendimento)
-                .ThenInclude(x => x.ListagemFaturamento.Where(x => x.Status != "C"))
+            var atendimento = await _context.Atendimento
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.GrvId == Parameters.IdentificadorProcesso, cancellationToken: ct);
+                .Where(x => x.GrvId == Parameters.IdentificadorProcesso)
+                .Select(x => new
+                {
+                    Grv = new GrvModel
+                    {
+                        GrvId = x.Grv.GrvId,
+                        ClienteId = x.Grv.ClienteId,
+                        DepositoId = x.Grv.DepositoId,
+                        StatusOperacaoId = x.Grv.StatusOperacaoId,
+                        IdEntradaTransalvador = x.Grv.IdEntradaTransalvador,
+                        StatusOperacao = new StatusOperacaoModel
+                        {
+                            StatusOperacaoId = x.Grv.StatusOperacao.StatusOperacaoId,
+                            Descricao = x.Grv.StatusOperacao.Descricao
+                        }
+                    },
+                    Faturamentos = x.ListagemFaturamento
+                        .Where(f => f.Status != "C")
+                        .OrderByDescending(f => f.DataCadastro)
+                        .Select(f => new FaturamentoModel
+                        {
+                            FaturamentoId = f.FaturamentoId,
+                            Status = f.Status,
+                            DataCadastro = f.DataCadastro,
+                            DataPrazoRetiradaVeiculo = f.DataPrazoRetiradaVeiculo,
+                            ValorFaturado = f.ValorFaturado,
+                            ListagemFaturamentoComposicao = f.ListagemFaturamentoComposicao.Select(c =>
+                                new FaturamentoComposicaoModel
+                                {
+                                    ValorComposicao = c.ValorComposicao,
+                                    ValorDesconto = c.ValorDesconto,
+                                    QuantidadeComposicao = c.QuantidadeComposicao,
+                                    TipoComposicao = c.TipoComposicao,
+                                    FaturamentoServicoTipoVeiculo = new FaturamentoServicoTipoVeiculoModel
+                                    {
+                                        FaturamentoServicoAssociado = new FaturamentoServicoAssociadoModel
+                                        {
+                                            FaturamentoServicoTipoId = c.FaturamentoServicoTipoVeiculo
+                                                .FaturamentoServicoAssociado.FaturamentoServicoTipoId
+                                        }
+                                    }
+                                }).ToList()
+                        }).ToList()
+                })
+                .FirstOrDefaultAsync(cancellationToken: ct);
+
+            var Grv = atendimento?.Grv;
+
+            if (Grv is null)
+                return MensagemViewHelper.SetNotFound("Processo não encontrado");
 
             var permitirEmissao = await _context.FaturamentoRegra
                 .AnyAsync(x =>
                     x.ClienteId == Grv.ClienteId && x.DepositoId == Grv.DepositoId &&
                     x.FaturamentoRegraTipoId == 11, cancellationToken: ct);
 
-            if (Grv.StatusOperacao.StatusOperacaoId != "T" && Grv.StatusOperacao.StatusOperacaoId != "U" &&
-                Grv.StatusOperacao.StatusOperacaoId != "R")
+            if (Parameters.IdentificadorTipoLiberacao == 3)
             {
-                return MensagemViewHelper.SetBadRequest(
-                    $"O Status atual deste Processo não permite o cadastro da Entrega. " +
-                    $"Descrição do Status atual: {Grv.StatusOperacao.Descricao.ToUpper()}");
-            }
-
-            List<FaturamentoModel> Faturamentos =
-                Grv.Atendimento?.ListagemFaturamento.OrderByDescending(x => x.DataCadastro).ToList();
-
-            if (Faturamentos == null || !Faturamentos.Any())
-            {
-                return MensagemViewHelper.SetNotFound(MensagemPadraoEnum.NaoEncontradoFaturamento);
-            }
-
-            if (Faturamentos.Exists(x => x.Status == "N"))
-            {
-                return MensagemViewHelper.SetBadRequest("Este Processo possui uma Fatura não paga");
-            }
-
-            DateTime DataHoraPorDeposito = new DepositoService(_context)
-                .GetDataHoraPorDeposito(Grv.DepositoId);
-
-            FaturamentoModel UltimoFaturamento = Faturamentos
-                .FirstOrDefault();
-
-            if(Grv.StatusOperacaoId != "R"){
-                if (UltimoFaturamento.DataPrazoRetiradaVeiculo.Value.Date < DataHoraPorDeposito.Date)
+                if (Grv.StatusOperacao.StatusOperacaoId != "3" && Grv.StatusOperacao.StatusOperacaoId != "6" &&
+                    Grv.StatusOperacao.StatusOperacaoId != "2")
                 {
                     return MensagemViewHelper.SetBadRequest(
-                        $"O prazo para a Entrega do veículo está vencida ({UltimoFaturamento.DataPrazoRetiradaVeiculo.Value.Date:dd/MM/yyyy}), a Entrega não poderá ser realizada");
+                        $"O Status atual deste Processo não permite o cadastro da Entrega de Leilão. " +
+                        $"Descrição do Status atual: {Grv.StatusOperacao.Descricao.ToUpper()}");
+                }
+            }
+            else
+            {
+                if (Grv.StatusOperacao.StatusOperacaoId != "T" && Grv.StatusOperacao.StatusOperacaoId != "U" &&
+                    Grv.StatusOperacao.StatusOperacaoId != "R")
+                {
+                    return MensagemViewHelper.SetBadRequest(
+                        $"O Status atual deste Processo não permite o cadastro da Entrega. " +
+                        $"Descrição do Status atual: {Grv.StatusOperacao.Descricao.ToUpper()}");
+                }
+            }
+
+            List<FaturamentoModel> Faturamentos = atendimento?.Faturamentos;
+
+            FaturamentoModel UltimoFaturamento = Faturamentos?.FirstOrDefault();
+
+            if (Parameters.IdentificadorTipoLiberacao != 3)
+            {
+                if (Faturamentos == null || !Faturamentos.Any())
+                {
+                    return MensagemViewHelper.SetNotFound(MensagemPadraoEnum.NaoEncontradoFaturamento);
+                }
+
+                if (Faturamentos.Exists(x => x.Status == "N"))
+                {
+                    return MensagemViewHelper.SetBadRequest("Este Processo possui uma Fatura não paga");
+                }
+
+                DateTime DataHoraPorDeposito = new DepositoService(_context)
+                    .GetDataHoraPorDeposito(Grv.DepositoId);
+
+                if (Grv.StatusOperacaoId != "R")
+                {
+                    if (UltimoFaturamento.DataPrazoRetiradaVeiculo.Value.Date < DataHoraPorDeposito.Date)
+                    {
+                        return MensagemViewHelper.SetBadRequest(
+                            $"O prazo para a Entrega do veículo está vencida ({UltimoFaturamento.DataPrazoRetiradaVeiculo.Value.Date:dd/MM/yyyy}), a Entrega não poderá ser realizada");
+                    }
                 }
             }
 
@@ -964,6 +1142,57 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                     {
                         saidaReparo.DataRetorno = DateTime.Now;
                         saidaReparo.IdUsuario = Parameters.IdentificadorUsuario;
+                    }
+                }
+
+
+                if (Grv.ClienteId == ClienteTransalvadorId && Grv.IdEntradaTransalvador.HasValue)
+                {
+                    var composicoes = UltimoFaturamento?.ListagemFaturamentoComposicao;
+
+                    decimal valorDiaria = (decimal)(composicoes?
+                        .Where(x => x.FaturamentoServicoTipoVeiculo?.FaturamentoServicoAssociado
+                                        ?.FaturamentoServicoTipoId == 1
+                                    || x.TipoComposicao == TipoCobrancaFaturamentoEnum.Diárias)
+                        .Sum(x => x.ValorComposicao));
+
+                    decimal valorGuincho = (decimal)(composicoes?
+                        .Where(x => x.FaturamentoServicoTipoVeiculo?.FaturamentoServicoAssociado
+                            ?.FaturamentoServicoTipoId == 2)
+                        .Sum(x => x.ValorComposicao));
+
+                    int numDias = (int)(composicoes?
+                        .Where(x => x.FaturamentoServicoTipoVeiculo?.FaturamentoServicoAssociado
+                                        ?.FaturamentoServicoTipoId == 1
+                                    || x.TipoComposicao == TipoCobrancaFaturamentoEnum.Diárias)
+                        .Sum(x => x.QuantidadeComposicao));
+
+                    decimal valorDesconto = (decimal)(composicoes?
+                        .Sum(x => x.ValorDesconto));
+
+                    decimal valorTotal = (decimal)UltimoFaturamento?.ValorFaturado;
+
+                    var liberacaoTransalvador = new LiberacaoPatioParameters()
+                    {
+                        Id = Grv.IdEntradaTransalvador.Value,
+                        DataLiberacao = Liberacao.DataCadastro,
+                        ValorDiaria = valorDiaria,
+                        ValorGuincho = valorGuincho,
+                        NumDias = numDias,
+                        Desconto = valorDesconto,
+                        ValorTotal = valorTotal,
+                        TipoLiberacao = Parameters.IdentificadorTipoLiberacao == 1 ? "NORMAL" : "ESPECIAL",
+                        TipoLiberacaoEspecial =
+                            Parameters.IdentificadorTipoLiberacao == 2 ? "SOLICITAÇÃO DO ORGÃO" : null,
+                    };
+
+                    var transalvadorService = _provider.GetRequiredService<TransalvadorService>();
+                    var result = await transalvadorService.LiberacaoVeiculoAsync(liberacaoTransalvador, ct);
+
+                    if (result.HtmlStatusCode is not (HtmlStatusCodeEnum.Created or HtmlStatusCodeEnum.Ok))
+                    {
+                        await transaction.RollbackAsync(ct);
+                        return result;
                     }
                 }
 
@@ -1014,8 +1243,11 @@ namespace WebZi.Plataform.Data.Services.Liberacao
 
         private async Task AtualizarFormaLiberacaoAtendimentoAsync(EntregaParameters parameters, CancellationToken ct)
         {
+            if (!parameters.IdentificadorAtendimento.HasValue || parameters.IdentificadorAtendimento.Value <= 0)
+                return;
+
             await _context.Atendimento
-                .Where(x => x.AtendimentoId == parameters.IdentificadorAtendimento)
+                .Where(x => x.AtendimentoId == parameters.IdentificadorAtendimento.Value)
                 .UpdateAsync(x => new AtendimentoModel()
                 {
                     FormaLiberacao = parameters.FormaLiberacao.FormaLiberacao,
@@ -1039,8 +1271,14 @@ namespace WebZi.Plataform.Data.Services.Liberacao
         {
             if (_options.Value.Enable && permitirEmissao)
             {
-                if (!string.Equals(grv.StatusOperacaoId, "2") && !string.Equals(grv.StatusOperacaoId, "R"))
+                if (!string.Equals(grv.StatusOperacaoId, "2") && !string.Equals(grv.StatusOperacaoId, "3") &&
+                    !string.Equals(grv.StatusOperacaoId, "R"))
                 {
+                    bool jaTemNotaEmitida = await _context.Nfe
+                        .AsNoTracking()
+                        .AnyAsync(x => x.GrvId == grv.GrvId && x.Status != "N", cancellationToken: ct);
+                    if (!jaTemNotaEmitida)
+                        return;
                     await _provider
                         .GetService<WSNfseService>()
                         .CreateNfseAsync(grv.GrvId, usuarioId, ct);
@@ -1051,29 +1289,17 @@ namespace WebZi.Plataform.Data.Services.Liberacao
         private async Task AtualizarStatusGrvEntregaAsync(EntregaParameters parameters, GrvModel grv, int liberacaoId,
             CancellationToken ct)
         {
-            if (string.Equals(grv.StatusOperacaoId, "T") || string.Equals(grv.StatusOperacaoId, "R") ||
-                string.Equals(grv.StatusOperacaoId, "U"))
-            {
-                await _context.Grv
-                    .Where(x => x.GrvId == parameters.IdentificadorProcesso)
-                    .UpdateAsync(x => new GrvModel()
-                    {
-                        LiberacaoId = liberacaoId,
-                        StatusOperacaoId = "E",
-                        UsuarioAlteracaoId = parameters.IdentificadorUsuario
-                    }, cancellationToken: ct);
-            }
-            else if (string.Equals(grv.StatusOperacaoId, "2") || string.Equals(grv.StatusOperacaoId, "6"))
-            {
-                await _context.Grv
-                    .Where(x => x.GrvId == parameters.IdentificadorProcesso)
-                    .UpdateAsync(x => new GrvModel()
-                    {
-                        LiberacaoId = liberacaoId,
-                        StatusOperacaoId = "7",
-                        UsuarioAlteracaoId = parameters.IdentificadorUsuario
-                    }, cancellationToken: ct);
-            }
+            string statusDestino = parameters.IdentificadorTipoLiberacao == 3 ? "7" : "E";
+
+            await _context.Grv
+                .Where(x => x.GrvId == parameters.IdentificadorProcesso)
+                .UpdateAsync(x => new GrvModel()
+                {
+                    LiberacaoId = liberacaoId,
+                    StatusOperacaoId = statusDestino,
+                    UsuarioAlteracaoId = parameters.IdentificadorUsuario,
+                    DataAlteracao = DateTime.Now
+                }, cancellationToken: ct);
         }
     }
 }

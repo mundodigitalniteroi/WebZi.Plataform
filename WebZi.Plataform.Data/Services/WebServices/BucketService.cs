@@ -278,34 +278,30 @@ namespace WebZi.Plataform.Data.Services.WebServices
                 return ResultView;
             }
 
-            List<BucketArquivoModel> result = await _context.BucketArquivo
+            var result = await _context.BucketArquivo
                 .Include(x => x.BucketNomeTabelaOrigem)
                 .Where(x => x.BucketNomeTabelaOrigem.Codigo == CodigoTabelaOrigem
                             && x.TabelaOrigemId == TabelaOrigemId)
+                .Select(x => new
+                {
+                    x.RepositorioArquivoId,
+                    x.Url,
+                    x.TipoCadastro
+                })
                 .AsNoTracking()
                 .ToListAsync();
 
             if (result?.Count > 0)
             {
-                result = result
+                ResultView.Listagem = result
                     .OrderBy(x => x.RepositorioArquivoId)
-                    .ToList();
-
-                ResultView.Listagem = new();
-
-                HttpClientFactoryService Service = new(_httpClientFactory);
-
-                foreach (BucketArquivoModel BucketArquivo in result)
-                {
-                    ResultView.Listagem.Add(new()
+                    .Select(x => new ImageDTO
                     {
-                        Identificador = BucketArquivo.RepositorioArquivoId,
-
-                        Imagem = await Service.DownloadFileAsync(BucketArquivo.Url),
-
-                        TipoCadastro = BucketArquivo.TipoCadastro
-                    });
-                }
+                        Identificador = x.RepositorioArquivoId,
+                        Imagem = x.Url,
+                        TipoCadastro = x.TipoCadastro
+                    })
+                    .ToList();
             }
 
             if (ResultView.Listagem == null || ResultView.Listagem.Count == 0)
@@ -352,34 +348,30 @@ namespace WebZi.Plataform.Data.Services.WebServices
                 return ResultView;
             }
 
-            List<BucketArquivoModel> result = await _context.BucketArquivo
+            var result = await _context.BucketArquivo
                 .Include(x => x.BucketNomeTabelaOrigem)
                 .Where(x => x.BucketNomeTabelaOrigem.Codigo == CodigoTabelaOrigem
                             && ListagemTabelaOrigemId.Contains(x.TabelaOrigemId))
+                .Select(x => new
+                {
+                    x.RepositorioArquivoId,
+                    x.Url,
+                    x.TipoCadastro
+                })
                 .AsNoTracking()
                 .ToListAsync();
 
             if (result?.Count > 0)
             {
-                result = result
+                ResultView.Listagem = result
                     .OrderBy(x => x.RepositorioArquivoId)
-                    .ToList();
-
-                ResultView.Listagem = new();
-
-                HttpClientFactoryService Service = new(_httpClientFactory);
-
-                foreach (BucketArquivoModel BucketArquivo in result)
-                {
-                    ResultView.Listagem.Add(new()
+                    .Select(x => new ImageDTO
                     {
-                        Identificador = BucketArquivo.RepositorioArquivoId,
-
-                        Imagem = await Service.DownloadFileAsync(BucketArquivo.Url),
-
-                        TipoCadastro = BucketArquivo.TipoCadastro
-                    });
-                }
+                        Identificador = x.RepositorioArquivoId,
+                        Imagem = x.Url,
+                        TipoCadastro = x.TipoCadastro
+                    })
+                    .ToList();
             }
 
             if (ResultView.Listagem == null || ResultView.Listagem.Count == 0)
@@ -416,6 +408,12 @@ namespace WebZi.Plataform.Data.Services.WebServices
             var fotosGgv = await _context.GgvFoto
                 .Where(x => x.IdGrv == idGrv)
                 .OrderByDescending(x => x.DataCadastro)
+                .Select(x => new
+                {
+                    x.IdGrv,
+                    x.Foto,
+                    x.TipoFoto
+                })
                 .AsNoTracking()
                 .ToListAsync();
 
@@ -424,7 +422,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
                 return fotosGgv.Select(x => new ImageDTO
                 {
                     Identificador = x.IdGrv,
-                    Imagem = x.Foto,
+                    Imagem = x.Foto != null ? Convert.ToBase64String(x.Foto) : string.Empty,
                     TipoCadastro = x.TipoFoto
                 }).ToList();
             }
@@ -433,6 +431,12 @@ namespace WebZi.Plataform.Data.Services.WebServices
                 var fotosGrv = await _context.GrvFoto
                     .Where(x => x.IdGrv == idGrv)
                     .OrderByDescending(x => x.DataCadastro)
+                    .Select(x => new
+                    {
+                        x.IdGrv,
+                        x.Foto,
+                        x.TipoFoto
+                    })
                     .AsNoTracking()
                     .ToListAsync();
 
@@ -441,7 +445,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
                     return fotosGrv.Select(x => new ImageDTO
                     {
                         Identificador = x.IdGrv,
-                        Imagem = x.Foto,
+                        Imagem = x.Foto != null ? Convert.ToBase64String(x.Foto) : string.Empty,
                         TipoCadastro = x.TipoFoto
                     }).ToList();
                 }
@@ -462,6 +466,12 @@ namespace WebZi.Plataform.Data.Services.WebServices
             var fotosGgv = await _context.GgvFoto
                 .Where(x => listagemGrvId.Contains(x.IdGrv))
                 .OrderByDescending(x => x.DataCadastro)
+                .Select(x => new
+                {
+                    x.IdGrv,
+                    x.Foto,
+                    x.TipoFoto
+                })
                 .AsNoTracking()
                 .ToListAsync();
 
@@ -470,16 +480,21 @@ namespace WebZi.Plataform.Data.Services.WebServices
                 return fotosGgv.Select(x => new ImageDTO
                 {
                     Identificador = x.IdGrv,
-                    Imagem = x.Foto,
+                    Imagem = x.Foto != null ? Convert.ToBase64String(x.Foto) : string.Empty,
                     TipoCadastro = x.TipoFoto
                 }).ToList();
             }
             else
-
             {
                 var fotosGrv = await _context.GrvFoto
                     .Where(x => listagemGrvId.Contains(x.IdGrv))
                     .OrderByDescending(x => x.DataCadastro)
+                    .Select(x => new
+                    {
+                        x.IdGrv,
+                        x.Foto,
+                        x.TipoFoto
+                    })
                     .AsNoTracking()
                     .ToListAsync();
 
@@ -488,7 +503,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
                     return fotosGrv.Select(x => new ImageDTO
                     {
                         Identificador = x.IdGrv,
-                        Imagem = x.Foto,
+                        Imagem = x.Foto != null ? Convert.ToBase64String(x.Foto) : string.Empty,
                         TipoCadastro = x.TipoFoto
                     }).ToList();
                 }

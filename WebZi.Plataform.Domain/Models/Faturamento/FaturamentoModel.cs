@@ -1,4 +1,6 @@
-﻿using WebZi.Plataform.Domain.Models.Atendimento;
+﻿using System;
+using System.Collections.Generic;
+using WebZi.Plataform.Domain.Models.Atendimento;
 using WebZi.Plataform.Domain.Models.Banco;
 using WebZi.Plataform.Domain.Models.Banco.PIX.Dinamico.Persistencia;
 using WebZi.Plataform.Domain.Models.Banco.PIX.Estatico;
@@ -65,6 +67,7 @@ namespace WebZi.Plataform.Domain.Models.Faturamento
 
         public string FlagPermissaoDataRetroativaFaturamento { get; set; } = "N";
 
+        public string? NumeroDocumentoDat { get; set; }
         public virtual AtendimentoModel Atendimento { get; set; }
 
         public virtual TipoMeioCobrancaModel TipoMeioCobranca { get; set; }

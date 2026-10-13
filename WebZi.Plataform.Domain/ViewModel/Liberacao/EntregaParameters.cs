@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using WebZi.Plataform.Domain.ViewModel.Atendimento;
 
 namespace WebZi.Plataform.Domain.ViewModel.Liberacao
@@ -8,8 +8,7 @@ namespace WebZi.Plataform.Domain.ViewModel.Liberacao
         [Required(ErrorMessage = "Propriedade obrigatória")]
         public int IdentificadorProcesso { get; set; }
 
-        [Required(ErrorMessage = "Propriedade obrigatória")]
-        public int IdentificadorAtendimento { get; set; }
+        public int? IdentificadorAtendimento { get; set; }
 
         [Required(ErrorMessage = "Propriedade obrigatória")]
         public int IdentificadorUsuario { get; set; }
