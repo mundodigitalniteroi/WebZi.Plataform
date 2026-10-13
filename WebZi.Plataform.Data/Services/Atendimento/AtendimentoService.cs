@@ -1915,6 +1915,15 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
                 await AtualizarStatusGrvSaidaReparoAsync(atendimento.Grv.GrvId, parameters.IdentificadorUsuario, ct);
 
+                await _context.Faturamento
+                    .Where(x => x.FaturamentoId == ultimoFaturamentoDados.FaturamentoId)
+                    .UpdateAsync(x => new FaturamentoModel
+                    {
+                        DataPrazoRetiradaVeiculo = parameters.DataPrevisaoRetorno,
+                        UsuarioAlteracaoId = parameters.IdentificadorUsuario,
+                        DataAlteracao = DateTime.Now
+                    }, cancellationToken: ct);
+
                 if (parameters.FlagFaturamentoAdiantado == "S")
                 {
                     GrvModel grv = new()
@@ -2017,6 +2026,17 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                             DataPrevisaoRetorno = parameters.DataPrevisaoRetorno
                         }, cancellationToken: ct);
 
+                    if (ultimoFaturamento != null)
+                    {
+                        await _context.Faturamento
+                            .Where(x => x.FaturamentoId == ultimoFaturamento.FaturamentoId)
+                            .UpdateAsync(x => new FaturamentoModel
+                            {
+                                DataPrazoRetiradaVeiculo = parameters.DataPrevisaoRetorno,
+                                UsuarioAlteracaoId = saidaReparo.IdUsuario,
+                                DataAlteracao = DateTime.Now
+                            }, cancellationToken: ct);
+                    }
 
                     if (parameters.FlagAtualizarFaturamentoAdiantado == "S")
                     {
@@ -2350,6 +2370,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 .Faturar(parametrosCalculo, out _);
 
             novoFaturamento.UsuarioCadastroId = payload.IdentificadorUsuario;
+            novoFaturamento.DataPrazoRetiradaVeiculo = dataFinal;
 
             await _context.Faturamento.AddAsync(novoFaturamento, ct);
         }
