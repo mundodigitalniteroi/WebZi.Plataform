@@ -22,7 +22,8 @@ public class SolicitacaoReboqueController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<SolicitacoesReboqueListDTO>> ListaSolicitacoesParaReboque(short skip, short take,
+    public async Task<ActionResult<SolicitacoesReboqueListDTO>> ListaSolicitacoesParaReboque([FromQuery] short skip,
+        [FromQuery] short take,
         CancellationToken ct)
     {
         SolicitacoesReboqueListDTO ResultView = new();
@@ -44,8 +45,9 @@ public class SolicitacaoReboqueController : ControllerBase
         }
     }
 
-    [HttpGet]
-    public async Task<ActionResult<SelecionarSolicitacaoReboqueDTO>> SelecionarSolicitacaoReboque(int solicitacaoReboqueId,
+    [HttpGet("{solicitacaoReboqueId}/SelecionarSolicitacaoReboque")]
+    public async Task<ActionResult<SelecionarSolicitacaoReboqueDTO>> SelecionarSolicitacaoReboque(
+        int solicitacaoReboqueId,
         CancellationToken ct)
     {
         SelecionarSolicitacaoReboqueDTO ResultView = new();

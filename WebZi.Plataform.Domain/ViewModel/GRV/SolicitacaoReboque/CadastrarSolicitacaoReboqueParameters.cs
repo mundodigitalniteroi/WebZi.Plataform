@@ -6,7 +6,6 @@ public class CadastrarSolicitacaoReboqueParameters
 {
     public int IdentificadorCliente { get; set; }
     public int IdentificadorDeposito { get; set; }
-    public byte IdentificadorTipoSolicitacao { get; set; }
     public byte IdentificadorMotivoApreensao { get; set; }
     public int IdentificadorUsuario { get; set; }
     public string LocalRemocaoEnderecoCompleto { get; set; }
@@ -22,9 +21,9 @@ public class CadastrarSolicitacaoReboqueParameters
     public string? Renavam { get; set; }
     public string? VeiculoUF { get; set; }
 
-    public int? IdentificadorAutoridadeResponsavel { get; set; }
-    public string? MatriculaAutoridadeResponsavel { get; set; }
-    public string? NomeAutoridadeResponsavel { get; set; }
+    public int IdentificadorAutoridadeResponsavel { get; set; }
+    public string MatriculaAgenteResponsavel { get; set; }
+    public string? NomeAgenteResponsavel { get; set; }
 
     public CondutorParameters? Condutor { get; set; }
 

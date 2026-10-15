@@ -124,12 +124,15 @@ public class SolicitacaoReboqueService
                 Reboque = x.Reboque != null ? x.Reboque.Placa : null,
                 Reboquista = x.Reboquista != null ? x.Reboquista.Nome : null,
                 SolicitacaoReboqueTipo = x.SolicitacaoReboqueTipo != null ? x.SolicitacaoReboqueTipo.Descricao : null,
-                SolicitacaoReboqueStatus = x.SolicitacaoReboqueStatus != null ? x.SolicitacaoReboqueStatus.Descricao : null,
+                SolicitacaoReboqueStatus =
+                    x.SolicitacaoReboqueStatus != null ? x.SolicitacaoReboqueStatus.Descricao : null,
                 LocalRemocaoCompleto = x.LocalRemocaoCompleto,
                 LocalRemocaoReferencia = x.LocalRemocaoReferencia,
                 LocalRemocaoLatitude = x.LocalRemocaoLatitude,
                 LocalRemocaoLongitude = x.LocalRemocaoLongitude,
-                UsuarioCadastro = x.UsuarioCadastro != null ? (x.UsuarioCadastro.Pessoa != null ? x.UsuarioCadastro.Pessoa.Nome : x.UsuarioCadastro.Login) : null,
+                UsuarioCadastro = x.UsuarioCadastro != null
+                    ? (x.UsuarioCadastro.Pessoa != null ? x.UsuarioCadastro.Pessoa.Nome : x.UsuarioCadastro.Login)
+                    : null,
                 DataCadastro = x.DataCadastro,
                 DataSolicitacaoAceito = x.DataSolicitacaoAceita
             })
@@ -202,20 +205,31 @@ public class SolicitacaoReboqueService
             erros.Add("Tipo de motivo de apreensão é obrigatório");
         }
 
-        if (parameters.IdentificadorTipoSolicitacao > 0)
-        {
-            var tipoExiste = await _context.SolicitacaoReboqueTipo
-                .AsNoTracking()
-                .AnyAsync(x => x.Id == parameters.IdentificadorTipoSolicitacao, cancellationToken: ct);
+        byte solicitacaoReboqueTipoId = 0;
 
-            if (!tipoExiste)
+        if (parameters.IdentificadorMotivoApreensao > 0)
+        {
+            var tipo = await _context.SolicitacaoReboqueTipo
+                .AsNoTracking()
+                .Where(x => x.MotivoApreensaoId == parameters.IdentificadorMotivoApreensao)
+                .Select(x => new
+                {
+                    x.Id
+                })
+                .FirstOrDefaultAsync(cancellationToken: ct);
+
+            if (tipo is null)
             {
                 erros.Add("Tipo de Solicitação de Reboque inválido");
+            }
+            else
+            {
+                solicitacaoReboqueTipoId = tipo.Id;
             }
         }
         else
         {
-            erros.Add("Tipo de Solicitação de Reboque é obrigatório");
+            erros.Add("Tipo de motivo de apreensão é obrigatório para buscar o tipo de Solicitação de Reboque");
         }
 
         if (erros.Count > 0)
@@ -225,9 +239,9 @@ public class SolicitacaoReboqueService
 
         var model = new SolicitacaoReboqueModel
         {
-            ClienteDepositoId = clienteDeposito.ClienteDepositoId,
+            ClienteDepositoId = clienteDeposito!.ClienteDepositoId,
             MotivoApreensaoId = parameters.IdentificadorMotivoApreensao,
-            SolicitacaoReboqueTipoId = parameters.IdentificadorTipoSolicitacao,
+            SolicitacaoReboqueTipoId = solicitacaoReboqueTipoId,
             SolicitacaoReboqueStatusId = 1,
             UsuarioCadastroId = parameters.IdentificadorUsuario,
             LocalRemocaoCompleto = parameters.LocalRemocaoEnderecoCompleto.ToUpperTrim().ToNullIfEmpty(),
@@ -243,10 +257,9 @@ public class SolicitacaoReboqueService
             await _context.SolicitacaoReboque.AddAsync(model, ct);
             await _context.SaveChangesAsync(ct);
 
-            if ((parameters.IdentificadorAutoridadeResponsavel.HasValue &&
-                 parameters.IdentificadorAutoridadeResponsavel > 0) ||
-                !string.IsNullOrWhiteSpace(parameters.MatriculaAutoridadeResponsavel) ||
-                !string.IsNullOrWhiteSpace(parameters.NomeAutoridadeResponsavel) ||
+            if (parameters.IdentificadorAutoridadeResponsavel > 0 ||
+                !string.IsNullOrWhiteSpace(parameters.MatriculaAgenteResponsavel) ||
+                !string.IsNullOrWhiteSpace(parameters.NomeAgenteResponsavel) ||
                 parameters.IdentificadorTipoVeiculo.HasValue ||
                 !string.IsNullOrWhiteSpace(parameters.Placa) ||
                 !string.IsNullOrWhiteSpace(parameters.Chassi) ||
@@ -255,10 +268,10 @@ public class SolicitacaoReboqueService
                 var solicitacaoGrv = new SolicitacaoReboqueGrvModel
                 {
                     SolicitacaoReboqueId = model.Id,
-                    AutoridadeResponsavelId = parameters.IdentificadorAutoridadeResponsavel ?? 0,
+                    AutoridadeResponsavelId = parameters.IdentificadorAutoridadeResponsavel,
                     MatriculaAutoridadeResponsavel =
-                        parameters.MatriculaAutoridadeResponsavel.ToUpperTrim().ToNullIfEmpty(),
-                    NomeAutoridadeResponsavel = parameters.NomeAutoridadeResponsavel.ToUpperTrim().ToNullIfEmpty(),
+                        parameters.MatriculaAgenteResponsavel.ToUpperTrim().ToNullIfEmpty(),
+                    NomeAutoridadeResponsavel = parameters.NomeAgenteResponsavel.ToUpperTrim().ToNullIfEmpty(),
 
                     TipoVeiculoId = parameters.IdentificadorTipoVeiculo,
                     CorId = parameters.IdentificadorCor,
