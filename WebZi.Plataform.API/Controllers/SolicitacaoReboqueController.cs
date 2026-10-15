@@ -45,10 +45,10 @@ public class SolicitacaoReboqueController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<SolicitacaoReboqueDTO>> SelecionarSolicitacaoReboque(int solicitacaoReboqueId,
+    public async Task<ActionResult<SelecionarSolicitacaoReboqueDTO>> SelecionarSolicitacaoReboque(int solicitacaoReboqueId,
         CancellationToken ct)
     {
-        SolicitacaoReboqueDTO ResultView = new();
+        SelecionarSolicitacaoReboqueDTO ResultView = new();
 
         var userId = User.GetUserId();
         try

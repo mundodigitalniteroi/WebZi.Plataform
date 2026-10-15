@@ -66,25 +66,25 @@ public class SolicitacaoReboqueService
             .Take(limit)
             .Select(x => new SolicitacaoReboqueDTO
             {
-                NumeroProcesso = x.Grv?.NumeroFormularioGrv,
+                NumeroProcesso = x.Grv.NumeroFormularioGrv,
                 Cliente = x.ClienteDeposito.Cliente.Nome,
                 Deposito = x.ClienteDeposito.Deposito.Nome,
-                MotivoApreensao = x.MotivoApreensao?.Descricao,
+                MotivoApreensao = x.MotivoApreensao.Descricao,
                 Veiculo = new SolicitacaoReboqueVeiculoDTO
                 {
-                    TipoVeiculo = x.Grv?.TipoVeiculo.Descricao,
-                    Placa = x.Grv?.Placa,
-                    Chassi = x.Grv?.Chassi,
+                    TipoVeiculo = x.Grv.TipoVeiculo.Descricao,
+                    Placa = x.Grv.Placa,
+                    Chassi = x.Grv.Chassi,
                     Renavam = x.Grv.Renavam,
                     MarcaModelo = x.Grv.MarcaModelo.MarcaModelo,
                     Cor = x.Grv.Cor.Cor
                 },
-                Status = x.SolicitacaoReboqueStatus?.Descricao,
-                LocalApreenssao = x.Grv.EnderecoLocalizacaoVeiculo,
+                Status = x.SolicitacaoReboqueStatus.Descricao,
+                LocalApreenssao = x.LocalRemocaoCompleto,
                 DataCriacaoSolicitacao = x.DataCadastro,
-                DataSolicitacaoAceita = x.DataSolicitacao
+                DataSolicitacaoAceita = x.DataSolicitacaoAceita
             })
-            .ToListAsync(cancellationToken: ct);
+            .ToListAsync(cancellationToken: ct)!;
 
         if (solicitacoes.Count == 0)
         {
@@ -97,41 +97,43 @@ public class SolicitacaoReboqueService
         return ResultView;
     }
 
-    public async Task<SelecionarSolicitacaoReboqueDTO> GetByIdSolicitacaoReboqueAsync(int userId, int solicitacaoReboqueId,
+    public async Task<SelecionarSolicitacaoReboqueDTO> GetByIdSolicitacaoReboqueAsync(int userId,
+        int solicitacaoReboqueId,
         CancellationToken ct)
     {
         SelecionarSolicitacaoReboqueDTO ResultView = new();
 
         var solicitacao = await _context.SolicitacaoReboque
             .AsNoTracking()
+            .Where(x => x.Id == solicitacaoReboqueId && x.UsuarioCadastroId == userId)
             .Select(x => new SelecionarSolicitacaoReboqueDTO
             {
-                NumeroProcesso = x.Grv?.NumeroFormularioGrv,
+                NumeroProcesso = x.Grv != null ? x.Grv.NumeroFormularioGrv : null,
                 Cliente = x.ClienteDeposito.Cliente.Nome,
                 Deposito = x.ClienteDeposito.Deposito.Nome,
-                MotivoApreensao = x.MotivoApreensao?.Descricao,
+                MotivoApreensao = x.MotivoApreensao != null ? x.MotivoApreensao.Descricao : null,
                 Veiculo = new SolicitacaoReboqueVeiculoDTO
                 {
-                    TipoVeiculo = x.Grv?.TipoVeiculo.Descricao,
-                    Placa = x.Grv?.Placa,
-                    Chassi = x.Grv?.Chassi,
-                    Renavam = x.Grv.Renavam,
-                    MarcaModelo = x.Grv.MarcaModelo.MarcaModelo,
-                    Cor = x.Grv.Cor.Cor
+                    TipoVeiculo = x.Grv != null ? x.Grv.TipoVeiculo.Descricao : null,
+                    Placa = x.Grv != null ? x.Grv.Placa : null,
+                    Chassi = x.Grv != null ? x.Grv.Chassi : null,
+                    Renavam = x.Grv != null ? x.Grv.Renavam : null,
+                    MarcaModelo = x.Grv != null ? x.Grv.MarcaModelo.MarcaModelo : null,
+                    Cor = x.Grv != null ? x.Grv.Cor.Cor : null
                 },
-                Reboque = x.Reboque?.Placa,
-                Reboquista = x.Reboquista?.Nome,
-                SolicitacaoReboqueTipo = x.SolicitacaoReboqueTipo?.Descricao,
-                SolicitacaoReboqueStatus = x.SolicitacaoReboqueStatus?.Descricao,
-                LocalRemocaoCompleto = x.Grv.EnderecoLocalizacaoVeiculo,
-                LocalRemocaoReferencia = x.Grv.ReferenciaLocalizacaoVeiculo,
-                LocalRemocaoLatitude = x.Grv.LatitudeLocalizacaoVeiculo,
-                LocalRemocaoLongitude = x.Grv.LongitudeLocalizacaoVeiculo,
-                UsuarioCadastro = x.UsuarioCadastro?.Nome,
+                Reboque = x.Reboque != null ? x.Reboque.Placa : null,
+                Reboquista = x.Reboquista != null ? x.Reboquista.Nome : null,
+                SolicitacaoReboqueTipo = x.SolicitacaoReboqueTipo != null ? x.SolicitacaoReboqueTipo.Descricao : null,
+                SolicitacaoReboqueStatus = x.SolicitacaoReboqueStatus != null ? x.SolicitacaoReboqueStatus.Descricao : null,
+                LocalRemocaoCompleto = x.LocalRemocaoCompleto,
+                LocalRemocaoReferencia = x.LocalRemocaoReferencia,
+                LocalRemocaoLatitude = x.LocalRemocaoLatitude,
+                LocalRemocaoLongitude = x.LocalRemocaoLongitude,
+                UsuarioCadastro = x.UsuarioCadastro != null ? (x.UsuarioCadastro.Pessoa != null ? x.UsuarioCadastro.Pessoa.Nome : x.UsuarioCadastro.Login) : null,
                 DataCadastro = x.DataCadastro,
-                DataSolicitacaoAceito = x.DataSolicitacao
+                DataSolicitacaoAceito = x.DataSolicitacaoAceita
             })
-            .FirstOrDefaultAsync(x => x.Id == solicitacaoReboqueId && x.UsuarioCadastroId == userId, cancellationToken: ct);
+            .FirstOrDefaultAsync(cancellationToken: ct);
 
         if (solicitacao is null)
         {
@@ -241,7 +243,8 @@ public class SolicitacaoReboqueService
             await _context.SolicitacaoReboque.AddAsync(model, ct);
             await _context.SaveChangesAsync(ct);
 
-            if ((parameters.IdentificadorAutoridadeResponsavel.HasValue && parameters.IdentificadorAutoridadeResponsavel > 0) ||
+            if ((parameters.IdentificadorAutoridadeResponsavel.HasValue &&
+                 parameters.IdentificadorAutoridadeResponsavel > 0) ||
                 !string.IsNullOrWhiteSpace(parameters.MatriculaAutoridadeResponsavel) ||
                 !string.IsNullOrWhiteSpace(parameters.NomeAutoridadeResponsavel) ||
                 parameters.IdentificadorTipoVeiculo.HasValue ||
@@ -253,7 +256,8 @@ public class SolicitacaoReboqueService
                 {
                     SolicitacaoReboqueId = model.Id,
                     AutoridadeResponsavelId = parameters.IdentificadorAutoridadeResponsavel ?? 0,
-                    MatriculaAutoridadeResponsavel = parameters.MatriculaAutoridadeResponsavel.ToUpperTrim().ToNullIfEmpty(),
+                    MatriculaAutoridadeResponsavel =
+                        parameters.MatriculaAutoridadeResponsavel.ToUpperTrim().ToNullIfEmpty(),
                     NomeAutoridadeResponsavel = parameters.NomeAutoridadeResponsavel.ToUpperTrim().ToNullIfEmpty(),
 
                     TipoVeiculoId = parameters.IdentificadorTipoVeiculo,
@@ -302,7 +306,8 @@ public class SolicitacaoReboqueService
             if (parameters.ListagemFoto?.Count > 0)
             {
                 new BucketService(_context, _httpClientFactory)
-                    .SendFiles(BucketNomeTabelaOrigemEnum.SolicitacaoReboque, model.Id, model.UsuarioCadastroId, parameters.ListagemFoto);
+                    .SendFiles(BucketNomeTabelaOrigemEnum.SolicitacaoReboque, model.Id, model.UsuarioCadastroId,
+                        parameters.ListagemFoto);
             }
 
             await transaction.CommitAsync(ct);
@@ -342,11 +347,15 @@ public class SolicitacaoReboqueService
         {
             var cliente = await _context.UsuarioCliente
                 .AsNoTracking()
-                .AnyAsync(x => x.UsuarioId == parameters.IdentificadorUsuario && x.ClienteId == clienteDeposito.ClienteId, cancellationToken: ct);
+                .AnyAsync(
+                    x => x.UsuarioId == parameters.IdentificadorUsuario && x.ClienteId == clienteDeposito.ClienteId,
+                    cancellationToken: ct);
 
             var deposito = await _context.UsuarioDeposito
                 .AsNoTracking()
-                .AnyAsync(x => x.UsuarioId == parameters.IdentificadorUsuario && x.DepositoId == clienteDeposito.DepositoId, cancellationToken: ct);
+                .AnyAsync(
+                    x => x.UsuarioId == parameters.IdentificadorUsuario && x.DepositoId == clienteDeposito.DepositoId,
+                    cancellationToken: ct);
 
             if (!cliente)
             {
@@ -504,11 +513,13 @@ public class SolicitacaoReboqueService
         {
             var cliente = await _context.UsuarioCliente
                 .AsNoTracking()
-                .AnyAsync(x => x.UsuarioId == userId && x.ClienteId == clienteDeposito.ClienteId, cancellationToken: ct);
+                .AnyAsync(x => x.UsuarioId == userId && x.ClienteId == clienteDeposito.ClienteId,
+                    cancellationToken: ct);
 
             var deposito = await _context.UsuarioDeposito
                 .AsNoTracking()
-                .AnyAsync(x => x.UsuarioId == userId && x.DepositoId == clienteDeposito.DepositoId, cancellationToken: ct);
+                .AnyAsync(x => x.UsuarioId == userId && x.DepositoId == clienteDeposito.DepositoId,
+                    cancellationToken: ct);
 
             if (!cliente || !deposito)
             {
@@ -561,11 +572,15 @@ public class SolicitacaoReboqueService
         {
             var cliente = await _context.UsuarioCliente
                 .AsNoTracking()
-                .AnyAsync(x => x.UsuarioId == parameters.IdentificadorUsuario && x.ClienteId == clienteDeposito.ClienteId, cancellationToken: ct);
+                .AnyAsync(
+                    x => x.UsuarioId == parameters.IdentificadorUsuario && x.ClienteId == clienteDeposito.ClienteId,
+                    cancellationToken: ct);
 
             var deposito = await _context.UsuarioDeposito
                 .AsNoTracking()
-                .AnyAsync(x => x.UsuarioId == parameters.IdentificadorUsuario && x.DepositoId == clienteDeposito.DepositoId, cancellationToken: ct);
+                .AnyAsync(
+                    x => x.UsuarioId == parameters.IdentificadorUsuario && x.DepositoId == clienteDeposito.DepositoId,
+                    cancellationToken: ct);
 
             if (!cliente)
             {

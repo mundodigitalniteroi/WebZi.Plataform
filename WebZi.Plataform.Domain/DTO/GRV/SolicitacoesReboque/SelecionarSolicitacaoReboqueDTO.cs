@@ -1,7 +1,10 @@
-﻿namespace WebZi.Plataform.Domain.DTO.GRV.SolicitacoesReboque;
+using WebZi.Plataform.Domain.DTO.Sistema;
+
+namespace WebZi.Plataform.Domain.DTO.GRV.SolicitacoesReboque;
 
 public class SelecionarSolicitacaoReboqueDTO
 {
+    public MensagemDTO Mensagem { get; set; } = new();
     public string? NumeroProcesso { get; set; }
     public string Cliente { get; set; }
     public string Deposito { get; set; }
@@ -23,6 +26,5 @@ public class SelecionarSolicitacaoReboqueDTO
     public string? UsuarioCadastro { get; set; }
 
     public DateTime DataCadastro { get; set; }
-    public DateTime DataSolicitacaoAceito { get; set; }
-
+    public DateTime? DataSolicitacaoAceito { get; set; }
 }

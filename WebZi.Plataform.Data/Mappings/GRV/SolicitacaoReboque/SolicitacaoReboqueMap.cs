@@ -57,6 +57,8 @@ public class SolicitacaoReboqueMap : IEntityTypeConfiguration<SolicitacaoReboque
             .HasColumnName("data_cadastro");
         builder.Property(x => x.DataAlteracao)
             .HasColumnName("data_alteracao");
+        builder.Property(x => x.DataSolicitacaoAceita)
+            .HasColumnName("data_solicitacao_aceita");
 
         builder.HasOne(x => x.ClienteDeposito)
             .WithMany()

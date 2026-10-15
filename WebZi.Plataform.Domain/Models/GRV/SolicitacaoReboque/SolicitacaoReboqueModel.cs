@@ -22,7 +22,7 @@ public class SolicitacaoReboqueModel
     public string? LocalRemocaoLongitude { get; set; }
     public DateTime DataCadastro { get; set; }
     public DateTime? DataAlteracao { get; set; }
-
+    public DateTime? DataSolicitacaoAceita { get; set; }
     public GrvModel Grv { get; set; }
     public MotivoApreensaoModel MotivoApreensao { get; set; }
 
