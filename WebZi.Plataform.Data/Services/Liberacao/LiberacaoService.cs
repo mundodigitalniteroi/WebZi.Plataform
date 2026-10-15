@@ -847,7 +847,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
 
                         var saidaReparo = await _context.SaidaReparo
                             .AsTracking()
-                            .FirstOrDefaultAsync(x => x.Id == Parameters.IdentificadorSaidaReparo);
+                            .FirstOrDefaultAsync(x => x.Id == Parameters.IdentificadorSaidaReparo.Value);
 
                         if (saidaReparo != null)
                         {
@@ -1014,6 +1014,12 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                 .Where(x => x.GrvId == Parameters.IdentificadorProcesso)
                 .Select(x => new
                 {
+                    SaidaParaReparo = new AtendimentoSaidaParaReparoModel()
+                    {
+                        Id = x.SaidaParaReparo.Id,
+                        DataPrevisaoRetorno = x.SaidaParaReparo.DataPrevisaoRetorno,
+                        DataRetorno = x.SaidaParaReparo.DataRetorno
+                    },
                     Grv = new GrvModel
                     {
                         GrvId = x.Grv.GrvId,
@@ -1058,7 +1064,6 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                 .FirstOrDefaultAsync(cancellationToken: ct);
 
             var Grv = atendimento?.Grv;
-
             if (Grv is null)
                 return MensagemViewHelper.SetNotFound("Processo não encontrado");
 
@@ -1130,43 +1135,25 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                 await _context.SaveChangesAsync(ct);
 
 
-                if (Grv.StatusOperacaoId.Equals("R"))
+                if (atendimento.SaidaParaReparo is not null)
                 {
-                    if (Parameters.IdentificadorSaidaReparo == null)
-                    {
-                        await transaction.RollbackAsync(ct);
-                        return MensagemViewHelper.SetBadRequest("Propriedade obrigatória: IdentificadorSaidaReparo");
-                    }
-
                     var saidaReparo = await _context.SaidaReparo
                         .AsTracking()
-                        .FirstOrDefaultAsync(x => x.Id == Parameters.IdentificadorSaidaReparo, cancellationToken: ct);
+                        .FirstOrDefaultAsync(x => x.Id == atendimento.SaidaParaReparo.Id, cancellationToken: ct);
 
-                    if (saidaReparo != null)
+                    if (UltimoFaturamento?.DataPrazoRetiradaVeiculo.HasValue == true &&
+                        UltimoFaturamento.DataPrazoRetiradaVeiculo.Value < saidaReparo.DataPrevisaoRetorno)
                     {
-                        DateTime dataAtual = DateTime.Now;
-                        saidaReparo.DataRetorno = dataAtual;
-                        saidaReparo.IdUsuario = Parameters.IdentificadorUsuario;
+                        UltimoFaturamento.DataPrazoRetiradaVeiculo = saidaReparo.DataPrevisaoRetorno;
 
-                        if (saidaReparo.DataPrevisaoRetorno < dataAtual)
-                        {
-                            saidaReparo.DataPrevisaoRetorno = dataAtual;
-                        }
-
-                        if (UltimoFaturamento?.DataPrazoRetiradaVeiculo.HasValue == true &&
-                            UltimoFaturamento.DataPrazoRetiradaVeiculo.Value < dataAtual)
-                        {
-                            UltimoFaturamento.DataPrazoRetiradaVeiculo = dataAtual;
-
-                            await _context.Faturamento
-                                .Where(x => x.FaturamentoId == UltimoFaturamento.FaturamentoId)
-                                .UpdateAsync(x => new FaturamentoModel
-                                {
-                                    DataPrazoRetiradaVeiculo = dataAtual,
-                                    UsuarioAlteracaoId = Parameters.IdentificadorUsuario,
-                                    DataAlteracao = dataAtual
-                                }, cancellationToken: ct);
-                        }
+                        await _context.Faturamento
+                            .Where(x => x.FaturamentoId == UltimoFaturamento.FaturamentoId)
+                            .UpdateAsync(x => new FaturamentoModel
+                            {
+                                DataPrazoRetiradaVeiculo = saidaReparo.DataPrevisaoRetorno,
+                                UsuarioAlteracaoId = Parameters.IdentificadorUsuario,
+                                DataAlteracao = DateTime.Now
+                            }, cancellationToken: ct);
                     }
                 }
 
