@@ -64,37 +64,25 @@ public class SolicitacaoReboqueService
             .OrderByDescending(x => x.Id)
             .Skip(offset)
             .Take(limit)
-            .Select(x => new SolicitacaoReboqueResumoDTO
+            .Select(x => new SolicitacaoReboqueDTO
             {
-                Id = x.Id,
-                ClienteId = x.ClienteDeposito.ClienteId,
-                DepositoId = x.ClienteDeposito.DepositoId,
-                MotivoApreensaoId = x.MotivoApreensaoId,
-                MotivoApreensaoDescricao = x.MotivoApreensao != null ? x.MotivoApreensao.Descricao : null,
-                GrvId = x.GrvId,
-                NumeroFormularioGrv = x.Grv != null ? x.Grv.NumeroFormularioGrv : null,
-                Placa = x.Grv != null ? x.Grv.Placa : null,
-                Chassi = x.Grv != null ? x.Grv.Chassi : null,
-                ReboqueId = x.ReboqueId,
-                ReboquePlaca = x.Reboque != null ? x.Reboque.Placa : null,
-                ReboquistaId = x.ReboquistaId,
-                ReboquistaNome = x.Reboquista != null ? x.Reboquista.Nome : null,
-                SolicitacaoReboqueTipoId = x.SolicitacaoReboqueTipoId,
-                SolicitacaoReboqueTipoDescricao =
-                    x.SolicitacaoReboqueTipo != null ? x.SolicitacaoReboqueTipo.Descricao : null,
-                SolicitacaoReboqueStatusId = x.SolicitacaoReboqueStatusId,
-                SolicitacaoReboqueStatusDescricao =
-                    x.SolicitacaoReboqueStatus != null ? x.SolicitacaoReboqueStatus.Descricao : null,
-                LocalRemocaoCompleto = x.LocalRemocaoCompleto,
-                LocalRemocaoReferencia = x.LocalRemocaoReferencia,
-                LocalRemocaoLatitude = x.LocalRemocaoLatitude,
-                LocalRemocaoLongitude = x.LocalRemocaoLongitude,
-                UsuarioCadastroId = x.UsuarioCadastroId,
-                UsuarioCadastroNome = x.UsuarioCadastro != null ? x.UsuarioCadastro.Login : null,
-                DataCadastro = x.DataCadastro,
-                UsuarioAlteracaoId = x.UsuarioAlteracaoId,
-                UsuarioAlteracaoNome = x.UsuarioAlteracao != null ? x.UsuarioAlteracao.Login : null,
-                DataAlteracao = x.DataAlteracao
+                NumeroProcesso = x.Grv?.NumeroFormularioGrv,
+                Cliente = x.ClienteDeposito.Cliente.Nome,
+                Deposito = x.ClienteDeposito.Deposito.Nome,
+                MotivoApreensao = x.MotivoApreensao?.Descricao,
+                Veiculo = new SolicitacaoReboqueVeiculoDTO
+                {
+                    TipoVeiculo = x.Grv?.TipoVeiculo.Descricao,
+                    Placa = x.Grv?.Placa,
+                    Chassi = x.Grv?.Chassi,
+                    Renavam = x.Grv.Renavam,
+                    MarcaModelo = x.Grv.MarcaModelo.MarcaModelo,
+                    Cor = x.Grv.Cor.Cor
+                },
+                Status = x.SolicitacaoReboqueStatus?.Descricao,
+                LocalApreenssao = x.Grv.EnderecoLocalizacaoVeiculo,
+                DataCriacaoSolicitacao = x.DataCadastro,
+                DataSolicitacaoAceita = x.DataSolicitacao
             })
             .ToListAsync(cancellationToken: ct);
 
@@ -109,22 +97,40 @@ public class SolicitacaoReboqueService
         return ResultView;
     }
 
-    public async Task<SolicitacaoReboqueDTO> GetByIdSolicitacaoReboqueAsync(int userId, int solicitacaoReboqueId,
+    public async Task<SelecionarSolicitacaoReboqueDTO> GetByIdSolicitacaoReboqueAsync(int userId, int solicitacaoReboqueId,
         CancellationToken ct)
     {
-        SolicitacaoReboqueDTO ResultView = new();
+        SelecionarSolicitacaoReboqueDTO ResultView = new();
 
         var solicitacao = await _context.SolicitacaoReboque
             .AsNoTracking()
-            .Include(x => x.ClienteDeposito)
-            .Include(x => x.MotivoApreensao)
-            .Include(x => x.SolicitacaoReboqueTipo)
-            .Include(x => x.SolicitacaoReboqueStatus)
-            .Include(x => x.Reboque)
-            .Include(x => x.Reboquista)
-            .Include(x => x.Grv)
-            .Include(x => x.UsuarioCadastro)
-            .Include(x => x.UsuarioAlteracao)
+            .Select(x => new SelecionarSolicitacaoReboqueDTO
+            {
+                NumeroProcesso = x.Grv?.NumeroFormularioGrv,
+                Cliente = x.ClienteDeposito.Cliente.Nome,
+                Deposito = x.ClienteDeposito.Deposito.Nome,
+                MotivoApreensao = x.MotivoApreensao?.Descricao,
+                Veiculo = new SolicitacaoReboqueVeiculoDTO
+                {
+                    TipoVeiculo = x.Grv?.TipoVeiculo.Descricao,
+                    Placa = x.Grv?.Placa,
+                    Chassi = x.Grv?.Chassi,
+                    Renavam = x.Grv.Renavam,
+                    MarcaModelo = x.Grv.MarcaModelo.MarcaModelo,
+                    Cor = x.Grv.Cor.Cor
+                },
+                Reboque = x.Reboque?.Placa,
+                Reboquista = x.Reboquista?.Nome,
+                SolicitacaoReboqueTipo = x.SolicitacaoReboqueTipo?.Descricao,
+                SolicitacaoReboqueStatus = x.SolicitacaoReboqueStatus?.Descricao,
+                LocalRemocaoCompleto = x.Grv.EnderecoLocalizacaoVeiculo,
+                LocalRemocaoReferencia = x.Grv.ReferenciaLocalizacaoVeiculo,
+                LocalRemocaoLatitude = x.Grv.LatitudeLocalizacaoVeiculo,
+                LocalRemocaoLongitude = x.Grv.LongitudeLocalizacaoVeiculo,
+                UsuarioCadastro = x.UsuarioCadastro?.Nome,
+                DataCadastro = x.DataCadastro,
+                DataSolicitacaoAceito = x.DataSolicitacao
+            })
             .FirstOrDefaultAsync(x => x.Id == solicitacaoReboqueId && x.UsuarioCadastroId == userId, cancellationToken: ct);
 
         if (solicitacao is null)
@@ -133,134 +139,7 @@ public class SolicitacaoReboqueService
             return ResultView;
         }
 
-        ResultView = new SolicitacaoReboqueDTO
-        {
-            Id = solicitacao.Id,
-            ClienteId = solicitacao.ClienteDeposito?.ClienteId ?? 0,
-            DepositoId = solicitacao.ClienteDeposito?.DepositoId ?? 0,
-            MotivoApreensaoId = solicitacao.MotivoApreensaoId,
-            MotivoApreensaoDescricao = solicitacao.MotivoApreensao?.Descricao,
-            GrvId = solicitacao.GrvId,
-            NumeroFormularioGrv = solicitacao.Grv?.NumeroFormularioGrv,
-            Placa = solicitacao.Grv?.Placa,
-            Chassi = solicitacao.Grv?.Chassi,
-            ReboqueId = solicitacao.ReboqueId,
-            ReboquePlaca = solicitacao.Reboque?.Placa,
-            ReboquistaId = solicitacao.ReboquistaId,
-            ReboquistaNome = solicitacao.Reboquista?.Nome,
-            SolicitacaoReboqueTipoId = solicitacao.SolicitacaoReboqueTipoId,
-            SolicitacaoReboqueTipoDescricao = solicitacao.SolicitacaoReboqueTipo?.Descricao,
-            SolicitacaoReboqueStatusId = solicitacao.SolicitacaoReboqueStatusId,
-            SolicitacaoReboqueStatusDescricao = solicitacao.SolicitacaoReboqueStatus?.Descricao,
-            LocalRemocaoCompleto = solicitacao.LocalRemocaoCompleto,
-            LocalRemocaoReferencia = solicitacao.LocalRemocaoReferencia,
-            LocalRemocaoLatitude = solicitacao.LocalRemocaoLatitude,
-            LocalRemocaoLongitude = solicitacao.LocalRemocaoLongitude,
-            UsuarioCadastroId = solicitacao.UsuarioCadastroId,
-            UsuarioCadastroNome = solicitacao.UsuarioCadastro?.Login,
-            DataCadastro = solicitacao.DataCadastro,
-            UsuarioAlteracaoId = solicitacao.UsuarioAlteracaoId,
-            UsuarioAlteracaoNome = solicitacao.UsuarioAlteracao?.Login,
-            DataAlteracao = solicitacao.DataAlteracao
-        };
-
-        var solicitacaoGrv = await _context.SolicitacaoReboqueGrv
-            .AsNoTracking()
-            .FirstOrDefaultAsync(x => x.SolicitacaoReboqueId == solicitacaoReboqueId, cancellationToken: ct);
-
-        if (solicitacaoGrv != null)
-        {
-            ResultView.AutoridadeResponsavelId = solicitacaoGrv.AutoridadeResponsavelId;
-            ResultView.MatriculaAutoridadeResponsavel = solicitacaoGrv.MatriculaAutoridadeResponsavel;
-            ResultView.NomeAutoridadeResponsavel = solicitacaoGrv.NomeAutoridadeResponsavel;
-
-            ResultView.TipoVeiculoId = solicitacaoGrv.TipoVeiculoId;
-            ResultView.CorId = solicitacaoGrv.CorId;
-            ResultView.MarcaModeloId = solicitacaoGrv.MarcaModeloId;
-            ResultView.Placa = solicitacaoGrv.Placa ?? ResultView.Placa;
-            ResultView.Chassi = solicitacaoGrv.Chassi ?? ResultView.Chassi;
-            ResultView.Renavam = solicitacaoGrv.Renavam;
-            ResultView.VeiculoUF = solicitacaoGrv.VeiculoUF;
-
-            var condutorModel = await _context.SolicitacaoReboqueCondutor
-                .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.SolicitacaoReboqueGrvId == solicitacaoGrv.Id, cancellationToken: ct);
-
-            if (condutorModel != null)
-            {
-                ResultView.Condutor = new SolicitacaoReboqueCondutorDTO
-                {
-                    Id = condutorModel.Id,
-                    PessoaId = condutorModel.PessoaId,
-                    EnquadramentoInfracaoId = condutorModel.EnquadramentoInfracaoId,
-                    Documento = condutorModel.Documento,
-                    Identidade = condutorModel.Identidade,
-                    OrgaoExpedidor = condutorModel.OrgaoExpedidor,
-                    Nome = condutorModel.Nome,
-                    Telefone = condutorModel.Telefone,
-                    TelefoneDDD = condutorModel.TelefoneDDD,
-                    Email = condutorModel.Email,
-                    NumeroChaveVeiculo = condutorModel.NumeroChaveVeiculo,
-                    NumeroInfracao = condutorModel.NumeroInfracao,
-                    InformacoesAdicionais = condutorModel.InformacoesAdicionais,
-                    StatusAssinaturaCondutor = condutorModel.StatusAssinaturaCondutor,
-                    FlagChaveVeiculo = condutorModel.FlagChaveVeiculo,
-                    FlagDocumentacaoVeiculo = condutorModel.FlagDocumentacaoVeiculo,
-                    Celular = condutorModel.Celular,
-                    CelularDDD = condutorModel.CelularDDD
-                };
-            }
-        }
-
-        if (solicitacao.MotivoApreensaoId == 1)
-        {
-            var infracoes = await _context.SolicitacaoReboqueEnquadramentoInfracao
-                .AsNoTracking()
-                .Include(x => x.EnquadramentoInfracao)
-                .Where(x => x.SolicitacaoReboqueId == solicitacaoReboqueId)
-                .ToListAsync(cancellationToken: ct);
-
-            if (infracoes.Count > 0)
-            {
-                ResultView.ListagemEnquadramentoInfracao = infracoes.Select(x => new SolicitacaoReboqueEnquadramentoInfracaoDTO
-                {
-                    Id = x.Id,
-                    EnquadramentoInfracaoId = x.EnquadramentoInfracaoId,
-                    NumeroInfracao = x.NumeroInfracao,
-                    CodigoInfracao = x.EnquadramentoInfracao?.CodigoInfracao,
-                    DescricaoInfracao = x.EnquadramentoInfracao?.Descricao
-                }).ToList();
-            }
-        }
-
-        var lacres = await _context.SolicitacaoReboqueLacre
-            .AsNoTracking()
-            .Where(x => x.SolicitacaoReboqueId == solicitacaoReboqueId)
-            .Select(x => x.Lacre)
-            .ToListAsync(cancellationToken: ct);
-
-        if (lacres.Count > 0)
-        {
-            ResultView.ListagemLacre = lacres;
-        }
-
-        var bucketOrigem = await _context.BucketNomeTabelaOrigem
-            .AsNoTracking()
-            .FirstOrDefaultAsync(x => x.Codigo == BucketNomeTabelaOrigemEnum.SolicitacaoReboque, cancellationToken: ct);
-
-        if (bucketOrigem != null)
-        {
-            var fotos = await _context.BucketArquivo
-                .AsNoTracking()
-                .Where(x => x.NomeTabelaOrigemId == bucketOrigem.NomeTabelaOrigemId && x.TabelaOrigemId == solicitacaoReboqueId)
-                .Select(x => x.Url)
-                .ToListAsync(cancellationToken: ct);
-
-            if (fotos.Count > 0)
-            {
-                ResultView.ListagemFoto = fotos;
-            }
-        }
+        ResultView = solicitacao;
 
         ResultView.Mensagem = MensagemViewHelper.SetFound();
         return ResultView;
