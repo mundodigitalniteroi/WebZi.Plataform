@@ -806,10 +806,10 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                     .OrderByDescending(x => x.DataCadastro)
                     .FirstOrDefault();
 
-                if (UltimoFaturamento.DataPrazoRetiradaVeiculo.Value.Date < DataHoraPorDeposito.Date)
+                if (UltimoFaturamento?.DataPrazoRetiradaVeiculo.HasValue == true &&
+                    UltimoFaturamento.DataPrazoRetiradaVeiculo.Value.Date < DataHoraPorDeposito.Date)
                 {
-                    return MensagemViewHelper.SetBadRequest(
-                        $"O prazo para a Entrega do veículo está vencida ({UltimoFaturamento.DataPrazoRetiradaVeiculo.Value.Date:dd/MM/yyyy}), a Entrega não poderá ser realizada");
+                    UltimoFaturamento.DataPrazoRetiradaVeiculo = DataHoraPorDeposito.Date;
                 }
             }
 
@@ -845,14 +845,21 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                             return ResultView;
                         }
 
-                        await _context.SaidaReparo
+                        var saidaReparo = await _context.SaidaReparo
                             .AsTracking()
-                            .Where(x => x.Id == Parameters.IdentificadorSaidaReparo)
-                            .UpdateAsync(x => new AtendimentoSaidaParaReparoModel
+                            .FirstOrDefaultAsync(x => x.Id == Parameters.IdentificadorSaidaReparo);
+
+                        if (saidaReparo != null)
+                        {
+                            DateTime dataAtual = DateTime.Now;
+                            saidaReparo.DataRetorno = dataAtual;
+                            saidaReparo.IdUsuario = Parameters.IdentificadorUsuario;
+
+                            if (saidaReparo.DataPrevisaoRetorno < dataAtual)
                             {
-                                DataRetorno = DateTime.Now,
-                                IdUsuario = Parameters.IdentificadorUsuario
-                            });
+                                saidaReparo.DataPrevisaoRetorno = dataAtual;
+                            }
+                        }
                     }
 
                     string statusDestino = Parameters.IdentificadorTipoLiberacao == 3 ? "7" : "E";
@@ -1003,7 +1010,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                 return MensagemViewHelper.SetBadRequest("Não existe esse tipo de liberação");
 
             var atendimento = await _context.Atendimento
-                .AsNoTracking()
+                .AsTracking()
                 .Where(x => x.GrvId == Parameters.IdentificadorProcesso)
                 .Select(x => new
                 {
@@ -1100,13 +1107,10 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                 DateTime DataHoraPorDeposito = new DepositoService(_context)
                     .GetDataHoraPorDeposito(Grv.DepositoId);
 
-                if (Grv.StatusOperacaoId != "R")
+                if (UltimoFaturamento?.DataPrazoRetiradaVeiculo.HasValue == true &&
+                    UltimoFaturamento.DataPrazoRetiradaVeiculo.Value.Date < DataHoraPorDeposito.Date)
                 {
-                    if (UltimoFaturamento.DataPrazoRetiradaVeiculo.Value.Date < DataHoraPorDeposito.Date)
-                    {
-                        return MensagemViewHelper.SetBadRequest(
-                            $"O prazo para a Entrega do veículo está vencida ({UltimoFaturamento.DataPrazoRetiradaVeiculo.Value.Date:dd/MM/yyyy}), a Entrega não poderá ser realizada");
-                    }
+                    UltimoFaturamento.DataPrazoRetiradaVeiculo = DataHoraPorDeposito.Date;
                 }
             }
 
@@ -1140,8 +1144,29 @@ namespace WebZi.Plataform.Data.Services.Liberacao
 
                     if (saidaReparo != null)
                     {
-                        saidaReparo.DataRetorno = DateTime.Now;
+                        DateTime dataAtual = DateTime.Now;
+                        saidaReparo.DataRetorno = dataAtual;
                         saidaReparo.IdUsuario = Parameters.IdentificadorUsuario;
+
+                        if (saidaReparo.DataPrevisaoRetorno < dataAtual)
+                        {
+                            saidaReparo.DataPrevisaoRetorno = dataAtual;
+                        }
+
+                        if (UltimoFaturamento?.DataPrazoRetiradaVeiculo.HasValue == true &&
+                            UltimoFaturamento.DataPrazoRetiradaVeiculo.Value < dataAtual)
+                        {
+                            UltimoFaturamento.DataPrazoRetiradaVeiculo = dataAtual;
+
+                            await _context.Faturamento
+                                .Where(x => x.FaturamentoId == UltimoFaturamento.FaturamentoId)
+                                .UpdateAsync(x => new FaturamentoModel
+                                {
+                                    DataPrazoRetiradaVeiculo = dataAtual,
+                                    UsuarioAlteracaoId = Parameters.IdentificadorUsuario,
+                                    DataAlteracao = dataAtual
+                                }, cancellationToken: ct);
+                        }
                     }
                 }
 
