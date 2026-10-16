@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using WebZi.Plataform.Domain.Models.Cliente;
 
@@ -39,6 +39,10 @@ namespace WebZi.Plataform.Data.Mappings.Cliente
             builder.Property(e => e.DataAlteracao)
                 .HasColumnType("smalldatetime")
                 .HasColumnName("data_alteracao");
+
+            builder.HasOne(d => d.Grv)
+                .WithOne(p => p.ClienteCodigoIdentificacao)
+                .HasForeignKey<ClienteCodigoIdentificacaoModel>(d => d.GrvId);
         }
     }
 }

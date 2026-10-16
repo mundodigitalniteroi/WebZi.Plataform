@@ -1,4 +1,4 @@
-﻿
+
 namespace WebZi.Plataform.Domain.DTO.Liberacao
 {
     public class LiberacaoEspecialDTO
@@ -15,6 +15,6 @@ namespace WebZi.Plataform.Domain.DTO.Liberacao
         public string SignatarioMatricula { get; set; }
         public string SignatarioTitulo { get; set; }
         public DateTime DataEmissaoDocumento { get; set; }
-        public decimal Valor { get; set; }
+        public decimal? Valor { get; set; }
     }
 }

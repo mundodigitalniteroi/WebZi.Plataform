@@ -1,4 +1,4 @@
-﻿using WebZi.Plataform.Domain.DTO.Cliente;
+using WebZi.Plataform.Domain.DTO.Cliente;
 using WebZi.Plataform.Domain.DTO.Deposito;
 using WebZi.Plataform.Domain.DTO.Faturamento.Servico;
 using WebZi.Plataform.Domain.DTO.Servico;
@@ -164,5 +164,7 @@ namespace WebZi.Plataform.Domain.DTO.GRV
         public VistoriaDTO Vistoria { get; set; }
         // public List<ServicoAssociadoTipoVeiculoDTO> ListagemServicoAssociadoVeiculo { get; set; }
         public List<ServicoAssociadoGrvDTO> ListagemServicoGgv { get; set; }
+
+        public string CodigoIdentificacaoCliente { get; set; }
     }
 }
