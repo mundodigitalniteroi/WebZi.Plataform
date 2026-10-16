@@ -740,7 +740,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 grv.ListagemEnquadramentoInfracao = _mapper
                     .Map<List<EnquadramentoInfracaoGrvModel>>(GrvPersistencia.ListagemEnquadramentoInfracao);
             }
-
+            
             if (GrvPersistencia.ListagemLacre?.Count > 0)
             {
                 GrvPersistencia.ListagemLacre = GrvPersistencia.ListagemLacre
@@ -796,7 +796,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             {
                 grv.StatusOperacaoId = "B";
             }
-
+            
             ResultadoCadastroGrvDTO ResultView = new();
 
             await using (IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync(ct))
@@ -2659,20 +2659,11 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 }
             }
 
-            if (GrvPersistencia.ListagemLacre?.Count == 0)
-            {
-                erros.Add("Informe os Lacres");
-            }
-            else
+            if (GrvPersistencia.ListagemLacre?.Count > 0)
             {
                 if (GrvPersistencia.ListagemLacre.ContainsDuplicates())
                 {
                     erros.Add("Existem Lacres duplicados");
-                }
-
-                if (GrvPersistencia.ListagemLacre.ContainsNullOrWhiteSpaceValues())
-                {
-                    erros.Add("Existem Lacres não informados");
                 }
             }
 

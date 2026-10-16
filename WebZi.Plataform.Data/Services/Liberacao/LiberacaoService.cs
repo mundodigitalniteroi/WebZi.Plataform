@@ -1014,12 +1014,14 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                 .Where(x => x.GrvId == Parameters.IdentificadorProcesso)
                 .Select(x => new
                 {
-                    SaidaParaReparo = new AtendimentoSaidaParaReparoModel()
-                    {
-                        Id = x.SaidaParaReparo.Id,
-                        DataPrevisaoRetorno = x.SaidaParaReparo.DataPrevisaoRetorno,
-                        DataRetorno = x.SaidaParaReparo.DataRetorno
-                    },
+                    SaidaParaReparo = x.SaidaParaReparo != null
+                        ? new AtendimentoSaidaParaReparoModel
+                        {
+                            Id = x.SaidaParaReparo.Id,
+                            DataPrevisaoRetorno = x.SaidaParaReparo.DataPrevisaoRetorno,
+                            DataRetorno = x.SaidaParaReparo.DataRetorno
+                        }
+                        : null,
                     Grv = new GrvModel
                     {
                         GrvId = x.Grv.GrvId,
