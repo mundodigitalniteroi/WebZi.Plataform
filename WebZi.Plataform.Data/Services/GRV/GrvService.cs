@@ -491,7 +491,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
                     _context.Grv.Update(grv);
 
-                    if (GrvPersistencia.IdentificadorCliente == 61 || ClienteDeposito?.Cliente?.ClienteId == 61 || ClienteDeposito?.Cliente?.FlagClientePossuiCodigoIdentificacao == "S")
+                    if (GrvPersistencia.IdentificadorCliente == 61 || ClienteDeposito?.Cliente?.FlagClientePossuiCodigoIdentificacao == "S")
                     {
                         var codigoExistente = grv.ClienteCodigoIdentificacao ??
                             await _context.ClienteCodigoIdentificacao
@@ -517,10 +517,6 @@ namespace WebZi.Plataform.Domain.Services.GRV
                                     DataCadastro = DateTime.Now
                                 });
                             }
-                        }
-                        else if (codigoExistente != null)
-                        {
-                            _context.ClienteCodigoIdentificacao.Remove(codigoExistente);
                         }
                     }
 
@@ -774,7 +770,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 grv.ListagemEnquadramentoInfracao = _mapper
                     .Map<List<EnquadramentoInfracaoGrvModel>>(GrvPersistencia.ListagemEnquadramentoInfracao);
             }
-            
+
             if (GrvPersistencia.ListagemLacre?.Count > 0)
             {
                 GrvPersistencia.ListagemLacre = GrvPersistencia.ListagemLacre
@@ -787,7 +783,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 foreach (string item in GrvPersistencia.ListagemLacre)
                 {
                     grv.ListagemLacre.Add(new LacreModel
-                        { UsuarioCadastroId = GrvPersistencia.IdentificadorUsuario, Lacre = item });
+                    { UsuarioCadastroId = GrvPersistencia.IdentificadorUsuario, Lacre = item });
                 }
             }
 
@@ -830,7 +826,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             {
                 grv.StatusOperacaoId = "B";
             }
-            
+
             ResultadoCadastroGrvDTO ResultView = new();
 
             await using (IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync(ct))
@@ -864,7 +860,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                         }
                     }
 
-                    if ((GrvPersistencia.IdentificadorCliente == 61 || ClienteDeposito?.Cliente?.ClienteId == 61 || ClienteDeposito?.Cliente?.FlagClientePossuiCodigoIdentificacao == "S") &&
+                    if ((GrvPersistencia.IdentificadorCliente == 61 || ClienteDeposito?.Cliente?.FlagClientePossuiCodigoIdentificacao == "S") &&
                         !string.IsNullOrWhiteSpace(GrvPersistencia.CodigoIdentificacaoCliente))
                     {
                         ClienteCodigoIdentificacaoModel ClienteCodigoIdentificacao = new()
@@ -2223,6 +2219,13 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 query = query.Where(x => GrvPesquisa.ListagemStatusOperacao.Contains(x.StatusOperacaoId));
             if (!string.IsNullOrWhiteSpace(GrvPesquisa.NumeroProcesso))
                 query = query.Where(x => x.NumeroFormularioGrv == GrvPesquisa.NumeroProcesso);
+            if (!string.IsNullOrWhiteSpace(GrvPesquisa.CodigoIdentificacaoCliente))
+            {
+                string codigoIdentificacao = GrvPesquisa.CodigoIdentificacaoCliente.Trim();
+                query = query.Where(x =>
+                    x.ClienteCodigoIdentificacao != null &&
+                    x.ClienteCodigoIdentificacao.CodigoIdentificacao == codigoIdentificacao);
+            }
             if (!string.IsNullOrWhiteSpace(GrvPesquisa.PlacaVeiculo))
                 query = query.Where(x => x.Placa == GrvPesquisa.PlacaVeiculo);
             if (!string.IsNullOrWhiteSpace(GrvPesquisa.Chassi))
@@ -2270,6 +2273,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                         ? x.Atendimento.ListagemFaturamento.Select(f => (int?)f.FaturamentoId).FirstOrDefault()
                         : null,
                     NumeroProcesso = x.NumeroFormularioGrv,
+                    CodigoIdentificacaoCliente = x.ClienteCodigoIdentificacao != null ? x.ClienteCodigoIdentificacao.CodigoIdentificacao : null,
                     Placa = x.Placa,
                     Chassi = x.Chassi,
                     Renavam = x.Renavam,

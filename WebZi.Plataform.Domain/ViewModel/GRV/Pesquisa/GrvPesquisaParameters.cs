@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace WebZi.Plataform.Domain.ViewModel.GRV.Pesquisa
 {
@@ -10,6 +10,8 @@ namespace WebZi.Plataform.Domain.ViewModel.GRV.Pesquisa
         public List<string> ListagemStatusOperacao { get; set; }
 
         public string NumeroProcesso { get; set; }
+
+        public string? CodigoIdentificacaoCliente { get; set; }
 
         public string PlacaVeiculo { get; set; }
 

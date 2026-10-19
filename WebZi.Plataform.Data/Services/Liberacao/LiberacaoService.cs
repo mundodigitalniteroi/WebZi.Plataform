@@ -280,6 +280,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                 .Include(x => x.MarcaModelo)
                 .Include(x => x.Reboque)
                 .Include(x => x.Atendimento)
+                .ThenInclude(x => x.SaidaParaReparo)
                 .Include(x => x.Liberacao)
                 .Include(x => x.ListagemLacre)
                 .AsNoTracking()
@@ -376,8 +377,10 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                     DateTimeHelper.DateTimeFormat
                         .DateTimeFormatted);
 
-            ResultView.DadosDaRetiradaDoVeiculo = DateTimeHelper.FormatDateTime(Grv.Liberacao?.DataCadastro,
-                DateTimeHelper.DateTimeFormat.DateTimeFormatted);
+            ResultView.DadosDaRetiradaDoVeiculo = Grv.Liberacao?.DataCadastro != null
+                ? DateTimeHelper.FormatDateTime(Grv.Liberacao.DataCadastro,
+                    DateTimeHelper.DateTimeFormat.DateTimeFormatted)
+                : null;
 
 
             string placaParaConsulta = !string.IsNullOrWhiteSpace(Grv.Placa)
@@ -432,6 +435,25 @@ namespace WebZi.Plataform.Data.Services.Liberacao
             ResultView.VeiculoChassi = veiculoChassiValor;
 
             ResultView.VeiculoCor = veiculoCorDescricao;
+
+            DateTime? dataEntregaValor = Grv.Atendimento?.SaidaParaReparo?.DataRetorno ?? Grv.Liberacao?.DataCadastro;
+            string? dataEntregaFormatada = dataEntregaValor.HasValue
+                ? DateTimeHelper.FormatDateTime(dataEntregaValor.Value, DateTimeHelper.DateTimeFormat.DateTimeFormatted)
+                : null;
+
+            string? dataSaidaFormatada = Grv.Atendimento?.SaidaParaReparo != null
+                ? DateTimeHelper.FormatDateTime(Grv.Atendimento.SaidaParaReparo.DataSaida, DateTimeHelper.DateTimeFormat.DateTimeFormatted)
+                : null;
+
+            string? motivoSaidaValor = Grv.Atendimento?.SaidaParaReparo?.MotivoSaida;
+
+            ResultView.MotivoSaida = motivoSaidaValor;
+            ResultView.DataSaida = dataSaidaFormatada;
+            ResultView.DataEntrega = dataEntregaFormatada;
+
+            ResultView.ObservacoesSaidaParaReparo = motivoSaidaValor;
+            ResultView.DataSaidaSaidaParaReparo = dataSaidaFormatada;
+            ResultView.DataVoltaSaidaParaReparo = dataEntregaFormatada;
 
             string depositoEndereco = GuiaPagamentoReboqueEstadia?.DepositoEndereco ?? string.Empty;
 
@@ -1178,7 +1200,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                     Erros.Add("CPF inválido");
             }
 
-            if (Parameters.IdentificadorTipoLiberacao == 2 )
+            if (Parameters.IdentificadorTipoLiberacao == 2)
             {
                 if (Parameters.LiberacaoEspecial is null)
                     Erros.Add("Liberação Especial precisa ser preenchida");
@@ -1475,7 +1497,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
             CancellationToken ct)
         {
             await _provider.GetService<LiberacaoEspecialService>()
-                .CreateLiberacaoEspecialAsync(parameters.LiberacaoEspecial, dataCadastroLiberacao, false, ct);
+                .CreateLiberacaoEspecialAsync(parameters.LiberacaoEspecial, dataCadastroLiberacao, ct);
         }
 
         private async Task ProcessarEmissaoNfseAsync(GrvModel grv, int usuarioId, bool permitirEmissao,

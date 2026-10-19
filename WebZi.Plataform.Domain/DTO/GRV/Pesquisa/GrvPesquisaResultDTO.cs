@@ -10,6 +10,8 @@ namespace WebZi.Plataform.Domain.DTO.GRV.Pesquisa
 
         public string? NumeroProcesso { get; set; }
 
+        public string? CodigoIdentificacaoCliente { get; set; }
+
         public string? Placa { get; set; }
 
         public string? Chassi { get; set; }
