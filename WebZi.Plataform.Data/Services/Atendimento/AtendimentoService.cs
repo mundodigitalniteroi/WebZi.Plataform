@@ -1459,7 +1459,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                     if (AtendimentoInput.IdentificadorTipoMeioCobranca == 12)
                     {
                         await _provider.GetService<LiberacaoEspecialService>()
-                            .UpdateLiberacaoEspecialAsync(AtendimentoInput.LiberacaoEspecial);
+                            .UpdateLiberacaoEspecialAsync(AtendimentoInput.LiberacaoEspecial, ct);
                     }
 
                     await _context.SaveChangesAsync(ct);

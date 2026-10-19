@@ -96,11 +96,11 @@ public class LiberacaoEspecialService
             return MensagemViewHelper.SetBadRequest(e.Message);
         }
     }
-    public async Task UpdateLiberacaoEspecialAsync(AtualizarLiberacaoEspecialParameters parameters)
+    public async Task UpdateLiberacaoEspecialAsync(AtualizarLiberacaoEspecialParameters parameters, CancellationToken ct)
     {
         var libEspecial = await _context.LiberacaoEspecial
             .AsTracking()
-            .FirstOrDefaultAsync(x => x.IdGrv == parameters.IdGrv);
+            .FirstOrDefaultAsync(x => x.IdGrv == parameters.IdGrv, ct);
         try
         {
             if (libEspecial != null)
@@ -117,6 +117,7 @@ public class LiberacaoEspecialService
                 libEspecial.SignatarioMatricula = parameters.SignatarioMatricula.ToUpper();
                 libEspecial.SignatarioTitulo = parameters.SignatarioTitulo.ToUpper();
                 libEspecial.DataEmissaoDocumento = parameters.DataEmissaoDocumento.Date;
+                await _context.SaveChangesAsync(ct);
                 return;
             }
 
@@ -139,7 +140,7 @@ public class LiberacaoEspecialService
                 DataEmissaoDocumento = parameters.DataEmissaoDocumento.Date,
                 DataLiberacao = DateTime.Now
             };
-            await _context.LiberacaoEspecial.AddAsync(liberacaoEspecial);
+            await _context.LiberacaoEspecial.AddAsync(liberacaoEspecial, ct);
         }
         catch (Exception e)
         {
