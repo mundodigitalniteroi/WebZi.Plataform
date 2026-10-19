@@ -1,5 +1,6 @@
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using System.Reflection.Metadata.Ecma335;
 using WebZi.Plataform.CrossCutting.Strings;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
@@ -244,12 +245,21 @@ public class SolicitacaoReboqueService
             SolicitacaoReboqueTipoId = solicitacaoReboqueTipoId,
             SolicitacaoReboqueStatusId = 1,
             UsuarioCadastroId = parameters.IdentificadorUsuario,
+            TipoVeiculoId = parameters.IdentificadorTipoVeiculo,
+            CorId = parameters.IdentificadorCor,
+            MarcaModeloId = parameters.IdentificadorMarcaModelo,
+            Placa = parameters.Placa.ToUpperTrim().ToNullIfEmpty(),
+            Chassi = parameters.Chassi.ToUpperTrim().ToNullIfEmpty(),
+            Renavam = parameters.Renavam.ToUpperTrim().ToNullIfEmpty(),
+            VeiculoUF = parameters.VeiculoUF.ToUpperTrim().ToNullIfEmpty(),
             LocalRemocaoCompleto = parameters.LocalRemocaoEnderecoCompleto.ToUpperTrim().ToNullIfEmpty(),
             LocalRemocaoReferencia = parameters.LocalRemocaoEnderecoReferencia.ToUpperTrim().ToNullIfEmpty(),
             LocalRemocaoLatitude = parameters.LocalRemocaoEnderecoLatitude.ToUpperTrim().ToNullIfEmpty(),
             LocalRemocaoLongitude = parameters.LocalRemocaoEnderecoLongitude.ToUpperTrim().ToNullIfEmpty(),
-            DataCadastro = DateTime.UtcNow.AddHours(-3)
+            DataCadastro = DateTime.Now
         };
+
+
 
         await using var transaction = await _context.Database.BeginTransactionAsync(ct);
         try
@@ -257,46 +267,19 @@ public class SolicitacaoReboqueService
             await _context.SolicitacaoReboque.AddAsync(model, ct);
             await _context.SaveChangesAsync(ct);
 
-            if (parameters.IdentificadorAutoridadeResponsavel > 0 ||
-                !string.IsNullOrWhiteSpace(parameters.MatriculaAgenteResponsavel) ||
-                !string.IsNullOrWhiteSpace(parameters.NomeAgenteResponsavel) ||
-                parameters.IdentificadorTipoVeiculo.HasValue ||
-                !string.IsNullOrWhiteSpace(parameters.Placa) ||
-                !string.IsNullOrWhiteSpace(parameters.Chassi) ||
-                !string.IsNullOrWhiteSpace(parameters.Renavam))
+
+            if (solicitacaoReboqueTipoId == 1)
             {
-                var solicitacaoGrv = new SolicitacaoReboqueGrvModel
-                {
-                    SolicitacaoReboqueId = model.Id,
-                    AutoridadeResponsavelId = parameters.IdentificadorAutoridadeResponsavel,
-                    MatriculaAutoridadeResponsavel =
-                        parameters.MatriculaAgenteResponsavel.ToUpperTrim().ToNullIfEmpty(),
-                    NomeAutoridadeResponsavel = parameters.NomeAgenteResponsavel.ToUpperTrim().ToNullIfEmpty(),
 
-                    TipoVeiculoId = parameters.IdentificadorTipoVeiculo,
-                    CorId = parameters.IdentificadorCor,
-                    MarcaModeloId = parameters.IdentificadorMarcaModelo,
-                    Placa = parameters.Placa.ToUpperTrim().ToNullIfEmpty(),
-                    Chassi = parameters.Chassi.ToUpperTrim().ToNullIfEmpty(),
-                    Renavam = parameters.Renavam.ToUpperTrim().ToNullIfEmpty(),
-                    VeiculoUF = parameters.VeiculoUF.ToUpperTrim().ToNullIfEmpty()
-                };
+                var result = PayloadSolicitacaoReboqueGrv(model.Id, parameters.SolicitacaoReboqueGrv);
+                await _context.SolicitacaoReboqueGrv.AddAsync(result, ct);
 
-                await _context.SolicitacaoReboqueGrv.AddAsync(solicitacaoGrv, ct);
-                await _context.SaveChangesAsync(ct);
+            }
+            else if (solicitacaoReboqueTipoId == 2)
+            {
+                var result = PayloadSolicitacaoReboqueDRFA(model.Id, parameters.SolicitacaoReboqueDRFA);
 
-                if (parameters.Condutor != null)
-                {
-                    var condutor = new SolicitacaoReboqueCondutorModel
-                    {
-                        SolicitacaoReboqueGrvId = solicitacaoGrv.Id,
-                        Telefone = parameters.Condutor.Telefone.ToUpperTrim().ToNullIfEmpty(),
-                        TelefoneDDD = parameters.Condutor.TelefoneDDD.ToUpperTrim().ToNullIfEmpty(),
-                        InformacoesAdicionais = parameters.Condutor.InformacoesAdicionais.ToUpperTrim().ToNullIfEmpty(),
-                    };
-
-                    await _context.SolicitacaoReboqueCondutor.AddAsync(condutor, ct);
-                }
+                await _context.SolicitacaoReboqueDRFA.AddAsync(result, ct);
             }
 
             if (parameters.IdentificadorMotivoApreensao == 1 && parameters.ListagemEnquadramentoInfracao?.Count > 0)
@@ -313,6 +296,18 @@ public class SolicitacaoReboqueService
                 }
             }
 
+            if (parameters.Condutor != null)
+            {
+                var condutor = new SolicitacaoReboqueCondutorModel
+                {
+                     = model.Id,
+                    Telefone = parameters.Condutor.Telefone.ToUpperTrim().ToNullIfEmpty(),
+                    TelefoneDDD = parameters.Condutor.TelefoneDDD.ToUpperTrim().ToNullIfEmpty(),
+                    InformacoesAdicionais = parameters.Condutor.InformacoesAdicionais.ToUpperTrim().ToNullIfEmpty(),
+                };
+
+                await _context.SolicitacaoReboqueCondutor.AddAsync(condutor, ct);
+            }
 
             await _context.SaveChangesAsync(ct);
 
@@ -334,6 +329,28 @@ public class SolicitacaoReboqueService
         }
     }
 
+    private SolicitacaoReboqueGrvModel PayloadSolicitacaoReboqueGrv(int solicitacaoReboqueId, SolicitacaoReboqueGrvParameters solicitacaoGrv)
+        => new()
+        {
+            SolicitacaoReboqueId = solicitacaoReboqueId,
+            AutoridadeResponsavelId = solicitacaoGrv.IdentificadorAutoridadeResponsavel,
+            MatriculaAutoridadeResponsavel = solicitacaoGrv.MatriculaAgenteResponsavel.ToUpperTrim().ToNullIfEmpty(),
+            NomeAutoridadeResponsavel = solicitacaoGrv.NomeAgenteResponsavel.ToUpperTrim().ToNullIfEmpty()
+        };
+
+    private SolicitacaoReboqueDRFAModel PayloadSolicitacaoReboqueDRFA(int solicitacaoReboqueId, SolicitacaoReboqueDRFAParameters solicitacaoDRFA)
+       => new()
+       {
+           SolicitacaoReboqueId = solicitacaoReboqueId,
+           TipoRegistroId = solicitacaoDRFA.TipoRegistroId,
+           OrgaoEmissorId = solicitacaoDRFA.OrgaoEmissorId,
+           AutoridadeDivisaoId = solicitacaoDRFA.AutoridadeDivisaoId,
+           AutoridadeDivisaoComplemento = solicitacaoDRFA.AutoridadeDivisaoComplemento.ToUpperTrim().ToNullIfEmpty(),
+           NumeroRegistroRouboFurto = solicitacaoDRFA.NumeroRegistroRouboFurto.ToUpperTrim().ToNullIfEmpty(),
+           RegistroRouboFurtoMatriculaAgente = solicitacaoDRFA.RegistroRouboFurtoMatriculaAgente.ToUpperTrim().ToNullIfEmpty(),
+           RegistroRouboFurtoNomeAgente = solicitacaoDRFA.RegistroRouboFurtoNomeAgente.ToUpperTrim().ToNullIfEmpty(),
+           EstadoGeralVeiculo = solicitacaoDRFA.EstadoGeralVeiculo.ToUpperTrim().ToNullIfEmpty(),
+       };
     public async Task<MensagemDTO> UpdateSolicitacaoReboqueAsync(
         AtualizarSolicitacaoReboqueParameters parameters, CancellationToken ct)
     {

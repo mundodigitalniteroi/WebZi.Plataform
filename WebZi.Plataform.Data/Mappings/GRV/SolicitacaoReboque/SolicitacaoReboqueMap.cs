@@ -41,6 +41,25 @@ public class SolicitacaoReboqueMap : IEntityTypeConfiguration<SolicitacaoReboque
         builder.Property(x => x.UsuarioAlteracaoId)
             .HasColumnName("id_usuario_alteracao");
 
+        builder.Property(x => x.TipoVeiculoId)
+            .HasColumnName("tipo_veiculo_id");
+        builder.Property(x => x.CorId)
+            .HasColumnName("cor_id");
+        builder.Property(x => x.MarcaModeloId)
+            .HasColumnName("marca_modelo_id");
+        builder.Property(x => x.Placa)
+           .HasColumnName("placa")
+           .HasMaxLength(7);
+        builder.Property(x => x.Chassi)
+            .HasColumnName("chassi")
+            .HasMaxLength(17);
+        builder.Property(x => x.Renavam)
+            .HasColumnName("renavam")
+            .HasMaxLength(15);
+        builder.Property(x => x.VeiculoUF)
+            .HasColumnName("veiculo_uf")
+            .HasMaxLength(2);
+
         builder.Property(x => x.LocalRemocaoCompleto)
             .HasColumnName("local_remocao_endereco_completo")
             .HasMaxLength(200);
@@ -94,5 +113,14 @@ public class SolicitacaoReboqueMap : IEntityTypeConfiguration<SolicitacaoReboque
         builder.HasOne(x => x.MotivoApreensao)
             .WithMany()
             .HasForeignKey(x => x.MotivoApreensaoId);
+        builder.HasOne(x => x.TipoVeiculo)
+            .WithMany()
+            .HasForeignKey(x => x.TipoVeiculoId);
+        builder.HasOne(x => x.MarcaModelo)
+            .WithMany()
+            .HasForeignKey(x => x.MarcaModeloId);
+        builder.HasOne(x => x.Cor)
+            .WithMany()
+            .HasForeignKey(x => x.CorId);
     }
 }

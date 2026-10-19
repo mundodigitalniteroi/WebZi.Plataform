@@ -248,6 +248,7 @@ namespace WebZi.Plataform.Data.Database
 
         public DbSet<SolicitacaoReboqueModel> SolicitacaoReboque { get; set; }
         public DbSet<SolicitacaoReboqueGrvModel> SolicitacaoReboqueGrv { get; set; }
+        public DbSet<SolicitacaoReboqueDRFAModel> SolicitacaoReboqueDRFA { get; set; }
         public DbSet<SolicitacaoReboqueEnquadramentoInfracaoModel> SolicitacaoReboqueEnquadramentoInfracao { get; set; }
         public DbSet<SolicitacaoReboqueLacreModel> SolicitacaoReboqueLacre { get; set; }
         public DbSet<SolicitacaoReboqueCondutorModel> SolicitacaoReboqueCondutor { get; set; }

@@ -1,6 +1,8 @@
 ﻿using WebZi.Plataform.Domain.Models.ClienteDeposito;
 using WebZi.Plataform.Domain.Models.Servico;
+using WebZi.Plataform.Domain.Models.Sistema;
 using WebZi.Plataform.Domain.Models.Usuario;
+using WebZi.Plataform.Domain.Models.Veiculo;
 
 namespace WebZi.Plataform.Domain.Models.GRV.SolicitacaoReboque;
 
@@ -15,6 +17,14 @@ public class SolicitacaoReboqueModel
     public byte MotivoApreensaoId { get; set; }
     public int? GrvId { get; set; }
     public int UsuarioCadastroId { get; set; }
+    public int? TipoVeiculoId { get; set; }
+    public int? CorId { get; set; }
+    public int? MarcaModeloId { get; set; }
+    public string? Placa { get; set; }
+    public string? Chassi { get; set; }
+    public string? Renavam { get; set; }
+    public string? VeiculoUF { get; set; }
+
     public int? UsuarioAlteracaoId { get; set; }
     public string? LocalRemocaoCompleto { get; set; }
     public string? LocalRemocaoReferencia { get; set; }
@@ -25,7 +35,9 @@ public class SolicitacaoReboqueModel
     public DateTime? DataSolicitacaoAceita { get; set; }
     public GrvModel Grv { get; set; }
     public MotivoApreensaoModel MotivoApreensao { get; set; }
-
+    public TipoVeiculoModel TipoVeiculo { get; set; }
+    public CorModel Cor { get; set; }
+    public MarcaModeloModel MarcaModelo { get; set; }
     public UsuarioModel UsuarioCadastro { get; set; }
     public UsuarioModel UsuarioAlteracao { get; set; }
 
