@@ -65,6 +65,8 @@ namespace WebZi.Plataform.Data.Services.GGV
 
             GrvModel Grv = await _context.Grv
                 .Include(x => x.Vistoria)
+                .Include(x => x.Cliente)
+                .Include(x => x.ClienteCodigoIdentificacao)
                 .Include(x => x.ListagemFaturamentoServicoGrv).Include(grvModel => grvModel.TipoVeiculo!)
                 .Include(grvModel => grvModel.MarcaModelo!)
                 .FirstOrDefaultAsync(x => x.GrvId == GgvPersistencia.IdentificadorProcesso, cancellationToken: ct);
@@ -381,6 +383,8 @@ namespace WebZi.Plataform.Data.Services.GGV
                 .Include(x => x.TipoVeiculo)
                 .Include(x => x.Reboque)
                 .Include(x => x.MotivoApreensao)
+                .Include(x => x.Cliente)
+                .Include(x => x.ClienteCodigoIdentificacao)
                 .Include(x => x.ListagemEnquadramentoInfracao)
                 .ThenInclude(x => x.EnquadramentoInfracao)
                 .FirstOrDefaultAsync(x => x.GrvId == GgvPersistencia.IdentificadorProcesso, cancellationToken: ct);
