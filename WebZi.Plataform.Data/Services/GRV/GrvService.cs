@@ -174,6 +174,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 .Include(x => x.ListagemLacre)
                 .Include(x => x.ListagemCondutorEquipamentoOpcional)
                 .Include(x => x.ListagemFaturamentoServicoGrv)
+                .Include(x => x.ClienteCodigoIdentificacao)
                 .AsTracking()
                 .FirstOrDefaultAsync(x => x.GrvId == GrvPersistencia.IdentificadorGrv, cancellationToken: ct);
 
@@ -490,6 +491,35 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
                     _context.Grv.Update(grv);
 
+                    if (GrvPersistencia.IdentificadorCliente == 61 || ClienteDeposito?.Cliente?.FlagClientePossuiCodigoIdentificacao == "S")
+                    {
+                        var codigoExistente = grv.ClienteCodigoIdentificacao ??
+                            await _context.ClienteCodigoIdentificacao
+                                .FirstOrDefaultAsync(x => x.GrvId == grv.GrvId, ct);
+
+                        if (!string.IsNullOrWhiteSpace(GrvPersistencia.CodigoIdentificacaoCliente))
+                        {
+                            string codigoFormatado = GrvPersistencia.CodigoIdentificacaoCliente.ToUpperTrim();
+                            if (codigoExistente != null)
+                            {
+                                codigoExistente.CodigoIdentificacao = codigoFormatado;
+                                codigoExistente.UsuarioAlteracaoId = GrvPersistencia.IdentificadorUsuario;
+                                codigoExistente.DataAlteracao = DateTime.Now;
+                                _context.ClienteCodigoIdentificacao.Update(codigoExistente);
+                            }
+                            else
+                            {
+                                _context.ClienteCodigoIdentificacao.Add(new ClienteCodigoIdentificacaoModel
+                                {
+                                    GrvId = grv.GrvId,
+                                    UsuarioCadastroId = GrvPersistencia.IdentificadorUsuario,
+                                    CodigoIdentificacao = codigoFormatado,
+                                    DataCadastro = DateTime.Now
+                                });
+                            }
+                        }
+                    }
+
                     await _context.SaveChangesAsync(ct);
                     await transaction.CommitAsync(ct);
                 }
@@ -753,7 +783,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 foreach (string item in GrvPersistencia.ListagemLacre)
                 {
                     grv.ListagemLacre.Add(new LacreModel
-                        { UsuarioCadastroId = GrvPersistencia.IdentificadorUsuario, Lacre = item });
+                    { UsuarioCadastroId = GrvPersistencia.IdentificadorUsuario, Lacre = item });
                 }
             }
 
@@ -830,7 +860,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
                         }
                     }
 
-                    if (ClienteDeposito.Cliente.FlagClientePossuiCodigoIdentificacao == "S")
+                    if ((GrvPersistencia.IdentificadorCliente == 61 || ClienteDeposito?.Cliente?.FlagClientePossuiCodigoIdentificacao == "S") &&
+                        !string.IsNullOrWhiteSpace(GrvPersistencia.CodigoIdentificacaoCliente))
                     {
                         ClienteCodigoIdentificacaoModel ClienteCodigoIdentificacao = new()
                         {
@@ -838,7 +869,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
                             UsuarioCadastroId = GrvPersistencia.IdentificadorUsuario,
 
-                            CodigoIdentificacao = grv.NumeroFormularioGrv
+                            CodigoIdentificacao = GrvPersistencia.CodigoIdentificacaoCliente.ToUpperTrim()
                         };
 
                         _context.ClienteCodigoIdentificacao.Add(ClienteCodigoIdentificacao);
@@ -1553,6 +1584,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 .ThenInclude(x => x.VistoriaSituacaoChassi)
                 .Include(x => x.Vistoria)
                 .ThenInclude(x => x.VistoriaStatus)
+                .Include(x => x.ClienteCodigoIdentificacao)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.GrvId == GrvId);
         }
@@ -1599,6 +1631,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             grvDTO.FlagChaveDeposito = Grv.FlagChaveDeposito;
             grvDTO.FlagTransbordo = Grv.FlagTransbordo;
             grvDTO.DataTransbordo = Grv.DataTransbordo;
+            grvDTO.CodigoIdentificacaoCliente = Grv.ClienteCodigoIdentificacao?.CodigoIdentificacao;
 
             // grvDTO.ListagemServicoAssociadoVeiculo = (await _provider
             //     .GetService<FaturamentoService>()
@@ -1658,6 +1691,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             grvDTO.FlagChaveDeposito = Grv.FlagChaveDeposito;
             grvDTO.FlagTransbordo = Grv.FlagTransbordo;
             grvDTO.DataTransbordo = Grv.DataTransbordo;
+            grvDTO.CodigoIdentificacaoCliente = Grv.ClienteCodigoIdentificacao?.CodigoIdentificacao;
 
             // grvDTO.ListagemServicoAssociadoVeiculo = (await _provider
             //     .GetService<FaturamentoService>()
@@ -2172,14 +2206,6 @@ namespace WebZi.Plataform.Domain.Services.GRV
             }
 
             var query = _context.Grv
-                .Include(x => x.Cliente)
-                .Include(x => x.Atendimento)
-                .ThenInclude(x => x.ListagemFaturamento)
-                .ThenInclude(x => x.ListagemFaturamentoComposicao)
-                .Include(x => x.Deposito)
-                .Include(x => x.StatusOperacao)
-                .Include(x => x.MarcaModelo)
-                .Include(x => x.UsuarioClienteDepositoGrv)
                 .Where(x =>
                     x.UsuarioClienteDepositoGrv.UsuarioId == GrvPesquisa.IdentificadorUsuario &&
                     x.UsuarioClienteDepositoGrv.FaturamentoProdutoCodigo == x.FaturamentoProdutoId)
@@ -2193,6 +2219,13 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 query = query.Where(x => GrvPesquisa.ListagemStatusOperacao.Contains(x.StatusOperacaoId));
             if (!string.IsNullOrWhiteSpace(GrvPesquisa.NumeroProcesso))
                 query = query.Where(x => x.NumeroFormularioGrv == GrvPesquisa.NumeroProcesso);
+            if (!string.IsNullOrWhiteSpace(GrvPesquisa.CodigoIdentificacaoCliente))
+            {
+                string codigoIdentificacao = GrvPesquisa.CodigoIdentificacaoCliente.Trim();
+                query = query.Where(x =>
+                    x.ClienteCodigoIdentificacao != null &&
+                    x.ClienteCodigoIdentificacao.CodigoIdentificacao == codigoIdentificacao);
+            }
             if (!string.IsNullOrWhiteSpace(GrvPesquisa.PlacaVeiculo))
                 query = query.Where(x => x.Placa == GrvPesquisa.PlacaVeiculo);
             if (!string.IsNullOrWhiteSpace(GrvPesquisa.Chassi))
@@ -2219,52 +2252,40 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 return ResultView;
             }
 
-            var queryPaginada = query.OrderByDescending(x => x.DataCadastro);
+            IQueryable<GrvModel> queryPaginada = query.OrderByDescending(x => x.DataCadastro);
 
             if (GrvPesquisa.Skip.HasValue && GrvPesquisa.Skip.Value > 0)
-                queryPaginada = (IOrderedQueryable<GrvModel>)queryPaginada.Skip(GrvPesquisa.Skip.Value);
+                queryPaginada = queryPaginada.Skip(GrvPesquisa.Skip.Value);
             if (GrvPesquisa.Take.HasValue && GrvPesquisa.Take.Value > 0)
-                queryPaginada = (IOrderedQueryable<GrvModel>)queryPaginada.Take(GrvPesquisa.Take.Value);
+                queryPaginada = queryPaginada.Take(GrvPesquisa.Take.Value);
             else
-                queryPaginada = (IOrderedQueryable<GrvModel>)queryPaginada.Take(100);
+                queryPaginada = queryPaginada.Take(100);
 
-            var result = await queryPaginada
+            ResultView.Listagem = await queryPaginada
                 .AsNoTracking()
-                .ToListAsync();
-
-            foreach (GrvModel Grv in result)
-            {
-                ResultView.Listagem.Add(new()
+                .Select(x => new GrvPesquisaResultDTO
                 {
-                    IdentificadorProcesso = Grv.GrvId,
-                    IdentificadorCliente = Grv.ClienteId,
-                    IdentificadorDeposito = Grv.DepositoId,
-                    IdentificadorAtendimento = Grv.Atendimento?.AtendimentoId ?? 0,
-                    IdentificadorFaturamento =
-                        Grv.Atendimento?.ListagemFaturamento?.FirstOrDefault()?.FaturamentoId ?? 0,
-                    StatusOperacaoId = Grv.StatusOperacaoId,
-
-                    NumeroProcesso = Grv.NumeroFormularioGrv,
-
-                    Placa = Grv?.Placa ?? "",
-
-                    Chassi = Grv?.Chassi ?? "",
-
-                    Renavam = Grv?.Renavam ?? "",
-
-                    MarcaModelo = Grv.MarcaModelo?.MarcaModelo ?? "",
-
-                    StatusOperacao = Grv.StatusOperacao.Descricao,
-
-                    DataHoraRemocao = Grv.DataHoraRemocao,
-
-                    DataHoraGuarda = Grv.DataHoraGuarda.GetValueOrDefault(),
-
-                    Cliente = Grv.Cliente.Nome,
-
-                    Deposito = Grv.Deposito.Nome
-                });
-            }
+                    IdentificadorProcesso = x.GrvId,
+                    IdentificadorCliente = x.ClienteId,
+                    IdentificadorDeposito = x.DepositoId,
+                    IdentificadorAtendimento = x.Atendimento != null ? (int?)x.Atendimento.AtendimentoId : null,
+                    IdentificadorFaturamento = x.Atendimento != null
+                        ? x.Atendimento.ListagemFaturamento.Select(f => (int?)f.FaturamentoId).FirstOrDefault()
+                        : null,
+                    NumeroProcesso = x.NumeroFormularioGrv,
+                    CodigoIdentificacaoCliente = x.ClienteCodigoIdentificacao != null ? x.ClienteCodigoIdentificacao.CodigoIdentificacao : null,
+                    Placa = x.Placa,
+                    Chassi = x.Chassi,
+                    Renavam = x.Renavam,
+                    MarcaModelo = x.MarcaModelo.MarcaModelo,
+                    StatusOperacaoId = x.StatusOperacaoId,
+                    StatusOperacao = x.StatusOperacao.Descricao,
+                    DataHoraRemocao = x.DataHoraRemocao,
+                    DataHoraGuarda = x.DataHoraGuarda,
+                    Cliente = x.Cliente.Nome,
+                    Deposito = x.Deposito.Nome
+                })
+                .ToListAsync();
 
             ResultView.Mensagem = MensagemViewHelper.SetFound(totalCount);
 
@@ -2680,20 +2701,11 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 }
             }
 
-            if (GrvPersistencia.ListagemLacre?.Count == 0)
-            {
-                erros.Add("Informe os Lacres");
-            }
-            else
+            if (GrvPersistencia.ListagemLacre?.Count > 0)
             {
                 if (GrvPersistencia.ListagemLacre.ContainsDuplicates())
                 {
                     erros.Add("Existem Lacres duplicados");
-                }
-
-                if (GrvPersistencia.ListagemLacre.ContainsNullOrWhiteSpaceValues())
-                {
-                    erros.Add("Existem Lacres não informados");
                 }
             }
 

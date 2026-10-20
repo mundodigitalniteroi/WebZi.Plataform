@@ -1,16 +1,20 @@
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using System.Text;
 using WebZi.Plataform.CrossCutting.Documents;
 using WebZi.Plataform.CrossCutting.Number;
 using WebZi.Plataform.CrossCutting.Secutity;
 using WebZi.Plataform.CrossCutting.Strings;
+using WebZi.Plataform.CrossCutting.Veiculo;
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Banco.PIX;
 using WebZi.Plataform.Data.Services.Cliente;
 using WebZi.Plataform.Data.Services.Deposito;
+using WebZi.Plataform.Data.Services.DetranHub;
 using WebZi.Plataform.Data.Services.Localizacao;
 using WebZi.Plataform.Data.Services.Sistema;
 using WebZi.Plataform.Domain.DTO.Banco.PIX;
@@ -25,6 +29,7 @@ using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.GRV;
 using WebZi.Plataform.Domain.Models.Sistema;
 using WebZi.Plataform.Domain.Models.Usuario;
+using WebZi.Plataform.Domain.Options;
 using WebZi.Plataform.Domain.Services.GRV;
 
 namespace WebZi.Plataform.Data.Services.Report
@@ -34,12 +39,25 @@ namespace WebZi.Plataform.Data.Services.Report
         private readonly AppDbContext _context;
         private readonly IMapper _mapper;
         private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IServiceProvider _provider;
+        private readonly IOptions<DetranHubOptions> _detranHubOptions;
 
         public GuiaPagamentoReboqueEstadiaService(AppDbContext context, IMapper mapper, IHttpClientFactory httpClientFactory)
         {
             _context = context;
             _mapper = mapper;
             _httpClientFactory = httpClientFactory;
+        }
+
+        public GuiaPagamentoReboqueEstadiaService(
+            AppDbContext context,
+            IMapper mapper,
+            IHttpClientFactory httpClientFactory,
+            IServiceProvider provider,
+            IOptions<DetranHubOptions> detranHubOptions) : this(context, mapper, httpClientFactory)
+        {
+            _provider = provider;
+            _detranHubOptions = detranHubOptions;
         }
 
         private GuiaPagamentoReboqueEstadiaDTO FillAtendimento(GuiaPagamentoReboqueEstadiaDTO GuiaPagamentoEstadiaReboque, AtendimentoModel Atendimento)
@@ -384,20 +402,85 @@ namespace WebZi.Plataform.Data.Services.Report
             return GuiaPagamentoEstadiaReboque;
         }
 
-        private GuiaPagamentoReboqueEstadiaDTO FillGrv(GuiaPagamentoReboqueEstadiaDTO GuiaPagamentoEstadiaReboque, GrvModel Grv)
+        private async Task ObterDadosVeiculoDetranHubAsync(GuiaPagamentoReboqueEstadiaDTO GuiaPagamentoEstadiaReboque, string placaInput, string chassiInput)
+        {
+            if (string.IsNullOrWhiteSpace(placaInput) && string.IsNullOrWhiteSpace(chassiInput))
+            {
+                return;
+            }
+
+            bool temPlacaValida = !string.IsNullOrWhiteSpace(placaInput) && placaInput.IsPlaca();
+            bool temChassiValido = !string.IsNullOrWhiteSpace(chassiInput) && chassiInput.IsChassi();
+
+            if (!temPlacaValida && !temChassiValido)
+            {
+                return;
+            }
+
+            try
+            {
+                var detranHubOptions = _detranHubOptions ?? _provider?.GetService<IOptions<DetranHubOptions>>();
+                var detranHubService = _provider?.GetService<DetranHubService>()
+                    ?? (detranHubOptions != null && _httpClientFactory != null && _mapper != null
+                        ? new DetranHubService(_httpClientFactory, _mapper, detranHubOptions)
+                        : (_httpClientFactory != null && _mapper != null
+                            ? new DetranHubService(_httpClientFactory, _mapper)
+                            : null));
+
+                if (detranHubService != null)
+                {
+                    string placa = temPlacaValida ? placaInput : null;
+                    string chassi = placa == null && temChassiValido ? chassiInput : null;
+
+                    var detranHubResult = await detranHubService.SearchToPlateOrChassi(placa, chassi);
+
+                    if (detranHubResult?.Veiculo != null)
+                    {
+                        var veiculoHub = detranHubResult.Veiculo;
+
+                        if (string.IsNullOrWhiteSpace(GuiaPagamentoEstadiaReboque.Placa) && !string.IsNullOrWhiteSpace(veiculoHub.Placa))
+                        {
+                            GuiaPagamentoEstadiaReboque.Placa = veiculoHub.Placa;
+                        }
+
+                        if (string.IsNullOrWhiteSpace(GuiaPagamentoEstadiaReboque.Chassi) && !string.IsNullOrWhiteSpace(veiculoHub.Chassi))
+                        {
+                            GuiaPagamentoEstadiaReboque.Chassi = veiculoHub.Chassi;
+                        }
+
+                        if (string.IsNullOrWhiteSpace(GuiaPagamentoEstadiaReboque.Renavam) && !string.IsNullOrWhiteSpace(veiculoHub.Renavam))
+                        {
+                            GuiaPagamentoEstadiaReboque.Renavam = veiculoHub.Renavam;
+                        }
+
+                        if (string.IsNullOrWhiteSpace(GuiaPagamentoEstadiaReboque.Cor) && !string.IsNullOrWhiteSpace(veiculoHub.CorPrimaria))
+                        {
+                            GuiaPagamentoEstadiaReboque.Cor = veiculoHub.CorPrimaria;
+                        }
+
+                        if (string.IsNullOrWhiteSpace(GuiaPagamentoEstadiaReboque.MarcaModelo) && !string.IsNullOrWhiteSpace(veiculoHub.MarcaModelo))
+                        {
+                            GuiaPagamentoEstadiaReboque.MarcaModelo = veiculoHub.MarcaModelo;
+                        }
+
+                        if (string.IsNullOrWhiteSpace(GuiaPagamentoEstadiaReboque.TipoVeiculo) && !string.IsNullOrWhiteSpace(veiculoHub.TipoVeiculo))
+                        {
+                            GuiaPagamentoEstadiaReboque.TipoVeiculo = veiculoHub.TipoVeiculo;
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                // Falha no DetranHub não impede continuidade
+            }
+        }
+
+        private async Task<GuiaPagamentoReboqueEstadiaDTO> FillGrvAsync(GuiaPagamentoReboqueEstadiaDTO GuiaPagamentoEstadiaReboque, GrvModel Grv)
         {
             if (Grv == null)
             {
                 return GuiaPagamentoEstadiaReboque;
-            }
-
-            if (!string.IsNullOrWhiteSpace(Grv.Placa))
-            {
-                GuiaPagamentoEstadiaReboque.PlacaChassi = Grv.Placa;
-            }
-            else
-            {
-                GuiaPagamentoEstadiaReboque.PlacaChassi = Grv.Chassi;
             }
 
             GuiaPagamentoEstadiaReboque.Placa = Grv.Placa;
@@ -407,6 +490,7 @@ namespace WebZi.Plataform.Data.Services.Report
             GuiaPagamentoEstadiaReboque.Renavam = Grv.Renavam;
 
             GuiaPagamentoEstadiaReboque.NumeroFormularioGrv = Grv.NumeroFormularioGrv;
+            GuiaPagamentoEstadiaReboque.CodigoIdentificacaoCliente = Grv.ClienteCodigoIdentificacao?.CodigoIdentificacao;
 
             if (Grv.DataHoraGuarda.HasValue)
             {
@@ -437,6 +521,77 @@ namespace WebZi.Plataform.Data.Services.Report
             GuiaPagamentoEstadiaReboque.Cor = Grv.Cor?.Cor;
 
             GuiaPagamentoEstadiaReboque.TipoVeiculo = Grv.TipoVeiculo?.Descricao;
+
+            // Consultar no DetranHub pela Placa ou Chassi para complementar informações faltantes
+            await ObterDadosVeiculoDetranHubAsync(GuiaPagamentoEstadiaReboque, Grv.Placa, Grv.Chassi);
+
+            // Fallback para DetranRioVeiculo local se ainda faltarem informações
+            if (string.IsNullOrWhiteSpace(GuiaPagamentoEstadiaReboque.Cor) ||
+                string.IsNullOrWhiteSpace(GuiaPagamentoEstadiaReboque.MarcaModelo) ||
+                string.IsNullOrWhiteSpace(GuiaPagamentoEstadiaReboque.TipoVeiculo) ||
+                string.IsNullOrWhiteSpace(GuiaPagamentoEstadiaReboque.Chassi) ||
+                string.IsNullOrWhiteSpace(GuiaPagamentoEstadiaReboque.Renavam))
+            {
+                try
+                {
+                    string placaLimpa = (GuiaPagamentoEstadiaReboque.Placa ?? Grv.Placa)?.NormalizePlaca();
+                    string chassiLimpo = (GuiaPagamentoEstadiaReboque.Chassi ?? Grv.Chassi)?.NormalizeChassi();
+
+                    var veiculoBd = await _context.DetranRioVeiculo
+                        .Include(x => x.Cor)
+                        .Include(x => x.MarcaModelo)
+                        .AsNoTracking()
+                        .OrderByDescending(x => x.DetranVeiculoId)
+                        .FirstOrDefaultAsync(x =>
+                            (!string.IsNullOrWhiteSpace(placaLimpa) && x.Placa == placaLimpa) ||
+                            (string.IsNullOrWhiteSpace(placaLimpa) && !string.IsNullOrWhiteSpace(chassiLimpo) && x.Chassi == chassiLimpo));
+
+                    if (veiculoBd != null)
+                    {
+                        if (string.IsNullOrWhiteSpace(GuiaPagamentoEstadiaReboque.Cor) && veiculoBd.Cor != null)
+                        {
+                            GuiaPagamentoEstadiaReboque.Cor = veiculoBd.Cor.Cor;
+                        }
+
+                        if (string.IsNullOrWhiteSpace(GuiaPagamentoEstadiaReboque.MarcaModelo) && veiculoBd.MarcaModelo != null)
+                        {
+                            GuiaPagamentoEstadiaReboque.MarcaModelo = veiculoBd.MarcaModelo.MarcaModelo;
+                        }
+
+                        if (string.IsNullOrWhiteSpace(GuiaPagamentoEstadiaReboque.TipoVeiculo) && !string.IsNullOrWhiteSpace(veiculoBd.DescricaoTipo))
+                        {
+                            GuiaPagamentoEstadiaReboque.TipoVeiculo = veiculoBd.DescricaoTipo;
+                        }
+
+                        if (string.IsNullOrWhiteSpace(GuiaPagamentoEstadiaReboque.Renavam) && !string.IsNullOrWhiteSpace(veiculoBd.Renavam))
+                        {
+                            GuiaPagamentoEstadiaReboque.Renavam = veiculoBd.Renavam;
+                        }
+
+                        if (string.IsNullOrWhiteSpace(GuiaPagamentoEstadiaReboque.Chassi) && !string.IsNullOrWhiteSpace(veiculoBd.Chassi))
+                        {
+                            GuiaPagamentoEstadiaReboque.Chassi = veiculoBd.Chassi;
+                        }
+                    }
+                }
+                catch
+                {
+                    // Falha no complemento local não impede continuidade
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(GuiaPagamentoEstadiaReboque.Placa) && !string.IsNullOrWhiteSpace(GuiaPagamentoEstadiaReboque.Chassi))
+            {
+                GuiaPagamentoEstadiaReboque.PlacaChassi = $"{GuiaPagamentoEstadiaReboque.Placa} / {GuiaPagamentoEstadiaReboque.Chassi}";
+            }
+            else if (!string.IsNullOrWhiteSpace(GuiaPagamentoEstadiaReboque.Placa))
+            {
+                GuiaPagamentoEstadiaReboque.PlacaChassi = GuiaPagamentoEstadiaReboque.Placa;
+            }
+            else
+            {
+                GuiaPagamentoEstadiaReboque.PlacaChassi = GuiaPagamentoEstadiaReboque.Chassi;
+            }
 
             return GuiaPagamentoEstadiaReboque;
         }
@@ -524,6 +679,7 @@ namespace WebZi.Plataform.Data.Services.Report
                 .Include(x => x.TipoVeiculo)
                 .Include(x => x.Atendimento)
                 .ThenInclude(x => x.QualificacaoResponsavel)
+                .Include(x => x.ClienteCodigoIdentificacao)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.Atendimento.AtendimentoId == Faturamento.AtendimentoId);
 
@@ -585,7 +741,7 @@ namespace WebZi.Plataform.Data.Services.Report
 
 
             // GRV
-            GuiaPagamentoEstadiaReboque = FillGrv(GuiaPagamentoEstadiaReboque, Grv);
+            GuiaPagamentoEstadiaReboque = await FillGrvAsync(GuiaPagamentoEstadiaReboque, Grv);
 
             // ATENDIMENTO
             GuiaPagamentoEstadiaReboque = FillAtendimento(GuiaPagamentoEstadiaReboque, Grv.Atendimento);
@@ -722,6 +878,7 @@ namespace WebZi.Plataform.Data.Services.Report
                 .Include(x => x.TipoVeiculo)
                 .Include(x => x.Atendimento)
                 .ThenInclude(x => x.QualificacaoResponsavel)
+                .Include(x => x.ClienteCodigoIdentificacao)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.Atendimento.AtendimentoId == Faturamento.AtendimentoId);
 
@@ -777,7 +934,7 @@ namespace WebZi.Plataform.Data.Services.Report
 
 
             // GRV
-            GuiaPagamentoEstadiaReboque = FillGrv(GuiaPagamentoEstadiaReboque, Grv);
+            GuiaPagamentoEstadiaReboque = await FillGrvAsync(GuiaPagamentoEstadiaReboque, Grv);
 
             // ATENDIMENTO
             GuiaPagamentoEstadiaReboque = FillAtendimento(GuiaPagamentoEstadiaReboque, Grv.Atendimento);

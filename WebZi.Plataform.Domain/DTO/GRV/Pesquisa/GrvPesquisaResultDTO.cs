@@ -1,14 +1,16 @@
-﻿namespace WebZi.Plataform.Domain.DTO.GRV.Pesquisa
+namespace WebZi.Plataform.Domain.DTO.GRV.Pesquisa
 {
     public class GrvPesquisaResultDTO
     {
         public int IdentificadorProcesso { get; set; }
         public int IdentificadorCliente { get; set; }
         public int IdentificadorDeposito { get; set; }
-        public int IdentificadorAtendimento { get; set; }
-        public int IdentificadorFaturamento { get; set; }
+        public int? IdentificadorAtendimento { get; set; }
+        public int? IdentificadorFaturamento { get; set; }
 
-        public string NumeroProcesso { get; set; }
+        public string? NumeroProcesso { get; set; }
+
+        public string? CodigoIdentificacaoCliente { get; set; }
 
         public string? Placa { get; set; }
 
@@ -18,16 +20,16 @@
 
         public string? MarcaModelo { get; set; }
 
-        public string StatusOperacaoId { get; set; }
+        public string? StatusOperacaoId { get; set; }
 
-        public string StatusOperacao { get; set; }
+        public string? StatusOperacao { get; set; }
 
-        public DateTime DataHoraRemocao { get; set; }
+        public DateTime? DataHoraRemocao { get; set; }
 
-        public DateTime DataHoraGuarda { get; set; }
+        public DateTime? DataHoraGuarda { get; set; }
 
-        public string Cliente { get; set; }
+        public string? Cliente { get; set; }
 
-        public string Deposito { get; set; }
+        public string? Deposito { get; set; }
     }
 }

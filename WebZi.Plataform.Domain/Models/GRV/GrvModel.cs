@@ -1,4 +1,4 @@
-﻿using WebZi.Plataform.Domain.Models.Arrematantes;
+using WebZi.Plataform.Domain.Models.Arrematantes;
 using WebZi.Plataform.Domain.Models.Atendimento;
 using WebZi.Plataform.Domain.Models.Cliente;
 using WebZi.Plataform.Domain.Models.Condutor;
@@ -117,7 +117,7 @@ namespace WebZi.Plataform.Domain.Models.GRV
 
         public string VeiculoUF { get; set; }
 
-        public DateTime DataHoraRemocao { get; set; }
+        public DateTime? DataHoraRemocao { get; set; }
 
         public DateTime? DataHoraGuarda { get; set; }
 
@@ -125,7 +125,7 @@ namespace WebZi.Plataform.Domain.Models.GRV
 
         public DateTime? DataTransbordo { get; set; }
 
-        public DateTime DataCadastro { get; set; }
+        public DateTime? DataCadastro { get; set; }
 
         public DateTime? DataAlteracao { get; set; }
 

@@ -14,6 +14,8 @@ namespace WebZi.Plataform.Domain.ViewModel.GGV
         public DateTime DataHoraGuarda { get; set; }
 
         public DateTime? DataTransbordo { get; set; }
+        [MaxLength(20)] public string CodigoIdentificacaoCliente { get; set; }
+
 
         [Required(ErrorMessage = "Propriedade obrigatória")]
         [RegularExpression("S|N", ErrorMessage = "Valor da Flag inválido, informe S ou N")]

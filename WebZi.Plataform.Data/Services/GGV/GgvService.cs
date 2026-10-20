@@ -15,12 +15,13 @@ using WebZi.Plataform.Data.Services.Sistema;
 using WebZi.Plataform.Data.Services.Transalvador;
 using WebZi.Plataform.Data.Services.Vistorias;
 using WebZi.Plataform.Data.Services.WebServices;
+using WebZi.Plataform.Domain.DTO.Faturamento.Servico;
 using WebZi.Plataform.Domain.DTO.Generic;
 using WebZi.Plataform.Domain.DTO.GGV;
-using WebZi.Plataform.Domain.DTO.Faturamento.Servico;
 using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Bucket;
+using WebZi.Plataform.Domain.Models.Cliente;
 using WebZi.Plataform.Domain.Models.Condutor;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.GRV;
@@ -64,6 +65,8 @@ namespace WebZi.Plataform.Data.Services.GGV
 
             GrvModel Grv = await _context.Grv
                 .Include(x => x.Vistoria)
+                .Include(x => x.Cliente)
+                .Include(x => x.ClienteCodigoIdentificacao)
                 .Include(x => x.ListagemFaturamentoServicoGrv).Include(grvModel => grvModel.TipoVeiculo!)
                 .Include(grvModel => grvModel.MarcaModelo!)
                 .FirstOrDefaultAsync(x => x.GrvId == GgvPersistencia.IdentificadorProcesso, cancellationToken: ct);
@@ -272,6 +275,34 @@ namespace WebZi.Plataform.Data.Services.GGV
                     }
                 }
             }
+            if (Grv.ClienteId == 61 || Grv.Cliente.FlagClientePossuiCodigoIdentificacao == "S")
+            {
+                var codigoExistente =
+                    await _context.ClienteCodigoIdentificacao
+                        .FirstOrDefaultAsync(x => x.GrvId == Grv.GrvId, ct);
+
+                if (!string.IsNullOrWhiteSpace(GgvPersistencia.CodigoIdentificacaoCliente))
+                {
+                    string codigoFormatado = GgvPersistencia.CodigoIdentificacaoCliente.ToUpperTrim();
+                    if (codigoExistente != null)
+                    {
+                        codigoExistente.CodigoIdentificacao = codigoFormatado;
+                        codigoExistente.UsuarioAlteracaoId = GgvPersistencia.IdentificadorUsuario;
+                        codigoExistente.DataAlteracao = DateTime.Now;
+                        _context.ClienteCodigoIdentificacao.Update(codigoExistente);
+                    }
+                    else
+                    {
+                        _context.ClienteCodigoIdentificacao.Add(new ClienteCodigoIdentificacaoModel
+                        {
+                            GrvId = Grv.GrvId,
+                            UsuarioCadastroId = GgvPersistencia.IdentificadorUsuario,
+                            CodigoIdentificacao = codigoFormatado,
+                            DataCadastro = DateTime.Now
+                        });
+                    }
+                }
+            }
 
             await using (IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync(ct))
             {
@@ -352,6 +383,8 @@ namespace WebZi.Plataform.Data.Services.GGV
                 .Include(x => x.TipoVeiculo)
                 .Include(x => x.Reboque)
                 .Include(x => x.MotivoApreensao)
+                .Include(x => x.Cliente)
+                .Include(x => x.ClienteCodigoIdentificacao)
                 .Include(x => x.ListagemEnquadramentoInfracao)
                 .ThenInclude(x => x.EnquadramentoInfracao)
                 .FirstOrDefaultAsync(x => x.GrvId == GgvPersistencia.IdentificadorProcesso, cancellationToken: ct);
@@ -652,6 +685,35 @@ namespace WebZi.Plataform.Data.Services.GGV
 
                 if (transalvadorResult.HtmlStatusCode is not (HtmlStatusCodeEnum.Created or HtmlStatusCodeEnum.Ok))
                     return transalvadorResult;
+            }
+
+            if (Grv.ClienteId == 61 || Grv.Cliente.FlagClientePossuiCodigoIdentificacao == "S")
+            {
+                var codigoExistente =
+                    await _context.ClienteCodigoIdentificacao
+                        .FirstOrDefaultAsync(x => x.GrvId == Grv.GrvId, ct);
+
+                if (!string.IsNullOrWhiteSpace(GgvPersistencia.CodigoIdentificacaoCliente))
+                {
+                    string codigoFormatado = GgvPersistencia.CodigoIdentificacaoCliente.ToUpperTrim();
+                    if (codigoExistente != null)
+                    {
+                        codigoExistente.CodigoIdentificacao = codigoFormatado;
+                        codigoExistente.UsuarioAlteracaoId = GgvPersistencia.IdentificadorUsuario;
+                        codigoExistente.DataAlteracao = DateTime.Now;
+                        _context.ClienteCodigoIdentificacao.Update(codigoExistente);
+                    }
+                    else
+                    {
+                        _context.ClienteCodigoIdentificacao.Add(new ClienteCodigoIdentificacaoModel
+                        {
+                            GrvId = Grv.GrvId,
+                            UsuarioCadastroId = GgvPersistencia.IdentificadorUsuario,
+                            CodigoIdentificacao = codigoFormatado,
+                            DataCadastro = DateTime.Now
+                        });
+                    }
+                }
             }
 
             await using (IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync(ct))

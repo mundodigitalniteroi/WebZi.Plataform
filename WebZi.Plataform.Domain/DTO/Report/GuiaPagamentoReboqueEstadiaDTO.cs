@@ -148,6 +148,8 @@ namespace WebZi.Plataform.Domain.DTO.Report
         // TODO: Verificar a necessidade dessa propriedade
         public string PixChave { get; set; }
 
+        public string CodigoIdentificacaoCliente { get; set; }
+
         public List<SimulacaoFaturamentoComposicaoDTO> ListagemServico { get; set; }
     }
 }

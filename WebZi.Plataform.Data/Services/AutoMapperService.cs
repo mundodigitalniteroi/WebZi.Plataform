@@ -375,7 +375,8 @@ namespace WebZi.Plataform.Data.Services
                 .ForMember(dest => dest.FlagChaveDeposito, from => from.MapFrom(src => src.FlagChaveDeposito))
                 .ForMember(dest => dest.FlagTransbordo, from => from.MapFrom(src => src.FlagTransbordo))
                 .ForMember(dest => dest.DataTransbordo, from => from.MapFrom(src => src.DataTransbordo))
-                .ForMember(dest => dest.Vistoria, from => from.MapFrom(src => src.Vistoria));
+                .ForMember(dest => dest.Vistoria, from => from.MapFrom(src => src.Vistoria))
+                .ForMember(dest => dest.CodigoIdentificacaoCliente, from => from.MapFrom(src => src.ClienteCodigoIdentificacao.CodigoIdentificacao));
 
             CreateMap<VistoriaModel, VistoriaDTO>();
             CreateMap<VistoriaSituacaoChassiModel, VistoriaSituacaoChassiDTO>()

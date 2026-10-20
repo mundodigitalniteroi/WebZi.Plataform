@@ -11,6 +11,8 @@ namespace WebZi.Plataform.Domain.ViewModel.GRV.Pesquisa
 
         public string NumeroProcesso { get; set; }
 
+        public string? CodigoIdentificacaoCliente { get; set; }
+
         public string PlacaVeiculo { get; set; }
 
         public string Chassi { get; set; }

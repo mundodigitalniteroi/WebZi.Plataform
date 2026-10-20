@@ -11,6 +11,7 @@ using WebZi.Plataform.Domain.DTO.Faturamento.Servico;
 using WebZi.Plataform.Domain.DTO.Faturamento.Simulacao;
 using WebZi.Plataform.Domain.DTO.Report;
 using WebZi.Plataform.Domain.DTO.Sistema;
+using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.ViewModel.Faturamento;
 
 namespace WebZi.Plataform.API.Controllers;
@@ -284,8 +285,11 @@ public class FaturamentoController : ControllerBase
 
     [HttpGet("Consultar")]
     [IgnoreAntiforgeryToken]
-    public async Task<ActionResult<FaturamentoConsultaDTO>> Consultar(int identificadorFaturamento,
-        int identificadorUsuario, CancellationToken ct)
+    public async Task<ActionResult<FaturamentoConsultaDTO>> Consultar(
+        [FromQuery] int? identificadorFaturamento,
+        [FromQuery] int identificadorUsuario,
+        CancellationToken ct,
+        [FromQuery] int? identificadorProcesso = null)
     {
         if (!ModelState.IsValid)
         {
@@ -296,9 +300,20 @@ public class FaturamentoController : ControllerBase
 
         try
         {
-            ResultView = await _provider
-                .GetService<FaturamentoService>()
-                .ConsultarFaturamentoAsync(identificadorFaturamento, identificadorUsuario, ct);
+            var service = _provider.GetService<FaturamentoService>();
+
+            if (identificadorFaturamento.HasValue && identificadorFaturamento.Value > 0)
+            {
+                ResultView = await service.ConsultarPorFaturamentoAsync(identificadorFaturamento.Value, identificadorUsuario, ct);
+            }
+            else if (identificadorProcesso.HasValue && identificadorProcesso.Value > 0)
+            {
+                ResultView = await service.ConsultarPorProcessoAsync(identificadorProcesso.Value, identificadorUsuario, ct);
+            }
+            else
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest(new List<string> { MensagemPadraoEnum.IdentificadorFaturamentoInvalido });
+            }
 
             return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
         }

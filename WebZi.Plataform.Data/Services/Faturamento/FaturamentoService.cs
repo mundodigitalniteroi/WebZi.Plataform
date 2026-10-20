@@ -32,6 +32,7 @@ using WebZi.Plataform.Domain.DTO.Faturamento.Simulacao;
 using WebZi.Plataform.Domain.DTO.Generic;
 using WebZi.Plataform.Domain.DTO.Liberacao;
 using WebZi.Plataform.Domain.DTO.Sistema;
+using WebZi.Plataform.Domain.DTO.Veiculo;
 using WebZi.Plataform.Domain.DTO.WebServices.DetranRio;
 using WebZi.Plataform.Domain.DTO.WebServices.Nfe;
 using WebZi.Plataform.Domain.DTO.WebServices.Nfse;
@@ -399,6 +400,24 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             }
         }
 
+        private string ObterDescricaoTipoVeiculo(int tipoVeiculoId)
+        {
+            if (tipoVeiculoId <= 0)
+            {
+                return "Não informado";
+            }
+
+            string nomeTipoVeiculo = _context.TipoVeiculo
+                .AsNoTracking()
+                .Where(x => x.TipoVeiculoId == (byte)tipoVeiculoId)
+                .Select(x => x.Descricao)
+                .FirstOrDefault();
+
+            return !string.IsNullOrWhiteSpace(nomeTipoVeiculo)
+                ? $"{nomeTipoVeiculo.Trim()} (ID {tipoVeiculoId})"
+                : $"ID {tipoVeiculoId}";
+        }
+
         public FaturamentoModel Faturar(CalculoFaturamentoParametroModel ParametrosCalculoFaturamento,
             out CalculoDiariasModel CalculoDiarias)
         {
@@ -508,7 +527,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
                 if (FaturamentoServicosGrvs?.Count == 0)
                 {
-                    throw new Exception("Não foi encontrado Serviço associado à este Processo");
+                    string tipoVeiculo = ObterDescricaoTipoVeiculo(ParametrosCalculoFaturamento.TipoVeiculoId);
+                    throw new Exception($"Não foi encontrado Serviço associado a este Processo para o tipo de veículo: {tipoVeiculo}");
                 }
             }
 
@@ -528,8 +548,9 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             if (FaturamentoServicosAssociadosVeiculos?.Count == 0)
             {
+                string tipoVeiculo = ObterDescricaoTipoVeiculo(ParametrosCalculoFaturamento.TipoVeiculoId);
                 throw new Exception(
-                    "Não foi encontrado Serviço associado ao Cliente + Depósito + Tipo de Veículo + Produto");
+                    $"Não foi encontrado Serviço associado ao Cliente + Depósito + Tipo de Veículo ({tipoVeiculo}) + Produto");
             }
 
             if (ParametrosCalculoFaturamento.FaturarSemGrv)
@@ -538,6 +559,12 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     .Map<List<ViewFaturamentoServicoGrvModel>>(FaturamentoServicosAssociadosVeiculos
                         .Where(x => x.DataVigenciaFinal == null)
                         .ToList());
+            }
+
+            if (FaturamentoServicosGrvs?.Count == 0)
+            {
+                string tipoVeiculo = ObterDescricaoTipoVeiculo(ParametrosCalculoFaturamento.TipoVeiculoId);
+                throw new Exception($"Não foi encontrado Serviço registrado para o tipo de veículo: {tipoVeiculo}");
             }
 
             #endregion Selecionar todos os Serviços associados ao CLIDEP, incluindo os com a Vigência finalizada
@@ -876,6 +903,12 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 ValorFaturado += FaturamentoComposicao.ValorFaturado;
 
                 FaturamentoComposicoes.Add(FaturamentoComposicao);
+            }
+
+            if (FaturamentoComposicoes.Count == 0)
+            {
+                string tipoVeiculo = ObterDescricaoTipoVeiculo(ParametrosCalculoFaturamento.TipoVeiculoId);
+                throw new Exception($"Não foi possível compor nenhum serviço de faturamento para o tipo de veículo: {tipoVeiculo}");
             }
 
             #endregion Composição do Faturamento
@@ -1285,12 +1318,14 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 }
                 else
                 {
-                    ResultView.Mensagem = MensagemViewHelper.SetNotFound();
+                    string tipoVeiculo = ObterDescricaoTipoVeiculo(Grv.TipoVeiculoId);
+                    ResultView.Mensagem = MensagemViewHelper.SetNotFound($"Nenhum serviço associado ativo para o tipo de veículo: {tipoVeiculo}");
                 }
             }
             else
             {
-                ResultView.Mensagem = MensagemViewHelper.SetNotFound();
+                string tipoVeiculo = ObterDescricaoTipoVeiculo(Grv.TipoVeiculoId);
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound($"Nenhum serviço associado encontrado para o tipo de veículo: {tipoVeiculo}");
             }
 
             return ResultView;
@@ -1361,9 +1396,11 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             //         });
             //     }
 
-            if (ResultView.Listagem.Count < 0)
+            if (ResultView.Listagem.Count == 0)
             {
-                ResultView.Mensagem = MensagemViewHelper.SetNotFound();
+                var grv = await _context.Grv.AsNoTracking().FirstOrDefaultAsync(x => x.GrvId == GrvId, ct);
+                string tipoVeiculo = grv != null ? ObterDescricaoTipoVeiculo(grv.TipoVeiculoId) : "Não informado";
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound($"Nenhum serviço registrado para o tipo de veículo: {tipoVeiculo}");
                 return ResultView;
             }
 
@@ -1626,15 +1663,38 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             List<TabelaGenericaModel> ListagemTipoCobranca = await new TabelaGenericaService(_context)
                 .ListAsync("FAT_TIPO_COBRANCA");
 
-            FaturamentoModel Faturamento = Faturar(ParametrosCalculoFaturamento, out CalculoDiarias);
+            FaturamentoModel Faturamento;
+
+            try
+            {
+                Faturamento = Faturar(ParametrosCalculoFaturamento, out CalculoDiarias);
+            }
+            catch (Exception ex)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest(ex.Message);
+                return ResultView;
+            }
 
             ResultView.Faturamento = _mapper.Map<SimulacaoFaturamentoDTO>(Faturamento);
 
             ResultView.Faturamento.ListagemServico =
                 _mapper.Map<List<SimulacaoFaturamentoComposicaoDTO>>(Faturamento.ListagemFaturamentoComposicao);
 
+            if (ResultView.Faturamento.ListagemServico?.Count == 0)
+            {
+                string tipoVeiculo = Grv.TipoVeiculo?.Descricao != null
+                    ? $"{Grv.TipoVeiculo.Descricao.Trim()} (ID {Grv.TipoVeiculoId})"
+                    : ObterDescricaoTipoVeiculo(Grv.TipoVeiculoId);
+
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest(
+                    $"Não foi encontrado nenhum Serviço registrado para o tipo de veículo: {tipoVeiculo}");
+
+                return ResultView;
+            }
 
             FaturamentoServicoTipoVeiculoModel FaturamentoServicoTipoVeiculo = new();
+
+            List<SimulacaoFaturamentoComposicaoDTO> servicosValidos = new();
 
             foreach (var Servico in ResultView.Faturamento.ListagemServico)
             {
@@ -1646,8 +1706,12 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     .FirstOrDefault(x =>
                         x.FaturamentoServicoTipoVeiculoId == Servico.IdentificadorFaturamentoServicoTipoVeiculo);
 
+                if (FaturamentoServicoTipoVeiculo?.FaturamentoServicoAssociado == null)
+                {
+                    continue;
+                }
 
-                var servicoGrv = FaturamentoServicoTipoVeiculo?.FaturamentoServicosGrvs
+                var servicoGrv = FaturamentoServicoTipoVeiculo.FaturamentoServicosGrvs
                     ?.FirstOrDefault(x => x.GrvId == Grv.GrvId);
 
                 Servico.IdentificadorServicoGrv = servicoGrv?.FaturamentoServicoGrvId;
@@ -1659,10 +1723,10 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 }
 
                 Servico.IdentificadorFaturamentoServicoAssociado =
-                    FaturamentoServicoTipoVeiculo?.FaturamentoServicoAssociadoId;
+                    FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociadoId;
 
-                Servico.DescricaoTipoServico = ListagemTipoCobranca.Where(x => x.ValorCadastro == Servico.TipoServico)
-                    .FirstOrDefault().Descricao;
+                Servico.DescricaoTipoServico = ListagemTipoCobranca
+                    .FirstOrDefault(x => x.ValorCadastro == Servico.TipoServico)?.Descricao;
 
                 Servico.NomeServico = FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.Descricao;
 
@@ -1672,11 +1736,27 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 Servico.DataVigenciaFinal = FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.DataVigenciaFinal;
 
                 Servico.FlagServicoObrigatorio =
-                    FaturamentoServicoTipoVeiculo?.FaturamentoServicoAssociado?.FlagServicoObrigatorio == "S" ||
-                    FaturamentoServicoTipoVeiculo?.FaturamentoServicoAssociado?.FaturamentoServicoTipo
+                    FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.FlagServicoObrigatorio == "S" ||
+                    FaturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.FaturamentoServicoTipo
                         ?.FlagServicoObrigatorio == "S"
                         ? "S"
                         : "N";
+
+                servicosValidos.Add(Servico);
+            }
+
+            ResultView.Faturamento.ListagemServico = servicosValidos;
+
+            if (ResultView.Faturamento.ListagemServico.Count == 0)
+            {
+                string tipoVeiculo = Grv.TipoVeiculo?.Descricao != null
+                    ? $"{Grv.TipoVeiculo.Descricao.Trim()} (ID {Grv.TipoVeiculoId})"
+                    : ObterDescricaoTipoVeiculo(Grv.TipoVeiculoId);
+
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest(
+                    $"Não foi encontrado nenhum Serviço válido para o tipo de veículo: {tipoVeiculo}");
+
+                return ResultView;
             }
 
             ResultView.IdentificadorProcesso = Grv.GrvId;
@@ -1959,18 +2039,18 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                         DataPagamento = DateTime.Now
                     }, ct);
 
-                //Atualização da Forma Liberação
-                await _context.Atendimento
-                    .Where(x => x.AtendimentoId == Faturamento.AtendimentoId)
-                    .UpdateAsync(x => new AtendimentoModel()
-                    {
-                        FormaLiberacaoNome = Faturamento.Atendimento.ResponsavelNome,
-                        FormaLiberacaoCNH = Faturamento.Atendimento.ResponsavelCnh,
-                        FormaLiberacaoCPF = Faturamento.Atendimento.ResponsavelDocumento,
-                        FormaLiberacao = "C",
-                        UsuarioAlteracaoId = parameters.IdentificadorUsuario,
-                        FlagPagamentoFinanciado = "N"
-                    }, ct);
+                // //Atualização da Forma Liberação
+                // await _context.Atendimento
+                //     .Where(x => x.AtendimentoId == Faturamento.AtendimentoId)
+                //     .UpdateAsync(x => new AtendimentoModel()
+                //     {
+                //         FormaLiberacaoNome = Faturamento.Atendimento.ResponsavelNome,
+                //         FormaLiberacaoCNH = Faturamento.Atendimento.ResponsavelCnh,
+                //         FormaLiberacaoCPF = Faturamento.Atendimento.ResponsavelDocumento,
+                //         FormaLiberacao = "C",
+                //         UsuarioAlteracaoId = parameters.IdentificadorUsuario,
+                //         FlagPagamentoFinanciado = "N"
+                //     }, ct);
 
                 if (!parameters.SaidaParaReparo)
                 {
@@ -1998,337 +2078,963 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             }
         }
 
-        public async Task<FaturamentoConsultaDTO> ConsultarFaturamentoAsync(int identificadorFaturamento,
-            int identificadorUsuario, CancellationToken ct)
+        private async Task<DetranRioVeiculoDTO> ObterVeiculoDTOAsync(VeiculoConsultaInfo veiculoInfo)
         {
-            #region Validações dos parâmetros
-
-            List<string> erros = new();
-
-            if (identificadorFaturamento <= 0)
+            if (veiculoInfo == null)
             {
-                erros.Add(MensagemPadraoEnum.IdentificadorFaturamentoInvalido);
+                return null;
             }
 
+            DetranRioVeiculoDTO veiculoDTO = null;
+
+            if (!veiculoInfo.Placa.IsNullOrWhiteSpace() || !veiculoInfo.Chassi.IsNullOrWhiteSpace())
+            {
+                try
+                {
+                    var detranHubService = _detranHubOptions != null
+                        ? new DetranHubService(_httpClientFactory, _mapper, _detranHubOptions)
+                        : new DetranHubService(_httpClientFactory, _mapper);
+
+                    string placa = veiculoInfo.Placa.IsPlaca() ? veiculoInfo.Placa : null;
+                    string chassi = placa == null ? veiculoInfo.Chassi : null;
+
+                    var detranHubResult = await detranHubService.SearchToPlateOrChassi(placa, chassi);
+
+                    if (detranHubResult?.Veiculo != null)
+                    {
+                        veiculoDTO = _mapper.Map<DetranRioVeiculoDTO>(detranHubResult.Veiculo);
+                        veiculoDTO.Mensagem = detranHubResult.Mensagem;
+                    }
+                }
+                catch
+                {
+                    // Falha no serviço externo não impede exibição dos dados do GRV
+                }
+            }
+
+            if (veiculoDTO == null)
+            {
+                veiculoDTO = new DetranRioVeiculoDTO
+                {
+                    Placa = veiculoInfo.Placa,
+                    Chassi = veiculoInfo.Chassi,
+                    Renavam = veiculoInfo.Renavam,
+                    Uf = veiculoInfo.Uf,
+                    Cor = veiculoInfo.Cor,
+                    MarcaModelo = veiculoInfo.MarcaModelo,
+                    TipoVeiculo = veiculoInfo.TipoVeiculo,
+                    Mensagem = MensagemViewHelper.SetOk()
+                };
+            }
+            else
+            {
+                if (string.IsNullOrWhiteSpace(veiculoDTO.Placa)) veiculoDTO.Placa = veiculoInfo.Placa;
+                if (string.IsNullOrWhiteSpace(veiculoDTO.Chassi)) veiculoDTO.Chassi = veiculoInfo.Chassi;
+                if (string.IsNullOrWhiteSpace(veiculoDTO.Renavam)) veiculoDTO.Renavam = veiculoInfo.Renavam;
+                if (string.IsNullOrWhiteSpace(veiculoDTO.Uf)) veiculoDTO.Uf = veiculoInfo.Uf;
+                if (veiculoDTO.Cor == null && veiculoInfo.Cor != null)
+                {
+                    veiculoDTO.Cor = veiculoInfo.Cor;
+                }
+                if (veiculoDTO.MarcaModelo == null && veiculoInfo.MarcaModelo != null)
+                {
+                    veiculoDTO.MarcaModelo = veiculoInfo.MarcaModelo;
+                }
+                if ((veiculoDTO.TipoVeiculo == null || veiculoDTO.TipoVeiculo.IdentificadorTipoVeiculo <= 0) && veiculoInfo.TipoVeiculo != null)
+                {
+                    veiculoDTO.TipoVeiculo = veiculoInfo.TipoVeiculo;
+                }
+            }
+
+            return veiculoDTO;
+        }
+
+        private async Task<DetranRioVeiculoDTO> ObterVeiculoDTOAsync(GrvModel grv)
+        {
+            if (grv == null) return null;
+
+            return await ObterVeiculoDTOAsync(new VeiculoConsultaInfo
+            {
+                Placa = grv.Placa,
+                Chassi = grv.Chassi,
+                Renavam = grv.Renavam,
+                Uf = grv.VeiculoUF,
+                Cor = grv.Cor != null ? _mapper.Map<CorDTO>(grv.Cor) : null,
+                MarcaModelo = grv.MarcaModelo != null ? _mapper.Map<MarcaModeloDTO>(grv.MarcaModelo) : null,
+                TipoVeiculo = grv.TipoVeiculo != null ? _mapper.Map<TipoVeiculoDTO>(grv.TipoVeiculo) : null
+            });
+        }
+
+        private async Task<GrvConsultaDados> ObterGrvConsultaDadosAsync(int grvId, CancellationToken ct)
+        {
+            if (grvId <= 0) return null;
+
+            var g = await _context.Grv
+                .Where(x => x.GrvId == grvId)
+                .Select(x => new
+                {
+                    x.GrvId,
+                    x.NumeroFormularioGrv,
+                    x.DataHoraRemocao,
+                    x.DataHoraGuarda,
+                    x.StatusOperacaoId,
+                    StatusOperacaoDescricao = x.StatusOperacao != null ? x.StatusOperacao.Descricao : null,
+                    ClienteId = x.Cliente != null ? (int?)x.Cliente.ClienteId : null,
+                    ClienteNome = x.Cliente != null ? x.Cliente.Nome : null,
+                    ClienteNumeroEndereco = x.Cliente != null ? x.Cliente.NumeroEndereco : null,
+                    ClienteComplementoEndereco = x.Cliente != null ? x.Cliente.ComplementoEndereco : null,
+                    ClienteTipoLogradouro = x.Cliente != null && x.Cliente.Endereco != null ? x.Cliente.Endereco.TipoLogradouro : null,
+                    ClienteLogradouro = x.Cliente != null && x.Cliente.Endereco != null ? x.Cliente.Endereco.Logradouro : null,
+                    ClienteBairro = x.Cliente != null && x.Cliente.Endereco != null ? x.Cliente.Endereco.Bairro : null,
+                    ClienteMunicipio = x.Cliente != null && x.Cliente.Endereco != null ? x.Cliente.Endereco.Municipio : null,
+                    ClienteUF = x.Cliente != null && x.Cliente.Endereco != null ? x.Cliente.Endereco.UF : null,
+                    DepositoId = x.Deposito != null ? (int?)x.Deposito.DepositoId : null,
+                    DepositoNome = x.Deposito != null ? x.Deposito.Nome : null,
+                    DepositoTelefoneMob = x.Deposito != null ? x.Deposito.TelefoneMob : null,
+                    DepositoNumeroEndereco = x.Deposito != null ? x.Deposito.NumeroEndereco : null,
+                    DepositoComplementoEndereco = x.Deposito != null ? x.Deposito.ComplementoEndereco : null,
+                    DepositoTipoLogradouro = x.Deposito != null && x.Deposito.Endereco != null ? x.Deposito.Endereco.TipoLogradouro : null,
+                    DepositoLogradouro = x.Deposito != null && x.Deposito.Endereco != null ? x.Deposito.Endereco.Logradouro : null,
+                    DepositoBairro = x.Deposito != null && x.Deposito.Endereco != null ? x.Deposito.Endereco.Bairro : null,
+                    DepositoMunicipio = x.Deposito != null && x.Deposito.Endereco != null ? x.Deposito.Endereco.Municipio : null,
+                    DepositoUF = x.Deposito != null && x.Deposito.Endereco != null ? x.Deposito.Endereco.UF : null,
+                    x.Placa,
+                    x.Chassi,
+                    x.Renavam,
+                    x.VeiculoUF,
+                    CorId = x.Cor != null ? (int?)x.Cor.CorId : null,
+                    Cor = x.Cor != null ? x.Cor.Cor : null,
+                    CorSecundaria = x.Cor != null ? x.Cor.CorSecundaria : null,
+                    MarcaModeloId = x.MarcaModelo != null ? (int?)x.MarcaModelo.MarcaModeloId : null,
+                    MarcaModelo = x.MarcaModelo != null ? x.MarcaModelo.MarcaModelo : null,
+                    TipoVeiculoId = x.TipoVeiculo != null ? (byte?)x.TipoVeiculo.TipoVeiculoId : null,
+                    TipoVeiculoDescricao = x.TipoVeiculo != null ? x.TipoVeiculo.Descricao : null,
+                    TipoVeiculoFlagNaoRequerCnh = x.TipoVeiculo != null ? x.TipoVeiculo.FlagNaoRequerCnhNaLiberacao : null,
+                    CodigoIdentificacaoCliente = x.ClienteCodigoIdentificacao != null ? x.ClienteCodigoIdentificacao.CodigoIdentificacao : null
+                })
+                .AsNoTracking()
+                .FirstOrDefaultAsync(ct);
+
+            if (g == null) return null;
+
+            return new GrvConsultaDados
+            {
+                GrvId = g.GrvId,
+                NumeroFormularioGrv = g.NumeroFormularioGrv,
+                CodigoIdentificacaoCliente = g.CodigoIdentificacaoCliente,
+                DataHoraRemocao = g.DataHoraRemocao,
+                DataHoraGuarda = g.DataHoraGuarda,
+                StatusOperacaoId = g.StatusOperacaoId,
+                StatusOperacaoDescricao = g.StatusOperacaoDescricao,
+                Cliente = g.ClienteId.HasValue ? new ClienteConsultaDados
+                {
+                    ClienteId = g.ClienteId.Value,
+                    Nome = g.ClienteNome,
+                    NumeroEndereco = g.ClienteNumeroEndereco,
+                    ComplementoEndereco = g.ClienteComplementoEndereco,
+                    TipoLogradouro = g.ClienteTipoLogradouro,
+                    Logradouro = g.ClienteLogradouro,
+                    Bairro = g.ClienteBairro,
+                    Municipio = g.ClienteMunicipio,
+                    UF = g.ClienteUF
+                } : null,
+                Deposito = g.DepositoId.HasValue ? new DepositoConsultaDados
+                {
+                    DepositoId = g.DepositoId.Value,
+                    Nome = g.DepositoNome,
+                    TelefoneMob = g.DepositoTelefoneMob,
+                    NumeroEndereco = g.DepositoNumeroEndereco,
+                    ComplementoEndereco = g.DepositoComplementoEndereco,
+                    TipoLogradouro = g.DepositoTipoLogradouro,
+                    Logradouro = g.DepositoLogradouro,
+                    Bairro = g.DepositoBairro,
+                    Municipio = g.DepositoMunicipio,
+                    UF = g.DepositoUF
+                } : null,
+                Veiculo = new VeiculoConsultaInfo
+                {
+                    Placa = g.Placa,
+                    Chassi = g.Chassi,
+                    Renavam = g.Renavam,
+                    Uf = g.VeiculoUF,
+                    Cor = g.CorId.HasValue ? new CorDTO
+                    {
+                        IdentificadorCor = g.CorId.Value,
+                        Cor = g.Cor,
+                        CorSecundaria = g.CorSecundaria
+                    } : null,
+                    MarcaModelo = g.MarcaModeloId.HasValue ? new MarcaModeloDTO
+                    {
+                        IdentificadorMarcaModelo = g.MarcaModeloId.Value,
+                        MarcaModelo = g.MarcaModelo
+                    } : null,
+                    TipoVeiculo = g.TipoVeiculoId.HasValue ? new TipoVeiculoDTO
+                    {
+                        IdentificadorTipoVeiculo = g.TipoVeiculoId.Value,
+                        Descricao = g.TipoVeiculoDescricao,
+                        FlagNaoRequerCnhNaLiberacao = g.TipoVeiculoFlagNaoRequerCnh
+                    } : null
+                }
+            };
+        }
+
+        private async Task<AtendimentoDTO> ObterAtendimentoConsultaDTOAsync(int? atendimentoId, int? grvId, int identificadorUsuario, CancellationToken ct)
+        {
+            var query = _context.Atendimento.AsNoTracking();
+
+            if (atendimentoId.HasValue && atendimentoId.Value > 0)
+            {
+                query = query.Where(x => x.AtendimentoId == atendimentoId.Value);
+            }
+            else if (grvId.HasValue && grvId.Value > 0)
+            {
+                query = query.Where(x => x.GrvId == grvId.Value);
+            }
+            else
+            {
+                return null;
+            }
+
+            var raw = await query
+                .Select(x => new
+                {
+                    x.AtendimentoId,
+                    x.GrvId,
+                    x.QualificacaoResponsavelId,
+                    UsuarioNome = x.UsuarioCadastro != null && x.UsuarioCadastro.Pessoa != null ? x.UsuarioCadastro.Pessoa.Nome : null,
+                    UsuarioNomeMeio = x.UsuarioCadastro != null && x.UsuarioCadastro.Pessoa != null ? x.UsuarioCadastro.Pessoa.NomeMeio : null,
+                    UsuarioSobrenome = x.UsuarioCadastro != null && x.UsuarioCadastro.Pessoa != null ? x.UsuarioCadastro.Pessoa.Sobrenome : null,
+                    x.ResponsavelNome,
+                    x.ResponsavelDocumento,
+                    ResponsavelCNH = x.ResponsavelCnh,
+                    x.ResponsavelEndereco,
+                    x.ResponsavelNumero,
+                    x.ResponsavelComplemento,
+                    x.ResponsavelBairro,
+                    x.ResponsavelMunicipio,
+                    x.ResponsavelUF,
+                    x.ResponsavelCEP,
+                    x.ResponsavelDDD,
+                    x.ResponsavelTelefone,
+                    x.ProprietarioNome,
+                    x.ProprietarioTipoDocumentoId,
+                    x.ProprietarioDocumento,
+                    x.FormaLiberacao,
+                    x.FormaLiberacaoNome,
+                    x.FormaLiberacaoCNH,
+                    x.FormaLiberacaoCPF,
+                    x.FormaLiberacaoPlaca,
+                    x.ProprietarioEndereco,
+                    x.ProprietarioNumero,
+                    x.ProprietarioComplemento,
+                    x.ProprietarioBairro,
+                    x.ProprietarioMunicipio,
+                    x.ProprietarioUF,
+                    x.ProprietarioCEP,
+                    x.ProprietarioDDD,
+                    x.ProprietarioTelefone,
+                    x.NotaFiscalNome,
+                    x.NotaFiscalDocumento,
+                    x.NotaFiscalEndereco,
+                    x.NotaFiscalNumero,
+                    x.NotaFiscalComplemento,
+                    x.NotaFiscalBairro,
+                    x.NotaFiscalMunicipio,
+                    x.NotaFiscalUF,
+                    x.NotaFiscalCEP,
+                    x.NotaFiscalDDD,
+                    x.NotaFiscalTelefone,
+                    x.NotaFiscalEmail,
+                    x.NotaFiscalInscricaoMunicipal,
+                    x.TotalImpressoes,
+                    x.StatusCadastroERP,
+                    StatusCadastroOrdensVendaERP = x.StatusCadastroOrdemVendaERP,
+                    x.FlagPagamentoFinanciado,
+                    FlagAtendimentoWS = x.FlagAtendimentoWs,
+                    x.DataHoraInicioAtendimento,
+                    x.DataCadastro,
+                    x.DataAlteracao,
+                    SaidaParaReparoId = x.SaidaParaReparo != null ? (int?)x.SaidaParaReparo.Id : null,
+                    SaidaParaReparoAtendimentoId = x.SaidaParaReparo != null ? (int?)x.SaidaParaReparo.AtendimentoId : null,
+                    SaidaParaReparoDataSaida = x.SaidaParaReparo != null ? (DateTime?)x.SaidaParaReparo.DataSaida : null,
+                    SaidaParaReparoDataPrevisaoRetorno = x.SaidaParaReparo != null ? (DateTime?)x.SaidaParaReparo.DataPrevisaoRetorno : null,
+                    SaidaParaReparoMotivoSaida = x.SaidaParaReparo != null ? x.SaidaParaReparo.MotivoSaida : null
+                })
+                .FirstOrDefaultAsync(ct);
+
+            if (raw == null)
+            {
+                return null;
+            }
+
+            string nomeCompletoUsuario = null;
+            if (!string.IsNullOrWhiteSpace(raw.UsuarioNome))
+            {
+                var partes = new[] { raw.UsuarioNome, raw.UsuarioNomeMeio, raw.UsuarioSobrenome }
+                    .Where(p => !string.IsNullOrWhiteSpace(p));
+                nomeCompletoUsuario = string.Join(" ", partes);
+            }
+
+            var dto = new AtendimentoDTO
+            {
+                IdentificadorAtendimento = raw.AtendimentoId,
+                IdentificadorProcesso = raw.GrvId,
+                IdentificadorQualificacaoResponsavel = raw.QualificacaoResponsavelId,
+                NomeUsuarioResponsavelCadastro = nomeCompletoUsuario,
+                ResponsavelNome = raw.ResponsavelNome,
+                ResponsavelDocumento = raw.ResponsavelDocumento,
+                ResponsavelCNH = raw.ResponsavelCNH,
+                ResponsavelEndereco = raw.ResponsavelEndereco,
+                ResponsavelNumero = raw.ResponsavelNumero,
+                ResponsavelComplemento = raw.ResponsavelComplemento,
+                ResponsavelBairro = raw.ResponsavelBairro,
+                ResponsavelMunicipio = raw.ResponsavelMunicipio,
+                ResponsavelUF = raw.ResponsavelUF,
+                ResponsavelCEP = raw.ResponsavelCEP,
+                ResponsavelDDD = raw.ResponsavelDDD,
+                ResponsavelTelefone = raw.ResponsavelTelefone,
+                ProprietarioNome = raw.ProprietarioNome,
+                IdentificadorProprietarioTipoDocumento = raw.ProprietarioTipoDocumentoId,
+                ProprietarioDocumento = raw.ProprietarioDocumento,
+                FormaLiberacao = raw.FormaLiberacao,
+                FormaLiberacaoNome = raw.FormaLiberacaoNome,
+                FormaLiberacaoCNH = raw.FormaLiberacaoCNH,
+                FormaLiberacaoCPF = raw.FormaLiberacaoCPF,
+                FormaLiberacaoPlaca = raw.FormaLiberacaoPlaca,
+                ProprietarioEndereco = raw.ProprietarioEndereco,
+                ProprietarioNumero = raw.ProprietarioNumero,
+                ProprietarioComplemento = raw.ProprietarioComplemento,
+                ProprietarioBairro = raw.ProprietarioBairro,
+                ProprietarioMunicipio = raw.ProprietarioMunicipio,
+                ProprietarioUF = raw.ProprietarioUF,
+                ProprietarioCEP = raw.ProprietarioCEP,
+                ProprietarioDDD = raw.ProprietarioDDD,
+                ProprietarioTelefone = raw.ProprietarioTelefone,
+                NotaFiscalNome = raw.NotaFiscalNome,
+                NotaFiscalDocumento = raw.NotaFiscalDocumento,
+                NotaFiscalEndereco = raw.NotaFiscalEndereco,
+                NotaFiscalNumero = raw.NotaFiscalNumero,
+                NotaFiscalComplemento = raw.NotaFiscalComplemento,
+                NotaFiscalBairro = raw.NotaFiscalBairro,
+                NotaFiscalMunicipio = raw.NotaFiscalMunicipio,
+                NotaFiscalUF = raw.NotaFiscalUF,
+                NotaFiscalCEP = raw.NotaFiscalCEP,
+                NotaFiscalDDD = raw.NotaFiscalDDD,
+                NotaFiscalTelefone = raw.NotaFiscalTelefone,
+                NotaFiscalEmail = raw.NotaFiscalEmail,
+                NotaFiscalInscricaoMunicipal = raw.NotaFiscalInscricaoMunicipal,
+                TotalImpressoes = raw.TotalImpressoes,
+                StatusCadastroERP = raw.StatusCadastroERP,
+                StatusCadastroOrdensVendaERP = raw.StatusCadastroOrdensVendaERP,
+                FlagPagamentoFinanciado = raw.FlagPagamentoFinanciado,
+                FlagAtendimentoWS = raw.FlagAtendimentoWS,
+                DataHoraInicioAtendimento = raw.DataHoraInicioAtendimento,
+                DataCadastro = raw.DataCadastro,
+                DataAlteracao = raw.DataAlteracao,
+                SaidaParaReparo = raw.SaidaParaReparoId.HasValue ? new AtendimentoSaidaParaReparoDTO
+                {
+                    IdentificadorSaidaReparo = raw.SaidaParaReparoId.Value,
+                    IdentificadorAtendimento = raw.SaidaParaReparoAtendimentoId ?? raw.AtendimentoId,
+                    DataSaida = raw.SaidaParaReparoDataSaida ?? default,
+                    DataPrevisaoRetorno = raw.SaidaParaReparoDataPrevisaoRetorno ?? default,
+                    MotivoSaida = raw.SaidaParaReparoMotivoSaida
+                } : null
+            };
+
+            if (dto.IdentificadorAtendimento > 0)
+            {
+                try
+                {
+                    ImageListDTO fotoResponsavel = await new AtendimentoService(_context, _mapper, _httpClientFactory)
+                        .GetFotoResponsavelAsync(dto.IdentificadorAtendimento, identificadorUsuario);
+
+                    if (fotoResponsavel.Listagem?.Count > 0)
+                    {
+                        dto.FotoResponsavel = fotoResponsavel.Listagem.FirstOrDefault()?.Imagem;
+                    }
+                }
+                catch
+                {
+                    // Falha ao obter foto não impede retorno do atendimento
+                }
+            }
+
+            return dto;
+        }
+
+        public async Task<FaturamentoConsultaDTO> ConsultarPorProcessoAsync(int identificadorProcesso,
+            int identificadorUsuario, CancellationToken ct)
+        {
             FaturamentoConsultaDTO ResultView = new();
 
-            if (erros.Count > 0)
+            if (identificadorProcesso <= 0)
             {
-                ResultView.Mensagem = MensagemViewHelper.SetBadRequest(erros);
-
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Identificador do Processo inválido");
                 return ResultView;
             }
 
-            #endregion Validações dos parâmetros
+            var grvData = await ObterGrvConsultaDadosAsync(identificadorProcesso, ct);
 
-            List<TabelaGenericaModel> ListagemTipoCobranca = await new TabelaGenericaService(_context)
-                .ListAsync("FAT_TIPO_COBRANCA");
+            if (grvData == null)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound(MensagemPadraoEnum.NaoEncontradoGrv);
+                return ResultView;
+            }
 
-            #region Consultas
+            var atendimentoDTO = await ObterAtendimentoConsultaDTOAsync(null, grvData.GrvId, identificadorUsuario, ct);
 
-            var Faturamento = await _context.Faturamento
+            ResultView.IdentificadorProcesso = grvData.GrvId;
+            ResultView.NumeroProcesso = grvData.NumeroFormularioGrv;
+            ResultView.CodigoIdentificacaoCliente = grvData.CodigoIdentificacaoCliente;
+            ResultView.DataHoraRemocao = grvData.DataHoraRemocao;
+            ResultView.DataHoraGuarda = grvData.DataHoraGuarda;
+            ResultView.StatusOperacaoId = grvData.StatusOperacaoId;
+            ResultView.StatusOperacaoDescricao = grvData.StatusOperacaoDescricao;
+            ResultView.Faturamentos = new List<SimulacaoFaturamentoDTO>();
+            ResultView.NotaFiscal = new List<NFERetornoFaturamentoDTO>();
+            ResultView.IdentificadorFaturamento = null;
+            ResultView.TipoMeioCobrancaId = null;
+
+            EnderecoService enderecoService = new();
+
+            if (grvData.Cliente != null)
+            {
+                ResultView.Cliente = new SimulacaoClienteDTO
+                {
+                    IdentificadorCliente = grvData.Cliente.ClienteId,
+                    Nome = grvData.Cliente.Nome,
+                    Endereco = enderecoService.FormatarEndereco(
+                        grvData.Cliente.TipoLogradouro,
+                        grvData.Cliente.Logradouro,
+                        grvData.Cliente.NumeroEndereco,
+                        grvData.Cliente.ComplementoEndereco,
+                        grvData.Cliente.Bairro,
+                        grvData.Cliente.Municipio,
+                        grvData.Cliente.UF),
+                    EmitirNota = false
+                };
+            }
+            else
+            {
+                ResultView.Cliente = null;
+            }
+
+            if (grvData.Deposito != null)
+            {
+                ResultView.Deposito = new SimulacaoDepositoDTO
+                {
+                    IdentificadorDeposito = grvData.Deposito.DepositoId,
+                    Nome = grvData.Deposito.Nome,
+                    Telefone = grvData.Deposito.TelefoneMob,
+                    Endereco = enderecoService.FormatarEndereco(
+                        grvData.Deposito.TipoLogradouro,
+                        grvData.Deposito.Logradouro,
+                        grvData.Deposito.NumeroEndereco,
+                        grvData.Deposito.ComplementoEndereco,
+                        grvData.Deposito.Bairro,
+                        grvData.Deposito.Municipio,
+                        grvData.Deposito.UF)
+                };
+            }
+            else
+            {
+                ResultView.Deposito = null;
+            }
+
+            ResultView.IdentificadorAtendimento = atendimentoDTO?.IdentificadorAtendimento;
+            ResultView.Atendimento = atendimentoDTO;
+            ResultView.Veiculo = await ObterVeiculoDTOAsync(grvData.Veiculo);
+            ResultView.Mensagem = MensagemViewHelper.SetOk();
+
+            return ResultView;
+        }
+
+        public async Task<FaturamentoConsultaDTO> ConsultarPorFaturamentoAsync(int identificadorFaturamento,
+            int identificadorUsuario, CancellationToken ct)
+        {
+            FaturamentoConsultaDTO ResultView = new();
+
+            if (identificadorFaturamento <= 0)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest(new List<string> { MensagemPadraoEnum.IdentificadorFaturamentoInvalido });
+                return ResultView;
+            }
+
+            // 1. Busca dados básicos do faturamento solicitado via Select
+            var faturamentoBase = await _context.Faturamento
+                .Where(x => x.FaturamentoId == identificadorFaturamento)
+                .Select(x => new
+                {
+                    x.FaturamentoId,
+                    x.AtendimentoId,
+                    x.TipoMeioCobrancaId,
+                    x.ValorPagamento
+                })
                 .AsNoTracking()
-                .Include(x => x.TipoMeioCobranca)
-                .Include(x => x.ListagemFaturamentoComposicao)
-                .FirstOrDefaultAsync(x => x.FaturamentoId == identificadorFaturamento, cancellationToken: ct);
-            if (Faturamento == null)
+                .FirstOrDefaultAsync(ct);
+
+            if (faturamentoBase == null)
             {
                 ResultView.Mensagem = MensagemViewHelper.SetNotFound("Faturamento não encontrado");
                 return ResultView;
             }
 
-            var Atendimento = await _context.Atendimento
-                .Include(x => x.Grv)
-                .ThenInclude(x => x.StatusOperacao)
-                .Include(x => x.Grv)
-                .ThenInclude(x => x.Cliente)
-                .ThenInclude(x => x.Endereco)
-                .Include(x => x.Grv)
-                .ThenInclude(x => x.Deposito)
-                .ThenInclude(x => x.Endereco)
-                .Include(x => x.SaidaParaReparo)
-                .Include(x => x.UsuarioCadastro)
-                .ThenInclude(x => x.Pessoa)
-                .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.AtendimentoId == Faturamento.AtendimentoId, cancellationToken: ct);
-            Faturamento.Atendimento = Atendimento;
-            var ListagemFaturamentosAtendimento = await _context.Faturamento
-                .Include(x => x.TipoMeioCobranca)
-                .Include(x => x.ListagemFaturamentoComposicao)
-                .Where(x => x.AtendimentoId == Faturamento.AtendimentoId && x.Status != "C")
-                .OrderBy(x => x.FaturamentoId)
-                .AsNoTracking()
-                .ToListAsync(cancellationToken: ct);
-
-            var notas = await _context.Nfe
-                .Where(x =>
-                    x.GrvId == Faturamento.Atendimento.GrvId &&
-                    !_context.Nfe.Any(sb =>
-                        sb.GrvId == x.GrvId &&
-                        sb.NfeComplementarId == x.NfeId))
-                .Select(model => new
-                {
-                    Nfe = model,
-                    Composicoes = model.NfeFaturamentoComposicao
-                        .Select(nfc => new
-                        {
-                            Valor = nfc.FaturamentoComposicao != null
-                                ? nfc.FaturamentoComposicao.ValorComposicao
-                                : 0,
-
-                            Servico = nfc.FaturamentoComposicao != null &&
-                                      nfc.FaturamentoComposicao.FaturamentoServicoTipoVeiculo != null &&
-                                      nfc.FaturamentoComposicao.FaturamentoServicoTipoVeiculo
-                                          .FaturamentoServicoAssociado != null
-                                ? nfc.FaturamentoComposicao
-                                    .FaturamentoServicoTipoVeiculo
-                                    .FaturamentoServicoAssociado
-                                    .Descricao
-                                : null
-                        })
-                        .ToList()
-                })
-                .AsNoTracking()
-                .ToListAsync(cancellationToken: ct);
-
-            LiberacaoEspecialModel liberacaoEspecial = _context.LiberacaoEspecial
-                .AsNoTracking()
-                .FirstOrDefault(x => x.IdFaturamento == identificadorFaturamento);
-
-            var podeEmitirNota = await _context.FaturamentoRegra
-                .AnyAsync(x =>
-                    x.ClienteId == Faturamento.Atendimento.Grv.ClienteId &&
-                    x.DepositoId == Faturamento.Atendimento.Grv.DepositoId &&
-                    x.FaturamentoRegraTipoId == 11, cancellationToken: ct);
-
-            #endregion Consultas
-
-            if (liberacaoEspecial != null)
+            // 2. Busca Atendimento se existir
+            AtendimentoDTO atendimentoDTO = null;
+            if (faturamentoBase.AtendimentoId > 0)
             {
-                ResultView.LiberacaoEspecial = _mapper.Map<LiberacaoEspecialDTO>(liberacaoEspecial);
-                ResultView.LiberacaoEspecial.Valor = Faturamento.ValorPagamento ?? 0;
+                atendimentoDTO = await ObterAtendimentoConsultaDTOAsync(faturamentoBase.AtendimentoId, null, identificadorUsuario, ct);
             }
 
-            ResultView.Faturamentos = new List<SimulacaoFaturamentoDTO>();
-
-            foreach (var faturamentoModel in ListagemFaturamentosAtendimento)
+            // 3. Busca GRV se existir Atendimento
+            GrvConsultaDados grvData = null;
+            if (atendimentoDTO != null && atendimentoDTO.IdentificadorProcesso > 0)
             {
-                var faturamentoDto = _mapper.Map<SimulacaoFaturamentoDTO>(faturamentoModel);
-                faturamentoDto.ListagemServico =
-                    _mapper.Map<List<SimulacaoFaturamentoComposicaoDTO>>(faturamentoModel
-                        .ListagemFaturamentoComposicao);
-                foreach (var Servico in faturamentoDto.ListagemServico)
-                {
-                    var FaturamentoServicoTipoVeiculo = await _context.FaturamentoServicoTipoVeiculo
-                        .Include(x => x.FaturamentoServicoAssociado).ThenInclude(faturamentoServicoAssociadoModel =>
-                            faturamentoServicoAssociadoModel.FaturamentoServicoTipo)
-                        .Include(x => x.FaturamentoServicosGrvs)
-                        .AsNoTracking()
-                        .FirstOrDefaultAsync(x =>
-                                x.FaturamentoServicoTipoVeiculoId == Servico.IdentificadorFaturamentoServicoTipoVeiculo,
-                            cancellationToken: ct);
-                    var servicoGrv = FaturamentoServicoTipoVeiculo?.FaturamentoServicosGrvs
-                        ?.FirstOrDefault(x => x.GrvId == Faturamento.Atendimento.Grv.GrvId);
-
-                    Servico.IdentificadorServicoGrv = servicoGrv?.FaturamentoServicoGrvId;
-                    Servico.TempoTrabalhado = servicoGrv?.TempoTrabalhado;
-
-                    if (Servico.TipoServico == TipoCobrancaFaturamentoEnum.Horas || Servico.TipoServico == "H")
-                    {
-                        Servico.QuantidadeServico = null;
-                    }
-
-                    Servico.IdentificadorFaturamentoServicoAssociado =
-                        FaturamentoServicoTipoVeiculo?.FaturamentoServicoAssociadoId;
-
-                    Servico.DescricaoTipoServico = ListagemTipoCobranca
-                        .Where(x => x.ValorCadastro == Servico.TipoServico)
-                        .FirstOrDefault()?.Descricao;
-
-                    Servico.NomeServico = FaturamentoServicoTipoVeiculo?.FaturamentoServicoAssociado?.Descricao;
-
-                    Servico.DataVigenciaInicial =
-                        (DateTime)FaturamentoServicoTipoVeiculo?.FaturamentoServicoAssociado?.DataVigenciaInicial;
-
-                    Servico.DataVigenciaFinal =
-                        FaturamentoServicoTipoVeiculo?.FaturamentoServicoAssociado?.DataVigenciaFinal;
-
-                    Servico.FlagServicoObrigatorio =
-                        FaturamentoServicoTipoVeiculo?.FaturamentoServicoAssociado?.FlagServicoObrigatorio == "S" ||
-                        FaturamentoServicoTipoVeiculo?.FaturamentoServicoAssociado?.FaturamentoServicoTipo
-                            ?.FlagServicoObrigatorio == "S"
-                            ? "S"
-                            : "N";
-                }
-
-                ResultView.Faturamentos.Add(faturamentoDto);
+                grvData = await ObterGrvConsultaDadosAsync(atendimentoDTO.IdentificadorProcesso, ct);
             }
 
-            ResultView.IdentificadorFaturamento = Faturamento.FaturamentoId;
-            ResultView.IdentificadorProcesso = Faturamento.Atendimento.Grv.GrvId;
+            // 4. Busca lista de faturamentos via Select (apenas colunas necessárias)
+            var faturamentosQuery = _context.Faturamento.AsNoTracking();
 
-            ResultView.NumeroProcesso = Faturamento.Atendimento.Grv.NumeroFormularioGrv;
+            var listagemFaturamentosAtendimento = faturamentoBase.AtendimentoId > 0
+                ? await faturamentosQuery
+                    .Where(x => x.AtendimentoId == faturamentoBase.AtendimentoId && x.Status != "C")
+                    .OrderBy(x => x.FaturamentoId)
+                    .Select(f => new SimulacaoFaturamentoDTO
+                    {
+                        FaturamentoId = f.FaturamentoId,
+                        Status = f.Status,
+                        ValorFaturado = f.ValorFaturado,
+                        HoraDiaria = f.HoraDiaria,
+                        MaximoDiariasParaCobranca = f.MaximoDiariasParaCobranca,
+                        MaximoDiasVencimento = f.MaximoDiasVencimento,
+                        DataCalculo = f.DataCalculo,
+                        DataVencimento = f.DataVencimento,
+                        DataPagamento = f.DataPagamento,
+                        FlagUsarHoraDiaria = f.FlagUsarHoraDiaria,
+                        FlagLimitacaoJudicial = f.FlagLimitacaoJudicial,
+                        FlagClienteRealizaFaturamentoArrecadacao = f.FlagClienteRealizaFaturamentoArrecadacao,
+                        FlagCobrarDiariasDiasCorridos = f.FlagCobrarDiariasDiasCorridos,
+                        FlagPermissaoDataRetroativaFaturamento = f.FlagPermissaoDataRetroativaFaturamento,
+                        ListagemServico = f.ListagemFaturamentoComposicao
+                            .Select(c => new SimulacaoFaturamentoComposicaoDTO
+                            {
+                                IdentificadorFaturamentoServicoTipoVeiculo = c.FaturamentoServicoTipoVeiculoId,
+                                TipoServico = c.TipoComposicao,
+                                QuantidadeServico = c.QuantidadeComposicao,
+                                ValorTipoServico = c.ValorTipoComposicao,
+                                TipoDesconto = c.TipoDesconto,
+                                ValorDesconto = c.ValorDesconto,
+                                TipoLancamento = c.TipoLancamento,
+                                ValorFaturado = c.ValorFaturado
+                            })
+                            .ToList()
+                    })
+                    .ToListAsync(ct)
+                : new List<SimulacaoFaturamentoDTO>();
 
-            ResultView.DataHoraRemocao = Faturamento.Atendimento.Grv.DataHoraRemocao;
-
-            ResultView.DataHoraGuarda = Faturamento.Atendimento.Grv.DataHoraGuarda;
-
-            ResultView.IdentificadorAtendimento = Faturamento.AtendimentoId;
-
-            ResultView.StatusOperacaoId = Faturamento.Atendimento.Grv.StatusOperacaoId;
-            ResultView.StatusOperacaoDescricao = Faturamento.Atendimento.Grv.StatusOperacao?.Descricao;
-
-            ResultView.TipoMeioCobrancaId = Faturamento.TipoMeioCobrancaId;
-            if (notas.Count > 0)
+            if (listagemFaturamentosAtendimento.Count == 0)
             {
-                var notasDto = new List<NFERetornoFaturamentoDTO>();
+                var faturamentoUnico = await faturamentosQuery
+                    .Where(x => x.FaturamentoId == faturamentoBase.FaturamentoId)
+                    .Select(f => new SimulacaoFaturamentoDTO
+                    {
+                        FaturamentoId = f.FaturamentoId,
+                        Status = f.Status,
+                        ValorFaturado = f.ValorFaturado,
+                        HoraDiaria = f.HoraDiaria,
+                        MaximoDiariasParaCobranca = f.MaximoDiariasParaCobranca,
+                        MaximoDiasVencimento = f.MaximoDiasVencimento,
+                        DataCalculo = f.DataCalculo,
+                        DataVencimento = f.DataVencimento,
+                        DataPagamento = f.DataPagamento,
+                        FlagUsarHoraDiaria = f.FlagUsarHoraDiaria,
+                        FlagLimitacaoJudicial = f.FlagLimitacaoJudicial,
+                        FlagClienteRealizaFaturamentoArrecadacao = f.FlagClienteRealizaFaturamentoArrecadacao,
+                        FlagCobrarDiariasDiasCorridos = f.FlagCobrarDiariasDiasCorridos,
+                        FlagPermissaoDataRetroativaFaturamento = f.FlagPermissaoDataRetroativaFaturamento,
+                        ListagemServico = f.ListagemFaturamentoComposicao
+                            .Select(c => new SimulacaoFaturamentoComposicaoDTO
+                            {
+                                IdentificadorFaturamentoServicoTipoVeiculo = c.FaturamentoServicoTipoVeiculoId,
+                                TipoServico = c.TipoComposicao,
+                                QuantidadeServico = c.QuantidadeComposicao,
+                                ValorTipoServico = c.ValorTipoComposicao,
+                                TipoDesconto = c.TipoDesconto,
+                                ValorDesconto = c.ValorDesconto,
+                                TipoLancamento = c.TipoLancamento,
+                                ValorFaturado = c.ValorFaturado
+                            })
+                            .ToList()
+                    })
+                    .FirstOrDefaultAsync(ct);
 
-                var nfeIdentificadoresComErro = notas
-                    .Where(x => x.Nfe.Status == "E")
-                    .Select(x => x.Nfe.IdentificadorNota)
-                    .Distinct()
-                    .ToList();
-
-                var erroPorIdentificadorNota = new Dictionary<int, NfeWsErrosModel>();
-                if (nfeIdentificadoresComErro.Count > 0)
+                if (faturamentoUnico != null)
                 {
-                    var errosNfe = await _context.NfeWsErros
-                        .Where(x =>
-                            x.GrvId == Faturamento.Atendimento.GrvId &&
-                            x.IdentificadorNota != null &&
-                            nfeIdentificadoresComErro.Contains(x.IdentificadorNota.ToString()))
-                        .AsNoTracking()
-                        .ToListAsync(cancellationToken: ct);
-
-                    erroPorIdentificadorNota = errosNfe
-                        .Where(x => x.IdentificadorNota.HasValue)
-                        .GroupBy(x => x.IdentificadorNota.Value)
-                        .ToDictionary(
-                            g => g.Key,
-                            g => g
-                                .OrderByDescending(x => x.DataHoraCadastro)
-                                .First());
+                    listagemFaturamentosAtendimento.Add(faturamentoUnico);
                 }
+            }
 
-                foreach (var item in notas)
+            // 5. Otimização: carregar todos os FaturamentoServicoTipoVeiculo em lote único usando Select
+            var idsServicosTipoVeiculo = listagemFaturamentosAtendimento
+                .SelectMany(f => f.ListagemServico ?? Enumerable.Empty<SimulacaoFaturamentoComposicaoDTO>())
+                .Select(s => s.IdentificadorFaturamentoServicoTipoVeiculo)
+                .Where(id => id.HasValue && id.Value > 0)
+                .Select(id => id.Value)
+                .Distinct()
+                .ToList();
+
+            int? grvId = grvData?.GrvId;
+
+            var servicosTipoVeiculoMap = idsServicosTipoVeiculo.Count > 0
+                ? await _context.FaturamentoServicoTipoVeiculo
+                    .Where(x => idsServicosTipoVeiculo.Contains(x.FaturamentoServicoTipoVeiculoId))
+                    .Select(x => new
+                    {
+                        x.FaturamentoServicoTipoVeiculoId,
+                        x.FaturamentoServicoAssociadoId,
+                        NomeServico = x.FaturamentoServicoAssociado != null ? x.FaturamentoServicoAssociado.Descricao : null,
+                        DataVigenciaInicial = x.FaturamentoServicoAssociado != null ? x.FaturamentoServicoAssociado.DataVigenciaInicial : (DateTime?)null,
+                        DataVigenciaFinal = x.FaturamentoServicoAssociado != null ? x.FaturamentoServicoAssociado.DataVigenciaFinal : null,
+                        FlagServicoObrigatorio = (x.FaturamentoServicoAssociado != null && x.FaturamentoServicoAssociado.FlagServicoObrigatorio == "S") ||
+                                                 (x.FaturamentoServicoAssociado != null && x.FaturamentoServicoAssociado.FaturamentoServicoTipo != null && x.FaturamentoServicoAssociado.FaturamentoServicoTipo.FlagServicoObrigatorio == "S")
+                                                 ? "S" : "N",
+                        ServicoGrv = grvId.HasValue
+                            ? x.FaturamentoServicosGrvs
+                                .Where(g => g.GrvId == grvId.Value)
+                                .Select(g => new { g.FaturamentoServicoGrvId, g.TempoTrabalhado })
+                                .FirstOrDefault()
+                            : null
+                    })
+                    .AsNoTracking()
+                    .ToDictionaryAsync(x => x.FaturamentoServicoTipoVeiculoId, cancellationToken: ct)
+                : new();
+
+            List<TabelaGenericaModel> listagemTipoCobranca = await new TabelaGenericaService(_context)
+                .ListAsync("FAT_TIPO_COBRANCA");
+
+            foreach (var faturamentoDto in listagemFaturamentosAtendimento)
+            {
+                if (faturamentoDto.ListagemServico == null) continue;
+
+                foreach (var servico in faturamentoDto.ListagemServico)
                 {
-                    var nfe = item.Nfe;
-
-                    if (nfe.Status == "E")
+                    if (servico.IdentificadorFaturamentoServicoTipoVeiculo.HasValue &&
+                        servicosTipoVeiculoMap.TryGetValue(servico.IdentificadorFaturamentoServicoTipoVeiculo.Value, out var servicoInfo))
                     {
-                        var nfDto = _mapper.Map<NFERetornoFaturamentoDTO>(nfe);
-
-                        if (int.TryParse(nfe.IdentificadorNota, out var identificadorNota) &&
-                            erroPorIdentificadorNota.TryGetValue(identificadorNota, out var erro))
+                        servico.IdentificadorServicoGrv = servicoInfo.ServicoGrv?.FaturamentoServicoGrvId;
+                        servico.TempoTrabalhado = servicoInfo.ServicoGrv?.TempoTrabalhado;
+                        servico.IdentificadorFaturamentoServicoAssociado = servicoInfo.FaturamentoServicoAssociadoId;
+                        servico.NomeServico = servicoInfo.NomeServico;
+                        if (servicoInfo.DataVigenciaInicial.HasValue)
                         {
-                            nfDto.StatusErro = erro.Status;
-                            nfDto.MensagemErro = erro.MensagemErro;
-                            nfDto.CorrecaoErro = erro.CorrecaoErro;
+                            servico.DataVigenciaInicial = servicoInfo.DataVigenciaInicial.Value;
                         }
-
-                        if (item.Composicoes != null && item.Composicoes.Any())
-                        {
-                            nfDto.Valor = item.Composicoes.Sum(x => x.Valor);
-                            nfDto.Servico = item.Composicoes.Count > 1
-                                ? "Vários"
-                                : item.Composicoes.FirstOrDefault()?.Servico;
-                        }
-
-                        notasDto.Add(nfDto);
+                        servico.DataVigenciaFinal = servicoInfo.DataVigenciaFinal;
+                        servico.FlagServicoObrigatorio = servicoInfo.FlagServicoObrigatorio;
                     }
-                    else if (item.Composicoes != null && item.Composicoes.Any())
-                    {
-                        foreach (var composicao in item.Composicoes)
-                        {
-                            var nfDto = _mapper.Map<NFERetornoFaturamentoDTO>(nfe);
 
-                            nfDto.Valor = composicao.Valor;
-                            nfDto.Servico = composicao.Servico;
+                    if (servico.TipoServico == TipoCobrancaFaturamentoEnum.Horas || servico.TipoServico == "H")
+                    {
+                        servico.QuantidadeServico = null;
+                    }
+
+                    servico.DescricaoTipoServico = listagemTipoCobranca
+                        .FirstOrDefault(x => x.ValorCadastro == servico.TipoServico)?.Descricao;
+                }
+            }
+
+            ResultView.Faturamentos = listagemFaturamentosAtendimento;
+            ResultView.IdentificadorFaturamento = faturamentoBase.FaturamentoId;
+            // 6. Notas Fiscais via Select
+            if (grvId.HasValue)
+            {
+                var notas = await _context.Nfe
+                    .Where(x =>
+                        x.GrvId == grvId.Value &&
+                        !_context.Nfe.Any(sb =>
+                            sb.GrvId == x.GrvId &&
+                            sb.NfeComplementarId == x.NfeId))
+                    .Select(model => new
+                    {
+                        model.NfeId,
+                        model.IdentificadorNota,
+                        model.NumeroNotaFiscal,
+                        model.Status,
+                        model.StatusNfe,
+                        model.Url,
+                        model.DataEmissao,
+                        Composicoes = model.NfeFaturamentoComposicao
+                            .Select(nfc => new
+                            {
+                                Valor = nfc.FaturamentoComposicao != null
+                                    ? (decimal?)nfc.FaturamentoComposicao.ValorComposicao
+                                    : null,
+
+                                Servico = nfc.FaturamentoComposicao != null &&
+                                          nfc.FaturamentoComposicao.FaturamentoServicoTipoVeiculo != null &&
+                                          nfc.FaturamentoComposicao.FaturamentoServicoTipoVeiculo
+                                              .FaturamentoServicoAssociado != null
+                                    ? nfc.FaturamentoComposicao
+                                        .FaturamentoServicoTipoVeiculo
+                                        .FaturamentoServicoAssociado
+                                        .Descricao
+                                    : null
+                            })
+                            .ToList()
+                    })
+                    .AsNoTracking()
+                    .ToListAsync(cancellationToken: ct);
+
+                if (notas.Count > 0)
+                {
+                    var notasDto = new List<NFERetornoFaturamentoDTO>();
+
+                    var nfeIdentificadoresComErro = notas
+                        .Where(x => x.Status == "E")
+                        .Select(x => x.IdentificadorNota)
+                        .Distinct()
+                        .ToList();
+
+                    var erroPorIdentificadorNota = new Dictionary<int, (string Status, string MensagemErro, string CorrecaoErro)>();
+                    if (nfeIdentificadoresComErro.Count > 0)
+                    {
+                        var errosNfe = await _context.NfeWsErros
+                            .Where(x =>
+                                x.GrvId == grvId.Value &&
+                                x.IdentificadorNota != null &&
+                                nfeIdentificadoresComErro.Contains(x.IdentificadorNota.ToString()))
+                            .Select(x => new
+                            {
+                                x.IdentificadorNota,
+                                x.Status,
+                                x.MensagemErro,
+                                x.CorrecaoErro,
+                                x.DataHoraCadastro
+                            })
+                            .AsNoTracking()
+                            .ToListAsync(cancellationToken: ct);
+
+                        erroPorIdentificadorNota = errosNfe
+                            .Where(x => x.IdentificadorNota.HasValue)
+                            .GroupBy(x => x.IdentificadorNota.Value)
+                            .ToDictionary(
+                                g => g.Key,
+                                g =>
+                                {
+                                    var last = g.OrderByDescending(x => x.DataHoraCadastro).First();
+                                    return (last.Status, last.MensagemErro, last.CorrecaoErro);
+                                });
+                    }
+
+                    foreach (var item in notas)
+                    {
+                        string statusDescricao = item.Status == "C" ? "Cadastro" :
+                            item.Status == "A" ? "Aguardando Processamento" :
+                            item.Status == "P" ? "Processado" :
+                            item.Status == "E" ? "Erro" :
+                            item.Status == "R" ? "Reprocessar" :
+                            item.Status == "S" ? "Aguardando Reprocessamento" :
+                            item.Status == "I" ? "Inválido" :
+                            item.Status == "N" ? "Cancelado" :
+                            item.Status == "M" ? "Cadastro Manual" :
+                            item.Status == "T" ? "Reprocessado" : item.Status;
+
+                        if (item.Status == "E")
+                        {
+                            var nfDto = new NFERetornoFaturamentoDTO
+                            {
+                                NfeId = item.NfeId,
+                                identificadorNota = item.IdentificadorNota,
+                                NumeroNotaFiscal = item.NumeroNotaFiscal,
+                                StatusId = item.Status,
+                                Status = statusDescricao,
+                                StatusNfe = item.StatusNfe,
+                                Url = item.Url,
+                                DataEmissao = item.DataEmissao
+                            };
+
+                            if (int.TryParse(item.IdentificadorNota, out var idNota) &&
+                                erroPorIdentificadorNota.TryGetValue(idNota, out var erro))
+                            {
+                                nfDto.StatusErro = erro.Status;
+                                nfDto.MensagemErro = erro.MensagemErro;
+                                nfDto.CorrecaoErro = erro.CorrecaoErro;
+                            }
+
+                            if (item.Composicoes != null && item.Composicoes.Any())
+                            {
+                                var composicoesComValor = item.Composicoes.Where(x => x.Valor.HasValue).ToList();
+                                nfDto.Valor = composicoesComValor.Count > 0
+                                    ? composicoesComValor.Sum(x => x.Valor.Value)
+                                    : null;
+                                nfDto.Servico = item.Composicoes.Count > 1
+                                    ? "Vários"
+                                    : item.Composicoes.FirstOrDefault()?.Servico;
+                            }
 
                             notasDto.Add(nfDto);
                         }
-                    }
-                    else
-                    {
-                        notasDto.Add(_mapper.Map<NFERetornoFaturamentoDTO>(nfe));
-                    }
-                }
+                        else if (item.Composicoes != null && item.Composicoes.Any())
+                        {
+                            foreach (var composicao in item.Composicoes)
+                            {
+                                var nfDto = new NFERetornoFaturamentoDTO
+                                {
+                                    NfeId = item.NfeId,
+                                    identificadorNota = item.IdentificadorNota,
+                                    NumeroNotaFiscal = item.NumeroNotaFiscal,
+                                    StatusId = item.Status,
+                                    Status = statusDescricao,
+                                    StatusNfe = item.StatusNfe,
+                                    Url = item.Url,
+                                    DataEmissao = item.DataEmissao,
+                                    Valor = composicao.Valor,
+                                    Servico = composicao.Servico
+                                };
 
-                ResultView.NotaFiscal = notasDto;
+                                notasDto.Add(nfDto);
+                            }
+                        }
+                        else
+                        {
+                            notasDto.Add(new NFERetornoFaturamentoDTO
+                            {
+                                NfeId = item.NfeId,
+                                identificadorNota = item.IdentificadorNota,
+                                NumeroNotaFiscal = item.NumeroNotaFiscal,
+                                StatusId = item.Status,
+                                Status = statusDescricao,
+                                StatusNfe = item.StatusNfe,
+                                Url = item.Url,
+                                DataEmissao = item.DataEmissao
+                            });
+                        }
+                    }
+
+                    ResultView.NotaFiscal = notasDto;
+                }
+                else
+                {
+                    ResultView.NotaFiscal = new List<NFERetornoFaturamentoDTO>();
+                }
             }
             else
             {
                 ResultView.NotaFiscal = new List<NFERetornoFaturamentoDTO>();
             }
 
-            EnderecoService Endereco = new();
+            // 7. Liberação Especial via Select
+            var liberacaoEspecial = await _context.LiberacaoEspecial
+                .Where(x => x.IdFaturamento == identificadorFaturamento)
+                .Select(x => new LiberacaoEspecialDTO
+                {
+                    IdLiberacaoEspecialTipo = x.IdLiberacaoEspecialTipo,
+                    NumeroDocumento = x.NumeroDocumento,
+                    TipoDocumento = x.TipoDocumento,
+                    NumeroProcesso = x.NumeroProcesso,
+                    OrgaoEmissor = x.OrgaoEmissor,
+                    PortadorNome = x.PortadorNome,
+                    PortadorCargo = x.PortadorCargo,
+                    PortadorMatricula = x.PortadorMatricula,
+                    SignatarioNomeDocumento = x.SignatarioNomeDocumento,
+                    SignatarioMatricula = x.SignatarioMatricula,
+                    SignatarioTitulo = x.SignatarioTitulo,
+                    DataEmissaoDocumento = x.DataEmissaoDocumento,
+                    Valor = faturamentoBase.ValorPagamento
+                })
+                .AsNoTracking()
+                .FirstOrDefaultAsync(ct);
 
-            ResultView.Cliente = new()
+            ResultView.LiberacaoEspecial = liberacaoEspecial;
+
+            // 8. Regra emissão de nota
+            bool podeEmitirNota = grvData?.Cliente != null && grvData?.Deposito != null && await _context.FaturamentoRegra
+                .AnyAsync(x =>
+                    x.ClienteId == grvData.Cliente.ClienteId &&
+                    x.DepositoId == grvData.Deposito.DepositoId &&
+                    x.FaturamentoRegraTipoId == 11, cancellationToken: ct);
+
+            // 9. Cliente e Depósito
+            EnderecoService endereco = new();
+
+            if (grvData?.Cliente != null)
             {
-                IdentificadorCliente = Faturamento.Atendimento.Grv.Cliente.ClienteId,
-                Nome = Faturamento.Atendimento.Grv.Cliente.Nome,
-
-                Endereco = Endereco.FormatarEndereco(Faturamento.Atendimento.Grv.Cliente.Endereco,
-                    Faturamento.Atendimento.Grv.Cliente.NumeroEndereco,
-                    Faturamento.Atendimento.Grv.Cliente.ComplementoEndereco),
-                EmitirNota = podeEmitirNota
-            };
-
-            ResultView.Deposito = new()
+                ResultView.Cliente = new SimulacaoClienteDTO
+                {
+                    IdentificadorCliente = grvData.Cliente.ClienteId,
+                    Nome = grvData.Cliente.Nome,
+                    Endereco = endereco.FormatarEndereco(
+                        grvData.Cliente.TipoLogradouro,
+                        grvData.Cliente.Logradouro,
+                        grvData.Cliente.NumeroEndereco,
+                        grvData.Cliente.ComplementoEndereco,
+                        grvData.Cliente.Bairro,
+                        grvData.Cliente.Municipio,
+                        grvData.Cliente.UF),
+                    EmitirNota = podeEmitirNota
+                };
+            }
+            else
             {
-                IdentificadorDeposito = Faturamento.Atendimento.Grv.Deposito.DepositoId,
-
-                Nome = Faturamento.Atendimento.Grv.Deposito.Nome,
-
-                Telefone = Faturamento.Atendimento.Grv.Deposito.TelefoneMob,
-
-                Endereco = Endereco.FormatarEndereco(Faturamento.Atendimento.Grv.Deposito.Endereco,
-                    Faturamento.Atendimento.Grv.Deposito.NumeroEndereco,
-                    Faturamento.Atendimento.Grv.Deposito.ComplementoEndereco)
-            };
-            ResultView.Atendimento = _mapper.Map<AtendimentoDTO>(Faturamento.Atendimento);
-
-            ImageListDTO FotoResponsavel = await new AtendimentoService(_context, _mapper, _httpClientFactory)
-                .GetFotoResponsavelAsync(Faturamento.AtendimentoId, identificadorUsuario);
-
-            if (FotoResponsavel.Listagem?.Count > 0)
-            {
-                ResultView.Atendimento.FotoResponsavel = FotoResponsavel.Listagem
-                    .FirstOrDefault()?.Imagem;
+                ResultView.Cliente = null;
             }
 
-            if (!Faturamento.Atendimento.Grv.Placa.IsNullOrWhiteSpace() ||
-                !Faturamento.Atendimento.Grv.Chassi.IsNullOrWhiteSpace())
+            if (grvData?.Deposito != null)
             {
-                var detranHubService = _detranHubOptions != null
-                    ? new DetranHubService(_httpClientFactory, _mapper, _detranHubOptions)
-                    : new DetranHubService(_httpClientFactory, _mapper);
-
-                string placa = Faturamento.Atendimento.Grv.Placa.IsPlaca() ? Faturamento.Atendimento.Grv.Placa : null;
-                string chassi = placa == null ? Faturamento.Atendimento.Grv.Chassi : null;
-
-                var detranHubResult = await detranHubService.SearchToPlateOrChassi(placa, chassi);
-
-                if (detranHubResult?.Veiculo != null)
+                ResultView.Deposito = new SimulacaoDepositoDTO
                 {
-                    ResultView.Veiculo = _mapper.Map<DetranRioVeiculoDTO>(detranHubResult.Veiculo);
-                    ResultView.Veiculo.Mensagem = detranHubResult.Mensagem;
-                }
-                else
-                {
-                    ResultView.Veiculo = new DetranRioVeiculoDTO
-                    {
-                        Mensagem = detranHubResult?.Mensagem ?? MensagemViewHelper.SetNotFound("Veículo não encontrado")
-                    };
-                }
+                    IdentificadorDeposito = grvData.Deposito.DepositoId,
+                    Nome = grvData.Deposito.Nome,
+                    Telefone = grvData.Deposito.TelefoneMob,
+                    Endereco = endereco.FormatarEndereco(
+                        grvData.Deposito.TipoLogradouro,
+                        grvData.Deposito.Logradouro,
+                        grvData.Deposito.NumeroEndereco,
+                        grvData.Deposito.ComplementoEndereco,
+                        grvData.Deposito.Bairro,
+                        grvData.Deposito.Municipio,
+                        grvData.Deposito.UF)
+                };
+            }
+            else
+            {
+                ResultView.Deposito = null;
             }
 
-            ResultView.Atendimento.SaidaParaReparo =
-                _mapper.Map<AtendimentoSaidaParaReparoDTO>(Faturamento.Atendimento.SaidaParaReparo);
-
+            // 10. Atendimento e Veículo
+            ResultView.IdentificadorProcesso = grvData?.GrvId;
+            ResultView.NumeroProcesso = grvData?.NumeroFormularioGrv;
+            ResultView.CodigoIdentificacaoCliente = grvData?.CodigoIdentificacaoCliente;
+            ResultView.DataHoraRemocao = grvData?.DataHoraRemocao;
+            ResultView.DataHoraGuarda = grvData?.DataHoraGuarda;
+            ResultView.IdentificadorAtendimento = atendimentoDTO?.IdentificadorAtendimento;
+            ResultView.StatusOperacaoId = grvData?.StatusOperacaoId;
+            ResultView.StatusOperacaoDescricao = grvData?.StatusOperacaoDescricao;
+            ResultView.TipoMeioCobrancaId = faturamentoBase.TipoMeioCobrancaId;
+            ResultView.Atendimento = atendimentoDTO;
+            ResultView.Veiculo = grvData != null ? await ObterVeiculoDTOAsync(grvData.Veiculo) : null;
             ResultView.Mensagem = MensagemViewHelper.SetOk();
 
             return ResultView;
+        }
+
+        public async Task<FaturamentoConsultaDTO> ConsultarFaturamentoAsync(int? identificadorFaturamento,
+            int identificadorUsuario, CancellationToken ct, int? identificadorProcesso = null)
+        {
+            if (identificadorFaturamento.HasValue && identificadorFaturamento.Value > 0)
+            {
+                return await ConsultarPorFaturamentoAsync(identificadorFaturamento.Value, identificadorUsuario, ct);
+            }
+
+            if (identificadorProcesso.HasValue && identificadorProcesso.Value > 0)
+            {
+                return await ConsultarPorProcessoAsync(identificadorProcesso.Value, identificadorUsuario, ct);
+            }
+
+            FaturamentoConsultaDTO erroResult = new();
+            erroResult.Mensagem = MensagemViewHelper.SetBadRequest(new List<string> { MensagemPadraoEnum.IdentificadorFaturamentoInvalido });
+            return erroResult;
         }
 
         // public async Task<FaturamentoConsultaDTO> ReprocessarFaturamentoAsync(int identificadorFaturamento, int identificadorUsuario, CancellationToken ct)
