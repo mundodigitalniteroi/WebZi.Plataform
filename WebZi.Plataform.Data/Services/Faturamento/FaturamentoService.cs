@@ -2149,22 +2149,6 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             return veiculoDTO;
         }
 
-        private async Task<DetranRioVeiculoDTO> ObterVeiculoDTOAsync(GrvModel grv)
-        {
-            if (grv == null) return null;
-
-            return await ObterVeiculoDTOAsync(new VeiculoConsultaInfo
-            {
-                Placa = grv.Placa,
-                Chassi = grv.Chassi,
-                Renavam = grv.Renavam,
-                Uf = grv.VeiculoUF,
-                Cor = grv.Cor != null ? _mapper.Map<CorDTO>(grv.Cor) : null,
-                MarcaModelo = grv.MarcaModelo != null ? _mapper.Map<MarcaModeloDTO>(grv.MarcaModelo) : null,
-                TipoVeiculo = grv.TipoVeiculo != null ? _mapper.Map<TipoVeiculoDTO>(grv.TipoVeiculo) : null
-            });
-        }
-
         private async Task<GrvConsultaDados> ObterGrvConsultaDadosAsync(int grvId, CancellationToken ct)
         {
             if (grvId <= 0) return null;
@@ -2210,7 +2194,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     TipoVeiculoId = x.TipoVeiculo != null ? (byte?)x.TipoVeiculo.TipoVeiculoId : null,
                     TipoVeiculoDescricao = x.TipoVeiculo != null ? x.TipoVeiculo.Descricao : null,
                     TipoVeiculoFlagNaoRequerCnh = x.TipoVeiculo != null ? x.TipoVeiculo.FlagNaoRequerCnhNaLiberacao : null,
-                    CodigoIdentificacaoCliente = x.ClienteCodigoIdentificacao != null ? x.ClienteCodigoIdentificacao.CodigoIdentificacao : null
+                    CodigoIdentificacaoCliente = x.ClienteCodigoIdentificacao != null ? x.ClienteCodigoIdentificacao.CodigoIdentificacao : null,
+                    x.Rfid
                 })
                 .AsNoTracking()
                 .FirstOrDefaultAsync(ct);
@@ -2220,7 +2205,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             return new GrvConsultaDados
             {
                 GrvId = g.GrvId,
-                NumeroFormularioGrv = g.NumeroFormularioGrv,
+                NumeroProcesso = g.NumeroFormularioGrv,
+                CodigoAlvaraDeLiberacao = g.Rfid,
                 CodigoIdentificacaoCliente = g.CodigoIdentificacaoCliente,
                 DataHoraRemocao = g.DataHoraRemocao,
                 DataHoraGuarda = g.DataHoraGuarda,
@@ -2484,7 +2470,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             var atendimentoDTO = await ObterAtendimentoConsultaDTOAsync(null, grvData.GrvId, identificadorUsuario, ct);
 
             ResultView.IdentificadorProcesso = grvData.GrvId;
-            ResultView.NumeroProcesso = grvData.NumeroFormularioGrv;
+            ResultView.NumeroProcesso = grvData.NumeroProcesso;
+            ResultView.CodigoAlvaraDeLiberacao = grvData.CodigoAlvaraDeLiberacao;
             ResultView.CodigoIdentificacaoCliente = grvData.CodigoIdentificacaoCliente;
             ResultView.DataHoraRemocao = grvData.DataHoraRemocao;
             ResultView.DataHoraGuarda = grvData.DataHoraGuarda;
@@ -2560,7 +2547,6 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 return ResultView;
             }
 
-            // 1. Busca dados básicos do faturamento solicitado via Select
             var faturamentoBase = await _context.Faturamento
                 .Where(x => x.FaturamentoId == identificadorFaturamento)
                 .Select(x => new
@@ -2579,21 +2565,18 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 return ResultView;
             }
 
-            // 2. Busca Atendimento se existir
             AtendimentoDTO atendimentoDTO = null;
             if (faturamentoBase.AtendimentoId > 0)
             {
                 atendimentoDTO = await ObterAtendimentoConsultaDTOAsync(faturamentoBase.AtendimentoId, null, identificadorUsuario, ct);
             }
 
-            // 3. Busca GRV se existir Atendimento
             GrvConsultaDados grvData = null;
             if (atendimentoDTO != null && atendimentoDTO.IdentificadorProcesso > 0)
             {
                 grvData = await ObterGrvConsultaDadosAsync(atendimentoDTO.IdentificadorProcesso, ct);
             }
 
-            // 4. Busca lista de faturamentos via Select (apenas colunas necessárias)
             var faturamentosQuery = _context.Faturamento.AsNoTracking();
 
             var listagemFaturamentosAtendimento = faturamentoBase.AtendimentoId > 0
@@ -2675,7 +2658,6 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 }
             }
 
-            // 5. Otimização: carregar todos os FaturamentoServicoTipoVeiculo em lote único usando Select
             var idsServicosTipoVeiculo = listagemFaturamentosAtendimento
                 .SelectMany(f => f.ListagemServico ?? Enumerable.Empty<SimulacaoFaturamentoComposicaoDTO>())
                 .Select(s => s.IdentificadorFaturamentoServicoTipoVeiculo)
@@ -2746,7 +2728,6 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             ResultView.Faturamentos = listagemFaturamentosAtendimento;
             ResultView.IdentificadorFaturamento = faturamentoBase.FaturamentoId;
-            // 6. Notas Fiscais via Select
             if (grvId.HasValue)
             {
                 var notas = await _context.Nfe
@@ -2924,7 +2905,6 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 ResultView.NotaFiscal = new List<NFERetornoFaturamentoDTO>();
             }
 
-            // 7. Liberação Especial via Select
             var liberacaoEspecial = await _context.LiberacaoEspecial
                 .Where(x => x.IdFaturamento == identificadorFaturamento)
                 .Select(x => new LiberacaoEspecialDTO
@@ -2948,14 +2928,12 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             ResultView.LiberacaoEspecial = liberacaoEspecial;
 
-            // 8. Regra emissão de nota
             bool podeEmitirNota = grvData?.Cliente != null && grvData?.Deposito != null && await _context.FaturamentoRegra
                 .AnyAsync(x =>
                     x.ClienteId == grvData.Cliente.ClienteId &&
                     x.DepositoId == grvData.Deposito.DepositoId &&
                     x.FaturamentoRegraTipoId == 11, cancellationToken: ct);
 
-            // 9. Cliente e Depósito
             EnderecoService endereco = new();
 
             if (grvData?.Cliente != null)
@@ -3002,9 +2980,9 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 ResultView.Deposito = null;
             }
 
-            // 10. Atendimento e Veículo
             ResultView.IdentificadorProcesso = grvData?.GrvId;
-            ResultView.NumeroProcesso = grvData?.NumeroFormularioGrv;
+            ResultView.NumeroProcesso = grvData?.NumeroProcesso;
+            ResultView.CodigoAlvaraDeLiberacao = grvData?.CodigoAlvaraDeLiberacao;
             ResultView.CodigoIdentificacaoCliente = grvData?.CodigoIdentificacaoCliente;
             ResultView.DataHoraRemocao = grvData?.DataHoraRemocao;
             ResultView.DataHoraGuarda = grvData?.DataHoraGuarda;

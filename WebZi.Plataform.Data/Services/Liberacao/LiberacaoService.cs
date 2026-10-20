@@ -36,6 +36,7 @@ using WebZi.Plataform.Domain.DTO.Veiculo;
 using WebZi.Plataform.Domain.DTO.WebServices.DetranRio;
 using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Atendimento;
+using WebZi.Plataform.Domain.Models.Cliente;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.GRV;
 using WebZi.Plataform.Domain.Models.Liberacao;
@@ -337,6 +338,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
             ResultView.IdentificadorProcesso = Grv.GrvId;
 
             ResultView.NumeroProcesso = Grv.NumeroFormularioGrv;
+            ResultView.NumeroAlvaraLiberacao = Grv.Rfid;
 
             ResultView.ClienteNome = GuiaPagamentoReboqueEstadia?.ClienteNome ?? Grv.Cliente?.Nome ?? string.Empty;
 
@@ -1253,6 +1255,10 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                         {
                             StatusOperacaoId = x.Grv.StatusOperacao.StatusOperacaoId,
                             Descricao = x.Grv.StatusOperacao.Descricao
+                        },
+                        Cliente = new ClienteModel
+                        {
+                            FlagUsaAlvaraDeLiberacao = x.Grv.Cliente.FlagUsaAlvaraDeLiberacao
                         }
                     },
                     Faturamentos = x.ListagemFaturamento
@@ -1288,6 +1294,10 @@ namespace WebZi.Plataform.Data.Services.Liberacao
             var Grv = atendimento?.Grv;
             if (Grv is null)
                 return MensagemViewHelper.SetNotFound("Processo não encontrado");
+
+            if (Grv.Cliente.FlagUsaAlvaraDeLiberacao == "S" && string.IsNullOrWhiteSpace(Parameters.NumeroAlvaraLiberacao))
+                return MensagemViewHelper.SetBadRequest(
+                        $"É Necessario passar Número do Alvará de Liberação. ");
 
             var permitirEmissao = await _context.FaturamentoRegra
                 .AnyAsync(x =>
@@ -1379,7 +1389,18 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                     }
                 }
 
+                if (Grv.Cliente.FlagUsaAlvaraDeLiberacao == "S")
+                {
+                    await _context.Grv
+                            .Where(x => x.GrvId == Grv.GrvId)
+                            .UpdateAsync(x => new GrvModel
+                            {
+                                Rfid = Parameters.NumeroAlvaraLiberacao,
+                                UsuarioAlteracaoId = Parameters.IdentificadorUsuario,
+                                DataAlteracao = DateTime.Now
+                            }, cancellationToken: ct);
 
+                }
                 if (Grv.ClienteId == ClienteTransalvadorId && Grv.IdEntradaTransalvador.HasValue)
                 {
                     var composicoes = UltimoFaturamento?.ListagemFaturamentoComposicao;

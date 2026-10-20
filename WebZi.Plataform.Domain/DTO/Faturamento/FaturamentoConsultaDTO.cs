@@ -25,6 +25,8 @@ namespace WebZi.Plataform.Domain.DTO.Faturamento
         public int? IdentificadorProcesso { get; set; }
 
         public string? NumeroProcesso { get; set; }
+        public string? CodigoAlvaraDeLiberacao { get; set; }
+
         public string? CodigoIdentificacaoCliente { get; set; }
 
         public int? IdentificadorAtendimento { get; set; }
@@ -61,7 +63,8 @@ namespace WebZi.Plataform.Domain.DTO.Faturamento
     public class GrvConsultaDados
     {
         public int GrvId { get; set; }
-        public string NumeroFormularioGrv { get; set; }
+        public string NumeroProcesso { get; set; }
+        public string CodigoAlvaraDeLiberacao { get; set; }
         public string? CodigoIdentificacaoCliente { get; set; }
         public DateTime? DataHoraRemocao { get; set; }
         public DateTime? DataHoraGuarda { get; set; }

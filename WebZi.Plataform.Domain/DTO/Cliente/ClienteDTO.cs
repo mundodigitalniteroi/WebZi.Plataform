@@ -71,7 +71,7 @@
         public string ChavePIX { get; set; }
 
         public string FlagPossuiPIXDinamico { get; set; }
-
+        public string FlagUsaAlvaraDeLiberacao { get; set; }
         public string FlagAtivo { get; set; }
     }
 }
