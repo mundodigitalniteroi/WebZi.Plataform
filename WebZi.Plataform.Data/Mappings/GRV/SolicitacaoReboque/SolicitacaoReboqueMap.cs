@@ -38,6 +38,8 @@ public class SolicitacaoReboqueMap : IEntityTypeConfiguration<SolicitacaoReboque
 
         builder.Property(x => x.UsuarioCadastroId)
             .HasColumnName("id_usuario_cadastro");
+        builder.Property(x => x.UsuarioAceiteId)
+            .HasColumnName("id_usuario_aceite");
         builder.Property(x => x.UsuarioAlteracaoId)
             .HasColumnName("id_usuario_alteracao");
 

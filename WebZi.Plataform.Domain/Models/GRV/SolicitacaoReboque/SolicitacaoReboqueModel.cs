@@ -17,6 +17,7 @@ public class SolicitacaoReboqueModel
     public byte MotivoApreensaoId { get; set; }
     public int? GrvId { get; set; }
     public int UsuarioCadastroId { get; set; }
+    public int? UsuarioAceiteId { get; set; }
     public int? TipoVeiculoId { get; set; }
     public int? CorId { get; set; }
     public int? MarcaModeloId { get; set; }
@@ -33,13 +34,15 @@ public class SolicitacaoReboqueModel
     public DateTime DataCadastro { get; set; }
     public DateTime? DataAlteracao { get; set; }
     public DateTime? DataSolicitacaoAceita { get; set; }
+    public DateTime? DataSolicitacaoCancelada { get; set; }
     public GrvModel Grv { get; set; }
-    public MotivoApreensaoModel MotivoApreensao { get; set; }
+    public MotivoApreensaoModel? MotivoApreensao { get; set; }
     public TipoVeiculoModel TipoVeiculo { get; set; }
     public CorModel Cor { get; set; }
     public MarcaModeloModel MarcaModelo { get; set; }
     public UsuarioModel UsuarioCadastro { get; set; }
-    public UsuarioModel UsuarioAlteracao { get; set; }
+    public UsuarioModel? UsuarioAlteracao { get; set; }
+    public UsuarioModel? UsuarioAceite { get; set; }
 
     public ClienteDepositoModel ClienteDeposito { get; set; }
 
