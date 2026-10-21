@@ -40,7 +40,7 @@ namespace WebZi.Plataform.Data.Services.Cliente
             _httpClientFactory = httpClientFactory;
         }
 
-        public async Task<ClienteListDTO> GetByIdAsync(int ClienteId)
+        public async Task<ClienteListDTO> GetByIdAsync(int ClienteId, CancellationToken ct)
         {
             ClienteListDTO ResultView = new();
 
@@ -51,9 +51,50 @@ namespace WebZi.Plataform.Data.Services.Cliente
                 return ResultView;
             }
 
-            ClienteModel result = await _context.Cliente
+            ClienteDTO result = await _context.Cliente
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.ClienteId == ClienteId);
+                .Where(x => x.ClienteId == ClienteId)
+                .Select(x => new ClienteDTO
+                {
+                    IdentificadorCliente = x.ClienteId,
+                    IdentificadorAgenciaBancaria = x.AgenciaBancaria.AgenciaBancariaId,
+                    IdentificadorCEP = x.CEPId,
+                    IdentificadorTipoLogradouro = x.TipoLogradouro.TipoLogradouroId,
+                    IdentificadorBairro = x.BairroId,
+                    IdentificadorTipoMeioCobranca = x.TipoMeioCobrancaId,
+                    IdentificadorEmpresa = x.Empresa.EmpresaId,
+                    IdentificadorOrgaoExecutivoTransito = x.OrgaoExecutivoTransitoId,
+                    IdentificadorTipoChavePIX = x.PixTipoChaveId,
+                    Nome = x.Nome,
+                    CNPJ = x.CNPJ,
+                    Logradouro = x.Logradouro,
+                    Numero = x.Empresa.Numero,
+                    Complemento = x.Empresa.Complemento,
+                    GpsLatitude = x.GpsLatitude,
+                    GpsLongitude = x.GpsLongitude,
+                    MetragemTotal = x.MetragemTotal,
+                    MetragemGuarda = x.MetragemGuarda,
+                    HoraDiaria = x.HoraDiaria,
+                    MaximoDiariasParaCobranca = x.MaximoDiariasParaCobranca,
+                    MaximoDiasVencimento = x.MaximoDiasVencimento,
+                    LabelClienteCodigoIdentificacao = x.LabelClienteCodigoIdentificacao,
+                    FlagUsarHoraDiaria = x.FlagUsarHoraDiaria,
+                    FlagEmissaoNotaFiscal = x.FlagEmissaoNotaFiscal,
+                    FlagCadastrarQuilometragem = x.FlagCadastrarQuilometragem,
+                    FlagCobrarDiariasDiasCorridos = x.FlagCobrarDiariasDiasCorridos,
+                    FlagClienteRealizaFaturamentoArrecadacao = x.FlagClienteRealizaFaturamentoArrecadacao,
+                    FlagEnderecoCadastroManual = x.FlagEnderecoCadastroManual,
+                    FlagPermiteAlteracaoTipoVeiculo = x.FlagPermiteAlteracaoTipoVeiculo,
+                    FlagLancarIpvaMultas = x.FlagLancarIpvaMultas,
+                    FlagPossuiClienteCodigoIdentificacao = x.FlagClientePossuiCodigoIdentificacao,
+                    CodigoOrgao = x.CodigoOrgao,
+                    FlagPossuiPIXEstatico = x.FlagPossuiPixEstatico,
+                    ChavePIX = x.PixChave,
+                    FlagPossuiPIXDinamico = x.FlagPossuiPixDinamico,
+                    FlagUsaAlvaraDeLiberacao = x.FlagUsaAlvaraDeLiberacao,
+                    FlagAtivo = x.FlagAtivo
+                })
+                .FirstOrDefaultAsync(ct);
 
             if (result != null)
             {

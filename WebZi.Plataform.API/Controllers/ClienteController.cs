@@ -103,7 +103,7 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("SelecionarPorIdentificador")]
         // TODO: [Authorize]
-        public async Task<ActionResult<ClienteListDTO>> SelecionarPorIdentificador(int IdentificadorCliente)
+        public async Task<ActionResult<ClienteListDTO>> SelecionarPorIdentificador(int IdentificadorCliente, CancellationToken ct)
         {
             if (!ModelState.IsValid)
             {
@@ -116,7 +116,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<ClienteService>()
-                    .GetByIdAsync(IdentificadorCliente);
+                    .GetByIdAsync(IdentificadorCliente, ct);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }

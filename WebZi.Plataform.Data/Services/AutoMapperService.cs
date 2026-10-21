@@ -105,7 +105,8 @@ namespace WebZi.Plataform.Data.Services
                 .ForMember(dest => dest.IdentificadorEmpresa, from => from.MapFrom(src => src.EmpresaId))
                 .ForMember(dest => dest.IdentificadorOrgaoExecutivoTransito,
                     from => from.MapFrom(src => src.OrgaoExecutivoTransitoId))
-                .ForMember(dest => dest.IdentificadorTipoChavePIX, from => from.MapFrom(src => src.PixTipoChaveId));
+                .ForMember(dest => dest.IdentificadorTipoChavePIX, from => from.MapFrom(src => src.PixTipoChaveId))
+                .ForMember(dest => dest.FlagUsaAlvaraDeLiberacao, from => from.MapFrom(src => src.FlagUsaAlvaraDeLiberacao));
 
             CreateMap<ClienteDTO, ClienteSimplificadoDTO>();
 

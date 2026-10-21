@@ -9,6 +9,7 @@ namespace WebZi.Plataform.Domain.DTO.Report
         public int IdentificadorProcesso { get; set; }
 
         public string NumeroProcesso { get; set; }
+        public string NumeroAlvaraLiberacao { get; set; }
 
         public string ClienteNome { get; set; }
 
@@ -29,7 +30,7 @@ namespace WebZi.Plataform.Domain.DTO.Report
         public string DadosPermanencia { get; set; }
 
         public string DadosAutorizadaRetiradaVeiculoEm { get; set; }
-        
+
         public string DadosDaRetiradaDoVeiculo { get; set; }
 
         public string VeiculoTipo { get; set; }
@@ -57,7 +58,7 @@ namespace WebZi.Plataform.Domain.DTO.Report
         public string? DataVoltaSaidaParaReparo { get; set; }
 
         public string TextoApresentacao { get; set; }
-        
+
         public string TextoDeclaracaoRetirada1 { get; set; }
 
         public string TextoDeclaracaoRetirada2 { get; set; }

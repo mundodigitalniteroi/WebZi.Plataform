@@ -140,6 +140,14 @@ namespace WebZi.Plataform.Data.Mappings.Cliente
                 .IsFixedLength()
                 .HasColumnName("flag_usar_hora_diaria");
 
+            builder.Property(e => e.FlagUsaAlvaraDeLiberacao)
+                .IsRequired()
+                .HasMaxLength(1)
+                .IsUnicode(false)
+                .HasDefaultValueSql("('N')")
+                .IsFixedLength()
+                .HasColumnName("flag_usa_alvara_de_liberacao");
+
             builder.Property(e => e.GpsLatitude)
                 .HasColumnType("numeric(10, 8)")
                 .HasColumnName("gps_latitude");
