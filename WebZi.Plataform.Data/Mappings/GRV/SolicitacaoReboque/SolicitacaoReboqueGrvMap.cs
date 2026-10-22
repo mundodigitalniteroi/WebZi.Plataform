@@ -26,35 +26,6 @@ public class SolicitacaoReboqueGrvMap : IEntityTypeConfiguration<SolicitacaoRebo
         builder.Property(x => x.NomeAutoridadeResponsavel)
             .HasColumnName("nome_autoridade_responsavel");
 
-        builder.Property(x => x.TipoVeiculoId)
-            .HasColumnName("id_tipo_veiculo");
-
-        builder.Property(x => x.CorId)
-            .HasColumnName("id_cor");
-
-        builder.Property(x => x.MarcaModeloId)
-            .HasColumnName("id_marca_modelo");
-
-        builder.Property(x => x.Placa)
-            .HasColumnName("placa")
-            .HasMaxLength(7)
-            .IsUnicode(false);
-
-        builder.Property(x => x.Chassi)
-            .HasColumnName("chassi")
-            .HasMaxLength(24)
-            .IsUnicode(false);
-
-        builder.Property(x => x.Renavam)
-            .HasColumnName("renavam")
-            .HasMaxLength(15)
-            .IsUnicode(false);
-
-        builder.Property(x => x.VeiculoUF)
-            .HasColumnName("veiculo_uf")
-            .HasMaxLength(2)
-            .IsUnicode(false);
-
         builder.HasOne(x => x.SolicitacaoReboque)
             .WithMany()
             .HasForeignKey(x => x.SolicitacaoReboqueId);

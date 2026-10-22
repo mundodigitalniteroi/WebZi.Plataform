@@ -48,18 +48,39 @@ public class SolicitacaoReboqueService
         _httpClientFactory = httpClientFactory;
     }
 
-    public async Task<SolicitacoesReboqueListDTO> ListSolicitacoesReboqueAsync(int userId, short? skip, short? take,
+    public async Task<SolicitacoesReboqueListDTO> ListSolicitacoesReboqueAsync(
+        SolicitacaoReboquePesquisaParameters? parameters,
         CancellationToken ct)
     {
         SolicitacoesReboqueListDTO ResultView = new();
         var query = _context.SolicitacaoReboque
             .AsNoTracking()
-            .Where(x => x.UsuarioCadastroId == userId);
+            .Where(x => x.UsuarioCadastroId == parameters.IdentificadorUsuario);
+
+        if (!string.IsNullOrWhiteSpace(parameters.Placa))
+        {
+            var cleanPlaca = parameters.Placa.Trim().ToUpper();
+            query = query.Where(x =>
+                (x.Placa != null && x.Placa == cleanPlaca) || (x.Grv != null && x.Grv.Placa == cleanPlaca));
+        }
+
+        if (!string.IsNullOrWhiteSpace(parameters.NumeroProcesso))
+        {
+            var cleanProc = parameters.NumeroProcesso.Trim();
+            query = query.Where(x =>
+                (x.Grv != null && x.Grv.NumeroFormularioGrv == cleanProc) || x.Id.ToString() == cleanProc);
+        }
+
+        if (parameters.DataInicial.HasValue)
+            query = query.Where(x => x.DataCadastro >= parameters.DataInicial.Value);
+
+        if (parameters.DataFinal.HasValue)
+            query = query.Where(x => x.DataCadastro <= parameters.DataFinal.Value);
 
         var totalCount = await query.CountAsync(cancellationToken: ct);
 
-        var limit = take.HasValue && take.Value > 0 ? take.Value : 20;
-        var offset = skip.HasValue && skip.Value >= 0 ? skip.Value : 0;
+        var limit = parameters.Take is > 0 ? parameters.Take.Value : 20;
+        var offset = parameters.Skip is >= 0 ? parameters.Skip.Value : 0;
 
         var solicitacoes = await query
             .OrderByDescending(x => x.Id)
@@ -67,18 +88,23 @@ public class SolicitacaoReboqueService
             .Take(limit)
             .Select(x => new SolicitacaoReboqueDTO
             {
-                NumeroProcesso = x.Grv.NumeroFormularioGrv,
+                Id = x.Id,
+                NumeroProcesso = x.Grv != null ? x.Grv.NumeroFormularioGrv : x.Id.ToString(),
                 Cliente = x.ClienteDeposito.Cliente.Nome,
                 Deposito = x.ClienteDeposito.Deposito.Nome,
-                MotivoApreensao = x.MotivoApreensao.Descricao,
+                MotivoApreensao = x.MotivoApreensao != null ? x.MotivoApreensao.Descricao : null,
                 Veiculo = new SolicitacaoReboqueVeiculoDTO
                 {
-                    TipoVeiculo = x.Grv.TipoVeiculo.Descricao,
-                    Placa = x.Grv.Placa,
-                    Chassi = x.Grv.Chassi,
-                    Renavam = x.Grv.Renavam,
-                    MarcaModelo = x.Grv.MarcaModelo.MarcaModelo,
-                    Cor = x.Grv.Cor.Cor
+                    TipoVeiculo = x.Grv != null
+                        ? x.Grv.TipoVeiculo.Descricao
+                        : (x.TipoVeiculo != null ? x.TipoVeiculo.Descricao : null),
+                    Placa = x.Grv != null ? x.Grv.Placa : x.Placa,
+                    Chassi = x.Grv != null ? x.Grv.Chassi : x.Chassi,
+                    Renavam = x.Grv != null ? x.Grv.Renavam : x.Renavam,
+                    MarcaModelo = x.Grv != null
+                        ? x.Grv.MarcaModelo.MarcaModelo
+                        : (x.MarcaModelo != null ? x.MarcaModelo.MarcaModelo : null),
+                    Cor = x.Grv != null ? x.Grv.Cor.Cor : (x.Cor != null ? x.Cor.Cor : null)
                 },
                 Status = x.SolicitacaoReboqueStatus.Descricao,
                 LocalApreenssao = x.LocalRemocaoCompleto,
@@ -109,18 +135,23 @@ public class SolicitacaoReboqueService
             .Where(x => x.Id == solicitacaoReboqueId && x.UsuarioCadastroId == userId)
             .Select(x => new SelecionarSolicitacaoReboqueDTO
             {
-                NumeroProcesso = x.Grv != null ? x.Grv.NumeroFormularioGrv : null,
+                Id = x.Id,
+                NumeroProcesso = x.Grv != null ? x.Grv.NumeroFormularioGrv : x.Id.ToString(),
                 Cliente = x.ClienteDeposito.Cliente.Nome,
                 Deposito = x.ClienteDeposito.Deposito.Nome,
                 MotivoApreensao = x.MotivoApreensao != null ? x.MotivoApreensao.Descricao : null,
                 Veiculo = new SolicitacaoReboqueVeiculoDTO
                 {
-                    TipoVeiculo = x.Grv != null ? x.Grv.TipoVeiculo.Descricao : null,
-                    Placa = x.Grv != null ? x.Grv.Placa : null,
-                    Chassi = x.Grv != null ? x.Grv.Chassi : null,
-                    Renavam = x.Grv != null ? x.Grv.Renavam : null,
-                    MarcaModelo = x.Grv != null ? x.Grv.MarcaModelo.MarcaModelo : null,
-                    Cor = x.Grv != null ? x.Grv.Cor.Cor : null
+                    TipoVeiculo = x.Grv != null
+                        ? x.Grv.TipoVeiculo.Descricao
+                        : (x.TipoVeiculo != null ? x.TipoVeiculo.Descricao : null),
+                    Placa = x.Grv != null ? x.Grv.Placa : x.Placa,
+                    Chassi = x.Grv != null ? x.Grv.Chassi : x.Chassi,
+                    Renavam = x.Grv != null ? x.Grv.Renavam : x.Renavam,
+                    MarcaModelo = x.Grv != null
+                        ? x.Grv.MarcaModelo.MarcaModelo
+                        : (x.MarcaModelo != null ? x.MarcaModelo.MarcaModelo : null),
+                    Cor = x.Grv != null ? x.Grv.Cor.Cor : (x.Cor != null ? x.Cor.Cor : null)
                 },
                 Reboque = x.Reboque != null ? x.Reboque.Placa : null,
                 Reboquista = x.Reboquista != null ? x.Reboquista.Nome : null,
@@ -156,7 +187,6 @@ public class SolicitacaoReboqueService
     {
         List<string> erros = new();
 
-
         var cliente = await _context.UsuarioCliente
             .AsNoTracking()
             .AnyAsync(
@@ -167,35 +197,35 @@ public class SolicitacaoReboqueService
             .AsNoTracking()
             .AnyAsync(
                 x => x.UsuarioId == parameters.IdentificadorUsuario &&
-                     x.DepositoId == parameters.IdentificadorDeposito, cancellationToken: ct);
+                     x.DepositoId == parameters.IdentificadorDeposito, cancellationToken: ct)!;
 
         var clienteDeposito = await _context.ClienteDeposito
             .AsNoTracking()
             .FirstOrDefaultAsync(
                 x => x.ClienteId == parameters.IdentificadorCliente &&
-                     x.DepositoId == parameters.IdentificadorDeposito, cancellationToken: ct);
+                     x.DepositoId == parameters.IdentificadorDeposito, cancellationToken: ct)!;
 
         var grv = await _context.Grv.FirstOrDefaultAsync(
             x => x.ClienteId == clienteDeposito.ClienteId &&
-                     x.DepositoId == clienteDeposito.DepositoId &&
-                     x.StatusOperacaoId != "E" &&
-                     x.StatusOperacaoId != "7" &&
-                     (
-                         (!string.IsNullOrWhiteSpace(parameters.Placa) &&
-                         x.Placa == parameters.Placa)
-                        ||
-                        (!string.IsNullOrWhiteSpace(parameters.Chassi) &&
-                         x.Chassi == parameters.Chassi)
-                    ), cancellationToken: ct);
+                 x.DepositoId == clienteDeposito.DepositoId &&
+                 x.StatusOperacaoId != "E" &&
+                 x.StatusOperacaoId != "7" &&
+                 (
+                     (!string.IsNullOrWhiteSpace(parameters.Placa) &&
+                      x.Placa == parameters.Placa)
+                     ||
+                     (!string.IsNullOrWhiteSpace(parameters.Chassi) &&
+                      x.Chassi == parameters.Chassi)
+                 ), cancellationToken: ct)!;
 
         if (grv is not null)
         {
-            bool isPlacaDuplicada = !string.IsNullOrWhiteSpace(parameters.Placa) &&
-                                    string.Equals(grv.Placa, parameters.Placa,
+            var isPlacaDuplicada = !string.IsNullOrWhiteSpace(parameters.Placa) &&
+                                   string.Equals(grv.Placa, parameters.Placa,
+                                       StringComparison.OrdinalIgnoreCase);
+            var isChassiDuplicado = !string.IsNullOrWhiteSpace(parameters.Chassi) &&
+                                    string.Equals(grv.Chassi, parameters.Chassi,
                                         StringComparison.OrdinalIgnoreCase);
-            bool isChassiDuplicado = !string.IsNullOrWhiteSpace(parameters.Chassi) &&
-                                     string.Equals(grv.Chassi, parameters.Chassi,
-                                         StringComparison.OrdinalIgnoreCase);
 
             if (isPlacaDuplicada && isChassiDuplicado)
             {
@@ -217,28 +247,19 @@ public class SolicitacaoReboqueService
             erros.Add($"{grv.NumeroFormularioGrv}");
         }
 
-
         if (!cliente)
-        {
             erros.Add(MensagemPadraoEnum.UsuarioSemPermissaoAcessoCliente);
-        }
-
         if (!deposito)
-        {
             erros.Add(MensagemPadraoEnum.UsuarioSemPermissaoAcessoDeposito);
-        }
-
         if (clienteDeposito == null)
-        {
             erros.Add(MensagemPadraoEnum.NaoEncontradoAssociacaoClienteDeposito);
-        }
 
         if (parameters.IdentificadorMotivoApreensao > 0)
         {
             var tipoExiste = await _context.MotivoApreensao
                 .AsNoTracking()
                 .AnyAsync(x => x.MotivoApreensaoId == parameters.IdentificadorMotivoApreensao,
-                    cancellationToken: ct);
+                    cancellationToken: ct)!;
 
             if (!tipoExiste)
             {
@@ -261,7 +282,7 @@ public class SolicitacaoReboqueService
                 {
                     x.Id
                 })
-                .FirstOrDefaultAsync(cancellationToken: ct);
+                .FirstOrDefaultAsync(cancellationToken: ct)!;
 
             if (tipo is null)
             {
@@ -273,14 +294,10 @@ public class SolicitacaoReboqueService
             }
         }
         else
-        {
             erros.Add("Tipo de motivo de apreensão é obrigatório para buscar o tipo de Solicitação de Reboque");
-        }
 
         if (erros.Count > 0)
-        {
             return MensagemViewHelper.SetBadRequest(erros);
-        }
 
         var model = new SolicitacaoReboqueModel
         {
@@ -304,26 +321,17 @@ public class SolicitacaoReboqueService
         };
 
 
-
         await using var transaction = await _context.Database.BeginTransactionAsync(ct);
         try
         {
             await _context.SolicitacaoReboque.AddAsync(model, ct);
             await _context.SaveChangesAsync(ct);
 
-            SolicitacaoReboqueGrvModel? solicitacaoReboqueGrv = null!;
-            SolicitacaoReboqueDRFAModel? solicitacaoReboqueDRFA = null!;
             if (solicitacaoReboqueTipoId == 1)
             {
-
-                solicitacaoReboqueGrv = PayloadSolicitacaoReboqueGrv(model.Id, parameters.SolicitacaoReboqueGrv);
+                var solicitacaoReboqueGrv = PayloadSolicitacaoReboqueGrv(model.Id, parameters.SolicitacaoReboqueGrv);
                 await _context.SolicitacaoReboqueGrv.AddAsync(solicitacaoReboqueGrv, ct);
                 await _context.SaveChangesAsync(ct);
-            }
-            else if (solicitacaoReboqueTipoId == 2)
-            {
-                solicitacaoReboqueDRFA = PayloadSolicitacaoReboqueDRFA(model.Id, parameters.SolicitacaoReboqueDRFA);
-                await _context.SolicitacaoReboqueDRFA.AddAsync(solicitacaoReboqueDRFA, ct);
             }
 
             if (parameters.IdentificadorMotivoApreensao == 1 && parameters.ListagemEnquadramentoInfracao?.Count > 0)
@@ -338,20 +346,20 @@ public class SolicitacaoReboqueService
                     };
                     await _context.SolicitacaoReboqueEnquadramentoInfracao.AddAsync(infracao, ct);
                 }
-                if (parameters.Condutor != null)
-                {
-                    var condutor = new SolicitacaoReboqueCondutorModel
-                    {
-                        SolicitacaoReboqueGrvId = model.Id,
-                        Telefone = parameters.Condutor.Telefone.ToUpperTrim().ToNullIfEmpty(),
-                        TelefoneDDD = parameters.Condutor.TelefoneDDD.ToUpperTrim().ToNullIfEmpty(),
-                        InformacoesAdicionais = parameters.Condutor.InformacoesAdicionais.ToUpperTrim().ToNullIfEmpty(),
-                    };
-
-                    await _context.SolicitacaoReboqueCondutor.AddAsync(condutor, ct);
-                }
             }
 
+            if (parameters.Condutor != null)
+            {
+                var condutor = new SolicitacaoReboqueCondutorModel
+                {
+                    SolicitacaoReboqueGrvId = model.Id,
+                    Telefone = parameters.Condutor.Telefone.ToUpperTrim().ToNullIfEmpty(),
+                    TelefoneDDD = parameters.Condutor.TelefoneDDD.ToUpperTrim().ToNullIfEmpty(),
+                    InformacoesAdicionais = parameters.Condutor.InformacoesAdicionais.ToUpperTrim().ToNullIfEmpty(),
+                };
+
+                await _context.SolicitacaoReboqueCondutor.AddAsync(condutor, ct);
+            }
 
             await _context.SaveChangesAsync(ct);
 
@@ -373,7 +381,8 @@ public class SolicitacaoReboqueService
         }
     }
 
-    private SolicitacaoReboqueGrvModel PayloadSolicitacaoReboqueGrv(int solicitacaoReboqueId, SolicitacaoReboqueGrvParameters solicitacaoGrv)
+    private SolicitacaoReboqueGrvModel PayloadSolicitacaoReboqueGrv(int solicitacaoReboqueId,
+        SolicitacaoReboqueGrvParameters solicitacaoGrv)
         => new()
         {
             SolicitacaoReboqueId = solicitacaoReboqueId,
@@ -381,20 +390,6 @@ public class SolicitacaoReboqueService
             MatriculaAutoridadeResponsavel = solicitacaoGrv.MatriculaAgenteResponsavel.ToUpperTrim().ToNullIfEmpty(),
             NomeAutoridadeResponsavel = solicitacaoGrv.NomeAgenteResponsavel.ToUpperTrim().ToNullIfEmpty()
         };
-
-    private SolicitacaoReboqueDRFAModel PayloadSolicitacaoReboqueDRFA(int solicitacaoReboqueId, SolicitacaoReboqueDRFAParameters solicitacaoDRFA)
-       => new()
-       {
-           SolicitacaoReboqueId = solicitacaoReboqueId,
-           TipoRegistroId = solicitacaoDRFA.TipoRegistroId,
-           OrgaoEmissorId = solicitacaoDRFA.OrgaoEmissorId,
-           AutoridadeDivisaoId = solicitacaoDRFA.AutoridadeDivisaoId,
-           AutoridadeDivisaoComplemento = solicitacaoDRFA.AutoridadeDivisaoComplemento.ToUpperTrim().ToNullIfEmpty(),
-           NumeroRegistroRouboFurto = solicitacaoDRFA.NumeroRegistroRouboFurto.ToUpperTrim().ToNullIfEmpty(),
-           RegistroRouboFurtoMatriculaAgente = solicitacaoDRFA.RegistroRouboFurtoMatriculaAgente.ToUpperTrim().ToNullIfEmpty(),
-           RegistroRouboFurtoNomeAgente = solicitacaoDRFA.RegistroRouboFurtoNomeAgente.ToUpperTrim().ToNullIfEmpty(),
-           EstadoGeralVeiculo = solicitacaoDRFA.EstadoGeralVeiculo.ToUpperTrim().ToNullIfEmpty(),
-       };
 
 
     public async Task<MensagemDTO> CancelarSolicitacaoReboqueAsync(int userId, int solicitacaoReboqueId,
@@ -558,8 +553,9 @@ public class SolicitacaoReboqueService
             return MensagemViewHelper.SetInternalServerError(ex);
         }
     }
+
     public async Task<MensagemDTO> UpdateSolicitacaoReboqueAsync(
-      int solicitacaoReboqueId, AtualizarSolicitacaoReboqueParameters parameters, CancellationToken ct)
+        int solicitacaoReboqueId, AtualizarSolicitacaoReboqueParameters parameters, CancellationToken ct)
     {
         if (solicitacaoReboqueId <= 0)
         {
@@ -660,7 +656,5 @@ public class SolicitacaoReboqueService
 
     private async Task SolicitacaoStatusNoLocal()
     {
-
     }
-
 }

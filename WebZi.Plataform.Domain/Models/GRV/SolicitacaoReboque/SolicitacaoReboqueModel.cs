@@ -18,7 +18,7 @@ public class SolicitacaoReboqueModel
     public int? GrvId { get; set; }
     public int UsuarioCadastroId { get; set; }
     public int? UsuarioAceiteId { get; set; }
-    public int? TipoVeiculoId { get; set; }
+    public byte? TipoVeiculoId { get; set; }
     public int? CorId { get; set; }
     public int? MarcaModeloId { get; set; }
     public string? Placa { get; set; }
