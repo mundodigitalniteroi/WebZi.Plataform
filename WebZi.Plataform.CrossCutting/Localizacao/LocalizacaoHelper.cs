@@ -7,6 +7,7 @@ namespace WebZi.Plataform.CrossCutting.Localizacao
     {
         [GeneratedRegex("^\\d{5}-\\d{3}|(\\d{8})$")]
         private static partial Regex RegexCEP();
+
         public static bool IsCEP(this string cep)
         {
             return !cep.IsNullOrWhiteSpace() && RegexCEP().IsMatch(cep.Trim());
@@ -22,6 +23,7 @@ namespace WebZi.Plataform.CrossCutting.Localizacao
                    uf == "AM" ||
                    uf == "BA" ||
                    uf == "CE" ||
+                   uf == "DF" ||
                    uf == "ES" ||
                    uf == "GO" ||
                    uf == "MA" ||
