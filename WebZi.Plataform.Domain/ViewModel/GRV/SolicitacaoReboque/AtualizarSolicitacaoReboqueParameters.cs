@@ -4,8 +4,7 @@ namespace WebZi.Plataform.Domain.ViewModel.GRV.SolicitacaoReboque;
 
 public class AtualizarSolicitacaoReboqueParameters
 {
-    public int? SolicitacaoReboqueGrvId { get; set; }
-    public int? SolicitacaoReboqueDRFAId { get; set; }
+    public int? SolicitacaoReboqueId { get; set; }
     public byte SolicitacaoReboqueStatusId { get; set; }
     public int? IdentificadorReboque { get; set; }
     public int? IdentificadorReboquista { get; set; }

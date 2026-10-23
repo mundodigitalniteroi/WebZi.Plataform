@@ -44,14 +44,14 @@ public class SolicitacaoReboqueMap : IEntityTypeConfiguration<SolicitacaoReboque
             .HasColumnName("id_usuario_alteracao");
 
         builder.Property(x => x.TipoVeiculoId)
-            .HasColumnName("tipo_veiculo_id");
+            .HasColumnName("id_tipo_veiculo");
         builder.Property(x => x.CorId)
-            .HasColumnName("cor_id");
+            .HasColumnName("id_cor");
         builder.Property(x => x.MarcaModeloId)
-            .HasColumnName("marca_modelo_id");
+            .HasColumnName("id_marca_modelo");
         builder.Property(x => x.Placa)
-           .HasColumnName("placa")
-           .HasMaxLength(7);
+            .HasColumnName("placa")
+            .HasMaxLength(7);
         builder.Property(x => x.Chassi)
             .HasColumnName("chassi")
             .HasMaxLength(17);
@@ -74,12 +74,22 @@ public class SolicitacaoReboqueMap : IEntityTypeConfiguration<SolicitacaoReboque
         builder.Property(x => x.LocalRemocaoLongitude)
             .HasColumnName("local_remocao_longitude")
             .HasMaxLength(15);
+
         builder.Property(x => x.DataCadastro)
             .HasColumnName("data_cadastro");
         builder.Property(x => x.DataAlteracao)
             .HasColumnName("data_alteracao");
         builder.Property(x => x.DataSolicitacaoAceita)
             .HasColumnName("data_solicitacao_aceita");
+        builder.Property(x => x.DataSolicitacaoCancelada)
+            .HasColumnName("data_solicitacao_cancelada");
+
+        builder.Property(x => x.AutoridadeResponsavelId)
+            .HasColumnName("id_autoridade_responsavel");
+        builder.Property(x => x.MatriculaAutoridadeResponsavel)
+            .HasColumnName("matricula_agente_responsavel");
+        builder.Property(x => x.NomeAutoridadeResponsavel)
+            .HasColumnName("nome_agente_responsavel");
 
         builder.HasOne(x => x.ClienteDeposito)
             .WithMany()

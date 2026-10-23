@@ -4,6 +4,8 @@
     {
         public int IdentificadorDeposito { get; set; }
 
+        public int? IdentificadorCliente { get; set; }
+
         public int? IdentificadorEmpresa { get; set; }
 
         public int? IdentificadorCEP { get; set; }

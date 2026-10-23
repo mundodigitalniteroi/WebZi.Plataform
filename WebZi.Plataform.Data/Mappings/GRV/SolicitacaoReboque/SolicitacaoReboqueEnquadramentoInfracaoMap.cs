@@ -14,7 +14,7 @@ public class SolicitacaoReboqueEnquadramentoInfracaoMap : IEntityTypeConfigurati
             .HasColumnName("id_enquadramento_infracao_solicitacao_reboque")
             .ValueGeneratedOnAdd();
 
-        builder.Property(x => x.SolicitacaoReboqueGrvId)
+        builder.Property(x => x.SolicitacaoReboqueId)
             .HasColumnName("id_solicitacao_reboque_grv")
             .IsRequired();
 
@@ -29,9 +29,9 @@ public class SolicitacaoReboqueEnquadramentoInfracaoMap : IEntityTypeConfigurati
             .IsUnicode(false)
             .IsRequired();
 
-        builder.HasOne(x => x.SolicitacaoReboqueGrv)
+        builder.HasOne(x => x.SolicitacaoReboque)
             .WithMany()
-            .HasForeignKey(x => x.SolicitacaoReboqueGrvId);
+            .HasForeignKey(x => x.SolicitacaoReboqueId);
 
         builder.HasOne(x => x.EnquadramentoInfracao)
             .WithMany()

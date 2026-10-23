@@ -21,6 +21,7 @@ using WebZi.Plataform.Data.Services.Pessoa;
 using WebZi.Plataform.Data.Services.Report;
 using WebZi.Plataform.Data.Services.Servico;
 using WebZi.Plataform.Data.Services.Sistema;
+using WebZi.Plataform.Data.Services.SolicitacaoReboque;
 using WebZi.Plataform.Data.Services.Transalvador;
 using WebZi.Plataform.Data.Services.Usuario;
 using WebZi.Plataform.Data.Services.Veiculo;
@@ -105,6 +106,7 @@ namespace WebZi.Plataform.Data.Services
             services.AddScoped<LiberacaoEspecialService>();
             services.AddScoped<TransalvadorService>();
             services.AddScoped<DATService>();
+            services.AddScoped<SolicitacaoReboqueService>();
 
             #region WebServices
 

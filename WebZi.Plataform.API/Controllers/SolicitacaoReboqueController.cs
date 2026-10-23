@@ -51,7 +51,7 @@ public class SolicitacaoReboqueController : ControllerBase
 
     [HttpGet("{solicitacaoReboqueId}/SelecionarSolicitacao")]
     public async Task<ActionResult<SelecionarSolicitacaoReboqueDTO>> SelecionarSolicitacaoReboque(
-        int solicitacaoReboqueId,
+        [FromRoute] int solicitacaoReboqueId,
         CancellationToken ct)
     {
         SelecionarSolicitacaoReboqueDTO ResultView = new();
@@ -73,7 +73,6 @@ public class SolicitacaoReboqueController : ControllerBase
         }
     }
 
-    [HttpPost]
     [HttpPost("Cadastrar")]
     public async Task<ActionResult<MensagemDTO>> CadastrarSolicitacaoReboque(
         [FromBody] CadastrarSolicitacaoReboqueParameters cadastrarSolicitacaoReboque, CancellationToken ct)
@@ -125,21 +124,21 @@ public class SolicitacaoReboqueController : ControllerBase
     }
 
     [HttpPut("{solicitacaoReboqueId}/Atualizar")]
-    [HttpPut("{solicitacaoReboqueId}")]
     public async Task<ActionResult<MensagemDTO>> AtualizarSolicitacaoReboque(
-        int solicitacaoReboqueId,
-        [FromBody] AtualizarSolicitacaoReboqueParameters solicitacaoReboque, CancellationToken ct)
+        [FromRoute] int solicitacaoReboqueId,
+        [FromBody] AtualizarSolicitacaoReboqueParameters parameters, CancellationToken ct)
     {
         MensagemDTO ResultView = new();
 
         var userId = User.GetUserId();
-        solicitacaoReboque.IdentificadorUsuario = userId!.Value;
+        parameters.IdentificadorUsuario = userId!.Value;
+        parameters.SolicitacaoReboqueId = solicitacaoReboqueId;
 
         try
         {
             ResultView = await _provider
                 .GetService<SolicitacaoReboqueService>()
-                .UpdateSolicitacaoReboqueAsync(solicitacaoReboqueId, solicitacaoReboque, ct);
+                .UpdateSolicitacaoReboqueAsync(parameters, ct);
 
             return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
         }
@@ -152,28 +151,21 @@ public class SolicitacaoReboqueController : ControllerBase
     }
 
     [HttpPut("{solicitacaoReboqueId}/aceitar")]
-    [HttpPut("aceitar")]
     public async Task<ActionResult<MensagemDTO>> AceitarSolicitacaoReboque(
-        [FromRoute] int? solicitacaoReboqueId,
-        [FromBody] AceitarSolicitacaoReboqueParameters? parameters,
+        [FromRoute] int solicitacaoReboqueId,
+        [FromBody] AceitarSolicitacaoReboqueParameters parameters,
         CancellationToken ct)
     {
         MensagemDTO ResultView = new();
 
         var userId = User.GetUserId();
-        var aceitarSolicitacaoReboque = parameters ?? new AceitarSolicitacaoReboqueParameters();
-        if (solicitacaoReboqueId.HasValue && solicitacaoReboqueId.Value > 0)
-        {
-            aceitarSolicitacaoReboque.SolicitacaoReboqueId = solicitacaoReboqueId.Value;
-        }
-
-        aceitarSolicitacaoReboque.IdentificadorUsuario = userId!.Value;
-
+        parameters.IdentificadorUsuario = userId!.Value;
+        parameters.SolicitacaoReboqueId = solicitacaoReboqueId;
         try
         {
             ResultView = await _provider
                 .GetService<SolicitacaoReboqueService>()
-                .AceitarSolicitacaoReboqueAsync(aceitarSolicitacaoReboque, ct);
+                .AceitarSolicitacaoReboqueAsync(parameters, ct);
 
             return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
         }
@@ -184,6 +176,4 @@ public class SolicitacaoReboqueController : ControllerBase
             return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
         }
     }
-}
-
 }

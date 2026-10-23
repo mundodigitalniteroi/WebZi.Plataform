@@ -20,8 +20,7 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("Listar")]
-        // TODO: [Authorize]
-        public async Task<ActionResult<DepositoListDTO>> Listar(int IdentificadorUsuario)
+        public async Task<ActionResult<DepositoListDTO>> Listar(int IdentificadorUsuario, CancellationToken ct)
         {
             if (!ModelState.IsValid)
             {
@@ -34,7 +33,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<DepositoService>()
-                    .ListAsync(IdentificadorUsuario);
+                    .ListAsync(IdentificadorUsuario, ct);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }

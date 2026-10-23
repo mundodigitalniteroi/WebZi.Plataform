@@ -491,11 +491,12 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
                     _context.Grv.Update(grv);
 
-                    if (GrvPersistencia.IdentificadorCliente == 61 || ClienteDeposito?.Cliente?.FlagClientePossuiCodigoIdentificacao == "S")
+                    if (GrvPersistencia.IdentificadorCliente == 61 ||
+                        ClienteDeposito?.Cliente?.FlagClientePossuiCodigoIdentificacao == "S")
                     {
                         var codigoExistente = grv.ClienteCodigoIdentificacao ??
-                            await _context.ClienteCodigoIdentificacao
-                                .FirstOrDefaultAsync(x => x.GrvId == grv.GrvId, ct);
+                                              await _context.ClienteCodigoIdentificacao
+                                                  .FirstOrDefaultAsync(x => x.GrvId == grv.GrvId, ct);
 
                         if (!string.IsNullOrWhiteSpace(GrvPersistencia.CodigoIdentificacaoCliente))
                         {
@@ -783,7 +784,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 foreach (string item in GrvPersistencia.ListagemLacre)
                 {
                     grv.ListagemLacre.Add(new LacreModel
-                    { UsuarioCadastroId = GrvPersistencia.IdentificadorUsuario, Lacre = item });
+                        { UsuarioCadastroId = GrvPersistencia.IdentificadorUsuario, Lacre = item });
                 }
             }
 
@@ -860,7 +861,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
                         }
                     }
 
-                    if ((GrvPersistencia.IdentificadorCliente == 61 || ClienteDeposito?.Cliente?.FlagClientePossuiCodigoIdentificacao == "S") &&
+                    if ((GrvPersistencia.IdentificadorCliente == 61 ||
+                         ClienteDeposito?.Cliente?.FlagClientePossuiCodigoIdentificacao == "S") &&
                         !string.IsNullOrWhiteSpace(GrvPersistencia.CodigoIdentificacaoCliente))
                     {
                         ClienteCodigoIdentificacaoModel ClienteCodigoIdentificacao = new()
@@ -2226,6 +2228,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                     x.ClienteCodigoIdentificacao != null &&
                     x.ClienteCodigoIdentificacao.CodigoIdentificacao == codigoIdentificacao);
             }
+
             if (!string.IsNullOrWhiteSpace(GrvPesquisa.PlacaVeiculo))
                 query = query.Where(x => x.Placa == GrvPesquisa.PlacaVeiculo);
             if (!string.IsNullOrWhiteSpace(GrvPesquisa.Chassi))
@@ -2243,7 +2246,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             #endregion
 
-            int totalCount = await query.CountAsync();
+            var totalCount = await query.CountAsync();
 
             if (totalCount == 0)
             {
@@ -2273,7 +2276,9 @@ namespace WebZi.Plataform.Domain.Services.GRV
                         ? x.Atendimento.ListagemFaturamento.Select(f => (int?)f.FaturamentoId).FirstOrDefault()
                         : null,
                     NumeroProcesso = x.NumeroFormularioGrv,
-                    CodigoIdentificacaoCliente = x.ClienteCodigoIdentificacao != null ? x.ClienteCodigoIdentificacao.CodigoIdentificacao : null,
+                    CodigoIdentificacaoCliente = x.ClienteCodigoIdentificacao != null
+                        ? x.ClienteCodigoIdentificacao.CodigoIdentificacao
+                        : null,
                     Placa = x.Placa,
                     Chassi = x.Chassi,
                     Renavam = x.Renavam,
@@ -3069,28 +3074,29 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (grv is not null)
             {
-                bool isPlacaDuplicada = !string.IsNullOrWhiteSpace(GrvPersistencia.Placa) &&
-                                        string.Equals(grv.Placa, GrvPersistencia.Placa,
+                var isPlacaDuplicada = !string.IsNullOrWhiteSpace(GrvPersistencia.Placa) &&
+                                       string.Equals(grv.Placa, GrvPersistencia.Placa,
+                                           StringComparison.OrdinalIgnoreCase);
+                var isChassiDuplicado = !string.IsNullOrWhiteSpace(GrvPersistencia.Chassi) &&
+                                        string.Equals(grv.Chassi, GrvPersistencia.Chassi,
                                             StringComparison.OrdinalIgnoreCase);
-                bool isChassiDuplicado = !string.IsNullOrWhiteSpace(GrvPersistencia.Chassi) &&
-                                         string.Equals(grv.Chassi, GrvPersistencia.Chassi,
-                                             StringComparison.OrdinalIgnoreCase);
 
-                if (isPlacaDuplicada && isChassiDuplicado)
+                switch (isPlacaDuplicada)
                 {
-                    ResultView.AvisosImpeditivos.Add("Esse GRV já existe (Placa e Chassi já cadastrados)");
-                }
-                else if (isPlacaDuplicada)
-                {
-                    ResultView.AvisosImpeditivos.Add("Esse GRV já existe (Placa já cadastrada)");
-                }
-                else if (isChassiDuplicado)
-                {
-                    ResultView.AvisosImpeditivos.Add("Esse GRV já existe (Chassi já cadastrado)");
-                }
-                else
-                {
-                    ResultView.AvisosImpeditivos.Add("Esse GRV já existe");
+                    case true when isChassiDuplicado:
+                        ResultView.AvisosImpeditivos.Add("Esse GRV já existe (Placa e Chassi já cadastrados)");
+                        break;
+                    case true:
+                        ResultView.AvisosImpeditivos.Add("Esse GRV já existe (Placa já cadastrada)");
+                        break;
+                    default:
+                    {
+                        ResultView.AvisosImpeditivos.Add(isChassiDuplicado
+                            ? "Esse GRV já existe (Chassi já cadastrado)"
+                            : "Esse GRV já existe");
+
+                        break;
+                    }
                 }
 
                 ResultView.AvisosInformativos.Add($"{grv.NumeroFormularioGrv}");
