@@ -96,7 +96,7 @@ namespace WebZi.Plataform.Data.Mappings.Atendimento
                 .HasColumnName("id_usuario_cadastro");
 
             builder.Property(e => e.NotaFiscalBairro)
-                .HasMaxLength(50)
+                .HasMaxLength(100)
                 .IsUnicode(false)
                 .HasColumnName("nota_fiscal_bairro");
 
@@ -164,7 +164,7 @@ namespace WebZi.Plataform.Data.Mappings.Atendimento
                 .HasColumnName("nota_fiscal_uf");
 
             builder.Property(e => e.ProprietarioBairro)
-                .HasMaxLength(50)
+                .HasMaxLength(100)
                 .IsUnicode(false)
                 .HasColumnName("proprietario_bairro");
 
@@ -224,7 +224,7 @@ namespace WebZi.Plataform.Data.Mappings.Atendimento
                 .HasColumnName("proprietario_uf");
 
             builder.Property(e => e.ResponsavelBairro)
-                .HasMaxLength(50)
+                .HasMaxLength(100)
                 .IsUnicode(false)
                 .HasColumnName("responsavel_bairro");
 
