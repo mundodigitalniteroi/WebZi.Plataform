@@ -26,8 +26,5 @@ public class SelecionarSolicitacaoReboqueDTO
     public DateTime DataCadastro { get; set; }
     public DateTime? DataSolicitacaoCancelada { get; set; }
     public DateTime? DataSolicitacaoAceito { get; set; }
-
-    public List<byte[]> Fotos { get; set; }
-    public List<byte[]> AssinaturaCondutor { get; set; }
-
+    public ImageListDTO Fotos { get; set; }
 }
