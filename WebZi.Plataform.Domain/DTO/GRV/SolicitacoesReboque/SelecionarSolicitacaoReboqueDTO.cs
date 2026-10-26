@@ -1,3 +1,4 @@
+using WebZi.Plataform.Domain.DTO.Generic;
 using WebZi.Plataform.Domain.DTO.Sistema;
 
 namespace WebZi.Plataform.Domain.DTO.GRV.SolicitacoesReboque;
@@ -19,7 +20,12 @@ public class SelecionarSolicitacaoReboqueDTO
     public string? LocalRemocaoReferencia { get; set; }
     public string? LocalRemocaoLatitude { get; set; }
     public string? LocalRemocaoLongitude { get; set; }
-    public string? UsuarioCadastro { get; set; }
+    public string? UsuarioCriouSolicitacao { get; set; }
+    public string? UsuarioSolicitacaoCancelada { get; set; }
+    public string? UsuarioSolicitacaoAceita { get; set; }
     public DateTime DataCadastro { get; set; }
+    public DateTime? DataSolicitacaoCancelada { get; set; }
     public DateTime? DataSolicitacaoAceito { get; set; }
+
+    public ImageListDTO Fotos { get; set; }
 }

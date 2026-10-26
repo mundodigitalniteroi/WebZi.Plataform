@@ -770,7 +770,7 @@ namespace WebZi.Plataform.Data.Services.Usuario
 
             if (!string.IsNullOrWhiteSpace(parameters.NomePessoa))
             {
-                var pessoa = await  _provider?.GetService<PessoaService>().GetByNomeAsync(parameters.NomePessoa, ct)!;
+                var pessoa = await _provider?.GetService<PessoaService>().GetByNomeAsync(parameters.NomePessoa, ct)!;
                 if (pessoa is { IdentificadorPessoa: > 0 })
                 {
                     parameters.identificadorPessoa = pessoa.IdentificadorPessoa;

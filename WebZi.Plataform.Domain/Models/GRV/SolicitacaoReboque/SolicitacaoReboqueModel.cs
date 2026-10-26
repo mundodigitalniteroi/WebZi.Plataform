@@ -18,6 +18,7 @@ public class SolicitacaoReboqueModel
     public int? GrvId { get; set; }
     public int UsuarioCadastroId { get; set; }
     public int? UsuarioAceiteId { get; set; }
+    public int? UsuarioCanceladoId { get; set; }
     public byte? TipoVeiculoId { get; set; }
     public int? CorId { get; set; }
     public int? MarcaModeloId { get; set; }
@@ -48,6 +49,7 @@ public class SolicitacaoReboqueModel
     public UsuarioModel UsuarioCadastro { get; set; }
     public UsuarioModel? UsuarioAlteracao { get; set; }
     public UsuarioModel? UsuarioAceite { get; set; }
+    public UsuarioModel? UsuarioCancelado { get; set; }
 
     public ClienteDepositoModel ClienteDeposito { get; set; }
 

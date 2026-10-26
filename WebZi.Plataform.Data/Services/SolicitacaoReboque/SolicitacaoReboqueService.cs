@@ -4,8 +4,10 @@ using System.Reflection.Metadata.Ecma335;
 using WebZi.Plataform.CrossCutting.Strings;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
+using WebZi.Plataform.Data.Services.Atendimento;
 using WebZi.Plataform.Data.Services.Sistema;
 using WebZi.Plataform.Data.Services.WebServices;
+using WebZi.Plataform.Domain.DTO.Generic;
 using WebZi.Plataform.Domain.DTO.GRV.SolicitacoesReboque;
 using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.Enums;
@@ -61,7 +63,7 @@ public class SolicitacaoReboqueService
         {
             var cleanPlaca = parameters.Placa.Trim().ToUpper();
             query = query.Where(x =>
-                (x.Placa != null && x.Placa == cleanPlaca) || (x.Grv != null && x.Grv.Placa == cleanPlaca));
+                (x.Placa != null && EF.Functions.Like(cleanPlaca, $"{cleanPlaca}%")));
         }
 
         if (!string.IsNullOrWhiteSpace(parameters.NumeroProcesso))
@@ -89,7 +91,7 @@ public class SolicitacaoReboqueService
             .Select(x => new SolicitacaoReboqueDTO
             {
                 Id = x.Id,
-                NumeroProcesso = x.Grv != null ? x.Grv.NumeroFormularioGrv : x.Id.ToString(),
+                NumeroProcesso = x.Grv != null ? x.Grv.NumeroFormularioGrv : "",
                 Cliente = x.ClienteDeposito.Cliente.Nome,
                 Deposito = x.ClienteDeposito.Deposito.Nome,
                 MotivoApreensao = x.MotivoApreensao != null ? x.MotivoApreensao.Descricao : null,
@@ -136,7 +138,7 @@ public class SolicitacaoReboqueService
             .Select(x => new SelecionarSolicitacaoReboqueDTO
             {
                 Id = x.Id,
-                NumeroProcesso = x.Grv != null ? x.Grv.NumeroFormularioGrv : x.Id.ToString(),
+                NumeroProcesso = x.Grv != null ? x.Grv.NumeroFormularioGrv : "",
                 Cliente = x.ClienteDeposito.Cliente.Nome,
                 Deposito = x.ClienteDeposito.Deposito.Nome,
                 MotivoApreensao = x.MotivoApreensao != null ? x.MotivoApreensao.Descricao : null,
@@ -162,10 +164,13 @@ public class SolicitacaoReboqueService
                 LocalRemocaoReferencia = x.LocalRemocaoReferencia,
                 LocalRemocaoLatitude = x.LocalRemocaoLatitude,
                 LocalRemocaoLongitude = x.LocalRemocaoLongitude,
-                UsuarioCadastro = x.UsuarioCadastro != null
-                    ? (x.UsuarioCadastro.Pessoa != null ? x.UsuarioCadastro.Pessoa.Nome : x.UsuarioCadastro.Login)
+                UsuarioCriouSolicitacao = x.UsuarioCadastro != null
+                    ? (x.UsuarioCadastro.Pessoa != null ? x.UsuarioCadastro.Pessoa.Nome : "")
                     : null,
+                UsuarioSolicitacaoAceita = x.UsuarioAceite != null ? (x.UsuarioAceite.Pessoa != null ? x.UsuarioAceite.Pessoa.Nome : "") : null,
+                UsuarioSolicitacaoCancelada = x.UsuarioCancelado != null ? (x.UsuarioCancelado.Pessoa != null ? x.UsuarioCancelado.Pessoa.Nome : "") : null,
                 DataCadastro = x.DataCadastro,
+                DataSolicitacaoCancelada = x.DataSolicitacaoCancelada,
                 DataSolicitacaoAceito = x.DataSolicitacaoAceita
             })
             .FirstOrDefaultAsync(cancellationToken: ct);
@@ -174,6 +179,16 @@ public class SolicitacaoReboqueService
         {
             ResultView.Mensagem = MensagemViewHelper.SetNotFound("Nenhuma solicitação encontrada!");
             return ResultView;
+        }
+
+        try
+        {
+            solicitacao.Fotos = await new BucketService(_context, _httpClientFactory)
+                .DownloadFileAsync(BucketNomeTabelaOrigemEnum.SolicitacaoReboque, solicitacao.Id);
+        }
+        catch
+        {
+            // Falha ao obter foto não impede retorno da solicitação
         }
 
         ResultView = solicitacao;
@@ -204,6 +219,17 @@ public class SolicitacaoReboqueService
             .FirstOrDefaultAsync(
                 x => x.ClienteId == parameters.IdentificadorCliente &&
                      x.DepositoId == parameters.IdentificadorDeposito, cancellationToken: ct)!;
+        if (clienteDeposito is null)
+        {
+            erros.Add(MensagemPadraoEnum.NaoEncontradoAssociacaoClienteDeposito);
+            if (!cliente)
+                erros.Add(MensagemPadraoEnum.UsuarioSemPermissaoAcessoCliente);
+            if (!deposito)
+                erros.Add(MensagemPadraoEnum.UsuarioSemPermissaoAcessoDeposito);
+
+            return MensagemViewHelper.SetBadRequest(erros);
+        }
+
         var grv = await _context.Grv.FirstOrDefaultAsync(
             x => x.ClienteId == clienteDeposito.ClienteId &&
                  x.DepositoId == clienteDeposito.DepositoId &&
@@ -235,10 +261,10 @@ public class SolicitacaoReboqueService
                     erros.Add("Esse GRV já existe (Placa já cadastrada)");
                     break;
                 default:
-                {
-                    erros.Add(isChassiDuplicado ? "Esse GRV já existe (Chassi já cadastrado)" : "Esse GRV já existe");
-                    break;
-                }
+                    {
+                        erros.Add(isChassiDuplicado ? "Esse GRV já existe (Chassi já cadastrado)" : "Esse GRV já existe");
+                        break;
+                    }
             }
 
             erros.Add($"{grv.NumeroFormularioGrv}");
@@ -279,7 +305,7 @@ public class SolicitacaoReboqueService
 
         var model = new SolicitacaoReboqueModel
         {
-            ClienteDepositoId = clienteDeposito!.ClienteDepositoId,
+            ClienteDepositoId = clienteDeposito.ClienteDepositoId,
             MotivoApreensaoId = parameters.IdentificadorMotivoApreensao,
             SolicitacaoReboqueTipoId = solicitacaoReboqueTipoId,
             SolicitacaoReboqueStatusId = 1,
@@ -305,8 +331,8 @@ public class SolicitacaoReboqueService
         await using var transaction = await _context.Database.BeginTransactionAsync(ct);
         try
         {
-            await _context.SolicitacaoReboque!.AddAsync(model, ct);
-            await _context.SaveChangesAsync(ct)!;
+            await _context.SolicitacaoReboque.AddAsync(model, ct);
+            await _context.SaveChangesAsync(ct);
 
             if (parameters.IdentificadorMotivoApreensao == 1 && parameters.ListagemEnquadramentoInfracao?.Count > 0)
             {
@@ -351,7 +377,7 @@ public class SolicitacaoReboqueService
         catch (Exception ex)
         {
             await transaction.RollbackAsync(ct);
-            return MensagemViewHelper.SetInternalServerError(ex);
+            return MensagemViewHelper.SetInternalServerError("Erro ao cadastrar solicitação");
         }
     }
 

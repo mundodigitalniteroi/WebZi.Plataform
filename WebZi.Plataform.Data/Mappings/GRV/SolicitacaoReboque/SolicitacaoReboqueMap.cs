@@ -40,6 +40,8 @@ public class SolicitacaoReboqueMap : IEntityTypeConfiguration<SolicitacaoReboque
             .HasColumnName("id_usuario_cadastro");
         builder.Property(x => x.UsuarioAceiteId)
             .HasColumnName("id_usuario_aceite");
+        builder.Property(x => x.UsuarioCanceladoId)
+            .HasColumnName("id_usuario_cancelada");
         builder.Property(x => x.UsuarioAlteracaoId)
             .HasColumnName("id_usuario_alteracao");
 
@@ -118,6 +120,10 @@ public class SolicitacaoReboqueMap : IEntityTypeConfiguration<SolicitacaoReboque
         builder.HasOne(x => x.UsuarioCadastro)
             .WithMany()
             .HasForeignKey(x => x.UsuarioCadastroId);
+
+        builder.HasOne(x => x.UsuarioCancelado)
+            .WithMany()
+            .HasForeignKey(x => x.UsuarioCanceladoId);
 
         builder.HasOne(x => x.UsuarioAlteracao)
             .WithMany()
