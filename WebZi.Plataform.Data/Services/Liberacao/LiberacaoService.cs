@@ -1532,7 +1532,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                     bool jaTemNotaEmitida = await _context.Nfe
                         .AsNoTracking()
                         .AnyAsync(x => x.GrvId == grv.GrvId && x.Status != "N", cancellationToken: ct);
-                    if (!jaTemNotaEmitida)
+                    if (jaTemNotaEmitida)
                         return;
                     await _provider
                         .GetService<WSNfseService>()
