@@ -352,7 +352,7 @@ public class SolicitacaoReboqueService
             {
                 var condutor = new SolicitacaoReboqueCondutorModel
                 {
-                    SolicitacaoReboqueGrvId = model.Id,
+                    SolicitacaoReboqueId = model.Id,
                     Telefone = parameters.Condutor.Telefone.ToUpperTrim().ToNullIfEmpty(),
                     TelefoneDDD = parameters.Condutor.TelefoneDDD.ToUpperTrim().ToNullIfEmpty(),
                     InformacoesAdicionais = parameters.Condutor.InformacoesAdicionais.ToUpperTrim().ToNullIfEmpty(),

@@ -14,8 +14,8 @@ public class SolicitacaoReboqueCondutorMap : IEntityTypeConfiguration<Solicitaca
             .HasColumnName("id_condutor")
             .ValueGeneratedOnAdd();
 
-        builder.Property(x => x.SolicitacaoReboqueGrvId)
-            .HasColumnName("id_solicitacao_reboque_grv")
+        builder.Property(x => x.SolicitacaoReboqueId)
+            .HasColumnName("id_solicitacao_reboque")
             .IsRequired();
 
         builder.Property(x => x.PessoaId)
@@ -125,9 +125,9 @@ public class SolicitacaoReboqueCondutorMap : IEntityTypeConfiguration<Solicitaca
             .HasMaxLength(2)
             .IsUnicode(false);
 
-        builder.HasOne(x => x.SolicitacaoReboqueGrv)
+        builder.HasOne(x => x.SolicitacaoReboque)
             .WithMany()
-            .HasForeignKey(x => x.SolicitacaoReboqueGrvId);
+            .HasForeignKey(x => x.SolicitacaoReboqueId);
 
         builder.HasOne(x => x.Pessoa)
             .WithMany()

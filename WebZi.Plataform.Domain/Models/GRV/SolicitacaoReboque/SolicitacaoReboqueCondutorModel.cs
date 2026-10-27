@@ -5,7 +5,7 @@ namespace WebZi.Plataform.Domain.Models.GRV.SolicitacaoReboque;
 public class SolicitacaoReboqueCondutorModel
 {
     public int Id { get; set; }
-    public int SolicitacaoReboqueGrvId { get; set; }
+    public int SolicitacaoReboqueId { get; set; }
     public long? PessoaId { get; set; }
     public decimal? EnquadramentoInfracaoId { get; set; }
     public string? Documento { get; set; }
@@ -29,7 +29,7 @@ public class SolicitacaoReboqueCondutorModel
     public string? Celular { get; set; }
     public string? CelularDDD { get; set; }
 
-    public SolicitacaoReboqueGrvModel SolicitacaoReboqueGrv { get; set; }
+    public SolicitacaoReboqueModel SolicitacaoReboque { get; set; }
     public PessoaModel? Pessoa { get; set; }
     public EnquadramentoInfracaoModel? EnquadramentoInfracao { get; set; }
 }
