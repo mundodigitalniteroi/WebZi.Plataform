@@ -51,31 +51,36 @@ public class SolicitacaoReboqueService
     }
 
 
-    public async Task<SolicitacoesReboqueListDTO> ListarSolicitacoesAsync(ListarSolicitacoesParameters parameters, CancellationToken ct)
+    public async Task<SolicitacoesReboqueListDTO> ListarSolicitacoesAsync(ListarSolicitacoesParameters parameters,
+        CancellationToken ct)
     {
-
         SolicitacoesReboqueListDTO ResultView = new();
-        var cliente = await _context.UsuarioCliente
-              .AsNoTracking()
-              .AnyAsync(
-                  x => x.UsuarioId == parameters.IdentificadorUsuario &&
-                       x.ClienteId == parameters.IdentificadorCliente, cancellationToken: ct);
-
-        var deposito = await _context.UsuarioDeposito
-            .AsNoTracking()
-            .AnyAsync(
-                x => x.UsuarioId == parameters.IdentificadorUsuario &&
-                     x.DepositoId == parameters.IdentificadorDeposito, cancellationToken: ct)!;
 
         var clienteDeposito = await _context.ClienteDeposito
             .AsNoTracking()
-            .FirstOrDefaultAsync(
-                x => x.ClienteId == parameters.IdentificadorCliente &&
-                     x.DepositoId == parameters.IdentificadorDeposito, cancellationToken: ct)!;
+            .Where(x =>
+                x.ClienteId == parameters.IdentificadorCliente &&
+                x.DepositoId == parameters.IdentificadorDeposito)
+            .Select(x => new
+            {
+                x.ClienteDepositoId,
+                x.ClienteId,
+                x.DepositoId
+            })
+            .FirstOrDefaultAsync(ct);
+
+        if (clienteDeposito is null)
+        {
+            ResultView.Mensagem = MensagemViewHelper.SetNotFound(
+                "Cliente não está vinculado ao depósito informado!"
+            );
+
+            return ResultView;
+        }
 
         var query = _context.SolicitacaoReboque
-                        .AsNoTracking()
-                        .Where(x => x.ClienteDepositoId == clienteDeposito.ClienteDepositoId);
+            .AsNoTracking()
+            .Where(x => x.ClienteDepositoId == clienteDeposito.ClienteDepositoId);
 
 
         if (parameters.DataInicial.HasValue)
@@ -111,7 +116,7 @@ public class SolicitacaoReboqueService
                     MarcaModelo = x.Grv != null
                         ? x.Grv.MarcaModelo.MarcaModelo
                         : (x.MarcaModelo != null ? x.MarcaModelo.MarcaModelo : null),
-                    Cor = x.Grv != null ? x.Grv.Cor.Cor : (x.Cor != null ? x.Cor.Cor : null)
+                    Cor = x.Grv != null ? x.Grv.Cor.Cor : x.Cor != null ? x.Cor.Cor : null
                 },
                 Status = x.SolicitacaoReboqueStatus.Descricao,
                 LocalApreenssao = x.LocalRemocaoCompleto,
@@ -248,8 +253,12 @@ public class SolicitacaoReboqueService
                 UsuarioCriouSolicitacao = x.UsuarioCadastro != null
                     ? (x.UsuarioCadastro.Pessoa != null ? x.UsuarioCadastro.Pessoa.Nome : "")
                     : null,
-                UsuarioSolicitacaoAceita = x.UsuarioAceite != null ? (x.UsuarioAceite.Pessoa != null ? x.UsuarioAceite.Pessoa.Nome : "") : null,
-                UsuarioSolicitacaoCancelada = x.UsuarioCancelado != null ? (x.UsuarioCancelado.Pessoa != null ? x.UsuarioCancelado.Pessoa.Nome : "") : null,
+                UsuarioSolicitacaoAceita = x.UsuarioAceite != null
+                    ? (x.UsuarioAceite.Pessoa != null ? x.UsuarioAceite.Pessoa.Nome : "")
+                    : null,
+                UsuarioSolicitacaoCancelada = x.UsuarioCancelado != null
+                    ? (x.UsuarioCancelado.Pessoa != null ? x.UsuarioCancelado.Pessoa.Nome : "")
+                    : null,
                 DataCadastro = x.DataCadastro,
                 DataSolicitacaoCancelada = x.DataSolicitacaoCancelada,
                 DataSolicitacaoAceito = x.DataSolicitacaoAceita
@@ -342,10 +351,10 @@ public class SolicitacaoReboqueService
                     erros.Add("Esse GRV já existe (Placa já cadastrada)");
                     break;
                 default:
-                    {
-                        erros.Add(isChassiDuplicado ? "Esse GRV já existe (Chassi já cadastrado)" : "Esse GRV já existe");
-                        break;
-                    }
+                {
+                    erros.Add(isChassiDuplicado ? "Esse GRV já existe (Chassi já cadastrado)" : "Esse GRV já existe");
+                    break;
+                }
             }
 
             erros.Add($"{grv.NumeroFormularioGrv}");
