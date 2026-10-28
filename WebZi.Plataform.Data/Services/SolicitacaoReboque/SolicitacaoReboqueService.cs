@@ -50,7 +50,88 @@ public class SolicitacaoReboqueService
         _httpClientFactory = httpClientFactory;
     }
 
-    public async Task<SolicitacoesReboqueListDTO> ListSolicitacoesReboqueAsync(
+
+    public async Task<SolicitacoesReboqueListDTO> ListarSolicitacoesAsync(ListarSolicitacoesParameters parameters, CancellationToken ct)
+    {
+
+        SolicitacoesReboqueListDTO ResultView = new();
+        var cliente = await _context.UsuarioCliente
+              .AsNoTracking()
+              .AnyAsync(
+                  x => x.UsuarioId == parameters.IdentificadorUsuario &&
+                       x.ClienteId == parameters.IdentificadorCliente, cancellationToken: ct);
+
+        var deposito = await _context.UsuarioDeposito
+            .AsNoTracking()
+            .AnyAsync(
+                x => x.UsuarioId == parameters.IdentificadorUsuario &&
+                     x.DepositoId == parameters.IdentificadorDeposito, cancellationToken: ct)!;
+
+        var clienteDeposito = await _context.ClienteDeposito
+            .AsNoTracking()
+            .FirstOrDefaultAsync(
+                x => x.ClienteId == parameters.IdentificadorCliente &&
+                     x.DepositoId == parameters.IdentificadorDeposito, cancellationToken: ct)!;
+
+        var query = _context.SolicitacaoReboque
+                        .AsNoTracking()
+                        .Where(x => x.ClienteDepositoId == clienteDeposito.ClienteDepositoId);
+
+
+        if (parameters.DataInicial.HasValue)
+            query = query.Where(x => x.DataCadastro >= parameters.DataInicial.Value);
+
+        if (parameters.DataFinal.HasValue)
+            query = query.Where(x => x.DataCadastro <= parameters.DataFinal.Value);
+
+        var totalCount = await query.CountAsync(cancellationToken: ct)!;
+
+        var limit = parameters.Take is > 0 ? parameters.Take.Value : 20;
+        var offset = parameters.Skip is >= 0 ? parameters.Skip.Value : 0;
+
+        var solicitacoes = await query
+            .OrderByDescending(x => x.Id)
+            .Skip(offset)
+            .Take(limit)
+            .Select(x => new SolicitacaoReboqueDTO
+            {
+                Id = x.Id,
+                NumeroProcesso = x.Grv != null ? x.Grv.NumeroFormularioGrv : "",
+                Cliente = x.ClienteDeposito.Cliente.Nome,
+                Deposito = x.ClienteDeposito.Deposito.Nome,
+                MotivoApreensao = x.MotivoApreensao != null ? x.MotivoApreensao.Descricao : null,
+                Veiculo = new SolicitacaoReboqueVeiculoDTO
+                {
+                    TipoVeiculo = x.Grv != null
+                        ? x.Grv.TipoVeiculo.Descricao
+                        : (x.TipoVeiculo != null ? x.TipoVeiculo.Descricao : null),
+                    Placa = x.Grv != null ? x.Grv.Placa : x.Placa,
+                    Chassi = x.Grv != null ? x.Grv.Chassi : x.Chassi,
+                    Renavam = x.Grv != null ? x.Grv.Renavam : x.Renavam,
+                    MarcaModelo = x.Grv != null
+                        ? x.Grv.MarcaModelo.MarcaModelo
+                        : (x.MarcaModelo != null ? x.MarcaModelo.MarcaModelo : null),
+                    Cor = x.Grv != null ? x.Grv.Cor.Cor : (x.Cor != null ? x.Cor.Cor : null)
+                },
+                Status = x.SolicitacaoReboqueStatus.Descricao,
+                LocalApreenssao = x.LocalRemocaoCompleto,
+                DataCriacaoSolicitacao = x.DataCadastro,
+                DataSolicitacaoAceita = x.DataSolicitacaoAceita
+            })
+            .ToListAsync(cancellationToken: ct)!;
+
+        if (solicitacoes.Count == 0)
+        {
+            ResultView.Mensagem = MensagemViewHelper.SetNotFound("Nenhuma solicitação encontrada!");
+            return ResultView;
+        }
+
+        ResultView.Listagem = solicitacoes;
+        ResultView.Mensagem = MensagemViewHelper.SetFound(totalCount);
+        return ResultView;
+    }
+
+    public async Task<SolicitacoesReboqueListDTO> ListarSolicitacoesDaAutoridadeAsync(
         SolicitacaoReboquePesquisaParameters? parameters,
         CancellationToken ct)
     {

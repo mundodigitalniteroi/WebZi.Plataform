@@ -21,8 +21,37 @@ public class SolicitacaoReboqueController : ControllerBase
         _provider = provider;
     }
 
+
     [HttpPost("ListarSolicitacoes")]
     public async Task<ActionResult<SolicitacoesReboqueListDTO>> ListarSolicitacoes(
+    [FromBody] ListarSolicitacoesParameters parameters,
+    CancellationToken ct)
+    {
+        SolicitacoesReboqueListDTO ResultView = new();
+
+        var userId = User.GetUserId();
+        parameters.IdentificadorUsuario = userId.Value;
+        try
+        {
+            ResultView = await _provider
+                .GetService<SolicitacaoReboqueService>()
+                .ListarSolicitacoesAsync(
+                    parameters,
+                    ct
+                );
+
+            return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+        }
+        catch (Exception ex)
+        {
+            ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+
+            return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+        }
+    }
+
+    [HttpPost("ListarSolicitacoesDaAutoridade")]
+    public async Task<ActionResult<SolicitacoesReboqueListDTO>> ListarSolicitacoesDaAutoridade(
         [FromBody] SolicitacaoReboquePesquisaParameters? parameters,
         CancellationToken ct)
     {
@@ -34,7 +63,7 @@ public class SolicitacaoReboqueController : ControllerBase
         {
             ResultView = await _provider
                 .GetService<SolicitacaoReboqueService>()
-                .ListSolicitacoesReboqueAsync(
+                .ListarSolicitacoesDaAutoridadeAsync(
                     parameters,
                     ct
                 );
