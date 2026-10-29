@@ -22,10 +22,66 @@ public class SolicitacaoReboqueController : ControllerBase
     }
 
 
+    [HttpPost("ExisteSolicitacaoEmAndamento")]
+    public async Task<ActionResult<SolicitacaoEmAndamentoDTO>> ExisteSolicitacaoEmAndamento(
+        [FromBody] SolicitacoesReboqueParameters parameters,
+        CancellationToken ct)
+    {
+        SolicitacaoEmAndamentoDTO ResultView = new();
+
+        var userId = User.GetUserId();
+        parameters.IdentificadorUsuario = userId.Value;
+        try
+        {
+            ResultView = await _provider
+                .GetService<SolicitacaoReboqueService>()
+                .ExisteSolicitacaoEmAndamentoAsync(
+                    parameters,
+                    ct
+                );
+
+            return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+        }
+        catch (Exception ex)
+        {
+            ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+
+            return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+        }
+    }
+    
+    [HttpPost("ObterResumoSolicitacoes")]
+    public async Task<ActionResult<ObterResumoSolicitacoesDTO>> ObterResumoSolicitacoes(
+        [FromBody] SolicitacoesReboqueParameters parameters,
+        CancellationToken ct)
+    {
+        ObterResumoSolicitacoesDTO ResultView = new();
+
+        var userId = User.GetUserId();
+        parameters.IdentificadorUsuario = userId.Value;
+        try
+        {
+            ResultView = await _provider
+                .GetService<SolicitacaoReboqueService>()
+                .ObterResumoSolicitacoesAsync(
+                    parameters,
+                    ct
+                );
+
+            return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+        }
+        catch (Exception ex)
+        {
+            ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+
+            return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
+        }
+    }
+
     [HttpPost("ListarSolicitacoes")]
     public async Task<ActionResult<SolicitacoesReboqueListDTO>> ListarSolicitacoes(
-    [FromBody] ListarSolicitacoesParameters parameters,
-    CancellationToken ct)
+        [FromBody] ListarSolicitacoesParameters parameters,
+        CancellationToken ct)
     {
         SolicitacoesReboqueListDTO ResultView = new();
 

@@ -50,6 +50,118 @@ public class SolicitacaoReboqueService
         _httpClientFactory = httpClientFactory;
     }
 
+    public async Task<SolicitacaoEmAndamentoDTO> ExisteSolicitacaoEmAndamentoAsync(
+        SolicitacoesReboqueParameters parameters,
+        CancellationToken ct)
+    {
+        var resultView = new SolicitacaoEmAndamentoDTO();
+
+        var clienteDepositoId = await _context.ClienteDeposito
+            .AsNoTracking()
+            .Where(x =>
+                x.ClienteId == parameters.IdentificadorCliente &&
+                x.DepositoId == parameters.IdentificadorDeposito)
+            .Select(x => (int?)x.ClienteDepositoId)
+            .FirstOrDefaultAsync(ct);
+
+        if (clienteDepositoId is null)
+        {
+            resultView.Mensagem = MensagemViewHelper.SetNotFound(
+                "Cliente não está vinculado ao depósito informado!");
+
+            return resultView;
+        }
+
+        var emAndamento = await _context.SolicitacaoReboque
+            .AsNoTracking()
+            .AnyAsync(x =>
+                    x.ClienteDepositoId == clienteDepositoId.Value &&
+                    x.UsuarioAceiteId == parameters.IdentificadorUsuario &&
+                    x.DataSolicitacaoFinalizada == null &&
+                    x.SolicitacaoReboqueStatusId != (byte)StatusSolicitacoesEnum.SOLICITADA,
+                ct);
+
+        resultView.SolicitacaoEmAndamento = emAndamento;
+        resultView.Mensagem = MensagemViewHelper.SetOk();
+
+        return resultView;
+    }
+
+
+    public async Task<ObterResumoSolicitacoesDTO> ObterResumoSolicitacoesAsync(
+        SolicitacoesReboqueParameters parameters,
+        CancellationToken ct)
+    {
+        var clienteDeposito = await _context.ClienteDeposito
+            .AsNoTracking()
+            .Where(x =>
+                x.ClienteId == parameters.IdentificadorCliente &&
+                x.DepositoId == parameters.IdentificadorDeposito)
+            .Select(x => new
+            {
+                x.ClienteDepositoId
+            })
+            .FirstOrDefaultAsync(ct);
+
+        if (clienteDeposito is null)
+        {
+            return new ObterResumoSolicitacoesDTO
+            {
+                Mensagem = MensagemViewHelper.SetNotFound(
+                    "Cliente não está vinculado ao depósito informado!")
+            };
+        }
+
+        var hoje = DateTime.Today;
+        var amanha = hoje.AddDays(1);
+
+        var inicioSemana = hoje.AddDays(-(((int)hoje.DayOfWeek + 6) % 7));
+        var inicioProximaSemana = inicioSemana.AddDays(7);
+
+        var inicioMes = new DateTime(hoje.Year, hoje.Month, 1);
+        var inicioProximoMes = inicioMes.AddMonths(1);
+
+        var query = _context.SolicitacaoReboque
+            .AsNoTracking()
+            .Where(x =>
+                x.ClienteDepositoId == clienteDeposito.ClienteDepositoId);
+
+        var solicitacoesDisponiveis = await query
+            .Where(x => x.UsuarioAceiteId == null)
+            .CountAsync(ct);
+
+        var solicitacoesConcluidas = query
+            .Where(x =>
+                x.UsuarioAceiteId == parameters.IdentificadorUsuario &&
+                x.DataSolicitacaoFinalizada != null);
+
+        var solicitacoesConcluidasHoje = await solicitacoesConcluidas
+            .Where(x =>
+                x.DataSolicitacaoFinalizada >= hoje &&
+                x.DataSolicitacaoFinalizada < amanha)
+            .CountAsync(ct);
+
+        var solicitacoesConcluidasNaSemana = await solicitacoesConcluidas
+            .Where(x =>
+                x.DataSolicitacaoFinalizada >= inicioSemana &&
+                x.DataSolicitacaoFinalizada < inicioProximaSemana)
+            .CountAsync(ct);
+
+        var solicitacoesConcluidasNoMes = await solicitacoesConcluidas
+            .Where(x =>
+                x.DataSolicitacaoFinalizada >= inicioMes &&
+                x.DataSolicitacaoFinalizada < inicioProximoMes)
+            .CountAsync(ct);
+
+        return new ObterResumoSolicitacoesDTO
+        {
+            Mensagem = MensagemViewHelper.SetFound(),
+            SolicitacoesDisponiveis = solicitacoesDisponiveis,
+            SolicitacoesConcluidasHoje = solicitacoesConcluidasHoje,
+            SolicitacoesConcluidasNaSemana = solicitacoesConcluidasNaSemana,
+            SolicitacoesConcluidasNoMes = solicitacoesConcluidasNoMes
+        };
+    }
 
     public async Task<SolicitacoesReboqueListDTO> ListarSolicitacoesAsync(ListarSolicitacoesParameters parameters,
         CancellationToken ct)
@@ -89,21 +201,23 @@ public class SolicitacaoReboqueService
         if (parameters.DataFinal.HasValue)
             query = query.Where(x => x.DataCadastro <= parameters.DataFinal.Value);
 
+        query = query.Where(x => x.UsuarioAceiteId == null);
+
         var totalCount = await query.CountAsync(cancellationToken: ct)!;
 
         var limit = parameters.Take is > 0 ? parameters.Take.Value : 20;
         var offset = parameters.Skip is >= 0 ? parameters.Skip.Value : 0;
 
         var solicitacoes = await query
-            .OrderByDescending(x => x.Id)
+            .OrderByDescending(x => x.DataCadastro)
             .Skip(offset)
             .Take(limit)
             .Select(x => new SolicitacaoReboqueDTO
             {
                 Id = x.Id,
-                NumeroProcesso = x.Grv != null ? x.Grv.NumeroFormularioGrv : "",
                 Cliente = x.ClienteDeposito.Cliente.Nome,
                 Deposito = x.ClienteDeposito.Deposito.Nome,
+                MotivoApreensaoId = x.MotivoApreensaoId,
                 MotivoApreensao = x.MotivoApreensao != null ? x.MotivoApreensao.Descricao : null,
                 Veiculo = new SolicitacaoReboqueVeiculoDTO
                 {
@@ -121,7 +235,8 @@ public class SolicitacaoReboqueService
                 Status = x.SolicitacaoReboqueStatus.Descricao,
                 LocalApreenssao = x.LocalRemocaoCompleto,
                 DataCriacaoSolicitacao = x.DataCadastro,
-                DataSolicitacaoAceita = x.DataSolicitacaoAceita
+                DataSolicitacaoAceita = x.DataSolicitacaoAceita,
+                DataSolicitacaoFinalizada = x.DataSolicitacaoFinalizada
             })
             .ToListAsync(cancellationToken: ct)!;
 
@@ -171,7 +286,7 @@ public class SolicitacaoReboqueService
         var offset = parameters.Skip is >= 0 ? parameters.Skip.Value : 0;
 
         var solicitacoes = await query
-            .OrderByDescending(x => x.Id)
+            .OrderByDescending(x => x.DataCadastro)
             .Skip(offset)
             .Take(limit)
             .Select(x => new SolicitacaoReboqueDTO
@@ -180,6 +295,7 @@ public class SolicitacaoReboqueService
                 NumeroProcesso = x.Grv != null ? x.Grv.NumeroFormularioGrv : "",
                 Cliente = x.ClienteDeposito.Cliente.Nome,
                 Deposito = x.ClienteDeposito.Deposito.Nome,
+                MotivoApreensaoId = x.MotivoApreensaoId,
                 MotivoApreensao = x.MotivoApreensao != null ? x.MotivoApreensao.Descricao : null,
                 Veiculo = new SolicitacaoReboqueVeiculoDTO
                 {
@@ -197,7 +313,8 @@ public class SolicitacaoReboqueService
                 Status = x.SolicitacaoReboqueStatus.Descricao,
                 LocalApreenssao = x.LocalRemocaoCompleto,
                 DataCriacaoSolicitacao = x.DataCadastro,
-                DataSolicitacaoAceita = x.DataSolicitacaoAceita
+                DataSolicitacaoAceita = x.DataSolicitacaoAceita,
+                DataSolicitacaoFinalizada = x.DataSolicitacaoFinalizada
             })
             .ToListAsync(cancellationToken: ct)!;
 

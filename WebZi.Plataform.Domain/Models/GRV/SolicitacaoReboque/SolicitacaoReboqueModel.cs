@@ -36,6 +36,7 @@ public class SolicitacaoReboqueModel
     public DateTime? DataAlteracao { get; set; }
     public DateTime? DataSolicitacaoAceita { get; set; }
     public DateTime? DataSolicitacaoCancelada { get; set; }
+    public DateTime? DataSolicitacaoFinalizada { get; set; }
     public int AutoridadeResponsavelId { get; set; }
     public string MatriculaAutoridadeResponsavel { get; set; }
     public string NomeAutoridadeResponsavel { get; set; }
