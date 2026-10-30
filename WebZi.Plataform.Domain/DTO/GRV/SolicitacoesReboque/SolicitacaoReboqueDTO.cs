@@ -5,6 +5,8 @@ namespace WebZi.Plataform.Domain.DTO.GRV.SolicitacoesReboque;
 public class SolicitacaoReboqueDTO
 {
     public int Id { get; set; }
+    public int? GrvId { get; set; }
+    public byte? SolicitacaoReboqueStatusId { get; set; }
     public string? NumeroProcesso { get; set; }
     public string Cliente { get; set; }
     public string Deposito { get; set; }

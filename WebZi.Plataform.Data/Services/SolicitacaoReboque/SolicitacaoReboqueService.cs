@@ -1,6 +1,8 @@
+﻿using WebZi.Plataform.CrossCutting.Web;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection.Metadata.Ecma335;
+using Microsoft.Extensions.DependencyInjection;
 using WebZi.Plataform.CrossCutting.Strings;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
@@ -11,7 +13,9 @@ using WebZi.Plataform.Domain.DTO.Generic;
 using WebZi.Plataform.Domain.DTO.GRV.SolicitacoesReboque;
 using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.Enums;
+using WebZi.Plataform.Domain.Models.Condutor;
 using WebZi.Plataform.Domain.Models.GRV.SolicitacaoReboque;
+using WebZi.Plataform.Domain.ViewModel.GGV;
 using WebZi.Plataform.Domain.ViewModel.GRV.SolicitacaoReboque;
 
 namespace WebZi.Plataform.Data.Services.SolicitacaoReboque;
@@ -201,7 +205,7 @@ public class SolicitacaoReboqueService
         if (parameters.DataFinal.HasValue)
             query = query.Where(x => x.DataCadastro <= parameters.DataFinal.Value);
 
-        query = query.Where(x => x.UsuarioAceiteId == null);
+        query = query.Where(x => x.UsuarioAceiteId == null || x.UsuarioAceiteId == parameters.IdentificadorUsuario);
 
         var totalCount = await query.CountAsync(cancellationToken: ct)!;
 
@@ -628,56 +632,33 @@ public class SolicitacaoReboqueService
         if (parameters.SolicitacaoReboqueId <= 0)
             return MensagemViewHelper.SetBadRequest("Identificador da Solicitação de Reboque inválido!");
 
-        var exists = await _context.SolicitacaoReboque.AsNoTracking().AnyAsync(x =>
-            x.UsuarioAceiteId == parameters.IdentificadorUsuario && x.SolicitacaoReboqueStatusId != 3, ct);
-        if (exists)
-            return MensagemViewHelper.SetBadRequest("Pode ser aceito apenas 1 solicitação por vez!");
-
         var solicitacao = await _context.SolicitacaoReboque
+            .AsTracking()
             .FirstOrDefaultAsync(x => x.Id == parameters.SolicitacaoReboqueId, cancellationToken: ct);
 
         if (solicitacao == null)
             return MensagemViewHelper.SetNotFound("Solicitação de reboque não encontrada!");
 
-        List<string> erros = new();
+        if (solicitacao.SolicitacaoReboqueStatusId == (byte)StatusSolicitacoesEnum.CANCELADA)
+            return MensagemViewHelper.SetBadRequest("Esta solicitação foi cancelada e não pode ser aceita!");
 
+        if (solicitacao.UsuarioAceiteId != null && solicitacao.UsuarioAceiteId != parameters.IdentificadorUsuario)
+            return MensagemViewHelper.SetBadRequest("Esta solicitação já foi aceita por outro usuário!");
 
-        if (parameters.ReboqueId <= 0)
-            erros.Add(MensagemPadraoEnum.IdentificadorReboqueInvalido);
-        else
-        {
-            var reboqueExiste = await _context.Reboque
-                .AsNoTracking()
-                .AnyAsync(x => x.ReboqueId == parameters.ReboqueId, cancellationToken: ct);
+        var exists = await _context.SolicitacaoReboque.AsNoTracking().AnyAsync(x =>
+            x.Id != parameters.SolicitacaoReboqueId &&
+            x.UsuarioAceiteId == parameters.IdentificadorUsuario &&
+            x.DataSolicitacaoFinalizada == null &&
+            x.SolicitacaoReboqueStatusId != (byte)StatusSolicitacoesEnum.CANCELADA, ct);
 
-            if (!reboqueExiste)
-            {
-                erros.Add(MensagemPadraoEnum.IdentificadorReboqueInvalido);
-            }
-        }
+        if (exists)
+            return MensagemViewHelper.SetBadRequest("Pode ser aceito apenas 1 solicitação por vez!");
 
-        if (parameters.ReboquistaId <= 0)
-            erros.Add(MensagemPadraoEnum.IdentificadorReboquistaInvalido);
-        else
-        {
-            var reboquistaExiste = await _context.Reboquista
-                .AsNoTracking()
-                .AnyAsync(x => x.ReboquistaId == parameters.ReboquistaId, cancellationToken: ct);
-
-            if (!reboquistaExiste)
-            {
-                erros.Add(MensagemPadraoEnum.IdentificadorReboquistaInvalido);
-            }
-        }
-
-        if (erros.Count > 0)
-            return MensagemViewHelper.SetBadRequest(erros);
-
-        solicitacao.ReboqueId = parameters.ReboqueId;
-        solicitacao.ReboquistaId = parameters.ReboquistaId;
-        solicitacao.SolicitacaoReboqueStatusId = 2;
+        solicitacao.SolicitacaoReboqueStatusId = (byte)StatusSolicitacoesEnum.ACEITA;
+        solicitacao.UsuarioAceiteId = parameters.IdentificadorUsuario;
+        solicitacao.DataSolicitacaoAceita = DateTime.Now;
         solicitacao.UsuarioAlteracaoId = parameters.IdentificadorUsuario;
-        solicitacao.DataAlteracao = DateTime.UtcNow.AddHours(-3);
+        solicitacao.DataAlteracao = DateTime.Now;
 
         await using var transaction = await _context.Database.BeginTransactionAsync(ct);
         try
@@ -697,81 +678,405 @@ public class SolicitacaoReboqueService
     public async Task<MensagemDTO> UpdateSolicitacaoReboqueAsync(AtualizarSolicitacaoReboqueParameters parameters,
         CancellationToken ct)
     {
-        if (parameters.SolicitacaoReboqueId <= 0)
-        {
+        if (parameters.SolicitacaoReboqueId == null || parameters.SolicitacaoReboqueId <= 0)
             return MensagemViewHelper.SetBadRequest("Identificador da Solicitação de Reboque inválido!");
-        }
 
         var solicitacao = await _context.SolicitacaoReboque
-            .FirstOrDefaultAsync(x => x.Id == parameters.SolicitacaoReboqueId, cancellationToken: ct);
+            .AsTracking()
+            .FirstOrDefaultAsync(x => x.Id == parameters.SolicitacaoReboqueId.Value, cancellationToken: ct);
 
         if (solicitacao is null)
             return MensagemViewHelper.SetNotFound("Solicitação de reboque não encontrada!");
 
-        List<string> erros = new();
         var statusExiste = await _context.SolicitacaoReboqueStatus
             .AsNoTracking()
             .AnyAsync(x => x.Id == parameters.SolicitacaoReboqueStatusId, cancellationToken: ct);
 
         if (!statusExiste)
-            erros.Add("Status de Solicitação de Reboque inválido");
-        else
-            solicitacao.SolicitacaoReboqueStatusId = parameters.SolicitacaoReboqueStatusId;
+            return MensagemViewHelper.SetBadRequest("Status de Solicitação de Reboque inválido");
 
-        if (parameters.IdentificadorReboque.HasValue)
-            if (parameters.IdentificadorReboque.Value > 0)
+        var clienteDeposito = await _context.ClienteDeposito
+            .AsNoTracking()
+            .Where(x => x.ClienteDepositoId == solicitacao.ClienteDepositoId)
+            .Select(x => new
             {
-                var reboqueExiste = await _context.Reboque
-                    .AsNoTracking()
-                    .AnyAsync(x => x.ReboqueId == parameters.IdentificadorReboque.Value, cancellationToken: ct);
+                x.ClienteId
+            })
+            .FirstOrDefaultAsync(ct);
 
-                if (!reboqueExiste)
-                    erros.Add(MensagemPadraoEnum.IdentificadorReboqueInvalido);
-                else
-                    solicitacao.ReboqueId = parameters.IdentificadorReboque.Value;
-            }
-            else
-                solicitacao.ReboqueId = null;
-
-        if (parameters.IdentificadorReboquista.HasValue)
-            if (parameters.IdentificadorReboquista.Value > 0)
-            {
-                var reboquistaExiste = await _context.Reboquista
-                    .AsNoTracking()
-                    .AnyAsync(x => x.ReboquistaId == parameters.IdentificadorReboquista.Value, cancellationToken: ct);
-
-                if (!reboquistaExiste)
-                    erros.Add(MensagemPadraoEnum.IdentificadorReboquistaInvalido);
-                else
-                    solicitacao.ReboquistaId = parameters.IdentificadorReboquista.Value;
-            }
-            else
-                solicitacao.ReboquistaId = null;
-
-        if (parameters.SolicitacaoReboqueStatusId == 4)
-
-            if (erros.Count > 0)
-                return MensagemViewHelper.SetBadRequest(erros);
-
-        solicitacao.UsuarioAlteracaoId = parameters.IdentificadorUsuario;
-        solicitacao.DataAlteracao = DateTime.Now;
+        if (clienteDeposito is null)
+            return MensagemViewHelper.SetBadRequest("Cliente/Depósito vinculado à solicitação não foi encontrado!");
 
         await using var transaction = await _context.Database.BeginTransactionAsync(ct);
         try
         {
+            switch (parameters.SolicitacaoReboqueStatusId)
+            {
+                case (byte)StatusSolicitacoesEnum.A_CAMINHO:
+                {
+                    var msg = await SolicitacaoStatusACaminho(solicitacao, parameters, ct);
+                    if (msg.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+                    {
+                        await transaction.RollbackAsync(ct);
+                        return msg;
+                    }
+
+                    break;
+                }
+                case (byte)StatusSolicitacoesEnum.NO_LOCAL:
+                {
+                    var msg = SolicitacaoStatusNoLocal(solicitacao, parameters);
+                    if (msg.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+                    {
+                        await transaction.RollbackAsync(ct);
+                        return msg;
+                    }
+
+                    break;
+                }
+                case (byte)StatusSolicitacoesEnum.CARREGADO:
+                {
+                    var msg = await SolicitacaoStatusCarregado(solicitacao, clienteDeposito.ClienteId, parameters, ct);
+                    if (msg.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+                    {
+                        await transaction.RollbackAsync(ct);
+                        return msg;
+                    }
+
+                    break;
+                }
+                case (byte)StatusSolicitacoesEnum.EM_TRANSITO:
+                {
+                    var msg = await SolicitacaoStatusEmTransito(solicitacao, parameters, ct);
+                    if (msg.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+                    {
+                        await transaction.RollbackAsync(ct);
+                        return msg;
+                    }
+
+                    break;
+                }
+                case (byte)StatusSolicitacoesEnum.NO_DEPOSITO:
+                {
+                    var msg = SolicitacaoStatusNoDeposito(solicitacao, parameters);
+                    if (msg.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+                    {
+                        await transaction.RollbackAsync(ct);
+                        return msg;
+                    }
+
+                    break;
+                }
+                case (byte)StatusSolicitacoesEnum.FINALIZADO:
+                {
+                    var msg = SolicitacaoStatusFinalizado(solicitacao, parameters);
+                    if (msg.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+                    {
+                        await transaction.RollbackAsync(ct);
+                        return msg;
+                    }
+
+                    break;
+                }
+                default:
+                    solicitacao.SolicitacaoReboqueStatusId = parameters.SolicitacaoReboqueStatusId;
+                    break;
+            }
+
             await _context.SaveChangesAsync(ct);
             await transaction.CommitAsync(ct);
 
             return MensagemViewHelper.SetUpdateSuccess("Solicitação de reboque atualizada com sucesso!");
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             await transaction.RollbackAsync(ct);
-            return MensagemViewHelper.SetInternalServerError("Erro ao atualizar a solicitação de reboque.");
+            return MensagemViewHelper.SetInternalServerError("Erro ao atualizar solicitação!");
         }
     }
 
-    private async Task SolicitacaoStatusNoLocal()
+    private async Task<MensagemDTO> SolicitacaoStatusACaminho(SolicitacaoReboqueModel solicitacao,
+        AtualizarSolicitacaoReboqueParameters parameters, CancellationToken ct)
     {
+        List<string> erros = new();
+
+        if (parameters.IdentificadorReboque is null || parameters.IdentificadorReboque <= 0)
+        {
+            erros.Add(MensagemPadraoEnum.IdentificadorReboqueInvalido);
+        }
+        else
+        {
+            var reboqueExiste = await _context.Reboque
+                .AsNoTracking()
+                .AnyAsync(x => x.ReboqueId == parameters.IdentificadorReboque.Value, cancellationToken: ct);
+
+            if (!reboqueExiste)
+                erros.Add(MensagemPadraoEnum.IdentificadorReboqueInvalido);
+            else
+                solicitacao.ReboqueId = parameters.IdentificadorReboque.Value;
+        }
+
+        if (parameters.IdentificadorReboquista is null || parameters.IdentificadorReboquista <= 0)
+        {
+            erros.Add(MensagemPadraoEnum.IdentificadorReboquistaInvalido);
+        }
+        else
+        {
+            var reboquistaExiste = await _context.Reboquista
+                .AsNoTracking()
+                .AnyAsync(x => x.ReboquistaId == parameters.IdentificadorReboquista.Value, cancellationToken: ct);
+
+            if (!reboquistaExiste)
+                erros.Add(MensagemPadraoEnum.IdentificadorReboquistaInvalido);
+            else
+                solicitacao.ReboquistaId = parameters.IdentificadorReboquista.Value;
+        }
+
+        if (erros.Count > 0)
+            return MensagemViewHelper.SetBadRequest(erros);
+
+        solicitacao.SolicitacaoReboqueStatusId = (byte)StatusSolicitacoesEnum.A_CAMINHO;
+        solicitacao.DataAlteracao = DateTime.Now;
+        solicitacao.UsuarioAlteracaoId = parameters.IdentificadorUsuario;
+
+        return MensagemViewHelper.SetUpdateSuccess();
+    }
+
+    private MensagemDTO SolicitacaoStatusNoLocal(SolicitacaoReboqueModel solicitacao,
+        AtualizarSolicitacaoReboqueParameters parameters)
+    {
+        solicitacao.SolicitacaoReboqueStatusId = (byte)StatusSolicitacoesEnum.NO_LOCAL;
+        solicitacao.DataChegouNoLocal = DateTime.Now;
+        solicitacao.DataAlteracao = DateTime.Now;
+        solicitacao.UsuarioAlteracaoId = parameters.IdentificadorUsuario;
+
+        return MensagemViewHelper.SetUpdateSuccess();
+    }
+
+    private async Task<MensagemDTO> SolicitacaoStatusCarregado(SolicitacaoReboqueModel solicitacao, int clienteId,
+        AtualizarSolicitacaoReboqueParameters parameters, CancellationToken ct)
+    {
+        List<string> erros = new();
+
+        var lacresTratados = parameters.ListagemLacre?
+            .Select(x => x.ToUpperTrim().ToNullIfEmpty())
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .Distinct()
+            .OrderBy(x => x)
+            .ToList();
+
+        // Lacre é obrigatório mas apenas para clientes diferentes de 61
+        if (clienteId != 61)
+        {
+            if (lacresTratados == null || lacresTratados.Count == 0)
+                erros.Add("É obrigatório informar ao menos um lacre para este cliente!");
+        }
+
+        if (parameters.ListagemFoto == null || parameters.ListagemFoto.Count == 0)
+            erros.Add("Nenhuma foto encontrada");
+
+        if (erros.Count > 0)
+            return MensagemViewHelper.SetBadRequest(erros);
+
+        // Lacres: persistência
+        if (lacresTratados != null && lacresTratados.Count > 0)
+        {
+            var lacresExistentes = await _context.SolicitacaoReboqueLacre
+                .Where(x => x.SolicitacaoReboqueId == solicitacao.Id)
+                .ToListAsync(ct);
+
+            if (lacresExistentes.Count > 0)
+                _context.SolicitacaoReboqueLacre.RemoveRange(lacresExistentes);
+
+            foreach (var item in lacresTratados)
+            {
+                var lacreModel = new SolicitacaoReboqueLacreModel
+                {
+                    SolicitacaoReboqueId = solicitacao.Id,
+                    Lacre = item!,
+                    UsuarioCadastroId = parameters.IdentificadorUsuario,
+                    DataCadastro = DateTime.Now
+                };
+                await _context.SolicitacaoReboqueLacre.AddAsync(lacreModel, ct);
+            }
+        }
+
+        // Equipamentos Opcionais: opcionais, podem não ser preenchidos
+        if (parameters.EquipamentoOpcional != null && parameters.EquipamentoOpcional.Count > 0)
+        {
+            var equipamentosExistentes = await _context.SolicitacaoEquipamentoOpcional
+                .Where(x => x.SolicitacaoReboqueId == solicitacao.Id)
+                .ToListAsync(ct);
+
+            if (equipamentosExistentes.Count > 0)
+                _context.SolicitacaoEquipamentoOpcional.RemoveRange(equipamentosExistentes);
+
+            foreach (var item in parameters.EquipamentoOpcional)
+            {
+                var equipModel = new SolicitacaoEquipamentoOpcionalModel
+                {
+                    SolicitacaoReboqueId = solicitacao.Id,
+                    EquipamentoOpcionalId = item.IdentificadorEquipamentoOpcional,
+                    FlagPossuiEquipamento = string.IsNullOrWhiteSpace(item.FlagPossuiEquipamento)
+                        ? "S"
+                        : item.FlagPossuiEquipamento.ToUpperTrim(),
+                    UsuarioCadastroId = parameters.IdentificadorUsuario,
+                    DataCadastro = DateTime.Now
+                };
+
+                if (equipModel.FlagPossuiEquipamento == "S")
+                {
+                    equipModel.FlagEquipamentoAvariado = string.IsNullOrWhiteSpace(item.FlagEquipamentoAvariado)
+                        ? "N"
+                        : item.FlagEquipamentoAvariado.ToUpperTrim();
+                    equipModel.CodigoAvaria = item.IdentificadorTipoAvaria;
+                }
+
+                await _context.SolicitacaoEquipamentoOpcional.AddAsync(equipModel, ct);
+            }
+        }
+
+        // Envio das fotos
+        if (parameters.ListagemFoto != null && parameters.ListagemFoto.Count > 0)
+        {
+            new BucketService(_context, _httpClientFactory)
+                .SendFiles(BucketNomeTabelaOrigemEnum.FotoVeiculoGRV, solicitacao.Id,
+                    parameters.IdentificadorUsuario,
+                    parameters.ListagemFoto);
+        }
+
+        solicitacao.SolicitacaoReboqueStatusId = (byte)StatusSolicitacoesEnum.CARREGADO;
+        solicitacao.DataAlteracao = DateTime.Now;
+        solicitacao.UsuarioAlteracaoId = parameters.IdentificadorUsuario;
+
+        return MensagemViewHelper.SetUpdateSuccess();
+    }
+
+    private async Task<MensagemDTO> SolicitacaoStatusEmTransito(SolicitacaoReboqueModel solicitacao,
+        AtualizarSolicitacaoReboqueParameters parameters, CancellationToken ct)
+    {
+        List<string> erros = new();
+
+        if (parameters.Condutor == null)
+            return MensagemViewHelper.SetBadRequest(
+                "É obrigatório informar os dados do condutor para alterar o status para em trânsito!");
+
+        var condutor = await _context.SolicitacaoReboqueCondutor
+            .FirstOrDefaultAsync(x => x.SolicitacaoReboqueId == solicitacao.Id, cancellationToken: ct);
+
+        var isNovoCondutor = condutor == null;
+        if (isNovoCondutor)
+        {
+            condutor = new SolicitacaoReboqueCondutorModel
+            {
+                SolicitacaoReboqueId = solicitacao.Id
+            };
+        }
+
+        if (parameters.Condutor.IdentificadorAssinaturaCondutor <= 0)
+        {
+            erros.Add("Necessário passar status da assinatura do condutor");
+        }
+        else
+        {
+            var tabelaAssinatura = await _provider
+                .GetService<TabelaGenericaService>()!
+                .ListToViewModelAsync("GRV_ASSINATURA_CONDUTOR");
+
+            var status = tabelaAssinatura?.Listagem?.FirstOrDefault(x =>
+                x.Identificador == parameters.Condutor.IdentificadorAssinaturaCondutor);
+
+            if (status == null)
+            {
+                erros.Add("Status da assinatura do condutor inválido");
+            }
+            else
+            {
+                condutor!.StatusAssinaturaCondutor = status.ValorCadastro;
+
+                // Identificador 1 / ValorCadastro "1" = Assinou: a imagem da assinatura é obrigatória
+                if (status.ValorCadastro == "1" || parameters.Condutor.IdentificadorAssinaturaCondutor == 1)
+                {
+                    if (parameters.AssinaturaCondutor == null || parameters.AssinaturaCondutor.Length == 0)
+                        erros.Add("Necessário a assinatura do condutor");
+                }
+            }
+        }
+
+
+        if (parameters.Condutor.Telefone != null)
+            condutor!.Telefone = parameters.Condutor.Telefone.ToUpperTrim().ToNullIfEmpty();
+
+        if (parameters.Condutor.TelefoneDDD != null)
+            condutor!.TelefoneDDD = parameters.Condutor.TelefoneDDD.ToUpperTrim().ToNullIfEmpty();
+
+        if (parameters.Condutor.InformacoesAdicionais != null)
+            condutor!.InformacoesAdicionais = parameters.Condutor.InformacoesAdicionais.ToUpperTrim().ToNullIfEmpty();
+
+        if (parameters.Condutor.FlagChaveVeiculo != null)
+        {
+            condutor!.FlagChaveVeiculo = parameters.Condutor.FlagChaveVeiculo.ToUpperTrim().ToNullIfEmpty();
+
+            if (condutor.FlagChaveVeiculo == "S" && string.IsNullOrWhiteSpace(parameters.Condutor.NumeroChaveVeiculo))
+                erros.Add("Chave obrigatória ao marcar que possui chave do veículo");
+
+            if (parameters.Condutor.NumeroChaveVeiculo != null)
+                condutor.NumeroChaveVeiculo = parameters.Condutor.NumeroChaveVeiculo.ToUpperTrim().ToNullIfEmpty();
+        }
+
+        if (erros.Count > 0)
+            return MensagemViewHelper.SetBadRequest(erros);
+
+        if (isNovoCondutor)
+            await _context.SolicitacaoReboqueCondutor.AddAsync(condutor!, ct);
+
+        // Assinatura do condutor no Bucket se enviada
+        if (parameters.AssinaturaCondutor != null && parameters.AssinaturaCondutor.Length > 0)
+        {
+            var bucketArquivoExistente = await _context.BucketArquivo
+                .Include(x => x.BucketNomeTabelaOrigem)
+                .FirstOrDefaultAsync(x =>
+                    x.BucketNomeTabelaOrigem.Codigo == BucketNomeTabelaOrigemEnum.AssinaturaCondutor &&
+                    x.TabelaOrigemId == solicitacao.Id, cancellationToken: ct);
+
+            if (bucketArquivoExistente != null)
+            {
+                _context.BucketArquivo.Remove(bucketArquivoExistente);
+                await _context.SaveChangesAsync(ct);
+            }
+
+            new BucketService(_context, _httpClientFactory)
+                .SendFile(BucketNomeTabelaOrigemEnum.AssinaturaCondutor, solicitacao.Id,
+                    parameters.IdentificadorUsuario,
+                    parameters.AssinaturaCondutor);
+        }
+
+        solicitacao.SolicitacaoReboqueStatusId = (byte)StatusSolicitacoesEnum.EM_TRANSITO;
+        solicitacao.DataAlteracao = DateTime.Now;
+        solicitacao.UsuarioAlteracaoId = parameters.IdentificadorUsuario;
+
+        return MensagemViewHelper.SetUpdateSuccess();
+    }
+
+    private MensagemDTO SolicitacaoStatusNoDeposito(SolicitacaoReboqueModel solicitacao,
+        AtualizarSolicitacaoReboqueParameters parameters)
+    {
+        solicitacao.SolicitacaoReboqueStatusId = (byte)StatusSolicitacoesEnum.NO_DEPOSITO;
+        solicitacao.DataAlteracao = DateTime.Now;
+        solicitacao.UsuarioAlteracaoId = parameters.IdentificadorUsuario;
+
+        return MensagemViewHelper.SetUpdateSuccess();
+    }
+
+    private MensagemDTO SolicitacaoStatusFinalizado(SolicitacaoReboqueModel solicitacao,
+        AtualizarSolicitacaoReboqueParameters parameters)
+    {
+        solicitacao.SolicitacaoReboqueStatusId = (byte)StatusSolicitacoesEnum.FINALIZADO;
+        solicitacao.GrvId = solicitacao.GrvId;
+        solicitacao.DataSolicitacaoFinalizada = DateTime.Now;
+        solicitacao.DataAlteracao = DateTime.Now;
+        solicitacao.UsuarioAlteracaoId = parameters.IdentificadorUsuario;
+
+        return MensagemViewHelper.SetUpdateSuccess();
     }
 }

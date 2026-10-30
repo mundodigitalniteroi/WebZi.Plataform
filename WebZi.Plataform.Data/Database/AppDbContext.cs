@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Reflection;
 using WebZi.Plataform.CrossCutting.Configuration;
@@ -251,6 +251,7 @@ namespace WebZi.Plataform.Data.Database
         public DbSet<SolicitacaoReboqueDRFAModel> SolicitacaoReboqueDRFA { get; set; }
         public DbSet<SolicitacaoReboqueEnquadramentoInfracaoModel> SolicitacaoReboqueEnquadramentoInfracao { get; set; }
         public DbSet<SolicitacaoReboqueLacreModel> SolicitacaoReboqueLacre { get; set; }
+        public DbSet<SolicitacaoEquipamentoOpcionalModel> SolicitacaoEquipamentoOpcional { get; set; }
         public DbSet<SolicitacaoReboqueCondutorModel> SolicitacaoReboqueCondutor { get; set; }
         public DbSet<SolicitacaoReboqueStatusModel> SolicitacaoReboqueStatus { get; set; }
         public DbSet<SolicitacaoReboqueTipoModel> SolicitacaoReboqueTipo { get; set; }

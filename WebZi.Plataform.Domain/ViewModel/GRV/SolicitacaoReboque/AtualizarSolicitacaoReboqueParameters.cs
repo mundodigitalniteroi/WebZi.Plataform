@@ -1,3 +1,4 @@
+using WebZi.Plataform.Domain.ViewModel.GGV;
 using WebZi.Plataform.Domain.ViewModel.GRV.Cadastro;
 
 namespace WebZi.Plataform.Domain.ViewModel.GRV.SolicitacaoReboque;
@@ -5,6 +6,7 @@ namespace WebZi.Plataform.Domain.ViewModel.GRV.SolicitacaoReboque;
 public class AtualizarSolicitacaoReboqueParameters
 {
     public int? SolicitacaoReboqueId { get; set; }
+    public int? GrvId { get; set; }
     public byte SolicitacaoReboqueStatusId { get; set; }
     public int? IdentificadorReboque { get; set; }
     public int? IdentificadorReboquista { get; set; }
@@ -13,5 +15,6 @@ public class AtualizarSolicitacaoReboqueParameters
 
     public List<string> ListagemLacre { get; set; }
     public CondutorParameters? Condutor { get; set; }
-    public List<EnquadramentoInfracaoParameters>? ListagemEnquadramentoInfracao { get; set; }
+    public List<EquipamentoOpcionalParameters>? EquipamentoOpcional { get; set; }
+    public byte[] AssinaturaCondutor { get; set; }
 }

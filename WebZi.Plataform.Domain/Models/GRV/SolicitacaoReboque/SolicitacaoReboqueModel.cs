@@ -1,4 +1,5 @@
 ﻿using WebZi.Plataform.Domain.Models.ClienteDeposito;
+using WebZi.Plataform.Domain.Models.Condutor;
 using WebZi.Plataform.Domain.Models.Servico;
 using WebZi.Plataform.Domain.Models.Sistema;
 using WebZi.Plataform.Domain.Models.Usuario;
@@ -19,6 +20,8 @@ public class SolicitacaoReboqueModel
     public int UsuarioCadastroId { get; set; }
     public int? UsuarioAceiteId { get; set; }
     public int? UsuarioCanceladoId { get; set; }
+    public int? UsuarioAlteracaoId { get; set; }
+
     public byte? TipoVeiculoId { get; set; }
     public int? CorId { get; set; }
     public int? MarcaModeloId { get; set; }
@@ -27,16 +30,20 @@ public class SolicitacaoReboqueModel
     public string? Renavam { get; set; }
     public string? VeiculoUF { get; set; }
 
-    public int? UsuarioAlteracaoId { get; set; }
+
     public string? LocalRemocaoCompleto { get; set; }
     public string? LocalRemocaoReferencia { get; set; }
     public string? LocalRemocaoLatitude { get; set; }
     public string? LocalRemocaoLongitude { get; set; }
+
+
     public DateTime DataCadastro { get; set; }
     public DateTime? DataAlteracao { get; set; }
     public DateTime? DataSolicitacaoAceita { get; set; }
     public DateTime? DataSolicitacaoCancelada { get; set; }
     public DateTime? DataSolicitacaoFinalizada { get; set; }
+    public DateTime? DataChegouNoLocal { get; set; }
+
     public int AutoridadeResponsavelId { get; set; }
     public string MatriculaAutoridadeResponsavel { get; set; }
     public string NomeAutoridadeResponsavel { get; set; }
@@ -59,4 +66,7 @@ public class SolicitacaoReboqueModel
 
     public SolicitacaoReboqueTipoModel SolicitacaoReboqueTipo { get; set; }
     public SolicitacaoReboqueStatusModel SolicitacaoReboqueStatus { get; set; }
+
+    public virtual ICollection<SolicitacaoEquipamentoOpcionalModel> ListagemEquipamentoOpcional { get; set; }
+    public virtual ICollection<SolicitacaoReboqueLacreModel> ListagemLacres { get; set; }
 }

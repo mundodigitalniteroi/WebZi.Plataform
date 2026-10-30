@@ -49,7 +49,7 @@ public class SolicitacaoReboqueController : ControllerBase
             return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
         }
     }
-    
+
     [HttpPost("ObterResumoSolicitacoes")]
     public async Task<ActionResult<ObterResumoSolicitacoesDTO>> ObterResumoSolicitacoes(
         [FromBody] SolicitacoesReboqueParameters parameters,
@@ -254,9 +254,9 @@ public class SolicitacaoReboqueController : ControllerBase
 
             return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            ResultView = MensagemViewHelper.SetInternalServerError(ex);
+            ResultView = MensagemViewHelper.SetInternalServerError("Erro ao aceitar solicitação!");
 
             return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
         }

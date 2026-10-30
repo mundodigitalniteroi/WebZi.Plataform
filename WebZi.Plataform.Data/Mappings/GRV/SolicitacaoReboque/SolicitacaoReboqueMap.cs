@@ -87,6 +87,9 @@ public class SolicitacaoReboqueMap : IEntityTypeConfiguration<SolicitacaoReboque
             .HasColumnName("data_solicitacao_cancelada");
         builder.Property(x => x.DataSolicitacaoFinalizada)
             .HasColumnName("data_solicitacao_finalizada");
+        builder.Property(x => x.DataChegouNoLocal)
+            .HasColumnName("data_chegou_no_local");
+
 
         builder.Property(x => x.AutoridadeResponsavelId)
             .HasColumnName("id_autoridade_responsavel");
