@@ -46,7 +46,9 @@ public class SolicitacaoReboqueMap : IEntityTypeConfiguration<SolicitacaoReboque
             .HasColumnName("id_usuario_alteracao");
 
         builder.Property(x => x.TipoVeiculoId)
-            .HasColumnName("id_tipo_veiculo");
+            .HasColumnName("id_tipo_veiculo")
+            .HasColumnType("tinyint");
+
         builder.Property(x => x.CorId)
             .HasColumnName("id_cor");
         builder.Property(x => x.MarcaModeloId)

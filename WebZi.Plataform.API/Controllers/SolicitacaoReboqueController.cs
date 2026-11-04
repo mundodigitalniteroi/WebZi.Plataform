@@ -238,14 +238,16 @@ public class SolicitacaoReboqueController : ControllerBase
     [HttpPut("{solicitacaoReboqueId}/aceitar")]
     public async Task<ActionResult<MensagemDTO>> AceitarSolicitacaoReboque(
         [FromRoute] int solicitacaoReboqueId,
-        [FromBody] AceitarSolicitacaoReboqueParameters parameters,
         CancellationToken ct)
     {
         MensagemDTO ResultView = new();
 
         var userId = User.GetUserId();
-        parameters.IdentificadorUsuario = userId!.Value;
-        parameters.SolicitacaoReboqueId = solicitacaoReboqueId;
+        var parameters = new AceitarSolicitacaoReboqueParameters
+        {
+            IdentificadorUsuario = userId!.Value,
+            SolicitacaoReboqueId = solicitacaoReboqueId,
+        };
         try
         {
             ResultView = await _provider

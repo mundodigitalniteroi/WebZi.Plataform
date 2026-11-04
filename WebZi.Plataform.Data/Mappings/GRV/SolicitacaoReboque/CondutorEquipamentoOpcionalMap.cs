@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using WebZi.Plataform.Data.Mappings.GRV.SolicitacaoReboque;
 using WebZi.Plataform.Domain.Models.Condutor;
@@ -55,6 +55,16 @@ namespace WebZi.Plataform.Data.Mappings.Condutor
             builder.Property(e => e.EquipamentoOpcionalId)
                 .HasColumnType("numeric(3, 0)")
                 .HasColumnName("id_equipamento_opcional");
+
+            builder.HasOne(e => e.Grv)
+                .WithMany(x => x.ListagemEquipamentoOpcional)
+                .HasForeignKey(e => e.SolicitacaoReboqueId);
+
+            builder.HasOne(e => e.EquipamentoOpcional)
+                .WithMany()
+                .HasForeignKey(e => e.EquipamentoOpcionalId);
+
+            builder.Ignore(e => e.ListagemCondutorEquipamentoOpcionalNaoConformidade);
         }
     }
 }

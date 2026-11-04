@@ -47,7 +47,7 @@ public class SolicitacaoReboqueLacreMap : IEntityTypeConfiguration<SolicitacaoRe
             .HasColumnName("data_atualizacao");
 
         builder.HasOne(x => x.SolicitacaoReboque)
-            .WithMany()
+            .WithMany(x => x.ListagemLacres)
             .HasForeignKey(x => x.SolicitacaoReboqueId);
 
         builder.HasOne(x => x.UsuarioCadastro)

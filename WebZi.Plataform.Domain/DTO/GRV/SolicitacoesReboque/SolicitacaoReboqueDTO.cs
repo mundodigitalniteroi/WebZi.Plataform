@@ -10,6 +10,9 @@ public class SolicitacaoReboqueDTO
     public string? NumeroProcesso { get; set; }
     public string Cliente { get; set; }
     public string Deposito { get; set; }
+    public string DepositoLatitude { get; set; }
+    public string DepositoLongitude { get; set; }
+    public string LocalizacaoDeposito { get; set; }
     public SolicitacaoReboqueVeiculoDTO Veiculo { get; set; }
     public string Status { get; set; }
     public byte? MotivoApreensaoId { get; set; }
