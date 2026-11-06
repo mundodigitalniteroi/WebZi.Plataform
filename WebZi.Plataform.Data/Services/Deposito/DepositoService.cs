@@ -157,21 +157,23 @@ namespace WebZi.Plataform.Data.Services.Deposito
             return DataHoraAtual;
         }
 
-        /// <summary>
+         /// <summary>
         /// Lista os depósitos vinculados a um usuário específico.
         /// </summary>
         /// <param name="UsuarioId">Identificador do usuário.</param>
         /// <returns>Retorna a listagem de depósitos associados ao usuário.</returns>
-        public async Task<DepositoListDTO> ListAsync(int UsuarioId)
+        public async Task<DepositoListDTO> ListAsync(int UsuarioId, CancellationToken ct)
         {
             DepositoListDTO ResultView = new();
 
             List<UsuarioDepositoModel> result = await _context.UsuarioDeposito
                 .Include(x => x.Deposito)
-                .ThenInclude(d => d.Endereco)
+                    .ThenInclude(d => d.Endereco)
+                .Include(x => x.Deposito)
+                    .ThenInclude(d => d.ClientesDepositos)
                 .Where(x => x.UsuarioId == UsuarioId)
                 .AsNoTracking()
-                .ToListAsync();
+                .ToListAsync(cancellationToken: ct);
 
             if (result?.Count > 0)
             {
@@ -182,10 +184,21 @@ namespace WebZi.Plataform.Data.Services.Deposito
                     Depositos.Add(UsuarioDeposito.Deposito);
                 }
 
-                ResultView.Listagem = _mapper.Map<List<DepositoDTO>>(Depositos
+                var depDtos = _mapper.Map<List<DepositoDTO>>(Depositos
                     .OrderBy(x => x.Nome)
                     .ToList());
 
+                foreach (var dto in depDtos)
+                {
+                    var depModel = Depositos.FirstOrDefault(d => d.DepositoId == dto.IdentificadorDeposito);
+                    var activeCd = depModel?.ClientesDepositos?.FirstOrDefault(cd => cd.FlagAtivo != "N");
+                    if (activeCd != null)
+                    {
+                        dto.IdentificadorCliente = activeCd.ClienteId;
+                    }
+                }
+
+                ResultView.Listagem = depDtos;
                 ResultView.Mensagem = MensagemViewHelper.SetFound(result.Count);
             }
             else

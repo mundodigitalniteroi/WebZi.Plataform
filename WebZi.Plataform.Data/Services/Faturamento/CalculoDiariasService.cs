@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using System.Data;
 using WebZi.Plataform.CrossCutting.Date;
 using WebZi.Plataform.CrossCutting.Strings;
@@ -47,7 +47,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
                 IsComboio = ParametrosCalculoDiarias.IsComboio,
 
-                IsPrimeiroFaturamento = (new[] { "V", "1", "B", "D" }.Contains(ParametrosCalculoDiarias.StatusOperacaoId)),
+                IsPrimeiroFaturamento = (new[] { "V", "H", "1", "B", "D" }.Contains(ParametrosCalculoDiarias.StatusOperacaoId)),
             };
 
             if (!CalculoDiarias.DataHoraFinalParaCalculo.HasValue || CalculoDiarias.DataHoraFinalParaCalculo == DateTime.MinValue)

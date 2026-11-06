@@ -13,5 +13,6 @@
         public string Descricao { get; set; }
 
         public string FlagAtivo { get; set; }
+        public string FlagMotivoInfracaoCtb { get; set; }
     }
 }

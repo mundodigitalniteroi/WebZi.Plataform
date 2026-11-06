@@ -48,7 +48,8 @@ namespace WebZi.Plataform.Data.Services.WebServices
             _mapper = mapper;
         }
 
-        public async Task<NFERetornoFaturamentoDTOList> ConsultarNfeAsync(int grvId, int usuarioId, CancellationToken ct)
+        public async Task<NFERetornoFaturamentoDTOList> ConsultarNfeAsync(int grvId, int usuarioId,
+            CancellationToken ct)
         {
             NFERetornoFaturamentoDTOList ResultView = new();
             List<string> Erros = new();
@@ -263,7 +264,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
             }
 
 
-            var result = await CreateNfseFromWSAsync(grvId, usuarioId,ct);
+            var result = await CreateNfseFromWSAsync(grvId, usuarioId, ct);
             if (result.Mensagem.Erros.Count > 0 || result.Mensagem.AvisosImpeditivos.Count > 0)
             {
                 ResultView = MensagemViewHelper.SetBadRequest(
@@ -279,7 +280,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
 
 
         private async Task<WSNfseGerarNotaFiscalDTO> ReprocessNfseFromWSAsync(int grvId, string identificadorNota,
-            int usuarioId , CancellationToken ct)
+            int usuarioId, CancellationToken ct)
         {
             WSNfseGerarNotaFiscalDTO ResultView = new();
             var config = _options?.Value;
@@ -352,7 +353,8 @@ namespace WebZi.Plataform.Data.Services.WebServices
             return ResultView;
         }
 
-        private async Task<WSNfseGerarNotaFiscalDTO> CreateNfseFromWSAsync(int grvId, int usuarioId , CancellationToken ct)
+        private async Task<WSNfseGerarNotaFiscalDTO> CreateNfseFromWSAsync(int grvId, int usuarioId,
+            CancellationToken ct)
         {
             WSNfseGerarNotaFiscalDTO ResultView = new();
             var config = _options?.Value;
@@ -425,13 +427,14 @@ namespace WebZi.Plataform.Data.Services.WebServices
             return ResultView;
         }
 
-        public async Task<NfeJsonEnvioDTO> GetJsonNfeAsync(long nfeId , CancellationToken ct)
+        public async Task<NfeJsonEnvioDTO> GetJsonNfeAsync(long nfeId, CancellationToken ct)
         {
             NfeJsonEnvioDTO ResultView = new();
 
             #region Consulta
 
-            var nfe = await _context.NfeRetornoSolicitacao.AsNoTracking().FirstOrDefaultAsync(x => x.NfeId == nfeId, cancellationToken: ct);
+            var nfe = await _context.NfeRetornoSolicitacao.AsNoTracking()
+                .FirstOrDefaultAsync(x => x.NfeId == nfeId, cancellationToken: ct);
 
             #endregion
 
@@ -482,9 +485,10 @@ namespace WebZi.Plataform.Data.Services.WebServices
             var permiteEdicaoNota = await _context.PerfilAcessoUsuario
                 .AsNoTracking()
                 .AnyAsync(x => x.UsuarioId == parameters.IdentificadorUsuario
-                               && (x.PerfilAcessoId == (int)PerfisDeAcessoEnum.NfeEditHomolog || x.PerfilAcessoId == (int)PerfisDeAcessoEnum.NfeEditProd)
+                               && x.PerfilAcessoId == (int)PerfisDeAcessoEnum.NfeEditProd
                                && _context.SistemaPerfilAcessoSubModulos
-                                   .Any(s => (s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.NfeEditHomolog || s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.NfeEditProd)
+                                   .Any(s => (
+                                                 s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.NfeEditProd)
                                              && s.IdSubModulo == (int)SubModuloEnum.EditarNfe), cancellationToken: ct);
 
             #endregion

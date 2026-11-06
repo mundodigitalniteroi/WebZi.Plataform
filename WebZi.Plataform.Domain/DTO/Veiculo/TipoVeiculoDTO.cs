@@ -7,5 +7,6 @@
         public string Descricao { get; set; }
 
         public string FlagNaoRequerCnhNaLiberacao { get; set; }
+        public string FlagObjeto { get; set; }
     }
 }

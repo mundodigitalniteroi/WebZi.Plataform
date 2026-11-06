@@ -27,7 +27,8 @@ namespace WebZi.Plataform.API.Controllers
         [HttpPost("Cadastrar")]
         // TODO: [Authorize]
         [IgnoreAntiforgeryToken]
-        public async Task<ActionResult<AtendimentoCadastroDTO>> Cadastrar([FromBody] AtendimentoParameters Atendimento, CancellationToken ct)
+        public async Task<ActionResult<AtendimentoCadastroDTO>> Cadastrar([FromBody] AtendimentoParameters Atendimento,
+            CancellationToken ct)
         {
             if (!ModelState.IsValid)
             {
@@ -100,7 +101,8 @@ namespace WebZi.Plataform.API.Controllers
 
 
         [HttpPut("Atualizar")]
-        public async Task<ActionResult<MensagemDTO>> Atualizar(AtualizarAtendimentoParameters parameters, CancellationToken ct)
+        public async Task<ActionResult<MensagemDTO>> Atualizar(AtualizarAtendimentoParameters parameters,
+            CancellationToken ct)
         {
             if (!ModelState.IsValid)
             {
@@ -209,7 +211,8 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpPatch("AtualizarStatusLS")]
-        public async Task<ActionResult<MensagemDTO>> AtualizarStatusLS(AtualizarStatusLEParameters parameters, CancellationToken ct)
+        public async Task<ActionResult<MensagemDTO>> AtualizarStatusLS(AtualizarStatusLEParameters parameters,
+            CancellationToken ct)
         {
             if (!ModelState.IsValid)
             {
@@ -326,7 +329,8 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpPost("CadastrarSaidaParaReparo")]
-        public async Task<ActionResult<SaidaParaReparoDTO>> CadastrarSaidaParaReparo(SaidaParaReparoParameters parameters, CancellationToken ct)
+        public async Task<ActionResult<SaidaParaReparoDTO>> CadastrarSaidaParaReparo(
+            SaidaParaReparoParameters parameters, CancellationToken ct)
         {
             SaidaParaReparoDTO ResultView = new();
             try

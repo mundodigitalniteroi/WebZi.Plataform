@@ -28,7 +28,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
         }
 
         public void SendFiles(string CodigoTabelaOrigem, int TabelaOrigemId, int UsuarioCadastroId, List<byte[]> Files,
-            string TipoCadastro = "")
+            string TipoCadastro = "", bool saveChanges = true)
         {
             ConfiguracaoModel Configuracao = _context.Configuracao
                 .AsNoTracking()
@@ -96,7 +96,8 @@ namespace WebZi.Plataform.Data.Services.WebServices
 
                 _context.BucketArquivo.Add(BucketArquivo);
 
-                _context.SaveChanges();
+                if (saveChanges)
+                    _context.SaveChanges();
             }
         }
 

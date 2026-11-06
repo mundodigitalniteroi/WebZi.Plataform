@@ -102,7 +102,7 @@ namespace WebZi.Plataform.Domain.DTO.GRV
         public string TermoDetran { get; set; }
 
         public string VeiculoUF { get; set; }
-
+        public string? DescricaoObjeto { get; set; }
         public DateTime DataHoraRemocao { get; set; }
 
         public DateTime DataHoraGuarda { get; set; }
@@ -129,6 +129,7 @@ namespace WebZi.Plataform.Domain.DTO.GRV
 
         public string FlagVeiculoRoubadoFurtado { get; set; }
 
+        public string FlagObjetoApreendido { get; set; }
 
         public string FlagEstadoLacre { get; set; }
 
@@ -137,7 +138,7 @@ namespace WebZi.Plataform.Domain.DTO.GRV
         /// <summary>
         /// Flag que identifica se o GGV já foi cadastrado
         /// </summary>
-        
+
         public string FlagChaveDeposito { get; set; }
 
         public string FlagGgv { get; set; }
@@ -161,7 +162,9 @@ namespace WebZi.Plataform.Domain.DTO.GRV
         public List<EnquadramentoInfracaoGrvDTO> Infracoes { get; set; }
         public List<CondutorEquipamentoOpcionalDTO> EquipamentoOpcional { get; set; }
         public List<LacreDTO> ListagemLacres { get; set; }
+
         public VistoriaDTO Vistoria { get; set; }
+
         // public List<ServicoAssociadoTipoVeiculoDTO> ListagemServicoAssociadoVeiculo { get; set; }
         public List<ServicoAssociadoGrvDTO> ListagemServicoGgv { get; set; }
 

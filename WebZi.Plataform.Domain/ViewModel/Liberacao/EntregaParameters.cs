@@ -15,9 +15,11 @@ namespace WebZi.Plataform.Domain.ViewModel.Liberacao
 
         [Required(ErrorMessage = "Propriedade obrigatória")]
         public byte IdentificadorTipoLiberacao { get; set; }
+
         public string NumeroAlvaraLiberacao { get; set; }
         public FormaLiberacaoParameters? FormaLiberacao { get; set; }
         public LiberacaoEspecialParameters? LiberacaoEspecial { get; set; }
+        public string FlagObjeto { get; set; } = "N";
         public int? IdentificadorSaidaReparo { get; set; }
         public byte[] ResponsavelFoto { get; set; }
     }

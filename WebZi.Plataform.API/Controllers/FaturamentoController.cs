@@ -252,7 +252,6 @@ public class FaturamentoController : ControllerBase
         }
     }
 
-    [HttpPost("Vincular")]
     [HttpPost("Simulacao")]
     [IgnoreAntiforgeryToken]
     public async Task<ActionResult<SimulacaoDTO>> Simular([FromBody] SimulacaoParameters Parametros,
@@ -286,40 +285,24 @@ public class FaturamentoController : ControllerBase
     [HttpGet("Consultar")]
     [IgnoreAntiforgeryToken]
     public async Task<ActionResult<FaturamentoConsultaDTO>> Consultar(
-        [FromQuery] int? identificadorFaturamento,
-        [FromQuery] int identificadorUsuario,
-        CancellationToken ct,
-        [FromQuery] int? identificadorProcesso = null)
+        [FromQuery] ConsultarParameters parameters,
+        CancellationToken ct)
     {
         if (!ModelState.IsValid)
-        {
             return BadRequest(ModelState);
-        }
 
         FaturamentoConsultaDTO ResultView = new();
 
         try
         {
-            var service = _provider.GetService<FaturamentoService>();
-
-            if (identificadorFaturamento.HasValue && identificadorFaturamento.Value > 0)
-            {
-                ResultView = await service.ConsultarPorFaturamentoAsync(identificadorFaturamento.Value, identificadorUsuario, ct);
-            }
-            else if (identificadorProcesso.HasValue && identificadorProcesso.Value > 0)
-            {
-                ResultView = await service.ConsultarPorProcessoAsync(identificadorProcesso.Value, identificadorUsuario, ct);
-            }
-            else
-            {
-                ResultView.Mensagem = MensagemViewHelper.SetBadRequest(new List<string> { MensagemPadraoEnum.IdentificadorFaturamentoInvalido });
-            }
-
+            ResultView = await _provider.GetService<FaturamentoService>().ConsultarFaturamentoAsync(
+                parameters.IdentificadorFaturamento, parameters.IdentificadorUsuario, ct,
+                parameters.IdentificadorProcesso);
             return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+            ResultView.Mensagem = MensagemViewHelper.SetInternalServerError("Erro ao consultar");
 
             return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
         }

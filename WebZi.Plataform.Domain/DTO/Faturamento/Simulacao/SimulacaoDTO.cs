@@ -1,4 +1,4 @@
-﻿using WebZi.Plataform.Domain.DTO.Sistema;
+using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.DTO.WebServices.DetranRio;
 
 namespace WebZi.Plataform.Domain.DTO.Faturamento.Simulacao
@@ -17,6 +17,9 @@ namespace WebZi.Plataform.Domain.DTO.Faturamento.Simulacao
 
         public string NumeroProcesso { get; set; }
         public string StatusOperacaoId { get; set; }
+        public string? StatusOperacaoDescricao { get; set; }
+        public string? FlagObjetoApreendido { get; set; }
+        public string DescricaoObjeto { get; set; }
         public int IdentificadorAtendimento { get; set; }
 
         public DateTime? DataHoraRemocao { get; set; }
@@ -31,7 +34,7 @@ namespace WebZi.Plataform.Domain.DTO.Faturamento.Simulacao
 
         public SimulacaoFaturamentoDTO Faturamento { get; set; }
 
-        public DetranRioVeiculoDTO Veiculo { get; set; }
+        public DetranRioVeiculoDTO? Veiculo { get; set; }
 
         public DateTime DataHoraSimulacao { get; set; }
     }

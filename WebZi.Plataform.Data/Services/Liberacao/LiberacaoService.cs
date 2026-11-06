@@ -130,11 +130,11 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                 {
                     var detranHubOptions = _detranHubOptions ?? _provider?.GetService<IOptions<DetranHubOptions>>();
                     var detranHubService = _provider?.GetService<DetranHubService>()
-                        ?? (detranHubOptions != null && _httpClientFactory != null && _mapper != null
-                            ? new DetranHubService(_httpClientFactory, _mapper, detranHubOptions)
-                            : (_httpClientFactory != null && _mapper != null
-                                ? new DetranHubService(_httpClientFactory, _mapper)
-                                : null));
+                                           ?? (detranHubOptions != null && _httpClientFactory != null && _mapper != null
+                                               ? new DetranHubService(_httpClientFactory, _mapper, detranHubOptions)
+                                               : (_httpClientFactory != null && _mapper != null
+                                                   ? new DetranHubService(_httpClientFactory, _mapper)
+                                                   : null));
 
                     if (detranHubService != null)
                     {
@@ -169,7 +169,8 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                         .OrderByDescending(x => x.DetranVeiculoId)
                         .FirstOrDefaultAsync(x =>
                             (!string.IsNullOrWhiteSpace(placaLimpa) && x.Placa == placaLimpa) ||
-                            (string.IsNullOrWhiteSpace(placaLimpa) && !string.IsNullOrWhiteSpace(chassiLimpo) && x.Chassi == chassiLimpo));
+                            (string.IsNullOrWhiteSpace(placaLimpa) && !string.IsNullOrWhiteSpace(chassiLimpo) &&
+                             x.Chassi == chassiLimpo));
 
                     if (veiculoBd != null)
                     {
@@ -179,17 +180,21 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                             Chassi = veiculoBd.Chassi,
                             Renavam = veiculoBd.Renavam,
                             Uf = veiculoBd.Uf,
-                            Cor = veiculoBd.Cor != null ? new CorDTO
-                            {
-                                IdentificadorCor = veiculoBd.Cor.CorId,
-                                Cor = veiculoBd.Cor.Cor,
-                                CorSecundaria = veiculoBd.Cor.CorSecundaria
-                            } : null,
-                            MarcaModelo = veiculoBd.MarcaModelo != null ? new MarcaModeloDTO
-                            {
-                                IdentificadorMarcaModelo = veiculoBd.MarcaModelo.MarcaModeloId,
-                                MarcaModelo = veiculoBd.MarcaModelo.MarcaModelo
-                            } : null,
+                            Cor = veiculoBd.Cor != null
+                                ? new CorDTO
+                                {
+                                    IdentificadorCor = veiculoBd.Cor.CorId,
+                                    Cor = veiculoBd.Cor.Cor,
+                                    CorSecundaria = veiculoBd.Cor.CorSecundaria
+                                }
+                                : null,
+                            MarcaModelo = veiculoBd.MarcaModelo != null
+                                ? new MarcaModeloDTO
+                                {
+                                    IdentificadorMarcaModelo = veiculoBd.MarcaModelo.MarcaModeloId,
+                                    MarcaModelo = veiculoBd.MarcaModelo.MarcaModelo
+                                }
+                                : null,
                             TipoVeiculo = !string.IsNullOrWhiteSpace(veiculoBd.DescricaoTipo)
                                 ? new TipoVeiculoDTO { Descricao = veiculoBd.DescricaoTipo }
                                 : null
@@ -238,7 +243,8 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                                     };
                                 }
 
-                                if (veiculoDTO.TipoVeiculo == null && !string.IsNullOrWhiteSpace(veiculoBd.DescricaoTipo))
+                                if (veiculoDTO.TipoVeiculo == null &&
+                                    !string.IsNullOrWhiteSpace(veiculoBd.DescricaoTipo))
                                 {
                                     veiculoDTO.TipoVeiculo = new TipoVeiculoDTO
                                     {
@@ -320,7 +326,8 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                 try
                 {
                     GuiaPagamentoReboqueEstadia =
-                        await new GuiaPagamentoReboqueEstadiaService(_context, _mapper, _httpClientFactory, _provider, _detranHubOptions)
+                        await new GuiaPagamentoReboqueEstadiaService(_context, _mapper, _httpClientFactory, _provider,
+                                _detranHubOptions)
                             .GetGuiaPagamentoReboqueEstadiaAsync(FaturamentoId.Value, UsuarioId, true);
                 }
                 catch
@@ -393,36 +400,37 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                 ? Grv.Chassi
                 : GuiaPagamentoReboqueEstadia?.Chassi;
 
-            DetranRioVeiculoDTO veiculoConsultado = await ObterVeiculoPorPlacaOuChassiAsync(placaParaConsulta, chassiParaConsulta);
+            DetranRioVeiculoDTO veiculoConsultado =
+                await ObterVeiculoPorPlacaOuChassiAsync(placaParaConsulta, chassiParaConsulta);
 
             string veiculoTipoDescricao = veiculoConsultado?.TipoVeiculo?.Descricao
-                ?? Grv.TipoVeiculo?.Descricao
-                ?? string.Empty;
+                                          ?? Grv.TipoVeiculo?.Descricao
+                                          ?? string.Empty;
 
             string veiculoMarcaModeloDescricao = veiculoConsultado?.MarcaModelo?.MarcaModelo
-                ?? GuiaPagamentoReboqueEstadia?.MarcaModelo
-                ?? Grv.MarcaModelo?.MarcaModelo
-                ?? string.Empty;
+                                                 ?? GuiaPagamentoReboqueEstadia?.MarcaModelo
+                                                 ?? Grv.MarcaModelo?.MarcaModelo
+                                                 ?? string.Empty;
 
             string veiculoPlacaValor = veiculoConsultado?.Placa
-                ?? GuiaPagamentoReboqueEstadia?.Placa
-                ?? Grv.Placa
-                ?? string.Empty;
+                                       ?? GuiaPagamentoReboqueEstadia?.Placa
+                                       ?? Grv.Placa
+                                       ?? string.Empty;
 
             string veiculoRenavamValor = veiculoConsultado?.Renavam
-                ?? GuiaPagamentoReboqueEstadia?.Renavam
-                ?? Grv.Renavam
-                ?? string.Empty;
+                                         ?? GuiaPagamentoReboqueEstadia?.Renavam
+                                         ?? Grv.Renavam
+                                         ?? string.Empty;
 
             string veiculoChassiValor = veiculoConsultado?.Chassi
-                ?? GuiaPagamentoReboqueEstadia?.Chassi
-                ?? Grv.Chassi
-                ?? string.Empty;
+                                        ?? GuiaPagamentoReboqueEstadia?.Chassi
+                                        ?? Grv.Chassi
+                                        ?? string.Empty;
 
             string veiculoCorDescricao = veiculoConsultado?.Cor?.Cor
-                ?? GuiaPagamentoReboqueEstadia?.Cor
-                ?? Grv.Cor?.Cor
-                ?? string.Empty;
+                                         ?? GuiaPagamentoReboqueEstadia?.Cor
+                                         ?? Grv.Cor?.Cor
+                                         ?? string.Empty;
 
             ResultView.VeiculoTipo = veiculoTipoDescricao;
 
@@ -438,13 +446,18 @@ namespace WebZi.Plataform.Data.Services.Liberacao
 
             ResultView.VeiculoCor = veiculoCorDescricao;
 
+            bool isObjeto = !string.IsNullOrWhiteSpace(Grv.DescricaoObjeto) || Grv.StatusOperacaoId == "O" || Grv.StatusOperacaoId == "H";
+            ResultView.DescricaoObjeto = Grv.DescricaoObjeto;
+            ResultView.FlagObjeto = isObjeto ? "S" : "N";
+
             DateTime? dataEntregaValor = Grv.Atendimento?.SaidaParaReparo?.DataRetorno ?? Grv.Liberacao?.DataCadastro;
             string? dataEntregaFormatada = dataEntregaValor.HasValue
                 ? DateTimeHelper.FormatDateTime(dataEntregaValor.Value, DateTimeHelper.DateTimeFormat.DateTimeFormatted)
                 : null;
 
             string? dataSaidaFormatada = Grv.Atendimento?.SaidaParaReparo != null
-                ? DateTimeHelper.FormatDateTime(Grv.Atendimento.SaidaParaReparo.DataSaida, DateTimeHelper.DateTimeFormat.DateTimeFormatted)
+                ? DateTimeHelper.FormatDateTime(Grv.Atendimento.SaidaParaReparo.DataSaida,
+                    DateTimeHelper.DateTimeFormat.DateTimeFormatted)
                 : null;
 
             string? motivoSaidaValor = Grv.Atendimento?.SaidaParaReparo?.MotivoSaida;
@@ -1194,7 +1207,8 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                 if (!string.IsNullOrWhiteSpace(Parameters.FormaLiberacao.FormaLiberacaoPlaca) &&
                     !Parameters.FormaLiberacao.FormaLiberacaoPlaca.IsPlaca())
                     Erros.Add("Placa inválida");
-                if (!string.IsNullOrWhiteSpace(Parameters.FormaLiberacao.FormaLiberacaoCnh) &&
+                if (string.Equals(Parameters.FlagObjeto, "N") &&
+                    !string.IsNullOrWhiteSpace(Parameters.FormaLiberacao.FormaLiberacaoCnh) &&
                     !Parameters.FormaLiberacao.FormaLiberacaoCnh.IsCNH())
                     Erros.Add("CNH inválido");
                 if (!string.IsNullOrWhiteSpace(Parameters.FormaLiberacao.FormaLiberacaoCpf) &&
@@ -1295,9 +1309,10 @@ namespace WebZi.Plataform.Data.Services.Liberacao
             if (Grv is null)
                 return MensagemViewHelper.SetNotFound("Processo não encontrado");
 
-            if (Grv.Cliente.FlagUsaAlvaraDeLiberacao == "S" && string.IsNullOrWhiteSpace(Parameters.NumeroAlvaraLiberacao))
+            if (Grv.Cliente.FlagUsaAlvaraDeLiberacao == "S" &&
+                string.IsNullOrWhiteSpace(Parameters.NumeroAlvaraLiberacao))
                 return MensagemViewHelper.SetBadRequest(
-                        $"É Necessario passar Número do Alvará de Liberação. ");
+                    $"É Necessario passar Número do Alvará de Liberação. ");
 
             var permitirEmissao = await _context.FaturamentoRegra
                 .AnyAsync(x =>
@@ -1392,15 +1407,15 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                 if (Grv.Cliente.FlagUsaAlvaraDeLiberacao == "S")
                 {
                     await _context.Grv
-                            .Where(x => x.GrvId == Grv.GrvId)
-                            .UpdateAsync(x => new GrvModel
-                            {
-                                Rfid = Parameters.NumeroAlvaraLiberacao,
-                                UsuarioAlteracaoId = Parameters.IdentificadorUsuario,
-                                DataAlteracao = DateTime.Now
-                            }, cancellationToken: ct);
-
+                        .Where(x => x.GrvId == Grv.GrvId)
+                        .UpdateAsync(x => new GrvModel
+                        {
+                            Rfid = Parameters.NumeroAlvaraLiberacao,
+                            UsuarioAlteracaoId = Parameters.IdentificadorUsuario,
+                            DataAlteracao = DateTime.Now
+                        }, cancellationToken: ct);
                 }
+
                 if (Grv.ClienteId == ClienteTransalvadorId && Grv.IdEntradaTransalvador.HasValue)
                 {
                     var composicoes = UltimoFaturamento?.ListagemFaturamentoComposicao;

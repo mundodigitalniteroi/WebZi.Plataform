@@ -1,0 +1,72 @@
+﻿using WebZi.Plataform.Domain.Models.ClienteDeposito;
+using WebZi.Plataform.Domain.Models.Condutor;
+using WebZi.Plataform.Domain.Models.Servico;
+using WebZi.Plataform.Domain.Models.Sistema;
+using WebZi.Plataform.Domain.Models.Usuario;
+using WebZi.Plataform.Domain.Models.Veiculo;
+
+namespace WebZi.Plataform.Domain.Models.GRV.SolicitacaoReboque;
+
+public class SolicitacaoReboqueModel
+{
+    public int Id { get; set; }
+    public int ClienteDepositoId { get; set; }
+    public int? ReboqueId { get; set; }
+    public int? ReboquistaId { get; set; }
+    public byte SolicitacaoReboqueTipoId { get; set; }
+    public byte SolicitacaoReboqueStatusId { get; set; }
+    public byte MotivoApreensaoId { get; set; }
+    public int? GrvId { get; set; }
+    public int UsuarioCadastroId { get; set; }
+    public int? UsuarioAceiteId { get; set; }
+    public int? UsuarioCanceladoId { get; set; }
+    public int? UsuarioAlteracaoId { get; set; }
+
+    public byte? TipoVeiculoId { get; set; }
+    public int? CorId { get; set; }
+    public int? MarcaModeloId { get; set; }
+    public string? Placa { get; set; }
+    public string? Chassi { get; set; }
+    public string? Renavam { get; set; }
+    public string? VeiculoUF { get; set; }
+
+
+    public string? LocalRemocaoCompleto { get; set; }
+    public string? LocalRemocaoReferencia { get; set; }
+    public string? LocalRemocaoLatitude { get; set; }
+    public string? LocalRemocaoLongitude { get; set; }
+
+
+    public DateTime DataCadastro { get; set; }
+    public DateTime? DataAlteracao { get; set; }
+    public DateTime? DataSolicitacaoAceita { get; set; }
+    public DateTime? DataSolicitacaoCancelada { get; set; }
+    public DateTime? DataSolicitacaoFinalizada { get; set; }
+    public DateTime? DataChegouNoLocal { get; set; }
+
+    public int AutoridadeResponsavelId { get; set; }
+    public string MatriculaAutoridadeResponsavel { get; set; }
+    public string NomeAutoridadeResponsavel { get; set; }
+
+
+    public GrvModel Grv { get; set; }
+    public MotivoApreensaoModel? MotivoApreensao { get; set; }
+    public TipoVeiculoModel TipoVeiculo { get; set; }
+    public CorModel Cor { get; set; }
+    public MarcaModeloModel MarcaModelo { get; set; }
+    public UsuarioModel UsuarioCadastro { get; set; }
+    public UsuarioModel? UsuarioAlteracao { get; set; }
+    public UsuarioModel? UsuarioAceite { get; set; }
+    public UsuarioModel? UsuarioCancelado { get; set; }
+
+    public ClienteDepositoModel ClienteDeposito { get; set; }
+
+    public ReboqueModel Reboque { get; set; }
+    public ReboquistaModel Reboquista { get; set; }
+
+    public SolicitacaoReboqueTipoModel SolicitacaoReboqueTipo { get; set; }
+    public SolicitacaoReboqueStatusModel SolicitacaoReboqueStatus { get; set; }
+
+    public virtual ICollection<SolicitacaoEquipamentoOpcionalModel> ListagemEquipamentoOpcional { get; set; }
+    public virtual ICollection<SolicitacaoReboqueLacreModel> ListagemLacres { get; set; }
+}

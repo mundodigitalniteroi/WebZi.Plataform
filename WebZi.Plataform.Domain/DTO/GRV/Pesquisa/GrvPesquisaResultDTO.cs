@@ -18,6 +18,8 @@ namespace WebZi.Plataform.Domain.DTO.GRV.Pesquisa
 
         public string? Renavam { get; set; }
 
+        public string? TipoVeiculo { get; set; }
+
         public string? MarcaModelo { get; set; }
 
         public string? StatusOperacaoId { get; set; }
@@ -31,5 +33,9 @@ namespace WebZi.Plataform.Domain.DTO.GRV.Pesquisa
         public string? Cliente { get; set; }
 
         public string? Deposito { get; set; }
+
+        public string? DescricaoObjeto { get; set; }
+
+        public string? FlagObjetoApreendido { get; set; }
     }
 }

@@ -22,7 +22,8 @@ namespace WebZi.Plataform.API.Controllers
         [HttpPost("ConsultarVeiculoApreensao")]
         // TODO: [Authorize]
         [IgnoreAntiforgeryToken]
-        public async Task<ActionResult<ResultViewModel>> ConsultarVeiculoApreensao([FromBody] AutorizarRetiradaModel AutorizarRetirada)
+        public async Task<ActionResult<ResultViewModel>> ConsultarVeiculoApreensao(
+            [FromBody] AutorizarRetiradaModel AutorizarRetirada)
         {
             ResultViewModel ResultView = new();
 

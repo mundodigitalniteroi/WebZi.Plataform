@@ -48,7 +48,8 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("ListarClientes")]
         // TODO: [Authorize]
-        public async Task<ActionResult<ClienteVincularAUsuarioListDTO>> ListarClientes(byte? skip, byte? take, CancellationToken ct)
+        public async Task<ActionResult<ClienteVincularAUsuarioListDTO>> ListarClientes(byte? skip, byte? take,
+            CancellationToken ct)
         {
             if (!ModelState.IsValid)
             {

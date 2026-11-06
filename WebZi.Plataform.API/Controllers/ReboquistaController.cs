@@ -21,7 +21,8 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpGet("ListarReboquista")]
-        public async Task<ActionResult<ReboquistaListDTO>> ListarReboquista(int IdentificadorCliente, int IdentificadorDeposito)
+        public async Task<ActionResult<ReboquistaListDTO>> ListarReboquista(int IdentificadorCliente,
+            int IdentificadorDeposito)
         {
             if (!ModelState.IsValid)
             {
@@ -45,8 +46,10 @@ namespace WebZi.Plataform.API.Controllers
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
         }
+
         [HttpGet("SelecionarReboquistaPorIdentificador")]
-        public async Task<ActionResult<ReboquistaListDTO>> SelecionarReboquistaPorIdentificador(int IdentificadorReboquista)
+        public async Task<ActionResult<ReboquistaListDTO>> SelecionarReboquistaPorIdentificador(
+            int IdentificadorReboquista)
         {
             if (!ModelState.IsValid)
             {
@@ -96,6 +99,7 @@ namespace WebZi.Plataform.API.Controllers
                 return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
             }
         }
+
         [HttpPut("Atualizar")]
         public async Task<ActionResult<MensagemDTO>> Atualizar(AtualizarReboquistaParameters parameters)
         {
