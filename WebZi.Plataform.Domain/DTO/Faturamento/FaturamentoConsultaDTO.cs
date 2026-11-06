@@ -38,6 +38,9 @@ namespace WebZi.Plataform.Domain.DTO.Faturamento
         public string? StatusOperacaoId { get; set; }
         public string? StatusOperacaoDescricao { get; set; }
 
+        public string? FlagObjetoApreendido { get; set; }
+        public string? DescricaoObjeto { get; set; }
+
         public int? TipoMeioCobrancaId { get; set; }
         public List<NFERetornoFaturamentoDTO?>? NotaFiscal { get; set; }
         public AtendimentoDTO? Atendimento { get; set; }
@@ -70,9 +73,12 @@ namespace WebZi.Plataform.Domain.DTO.Faturamento
         public DateTime? DataHoraGuarda { get; set; }
         public string StatusOperacaoId { get; set; }
         public string StatusOperacaoDescricao { get; set; }
+        public string FlagObjetoApreendido { get; set; }
+        public string? DescricaoObjeto { get; set; }
+
         public ClienteConsultaDados Cliente { get; set; }
         public DepositoConsultaDados Deposito { get; set; }
-        public VeiculoConsultaInfo Veiculo { get; set; }
+        public VeiculoConsultaInfo? Veiculo { get; set; }
     }
 
     public class ClienteConsultaDados

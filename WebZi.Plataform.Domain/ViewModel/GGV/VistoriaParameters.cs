@@ -36,7 +36,7 @@ namespace WebZi.Plataform.Domain.ViewModel.GGV
         [Required(ErrorMessage = "Propriedade obrigatória")]
         public byte IdentificadorSituacaoChassi { get; set; }
 
-        public int IdentificadorTipoDirecao { get; set; }
+        public string IdentificadorTipoDirecao { get; set; }
 
         [Required(ErrorMessage = "Propriedade obrigatória")]
         public int IdentificadorEstadoGeralVeiculo { get; set; }

@@ -121,7 +121,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 .FirstOrDefaultAsync(x => x.UsuarioId == AtendimentoCadastro.IdentificadorUsuario,
                     cancellationToken: ct);
 
-            if (!new[] { "B", "D", "V", "L", "E", "1", "2", "3", "4", "7" }.Contains(Grv.StatusOperacaoId))
+            if (!new[] { "B", "D", "V", "H", "L", "E", "1", "2", "3", "4", "7" }.Contains(Grv.StatusOperacaoId))
             {
                 return MensagemViewHelper.SetBadRequest(
                     $"O Status atual deste Processo não permite o cadastro do Atendimento. " +
@@ -1116,11 +1116,12 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
                     ResultView.IdentificadorAtendimento = Atendimento.AtendimentoId;
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     await transaction.RollbackAsync(ct);
 
-                    ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+                    ResultView.Mensagem =
+                        MensagemViewHelper.SetInternalServerError("Ocorreu um erro ao cadastrar atendimento");
 
                     return ResultView;
                 }
@@ -1641,7 +1642,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 return MensagemViewHelper.SetNotFound(MensagemPadraoEnum.NaoEncontradoGrv);
             }
 
-            if (new[] { "M", "P", "G", "V", "1", "3", "7" }.Contains(Grv.StatusOperacaoId))
+            if (new[] { "M", "P", "G", "V", "O", "H", "1", "3", "7" }.Contains(Grv.StatusOperacaoId))
             {
                 return MensagemViewHelper.SetBadRequest(
                     $"O Status atual deste Processo não permite a exclusão. Status atual: {Grv.StatusOperacao.Descricao}");

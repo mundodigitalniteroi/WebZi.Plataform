@@ -21,6 +21,8 @@ namespace WebZi.Plataform.Domain.Models.Veiculo
         public string FlagNaoRequerCnhNaLiberacao { get; set; } = "N";
 
         public string FlagAtivo { get; set; } = "S";
+        
+        public string FlagObjeto { get; set; } = "N";
 
         public virtual UsuarioModel UsuarioCadastro { get; set; }
 

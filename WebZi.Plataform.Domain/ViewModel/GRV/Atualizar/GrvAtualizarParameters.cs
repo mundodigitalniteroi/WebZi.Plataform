@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using WebZi.Plataform.Domain.ViewModel.GGV;
 
 namespace WebZi.Plataform.Domain.ViewModel.GRV.Cadastro
@@ -11,6 +11,7 @@ namespace WebZi.Plataform.Domain.ViewModel.GRV.Cadastro
 
         [Required(ErrorMessage = "Propriedade obrigatória")]
         public int IdentificadorGrv { get; set; }
+
         [Required(ErrorMessage = "Propriedade obrigatória")]
         public int IdentificadorCliente { get; set; }
 
@@ -39,82 +40,58 @@ namespace WebZi.Plataform.Domain.ViewModel.GRV.Cadastro
         [StringLength(3, MinimumLength = 3)]
         public string CodigoProduto { get; set; }
 
-        [MaxLength(30)]
-        public string MatriculaAutoridadeResponsavel { get; set; }
+        [MaxLength(30)] public string MatriculaAutoridadeResponsavel { get; set; }
 
-        [MaxLength(150)]
-        public string NomeAutoridadeResponsavel { get; set; }
+        [MaxLength(150)] public string NomeAutoridadeResponsavel { get; set; }
 
-        [MaxLength(7)]
-        public string Placa { get; set; }
+        [MaxLength(7)] public string Placa { get; set; }
 
-        [MaxLength(24)]
-        public string Chassi { get; set; }
+        [MaxLength(24)] public string Chassi { get; set; }
 
-        [MaxLength(15)]
-        public string Renavam { get; set; }
+        [MaxLength(15)] public string Renavam { get; set; }
 
-        [MaxLength(100)]
-        public string Rfid { get; set; }
+        [MaxLength(100)] public string Rfid { get; set; }
 
-        [StringLength(8, MinimumLength = 8)]
-        public string EnderecoLocalizacaoVeiculoCEP { get; set; }
+        [StringLength(8, MinimumLength = 8)] public string EnderecoLocalizacaoVeiculoCEP { get; set; }
 
-        [MaxLength(150)]
-        public string EnderecoLocalizacaoVeiculoLogradouro { get; set; }
+        [MaxLength(150)] public string EnderecoLocalizacaoVeiculoLogradouro { get; set; }
 
-        [MaxLength(15)]
-        public string EnderecoLocalizacaoVeiculoNumero { get; set; }
+        [MaxLength(15)] public string EnderecoLocalizacaoVeiculoNumero { get; set; }
 
-        [MaxLength(50)]
-        public string EnderecoLocalizacaoVeiculoComplemento { get; set; }
+        [MaxLength(50)] public string EnderecoLocalizacaoVeiculoComplemento { get; set; }
 
-        [MaxLength(150)]
-        public string EnderecoLocalizacaoVeiculoBairro { get; set; }
+        [MaxLength(150)] public string EnderecoLocalizacaoVeiculoBairro { get; set; }
 
-        [MaxLength(75)]
-        public string EnderecoLocalizacaoVeiculoMunicipio { get; set; }
+        [MaxLength(75)] public string EnderecoLocalizacaoVeiculoMunicipio { get; set; }
 
-        [MaxLength(2)]
-        public string EnderecoLocalizacaoVeiculoUF { get; set; }
+        [MaxLength(2)] public string EnderecoLocalizacaoVeiculoUF { get; set; }
 
-        [MaxLength(30)]
-        public string EnderecoLocalizacaoVeiculoReferencia { get; set; }
+        [MaxLength(30)] public string EnderecoLocalizacaoVeiculoReferencia { get; set; }
 
-        [MaxLength(30)]
-        public string EnderecoLocalizacaoVeiculoPontoReferencia { get; set; }
+        [MaxLength(30)] public string EnderecoLocalizacaoVeiculoPontoReferencia { get; set; }
 
-        [MaxLength(10)]
-        public string NumeroChave { get; set; }
+        [MaxLength(10)] public string NumeroChave { get; set; }
 
-        [MaxLength(35)]
-        public string EstacionamentoSetor { get; set; }
+        [MaxLength(35)] public string EstacionamentoSetor { get; set; }
 
-        [MaxLength(10)]
-        public string EstacionamentoNumeroVaga { get; set; }
+        [MaxLength(10)] public string EstacionamentoNumeroVaga { get; set; }
 
-        [MaxLength(15)]
-        public string Latitude { get; set; }
+        [MaxLength(15)] public string Latitude { get; set; }
 
-        [MaxLength(15)]
-        public string Longitude { get; set; }
+        [MaxLength(15)] public string Longitude { get; set; }
 
-        [MaxLength(2)]
-        public string VeiculoUF { get; set; }
+        [MaxLength(2)] public string VeiculoUF { get; set; }
 
         [Required(ErrorMessage = "Propriedade obrigatória")]
         public DateTime DataHoraRemocao { get; set; }
 
-        [MaxLength(15)]
-        public string LatitudeAcautelamento { get; set; }
+        [MaxLength(15)] public string LatitudeAcautelamento { get; set; }
 
-        [MaxLength(15)]
-        public string LongitudeAcautelamento { get; set; }
+        [MaxLength(15)] public string LongitudeAcautelamento { get; set; }
 
         public decimal? DistanciaAteAcautelamento { get; set; }
 
-        [MaxLength(20)]
-        public string CodigoIdentificacaoCliente { get; set; }
+        [MaxLength(20)] public string CodigoIdentificacaoCliente { get; set; }
 
         [Required(ErrorMessage = "Propriedade obrigatória")]
         [RegularExpression("S|N", ErrorMessage = "Valor da Flag inválido, informe S ou N")]
@@ -156,5 +133,10 @@ namespace WebZi.Plataform.Domain.ViewModel.GRV.Cadastro
         public byte[] ImagemAssinaturaAgente { get; set; }
 
         public byte[] ImagemAssinaturaCondutor { get; set; }
+
+        [RegularExpression("S|N", ErrorMessage = "Valor da Flag inválido, informe S ou N")]
+        public string? FlagRecolhimentoDeObjeto { get; set; }
+
+        public string? DescricaoObjeto { get; set; }
     }
 }

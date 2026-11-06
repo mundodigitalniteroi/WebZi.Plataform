@@ -43,7 +43,9 @@ namespace WebZi.Plataform.Data.Services.GGV
         private readonly IMapper _mapper;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IServiceProvider _provider;
-        private static readonly System.Text.RegularExpressions.Regex _regex = new System.Text.RegularExpressions.Regex(@"[\p{Mn}\s]+");
+
+        private static readonly System.Text.RegularExpressions.Regex _regex =
+            new System.Text.RegularExpressions.Regex(@"[\p{Mn}\s]+");
 
         public GgvService(AppDbContext context, IMapper mapper, IHttpClientFactory httpClientFactory,
             IServiceProvider provider)
@@ -56,7 +58,7 @@ namespace WebZi.Plataform.Data.Services.GGV
 
         public async Task<MensagemDTO> UpdateGgvAsync(GgvParameters GgvPersistencia, CancellationToken ct)
         {
-            MensagemDTO ResultView = await ValidarInformacoesPersistenciaAsync(GgvPersistencia, true);
+            MensagemDTO ResultView = await ValidarInformacoesPersistenciaAsync(GgvPersistencia, true, ct);
 
             if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
             {
@@ -74,14 +76,32 @@ namespace WebZi.Plataform.Data.Services.GGV
             DateTime DataHoraPorDeposito = new DepositoService(_context)
                 .GetDataHoraPorDeposito(Grv.DepositoId);
 
+            var isObjeto = GgvPersistencia.FlagRecolhimentoDeObjeto == "S" ||
+                           Grv.MotivoApreensaoId == 8 ||
+                           Grv.StatusOperacaoId == "O" ||
+                           Grv.StatusOperacaoId == "H" ||
+                           !string.IsNullOrWhiteSpace(Grv.DescricaoObjeto);
+
             Grv.UsuarioCadastroGgvId = GgvPersistencia.IdentificadorUsuario;
             Grv.DataAlteracao = DataHoraPorDeposito;
             Grv.DataHoraGuarda = GgvPersistencia.DataHoraGuarda;
-            Grv.FlagChaveDeposito = GgvPersistencia.FlagChaveDeposito;
 
-            if (GgvPersistencia.FlagChaveDeposito == "S")
+            if (!isObjeto)
             {
-                Grv.NumeroChave = GgvPersistencia.NumeroChave;
+                Grv.FlagChaveDeposito = GgvPersistencia.FlagChaveDeposito;
+                if (GgvPersistencia.FlagChaveDeposito == "S")
+                {
+                    Grv.NumeroChave = GgvPersistencia.NumeroChave;
+                }
+                else
+                {
+                    Grv.NumeroChave = null;
+                }
+            }
+            else
+            {
+                Grv.FlagChaveDeposito = "N";
+                Grv.NumeroChave = null;
             }
 
             Grv.EstacionamentoSetor = GgvPersistencia.EstacionamentoSetor;
@@ -125,13 +145,15 @@ namespace WebZi.Plataform.Data.Services.GGV
 
                     Vistoria.MotivoNaoRealizacaoVistoria = null;
 
-                    Vistoria.FlagPossuiRestricoes = GgvPersistencia.Vistoria.FlagPossuiRestricoes;
+                    Vistoria.FlagPossuiRestricoes = isObjeto ? "N" : GgvPersistencia.Vistoria.FlagPossuiRestricoes;
 
-                    Vistoria.FlagPossuiVidroEletrico = GgvPersistencia.Vistoria.FlagPossuiVidroEletrico;
+                    Vistoria.FlagPossuiVidroEletrico =
+                        isObjeto ? "N" : GgvPersistencia.Vistoria.FlagPossuiVidroEletrico;
 
-                    Vistoria.FlagPossuiTravaEletrica = GgvPersistencia.Vistoria.FlagPossuiTravaEletrica;
+                    Vistoria.FlagPossuiTravaEletrica =
+                        isObjeto ? "N" : GgvPersistencia.Vistoria.FlagPossuiTravaEletrica;
 
-                    Vistoria.FlagPossuiPlaca = GgvPersistencia.Vistoria.FlagPossuiPlaca;
+                    Vistoria.FlagPossuiPlaca = isObjeto ? "N" : GgvPersistencia.Vistoria.FlagPossuiPlaca;
 
                     Vistoria.EmpresaVistoriaId = GgvPersistencia.Vistoria.IdentificadorEmpresaVistoria;
 
@@ -139,7 +161,8 @@ namespace WebZi.Plataform.Data.Services.GGV
 
                     Vistoria.NomeVistoriador = GgvPersistencia.Vistoria.NomeVistoriador.ToUpperTrim().ToNullIfEmpty();
 
-                    Vistoria.NumeroMotor = GgvPersistencia.Vistoria.NumeroMotor.ToUpperTrim().ToNullIfEmpty();
+                    Vistoria.NumeroMotor =
+                        isObjeto ? null : GgvPersistencia.Vistoria.NumeroMotor.ToUpperTrim().ToNullIfEmpty();
 
                     Vistoria.DataVistoria = GgvPersistencia.Vistoria.DataVistoria;
 
@@ -152,7 +175,9 @@ namespace WebZi.Plataform.Data.Services.GGV
                             cancellationToken: ct))?
                         .VistoriaStatusId;
 
-                    Vistoria.VistoriaSituacaoChassiId = (await _context.VistoriaSituacaoChassi
+                    Vistoria.VistoriaSituacaoChassiId = isObjeto
+                        ? null
+                        : (await _context.VistoriaSituacaoChassi
                             .AsNoTracking()
                             .FirstOrDefaultAsync(x =>
                                     x.VistoriaSituacaoChassiId == GgvPersistencia.Vistoria.IdentificadorSituacaoChassi,
@@ -160,20 +185,25 @@ namespace WebZi.Plataform.Data.Services.GGV
                         .VistoriaSituacaoChassiId;
 
                     // VISTORIA_TIPO_DIRECAO
-                    Vistoria.TipoDirecao =
-                        await TabelaGenericaService.GetValorCadastroAsync(GgvPersistencia.Vistoria
-                            .IdentificadorTipoDirecao);
+                    Vistoria.TipoDirecao = isObjeto
+                        ? null
+                        : GgvPersistencia.Vistoria.IdentificadorTipoDirecao;
 
                     // VISTORIA_ESTADO_GERAL_VEICULO
                     Vistoria.EstadoGeralVeiculo =
                         await TabelaGenericaService.GetValorCadastroAsync(GgvPersistencia.Vistoria
                             .IdentificadorEstadoGeralVeiculo);
 
-                    if (GgvPersistencia.Vistoria.FlagPossuiPlaca == "S")
+                    if (!isObjeto && GgvPersistencia.Vistoria.FlagPossuiPlaca == "S")
                     {
                         Grv.PlacaOstentada = GgvPersistencia.Vistoria.PlacaOstentada;
 
                         Grv.CorOstentadaId = GgvPersistencia.Vistoria.IdentificadorCorOstentada;
+                    }
+                    else if (isObjeto)
+                    {
+                        Grv.PlacaOstentada = null;
+                        Grv.CorOstentadaId = null;
                     }
                 }
 
@@ -275,6 +305,7 @@ namespace WebZi.Plataform.Data.Services.GGV
                     }
                 }
             }
+
             if (Grv.ClienteId == 61 || Grv.Cliente.FlagClientePossuiCodigoIdentificacao == "S")
             {
                 var codigoExistente =
@@ -370,7 +401,7 @@ namespace WebZi.Plataform.Data.Services.GGV
 
         public async Task<MensagemDTO> CreateGgvAsync(GgvParameters GgvPersistencia, CancellationToken ct)
         {
-            MensagemDTO ResultView = await ValidarInformacoesPersistenciaAsync(GgvPersistencia, false);
+            MensagemDTO ResultView = await ValidarInformacoesPersistenciaAsync(GgvPersistencia, false, ct);
 
             if (ResultView.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
             {
@@ -391,16 +422,33 @@ namespace WebZi.Plataform.Data.Services.GGV
 
             DateTime DataHoraPorDeposito = new DepositoService(_context)
                 .GetDataHoraPorDeposito(Grv.DepositoId);
+            var isObjeto = GgvPersistencia.FlagRecolhimentoDeObjeto == "S" ||
+                           Grv.MotivoApreensaoId == 8 ||
+                           Grv.StatusOperacaoId == "O" ||
+                           Grv.StatusOperacaoId == "H" ||
+                           !string.IsNullOrWhiteSpace(Grv.DescricaoObjeto);
 
-            Grv.StatusOperacaoId = "V";
+            Grv.StatusOperacaoId = isObjeto ? "H" : "V";
             Grv.UsuarioCadastroGgvId = GgvPersistencia.IdentificadorUsuario;
             Grv.DataAlteracao = DataHoraPorDeposito;
             Grv.DataHoraGuarda = GgvPersistencia.DataHoraGuarda;
-            Grv.FlagChaveDeposito = GgvPersistencia.FlagChaveDeposito;
 
-            if (GgvPersistencia.FlagChaveDeposito == "S")
+            if (!isObjeto)
             {
-                Grv.NumeroChave = GgvPersistencia.NumeroChave;
+                Grv.FlagChaveDeposito = GgvPersistencia.FlagChaveDeposito;
+                if (GgvPersistencia.FlagChaveDeposito == "S")
+                {
+                    Grv.NumeroChave = GgvPersistencia.NumeroChave;
+                }
+                else
+                {
+                    Grv.NumeroChave = null;
+                }
+            }
+            else
+            {
+                Grv.FlagChaveDeposito = "N";
+                Grv.NumeroChave = null;
             }
 
             Grv.EstacionamentoSetor = GgvPersistencia.EstacionamentoSetor;
@@ -528,13 +576,15 @@ namespace WebZi.Plataform.Data.Services.GGV
 
                     Vistoria.MotivoNaoRealizacaoVistoria = null;
 
-                    Vistoria.FlagPossuiRestricoes = GgvPersistencia.Vistoria.FlagPossuiRestricoes;
+                    Vistoria.FlagPossuiRestricoes = isObjeto ? "N" : GgvPersistencia.Vistoria.FlagPossuiRestricoes;
 
-                    Vistoria.FlagPossuiVidroEletrico = GgvPersistencia.Vistoria.FlagPossuiVidroEletrico;
+                    Vistoria.FlagPossuiVidroEletrico =
+                        isObjeto ? "N" : GgvPersistencia.Vistoria.FlagPossuiVidroEletrico;
 
-                    Vistoria.FlagPossuiTravaEletrica = GgvPersistencia.Vistoria.FlagPossuiTravaEletrica;
+                    Vistoria.FlagPossuiTravaEletrica =
+                        isObjeto ? "N" : GgvPersistencia.Vistoria.FlagPossuiTravaEletrica;
 
-                    Vistoria.FlagPossuiPlaca = GgvPersistencia.Vistoria.FlagPossuiPlaca;
+                    Vistoria.FlagPossuiPlaca = isObjeto ? "N" : GgvPersistencia.Vistoria.FlagPossuiPlaca;
 
                     Vistoria.EmpresaVistoriaId = GgvPersistencia.Vistoria.IdentificadorEmpresaVistoria;
 
@@ -542,7 +592,8 @@ namespace WebZi.Plataform.Data.Services.GGV
 
                     Vistoria.NomeVistoriador = GgvPersistencia.Vistoria.NomeVistoriador.ToUpperTrim().ToNullIfEmpty();
 
-                    Vistoria.NumeroMotor = GgvPersistencia.Vistoria.NumeroMotor.ToUpperTrim().ToNullIfEmpty();
+                    Vistoria.NumeroMotor =
+                        isObjeto ? null : GgvPersistencia.Vistoria.NumeroMotor.ToUpperTrim().ToNullIfEmpty();
 
                     Vistoria.DataVistoria = GgvPersistencia.Vistoria.DataVistoria;
 
@@ -555,28 +606,34 @@ namespace WebZi.Plataform.Data.Services.GGV
                                 cancellationToken: ct))?
                         .VistoriaStatusId;
 
-                    Vistoria.VistoriaSituacaoChassiId = (await _context.VistoriaSituacaoChassi
+                    Vistoria.VistoriaSituacaoChassiId = isObjeto
+                        ? null
+                        : (await _context.VistoriaSituacaoChassi
                             .AsNoTracking()
                             .FirstOrDefaultAsync(x =>
                                     x.VistoriaSituacaoChassiId == GgvPersistencia.Vistoria.IdentificadorSituacaoChassi,
                                 cancellationToken: ct))?
                         .VistoriaSituacaoChassiId;
-
                     // VISTORIA_TIPO_DIRECAO
-                    Vistoria.TipoDirecao =
-                        await TabelaGenericaService.GetValorCadastroAsync(GgvPersistencia.Vistoria
-                            .IdentificadorTipoDirecao);
+                    Vistoria.TipoDirecao = isObjeto
+                        ? null
+                        : GgvPersistencia.Vistoria.IdentificadorTipoDirecao;
 
                     // VISTORIA_ESTADO_GERAL_VEICULO
                     Vistoria.EstadoGeralVeiculo =
                         await TabelaGenericaService.GetValorCadastroAsync(GgvPersistencia.Vistoria
                             .IdentificadorEstadoGeralVeiculo);
 
-                    if (GgvPersistencia.Vistoria.FlagPossuiPlaca == "S")
+                    if (!isObjeto && GgvPersistencia.Vistoria.FlagPossuiPlaca == "S")
                     {
                         Grv.PlacaOstentada = GgvPersistencia.Vistoria.PlacaOstentada;
 
                         Grv.CorOstentadaId = GgvPersistencia.Vistoria.IdentificadorCorOstentada;
+                    }
+                    else if (isObjeto)
+                    {
+                        Grv.PlacaOstentada = null;
+                        Grv.CorOstentadaId = null;
                     }
                 }
 
@@ -679,7 +736,7 @@ namespace WebZi.Plataform.Data.Services.GGV
                 }
             }
 
-            if (Grv.ClienteId == ClienteTransalvadorId)
+            if (!isObjeto && Grv.ClienteId == ClienteTransalvadorId)
             {
                 MensagemDTO transalvadorResult = await RegistrarEntradaTransalvadorAsync(Grv, ct);
 
@@ -1164,12 +1221,15 @@ namespace WebZi.Plataform.Data.Services.GGV
                 return ResultView;
             }
 
-            return await new BucketService(_context, _httpClientFactory)
+            var grv = await new BucketService(_context, _httpClientFactory)
+                .DownloadFileAsync(BucketNomeTabelaOrigemEnum.FotoVeiculoGRV, GrvId);
+            var ggv = await new BucketService(_context, _httpClientFactory)
                 .DownloadFileAsync(BucketNomeTabelaOrigemEnum.FotoVeiculoGGV, GrvId);
+            return ggv.Listagem.Count < 1 ? grv : ggv;
         }
 
         public async Task<MensagemDTO> ValidarInformacoesPersistenciaAsync(GgvParameters GgvPersistencia,
-            bool IsUpdatating)
+            bool IsUpdatating, CancellationToken ct)
         {
             if (GgvPersistencia == null)
             {
@@ -1190,11 +1250,18 @@ namespace WebZi.Plataform.Data.Services.GGV
                 .Include(x => x.StatusOperacao)
                 .Include(x => x.Deposito)
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.GrvId == GgvPersistencia.IdentificadorProcesso);
+                .FirstOrDefaultAsync(x => x.GrvId == GgvPersistencia.IdentificadorProcesso, cancellationToken: ct);
 
-            if (Grv.StatusOperacao.StatusOperacaoId != "G" && Grv.StatusOperacao.StatusOperacaoId != "V")
+            bool isObjeto = GgvPersistencia.FlagRecolhimentoDeObjeto == "S" ||
+                            Grv.MotivoApreensaoId == 8 ||
+                            Grv.StatusOperacaoId == "O" ||
+                            Grv.StatusOperacaoId == "H" ||
+                            !string.IsNullOrWhiteSpace(Grv.DescricaoObjeto);
+
+            var statusPermitidos = isObjeto ? new[] { "O", "H" } : new[] { "G", "V" };
+            if (!statusPermitidos.Contains(Grv.StatusOperacao.StatusOperacaoId))
             {
-                erros.Add($"O Status do Processo não está apto para o cadastro do GGV. " +
+                erros.Add($"O Status do Processo não está apto para o cadastro do {(isObjeto ? "GGO" : "GGV")}. " +
                           $"Status atual: {Grv.StatusOperacao.Descricao.ToUpper()}");
             }
 
@@ -1240,7 +1307,8 @@ namespace WebZi.Plataform.Data.Services.GGV
                 }
             }
 
-            if (GgvPersistencia.FlagChaveDeposito == "S" && string.IsNullOrWhiteSpace(GgvPersistencia.NumeroChave))
+            if (!isObjeto && GgvPersistencia.FlagChaveDeposito == "S" &&
+                string.IsNullOrWhiteSpace(GgvPersistencia.NumeroChave))
             {
                 erros.Add("Informe o Número da Chave do Veículo");
             }
@@ -1351,24 +1419,38 @@ namespace WebZi.Plataform.Data.Services.GGV
                         }
                     }
 
-                    if (await _context.VistoriaSituacaoChassi
-                            .AsNoTracking()
-                            .FirstOrDefaultAsync(x =>
-                                x.VistoriaSituacaoChassiId == GgvPersistencia.Vistoria.IdentificadorSituacaoChassi) ==
-                        null)
+                    if (!isObjeto)
                     {
-                        erros.Add("Identificador da Situação do Chassi inexistente");
-                    }
-
-                    if (GgvPersistencia.Vistoria.IdentificadorTipoDirecao > 0)
-                    {
-                        if (await _context.TabelaGenerica
+                        if (await _context.VistoriaSituacaoChassi
                                 .AsNoTracking()
-                                .FirstOrDefaultAsync(x => x.Codigo == "VISTORIA_TIPO_DIRECAO"
-                                                          && x.TabelaGenericaId == GgvPersistencia.Vistoria
-                                                              .IdentificadorTipoDirecao) == null)
+                                .FirstOrDefaultAsync(x =>
+                                    x.VistoriaSituacaoChassiId ==
+                                    GgvPersistencia.Vistoria.IdentificadorSituacaoChassi) ==
+                            null)
                         {
-                            erros.Add("Identificador do Tipo de Direção inexistente");
+                            erros.Add("Identificador da Situação do Chassi inexistente");
+                        }
+
+                        if (!string.IsNullOrWhiteSpace(GgvPersistencia.Vistoria.IdentificadorTipoDirecao))
+                        {
+                            var existeTipoDirecao = await _context.TabelaGenerica
+                                                        .AsNoTracking()
+                                                        .AnyAsync(x => x.Codigo == "VISTORIA_TIPO_DIRECAO" &&
+                                                                       (x.ValorCadastro == GgvPersistencia.Vistoria
+                                                                            .IdentificadorTipoDirecao ||
+                                                                        x.TabelaGenericaId.ToString() ==
+                                                                        GgvPersistencia.Vistoria
+                                                                            .IdentificadorTipoDirecao), ct)
+                                                    || await _context.Vistoria
+                                                        .AsNoTracking()
+                                                        .AnyAsync(
+                                                            x => x.TipoDirecao == GgvPersistencia.Vistoria
+                                                                .IdentificadorTipoDirecao, ct);
+
+                            if (!existeTipoDirecao)
+                            {
+                                erros.Add("Identificador do Tipo de Direção inexistente");
+                            }
                         }
                     }
 
@@ -1386,7 +1468,7 @@ namespace WebZi.Plataform.Data.Services.GGV
                         erros.Add("A Data da Vistoria não pode ser maior do que a Data Atual");
                     }
 
-                    if (GgvPersistencia.Vistoria.FlagPossuiPlaca == "S")
+                    if (!isObjeto && GgvPersistencia.Vistoria.FlagPossuiPlaca == "S")
                     {
                         if (string.IsNullOrWhiteSpace(GgvPersistencia.Vistoria.PlacaOstentada))
                         {
@@ -1675,18 +1757,21 @@ namespace WebZi.Plataform.Data.Services.GGV
         private async Task<MensagemDTO> RegistrarEntradaTransalvadorAsync(GrvModel grv, CancellationToken ct)
         {
             var sistemaExternoId = await _context.Deposito
-            .AsNoTracking()
-            .Where(x => x.DepositoId == grv.DepositoId)
-            .Select(x => x.SistemaExternoId)
-            .FirstOrDefaultAsync(ct);
+                .AsNoTracking()
+                .Where(x => x.DepositoId == grv.DepositoId)
+                .Select(x => x.SistemaExternoId)
+                .FirstOrDefaultAsync(ct);
             if (!sistemaExternoId.HasValue || sistemaExternoId.Value <= 0)
             {
                 return MensagemViewHelper.SetBadRequest(
                     "pátio no sistema externo inválido ou não encontrado para o cliente.");
             }
+
             int idPatio = sistemaExternoId.Value;
 
-            var motivoApreenssao = _regex.Replace(grv.MotivoApreensao?.Descricao?.Normalize(System.Text.NormalizationForm.FormD) ?? string.Empty, "").ToUpper();
+            var motivoApreenssao = _regex
+                .Replace(grv.MotivoApreensao?.Descricao?.Normalize(System.Text.NormalizationForm.FormD) ?? string.Empty,
+                    "").ToUpper();
 
             string codigoInfracao = null;
             if (grv.MotivoApreensaoId == 1)

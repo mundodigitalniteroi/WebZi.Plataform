@@ -45,6 +45,10 @@ namespace WebZi.Plataform.Domain.DTO.Report
 
         public string VeiculoCor { get; set; }
 
+        public string? DescricaoObjeto { get; set; }
+
+        public string? FlagObjeto { get; set; }
+
         public string MotivoSaida { get; set; }
 
         public string DataSaida { get; set; }

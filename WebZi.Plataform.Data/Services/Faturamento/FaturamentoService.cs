@@ -528,7 +528,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 if (FaturamentoServicosGrvs?.Count == 0)
                 {
                     string tipoVeiculo = ObterDescricaoTipoVeiculo(ParametrosCalculoFaturamento.TipoVeiculoId);
-                    throw new Exception($"Não foi encontrado Serviço associado a este Processo para o tipo de veículo: {tipoVeiculo}");
+                    throw new Exception(
+                        $"Não foi encontrado Serviço associado a este Processo para o tipo de veículo: {tipoVeiculo}");
                 }
             }
 
@@ -908,7 +909,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             if (FaturamentoComposicoes.Count == 0)
             {
                 string tipoVeiculo = ObterDescricaoTipoVeiculo(ParametrosCalculoFaturamento.TipoVeiculoId);
-                throw new Exception($"Não foi possível compor nenhum serviço de faturamento para o tipo de veículo: {tipoVeiculo}");
+                throw new Exception(
+                    $"Não foi possível compor nenhum serviço de faturamento para o tipo de veículo: {tipoVeiculo}");
             }
 
             #endregion Composição do Faturamento
@@ -1319,13 +1321,17 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 else
                 {
                     string tipoVeiculo = ObterDescricaoTipoVeiculo(Grv.TipoVeiculoId);
-                    ResultView.Mensagem = MensagemViewHelper.SetNotFound($"Nenhum serviço associado ativo para o tipo de veículo: {tipoVeiculo}");
+                    ResultView.Mensagem =
+                        MensagemViewHelper.SetNotFound(
+                            $"Nenhum serviço associado ativo para o tipo de veículo: {tipoVeiculo}");
                 }
             }
             else
             {
                 string tipoVeiculo = ObterDescricaoTipoVeiculo(Grv.TipoVeiculoId);
-                ResultView.Mensagem = MensagemViewHelper.SetNotFound($"Nenhum serviço associado encontrado para o tipo de veículo: {tipoVeiculo}");
+                ResultView.Mensagem =
+                    MensagemViewHelper.SetNotFound(
+                        $"Nenhum serviço associado encontrado para o tipo de veículo: {tipoVeiculo}");
             }
 
             return ResultView;
@@ -1400,7 +1406,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             {
                 var grv = await _context.Grv.AsNoTracking().FirstOrDefaultAsync(x => x.GrvId == GrvId, ct);
                 string tipoVeiculo = grv != null ? ObterDescricaoTipoVeiculo(grv.TipoVeiculoId) : "Não informado";
-                ResultView.Mensagem = MensagemViewHelper.SetNotFound($"Nenhum serviço registrado para o tipo de veículo: {tipoVeiculo}");
+                ResultView.Mensagem =
+                    MensagemViewHelper.SetNotFound($"Nenhum serviço registrado para o tipo de veículo: {tipoVeiculo}");
                 return ResultView;
             }
 
@@ -1465,9 +1472,9 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 return ResultView;
             }
 
-            if (!new[] { "V", "1", "3", "7" }.Contains(Grv.StatusOperacaoId))
+            if (!new[] { "V", "G", "O", "H", "1", "3", "7" }.Contains(Grv.StatusOperacaoId))
             {
-                string descricaoStatus = Grv.StatusOperacao?.Descricao?.ToUpper();
+                var descricaoStatus = Grv.StatusOperacao?.Descricao?.ToUpper();
                 ResultView.Mensagem = MensagemViewHelper.SetBadRequest(
                     $"O Status atual deste Processo não permite a execução da Simulação. " +
                     $"Descrição do Status atual: {descricaoStatus}");
@@ -1633,7 +1640,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
                 IsComboio = model.IsComboio,
 
-                StatusOperacaoId = "V",
+                StatusOperacaoId = (Grv.StatusOperacaoId == "O" || Grv.StatusOperacaoId == "H" || !string.IsNullOrWhiteSpace(Grv.DescricaoObjeto)) ? "H" : "V",
 
                 IsLeilaoStatus = new[] { "1", "3", "7" }.Contains(Grv.StatusOperacaoId),
 
@@ -1763,6 +1770,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             ResultView.NumeroProcesso = Grv.NumeroFormularioGrv;
             ResultView.StatusOperacaoId = Grv.StatusOperacaoId;
+            ResultView.StatusOperacaoDescricao = Grv.StatusOperacao?.Descricao;
 
             ResultView.DataHoraRemocao = Grv.DataHoraRemocao;
 
@@ -1775,7 +1783,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             ResultView.QuantidadeDiarias = CalculoDiarias.Diarias;
 
             ResultView.IdentificadorAtendimento = Grv.Atendimento != null ? Grv.Atendimento.AtendimentoId : 0;
-
+            ResultView.DescricaoObjeto = Grv.DescricaoObjeto;
+            ResultView.FlagObjetoApreendido = (!string.IsNullOrWhiteSpace(Grv.DescricaoObjeto) || Grv.StatusOperacaoId == "O" || Grv.StatusOperacaoId == "H") ? "S" : "N";
             EnderecoService Endereco = new();
 
             ResultView.Cliente = new()
@@ -2136,11 +2145,14 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 {
                     veiculoDTO.Cor = veiculoInfo.Cor;
                 }
+
                 if (veiculoDTO.MarcaModelo == null && veiculoInfo.MarcaModelo != null)
                 {
                     veiculoDTO.MarcaModelo = veiculoInfo.MarcaModelo;
                 }
-                if ((veiculoDTO.TipoVeiculo == null || veiculoDTO.TipoVeiculo.IdentificadorTipoVeiculo <= 0) && veiculoInfo.TipoVeiculo != null)
+
+                if ((veiculoDTO.TipoVeiculo == null || veiculoDTO.TipoVeiculo.IdentificadorTipoVeiculo <= 0) &&
+                    veiculoInfo.TipoVeiculo != null)
                 {
                     veiculoDTO.TipoVeiculo = veiculoInfo.TipoVeiculo;
                 }
@@ -2163,24 +2175,39 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     x.DataHoraGuarda,
                     x.StatusOperacaoId,
                     StatusOperacaoDescricao = x.StatusOperacao != null ? x.StatusOperacao.Descricao : null,
+                    x.DescricaoObjeto,
                     ClienteId = x.Cliente != null ? (int?)x.Cliente.ClienteId : null,
                     ClienteNome = x.Cliente != null ? x.Cliente.Nome : null,
                     ClienteNumeroEndereco = x.Cliente != null ? x.Cliente.NumeroEndereco : null,
                     ClienteComplementoEndereco = x.Cliente != null ? x.Cliente.ComplementoEndereco : null,
-                    ClienteTipoLogradouro = x.Cliente != null && x.Cliente.Endereco != null ? x.Cliente.Endereco.TipoLogradouro : null,
-                    ClienteLogradouro = x.Cliente != null && x.Cliente.Endereco != null ? x.Cliente.Endereco.Logradouro : null,
+                    ClienteTipoLogradouro = x.Cliente != null && x.Cliente.Endereco != null
+                        ? x.Cliente.Endereco.TipoLogradouro
+                        : null,
+                    ClienteLogradouro = x.Cliente != null && x.Cliente.Endereco != null
+                        ? x.Cliente.Endereco.Logradouro
+                        : null,
                     ClienteBairro = x.Cliente != null && x.Cliente.Endereco != null ? x.Cliente.Endereco.Bairro : null,
-                    ClienteMunicipio = x.Cliente != null && x.Cliente.Endereco != null ? x.Cliente.Endereco.Municipio : null,
+                    ClienteMunicipio = x.Cliente != null && x.Cliente.Endereco != null
+                        ? x.Cliente.Endereco.Municipio
+                        : null,
                     ClienteUF = x.Cliente != null && x.Cliente.Endereco != null ? x.Cliente.Endereco.UF : null,
                     DepositoId = x.Deposito != null ? (int?)x.Deposito.DepositoId : null,
                     DepositoNome = x.Deposito != null ? x.Deposito.Nome : null,
                     DepositoTelefoneMob = x.Deposito != null ? x.Deposito.TelefoneMob : null,
                     DepositoNumeroEndereco = x.Deposito != null ? x.Deposito.NumeroEndereco : null,
                     DepositoComplementoEndereco = x.Deposito != null ? x.Deposito.ComplementoEndereco : null,
-                    DepositoTipoLogradouro = x.Deposito != null && x.Deposito.Endereco != null ? x.Deposito.Endereco.TipoLogradouro : null,
-                    DepositoLogradouro = x.Deposito != null && x.Deposito.Endereco != null ? x.Deposito.Endereco.Logradouro : null,
-                    DepositoBairro = x.Deposito != null && x.Deposito.Endereco != null ? x.Deposito.Endereco.Bairro : null,
-                    DepositoMunicipio = x.Deposito != null && x.Deposito.Endereco != null ? x.Deposito.Endereco.Municipio : null,
+                    DepositoTipoLogradouro = x.Deposito != null && x.Deposito.Endereco != null
+                        ? x.Deposito.Endereco.TipoLogradouro
+                        : null,
+                    DepositoLogradouro = x.Deposito != null && x.Deposito.Endereco != null
+                        ? x.Deposito.Endereco.Logradouro
+                        : null,
+                    DepositoBairro = x.Deposito != null && x.Deposito.Endereco != null
+                        ? x.Deposito.Endereco.Bairro
+                        : null,
+                    DepositoMunicipio = x.Deposito != null && x.Deposito.Endereco != null
+                        ? x.Deposito.Endereco.Municipio
+                        : null,
                     DepositoUF = x.Deposito != null && x.Deposito.Endereco != null ? x.Deposito.Endereco.UF : null,
                     x.Placa,
                     x.Chassi,
@@ -2193,8 +2220,11 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     MarcaModelo = x.MarcaModelo != null ? x.MarcaModelo.MarcaModelo : null,
                     TipoVeiculoId = x.TipoVeiculo != null ? (byte?)x.TipoVeiculo.TipoVeiculoId : null,
                     TipoVeiculoDescricao = x.TipoVeiculo != null ? x.TipoVeiculo.Descricao : null,
-                    TipoVeiculoFlagNaoRequerCnh = x.TipoVeiculo != null ? x.TipoVeiculo.FlagNaoRequerCnhNaLiberacao : null,
-                    CodigoIdentificacaoCliente = x.ClienteCodigoIdentificacao != null ? x.ClienteCodigoIdentificacao.CodigoIdentificacao : null,
+                    TipoVeiculoFlagNaoRequerCnh =
+                        x.TipoVeiculo != null ? x.TipoVeiculo.FlagNaoRequerCnhNaLiberacao : null,
+                    CodigoIdentificacaoCliente = x.ClienteCodigoIdentificacao != null
+                        ? x.ClienteCodigoIdentificacao.CodigoIdentificacao
+                        : null,
                     x.Rfid
                 })
                 .AsNoTracking()
@@ -2212,59 +2242,72 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 DataHoraGuarda = g.DataHoraGuarda,
                 StatusOperacaoId = g.StatusOperacaoId,
                 StatusOperacaoDescricao = g.StatusOperacaoDescricao,
-                Cliente = g.ClienteId.HasValue ? new ClienteConsultaDados
-                {
-                    ClienteId = g.ClienteId.Value,
-                    Nome = g.ClienteNome,
-                    NumeroEndereco = g.ClienteNumeroEndereco,
-                    ComplementoEndereco = g.ClienteComplementoEndereco,
-                    TipoLogradouro = g.ClienteTipoLogradouro,
-                    Logradouro = g.ClienteLogradouro,
-                    Bairro = g.ClienteBairro,
-                    Municipio = g.ClienteMunicipio,
-                    UF = g.ClienteUF
-                } : null,
-                Deposito = g.DepositoId.HasValue ? new DepositoConsultaDados
-                {
-                    DepositoId = g.DepositoId.Value,
-                    Nome = g.DepositoNome,
-                    TelefoneMob = g.DepositoTelefoneMob,
-                    NumeroEndereco = g.DepositoNumeroEndereco,
-                    ComplementoEndereco = g.DepositoComplementoEndereco,
-                    TipoLogradouro = g.DepositoTipoLogradouro,
-                    Logradouro = g.DepositoLogradouro,
-                    Bairro = g.DepositoBairro,
-                    Municipio = g.DepositoMunicipio,
-                    UF = g.DepositoUF
-                } : null,
+                DescricaoObjeto = g.DescricaoObjeto,
+                FlagObjetoApreendido = (!string.IsNullOrWhiteSpace(g.DescricaoObjeto) || g.StatusOperacaoId == "O" || g.StatusOperacaoId == "H") ? "S" : "N",
+                Cliente = g.ClienteId.HasValue
+                    ? new ClienteConsultaDados
+                    {
+                        ClienteId = g.ClienteId.Value,
+                        Nome = g.ClienteNome,
+                        NumeroEndereco = g.ClienteNumeroEndereco,
+                        ComplementoEndereco = g.ClienteComplementoEndereco,
+                        TipoLogradouro = g.ClienteTipoLogradouro,
+                        Logradouro = g.ClienteLogradouro,
+                        Bairro = g.ClienteBairro,
+                        Municipio = g.ClienteMunicipio,
+                        UF = g.ClienteUF
+                    }
+                    : null,
+                Deposito = g.DepositoId.HasValue
+                    ? new DepositoConsultaDados
+                    {
+                        DepositoId = g.DepositoId.Value,
+                        Nome = g.DepositoNome,
+                        TelefoneMob = g.DepositoTelefoneMob,
+                        NumeroEndereco = g.DepositoNumeroEndereco,
+                        ComplementoEndereco = g.DepositoComplementoEndereco,
+                        TipoLogradouro = g.DepositoTipoLogradouro,
+                        Logradouro = g.DepositoLogradouro,
+                        Bairro = g.DepositoBairro,
+                        Municipio = g.DepositoMunicipio,
+                        UF = g.DepositoUF
+                    }
+                    : null,
                 Veiculo = new VeiculoConsultaInfo
                 {
                     Placa = g.Placa,
                     Chassi = g.Chassi,
                     Renavam = g.Renavam,
                     Uf = g.VeiculoUF,
-                    Cor = g.CorId.HasValue ? new CorDTO
-                    {
-                        IdentificadorCor = g.CorId.Value,
-                        Cor = g.Cor,
-                        CorSecundaria = g.CorSecundaria
-                    } : null,
-                    MarcaModelo = g.MarcaModeloId.HasValue ? new MarcaModeloDTO
-                    {
-                        IdentificadorMarcaModelo = g.MarcaModeloId.Value,
-                        MarcaModelo = g.MarcaModelo
-                    } : null,
-                    TipoVeiculo = g.TipoVeiculoId.HasValue ? new TipoVeiculoDTO
-                    {
-                        IdentificadorTipoVeiculo = g.TipoVeiculoId.Value,
-                        Descricao = g.TipoVeiculoDescricao,
-                        FlagNaoRequerCnhNaLiberacao = g.TipoVeiculoFlagNaoRequerCnh
-                    } : null
+                    Cor = g.CorId.HasValue
+                        ? new CorDTO
+                        {
+                            IdentificadorCor = g.CorId.Value,
+                            Cor = g.Cor,
+                            CorSecundaria = g.CorSecundaria
+                        }
+                        : null,
+                    MarcaModelo = g.MarcaModeloId.HasValue
+                        ? new MarcaModeloDTO
+                        {
+                            IdentificadorMarcaModelo = g.MarcaModeloId.Value,
+                            MarcaModelo = g.MarcaModelo
+                        }
+                        : null,
+                    TipoVeiculo = g.TipoVeiculoId.HasValue
+                        ? new TipoVeiculoDTO
+                        {
+                            IdentificadorTipoVeiculo = g.TipoVeiculoId.Value,
+                            Descricao = g.TipoVeiculoDescricao,
+                            FlagNaoRequerCnhNaLiberacao = g.TipoVeiculoFlagNaoRequerCnh
+                        }
+                        : null
                 }
             };
         }
 
-        private async Task<AtendimentoDTO> ObterAtendimentoConsultaDTOAsync(int? atendimentoId, int? grvId, int identificadorUsuario, CancellationToken ct)
+        private async Task<AtendimentoDTO> ObterAtendimentoConsultaDTOAsync(int? atendimentoId, int? grvId,
+            int identificadorUsuario, CancellationToken ct)
         {
             var query = _context.Atendimento.AsNoTracking();
 
@@ -2287,9 +2330,15 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     x.AtendimentoId,
                     x.GrvId,
                     x.QualificacaoResponsavelId,
-                    UsuarioNome = x.UsuarioCadastro != null && x.UsuarioCadastro.Pessoa != null ? x.UsuarioCadastro.Pessoa.Nome : null,
-                    UsuarioNomeMeio = x.UsuarioCadastro != null && x.UsuarioCadastro.Pessoa != null ? x.UsuarioCadastro.Pessoa.NomeMeio : null,
-                    UsuarioSobrenome = x.UsuarioCadastro != null && x.UsuarioCadastro.Pessoa != null ? x.UsuarioCadastro.Pessoa.Sobrenome : null,
+                    UsuarioNome = x.UsuarioCadastro != null && x.UsuarioCadastro.Pessoa != null
+                        ? x.UsuarioCadastro.Pessoa.Nome
+                        : null,
+                    UsuarioNomeMeio = x.UsuarioCadastro != null && x.UsuarioCadastro.Pessoa != null
+                        ? x.UsuarioCadastro.Pessoa.NomeMeio
+                        : null,
+                    UsuarioSobrenome = x.UsuarioCadastro != null && x.UsuarioCadastro.Pessoa != null
+                        ? x.UsuarioCadastro.Pessoa.Sobrenome
+                        : null,
                     x.ResponsavelNome,
                     x.ResponsavelDocumento,
                     ResponsavelCNH = x.ResponsavelCnh,
@@ -2341,9 +2390,13 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     x.DataCadastro,
                     x.DataAlteracao,
                     SaidaParaReparoId = x.SaidaParaReparo != null ? (int?)x.SaidaParaReparo.Id : null,
-                    SaidaParaReparoAtendimentoId = x.SaidaParaReparo != null ? (int?)x.SaidaParaReparo.AtendimentoId : null,
-                    SaidaParaReparoDataSaida = x.SaidaParaReparo != null ? (DateTime?)x.SaidaParaReparo.DataSaida : null,
-                    SaidaParaReparoDataPrevisaoRetorno = x.SaidaParaReparo != null ? (DateTime?)x.SaidaParaReparo.DataPrevisaoRetorno : null,
+                    SaidaParaReparoAtendimentoId =
+                        x.SaidaParaReparo != null ? (int?)x.SaidaParaReparo.AtendimentoId : null,
+                    SaidaParaReparoDataSaida =
+                        x.SaidaParaReparo != null ? (DateTime?)x.SaidaParaReparo.DataSaida : null,
+                    SaidaParaReparoDataPrevisaoRetorno = x.SaidaParaReparo != null
+                        ? (DateTime?)x.SaidaParaReparo.DataPrevisaoRetorno
+                        : null,
                     SaidaParaReparoMotivoSaida = x.SaidaParaReparo != null ? x.SaidaParaReparo.MotivoSaida : null
                 })
                 .FirstOrDefaultAsync(ct);
@@ -2417,14 +2470,16 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 DataHoraInicioAtendimento = raw.DataHoraInicioAtendimento,
                 DataCadastro = raw.DataCadastro,
                 DataAlteracao = raw.DataAlteracao,
-                SaidaParaReparo = raw.SaidaParaReparoId.HasValue ? new AtendimentoSaidaParaReparoDTO
-                {
-                    IdentificadorSaidaReparo = raw.SaidaParaReparoId.Value,
-                    IdentificadorAtendimento = raw.SaidaParaReparoAtendimentoId ?? raw.AtendimentoId,
-                    DataSaida = raw.SaidaParaReparoDataSaida ?? default,
-                    DataPrevisaoRetorno = raw.SaidaParaReparoDataPrevisaoRetorno ?? default,
-                    MotivoSaida = raw.SaidaParaReparoMotivoSaida
-                } : null
+                SaidaParaReparo = raw.SaidaParaReparoId.HasValue
+                    ? new AtendimentoSaidaParaReparoDTO
+                    {
+                        IdentificadorSaidaReparo = raw.SaidaParaReparoId.Value,
+                        IdentificadorAtendimento = raw.SaidaParaReparoAtendimentoId ?? raw.AtendimentoId,
+                        DataSaida = raw.SaidaParaReparoDataSaida ?? default,
+                        DataPrevisaoRetorno = raw.SaidaParaReparoDataPrevisaoRetorno ?? default,
+                        MotivoSaida = raw.SaidaParaReparoMotivoSaida
+                    }
+                    : null
             };
 
             if (dto.IdentificadorAtendimento > 0)
@@ -2477,6 +2532,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             ResultView.DataHoraGuarda = grvData.DataHoraGuarda;
             ResultView.StatusOperacaoId = grvData.StatusOperacaoId;
             ResultView.StatusOperacaoDescricao = grvData.StatusOperacaoDescricao;
+            ResultView.FlagObjetoApreendido = grvData.FlagObjetoApreendido;
+            ResultView.DescricaoObjeto = grvData.DescricaoObjeto;
             ResultView.Faturamentos = new List<SimulacaoFaturamentoDTO>();
             ResultView.NotaFiscal = new List<NFERetornoFaturamentoDTO>();
             ResultView.IdentificadorFaturamento = null;
@@ -2543,7 +2600,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             if (identificadorFaturamento <= 0)
             {
-                ResultView.Mensagem = MensagemViewHelper.SetBadRequest(new List<string> { MensagemPadraoEnum.IdentificadorFaturamentoInvalido });
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest(new List<string>
+                    { MensagemPadraoEnum.IdentificadorFaturamentoInvalido });
                 return ResultView;
             }
 
@@ -2568,7 +2626,9 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             AtendimentoDTO atendimentoDTO = null;
             if (faturamentoBase.AtendimentoId > 0)
             {
-                atendimentoDTO = await ObterAtendimentoConsultaDTOAsync(faturamentoBase.AtendimentoId, null, identificadorUsuario, ct);
+                atendimentoDTO =
+                    await ObterAtendimentoConsultaDTOAsync(faturamentoBase.AtendimentoId, null, identificadorUsuario,
+                        ct);
             }
 
             GrvConsultaDados grvData = null;
@@ -2675,12 +2735,23 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     {
                         x.FaturamentoServicoTipoVeiculoId,
                         x.FaturamentoServicoAssociadoId,
-                        NomeServico = x.FaturamentoServicoAssociado != null ? x.FaturamentoServicoAssociado.Descricao : null,
-                        DataVigenciaInicial = x.FaturamentoServicoAssociado != null ? x.FaturamentoServicoAssociado.DataVigenciaInicial : (DateTime?)null,
-                        DataVigenciaFinal = x.FaturamentoServicoAssociado != null ? x.FaturamentoServicoAssociado.DataVigenciaFinal : null,
-                        FlagServicoObrigatorio = (x.FaturamentoServicoAssociado != null && x.FaturamentoServicoAssociado.FlagServicoObrigatorio == "S") ||
-                                                 (x.FaturamentoServicoAssociado != null && x.FaturamentoServicoAssociado.FaturamentoServicoTipo != null && x.FaturamentoServicoAssociado.FaturamentoServicoTipo.FlagServicoObrigatorio == "S")
-                                                 ? "S" : "N",
+                        NomeServico = x.FaturamentoServicoAssociado != null
+                            ? x.FaturamentoServicoAssociado.Descricao
+                            : null,
+                        DataVigenciaInicial = x.FaturamentoServicoAssociado != null
+                            ? x.FaturamentoServicoAssociado.DataVigenciaInicial
+                            : (DateTime?)null,
+                        DataVigenciaFinal = x.FaturamentoServicoAssociado != null
+                            ? x.FaturamentoServicoAssociado.DataVigenciaFinal
+                            : null,
+                        FlagServicoObrigatorio = (x.FaturamentoServicoAssociado != null &&
+                                                  x.FaturamentoServicoAssociado.FlagServicoObrigatorio == "S") ||
+                                                 (x.FaturamentoServicoAssociado != null &&
+                                                  x.FaturamentoServicoAssociado.FaturamentoServicoTipo != null &&
+                                                  x.FaturamentoServicoAssociado.FaturamentoServicoTipo
+                                                      .FlagServicoObrigatorio == "S")
+                            ? "S"
+                            : "N",
                         ServicoGrv = grvId.HasValue
                             ? x.FaturamentoServicosGrvs
                                 .Where(g => g.GrvId == grvId.Value)
@@ -2702,7 +2773,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 foreach (var servico in faturamentoDto.ListagemServico)
                 {
                     if (servico.IdentificadorFaturamentoServicoTipoVeiculo.HasValue &&
-                        servicosTipoVeiculoMap.TryGetValue(servico.IdentificadorFaturamentoServicoTipoVeiculo.Value, out var servicoInfo))
+                        servicosTipoVeiculoMap.TryGetValue(servico.IdentificadorFaturamentoServicoTipoVeiculo.Value,
+                            out var servicoInfo))
                     {
                         servico.IdentificadorServicoGrv = servicoInfo.ServicoGrv?.FaturamentoServicoGrvId;
                         servico.TempoTrabalhado = servicoInfo.ServicoGrv?.TempoTrabalhado;
@@ -2712,6 +2784,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                         {
                             servico.DataVigenciaInicial = servicoInfo.DataVigenciaInicial.Value;
                         }
+
                         servico.DataVigenciaFinal = servicoInfo.DataVigenciaFinal;
                         servico.FlagServicoObrigatorio = servicoInfo.FlagServicoObrigatorio;
                     }
@@ -2777,7 +2850,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                         .Distinct()
                         .ToList();
 
-                    var erroPorIdentificadorNota = new Dictionary<int, (string Status, string MensagemErro, string CorrecaoErro)>();
+                    var erroPorIdentificadorNota =
+                        new Dictionary<int, (string Status, string MensagemErro, string CorrecaoErro)>();
                     if (nfeIdentificadoresComErro.Count > 0)
                     {
                         var errosNfe = await _context.NfeWsErros
@@ -2928,7 +3002,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             ResultView.LiberacaoEspecial = liberacaoEspecial;
 
-            bool podeEmitirNota = grvData?.Cliente != null && grvData?.Deposito != null && await _context.FaturamentoRegra
+            bool podeEmitirNota = grvData?.Cliente != null && grvData?.Deposito != null && await _context
+                .FaturamentoRegra
                 .AnyAsync(x =>
                     x.ClienteId == grvData.Cliente.ClienteId &&
                     x.DepositoId == grvData.Deposito.DepositoId &&
@@ -2989,6 +3064,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             ResultView.IdentificadorAtendimento = atendimentoDTO?.IdentificadorAtendimento;
             ResultView.StatusOperacaoId = grvData?.StatusOperacaoId;
             ResultView.StatusOperacaoDescricao = grvData?.StatusOperacaoDescricao;
+            ResultView.FlagObjetoApreendido = grvData?.FlagObjetoApreendido;
+            ResultView.DescricaoObjeto = grvData?.DescricaoObjeto;
             ResultView.TipoMeioCobrancaId = faturamentoBase.TipoMeioCobrancaId;
             ResultView.Atendimento = atendimentoDTO;
             ResultView.Veiculo = grvData != null ? await ObterVeiculoDTOAsync(grvData.Veiculo) : null;
@@ -3011,7 +3088,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             }
 
             FaturamentoConsultaDTO erroResult = new();
-            erroResult.Mensagem = MensagemViewHelper.SetBadRequest(new List<string> { MensagemPadraoEnum.IdentificadorFaturamentoInvalido });
+            erroResult.Mensagem = MensagemViewHelper.SetBadRequest(new List<string>
+                { MensagemPadraoEnum.IdentificadorFaturamentoInvalido });
             return erroResult;
         }
 

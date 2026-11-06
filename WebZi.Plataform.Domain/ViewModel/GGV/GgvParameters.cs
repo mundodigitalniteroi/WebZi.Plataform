@@ -38,5 +38,7 @@ namespace WebZi.Plataform.Domain.ViewModel.GGV
         public List<FotoTipoCadastroParameters> ListagemFotos { get; set; }
 
         public List<FaturamentoServicoGrvParameters> ListagemFaturamentoServicoGrv { get; set; }
+        public string FlagRecolhimentoDeObjeto { get; set; }
+        public string? DescricaoObjeto { get; set; }
     }
 }

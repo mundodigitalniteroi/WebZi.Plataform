@@ -9,7 +9,8 @@ namespace WebZi.Plataform.Data.Mappings.GRV
         public void Configure(EntityTypeBuilder<EnquadramentoInfracaoModel> builder)
         {
             builder
-                .ToTable("tb_dep_enquadramento_infracoes", "dbo", tb => tb.HasTrigger("tr_log_upd_enquadramento_infracoes"))
+                .ToTable("tb_dep_enquadramento_infracoes", "dbo",
+                    tb => tb.HasTrigger("tr_log_upd_enquadramento_infracoes"))
                 .HasKey(x => x.EnquadramentoInfracaoId);
 
             builder.Property(e => e.EnquadramentoInfracaoId)
@@ -47,6 +48,14 @@ namespace WebZi.Plataform.Data.Mappings.GRV
                 .HasDefaultValueSql("('S')")
                 .IsFixedLength()
                 .HasColumnName("status");
+
+            builder.Property(e => e.MotivoInfracaoCtb)
+                .IsRequired()
+                .HasMaxLength(1)
+                .IsUnicode(false)
+                .HasDefaultValueSql("('S')")
+                .IsFixedLength()
+                .HasColumnName("motivo_infracao_ctb");
 
             builder.Property(e => e.DataCadastro)
                 .HasDefaultValueSql("(getdate())")

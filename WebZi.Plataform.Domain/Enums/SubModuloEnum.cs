@@ -7,7 +7,7 @@ public enum SubModuloEnum
     EditarGrvProd = 164,
     EditarAtendimento = 165,
     ExcluirAtendimento = 166,
-    EditarNfe = 167,
+    EditarNfe = 168,
     VerPerfisDeAcessoHomolog = 168,
     CadastrarUsuarioHomolog = 169,
     EditarUsuarioHomolog = 170,

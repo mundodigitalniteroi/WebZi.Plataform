@@ -159,6 +159,7 @@ namespace WebZi.Plataform.Domain.Models.GRV
         public string FlagVeiculoNaoOstentaPlaca { get; set; } = "N";
 
         public string FlagTransbordo { get; set; } = "N";
+        public string? DescricaoObjeto { get; set; }
 
         public virtual AtendimentoModel Atendimento { get; set; }
 

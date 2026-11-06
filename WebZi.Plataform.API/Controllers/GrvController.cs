@@ -71,7 +71,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<GrvService>()
-                    .CreateGrv(Grv, ct);
+                    .CreateGrvAsync(Grv, ct);
 
                 if (ResultView.Mensagem.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
                 {

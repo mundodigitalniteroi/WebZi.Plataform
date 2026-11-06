@@ -19,7 +19,7 @@ namespace WebZi.Plataform.Domain.Models.GRV
         public DateTime DataCadastro { get; set; }
 
         public string Status { get; set; } = "S";
-
+        public string MotivoInfracaoCtb { get; set; } = "S";
         public virtual UsuarioModel Usuario { get; set; }
     }
 }

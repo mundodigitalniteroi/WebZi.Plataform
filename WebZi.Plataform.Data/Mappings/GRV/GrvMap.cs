@@ -199,6 +199,10 @@ namespace WebZi.Plataform.Data.Mappings.GRV
                 .IsFixedLength()
                 .HasColumnName("flag_vistoria");
 
+            builder.Property(x => x.DescricaoObjeto)
+                .HasColumnType("varchar(500)")
+                .HasColumnName("descricao_objeto");
+            
             builder.Property(e => e.AutoridadeResponsavelId)
                 .HasColumnName("id_autoridade_responsavel");
 

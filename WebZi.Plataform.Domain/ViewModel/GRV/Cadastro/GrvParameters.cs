@@ -21,9 +21,9 @@ namespace WebZi.Plataform.Domain.ViewModel.GRV.Cadastro
 
         public int IdentificadorAutoridadeResponsavel { get; set; }
 
-        public int IdentificadorCor { get; set; }
+        public int? IdentificadorCor { get; set; }
 
-        public int IdentificadorMarcaModelo { get; set; }
+        public int? IdentificadorMarcaModelo { get; set; }
 
         public byte IdentificadorMotivoApreensao { get; set; }
         
@@ -61,7 +61,7 @@ namespace WebZi.Plataform.Domain.ViewModel.GRV.Cadastro
 
         [MaxLength(75)] public string EnderecoLocalizacaoVeiculoMunicipio { get; set; }
 
-        [MaxLength(2)] public string EnderecoLocalizacaoVeiculoUF { get; set; }
+        [MaxLength(2)] public string? EnderecoLocalizacaoVeiculoUF { get; set; }
 
         [MaxLength(30)] public string EnderecoLocalizacaoVeiculoReferencia { get; set; }
 
@@ -130,5 +130,7 @@ namespace WebZi.Plataform.Domain.ViewModel.GRV.Cadastro
         public byte[] ImagemAssinaturaAgente { get; set; }
 
         public byte[] ImagemAssinaturaCondutor { get; set; }
+        public string FlagRecolhimentoDeObjeto { get; set; }
+        public string? DescricaoObjeto { get; set; }
     }
 }

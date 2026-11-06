@@ -38,6 +38,14 @@ namespace WebZi.Plataform.Data.Mappings.GRV
                 .IsFixedLength()
                 .HasColumnName("flag_nao_requer_cnh_na_liberacao");
 
+            builder.Property(x => x.FlagObjeto)
+                .IsRequired()
+                .HasMaxLength(1)
+                .IsUnicode(false)
+                .HasDefaultValueSql("('N')")
+                .IsFixedLength()
+                .HasColumnName("flag_objeto");
+
             builder.Property(x => x.UsuarioCadastroId)
                 .HasColumnName("id_usuario_cadastro");
 
