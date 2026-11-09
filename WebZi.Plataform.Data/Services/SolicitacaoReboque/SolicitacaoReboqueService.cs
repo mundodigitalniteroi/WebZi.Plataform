@@ -71,7 +71,7 @@ public class SolicitacaoReboqueService
         if (clienteDepositoId is null)
         {
             resultView.Mensagem = MensagemViewHelper.SetNotFound(
-                "Cliente nÃ¯Â¿Â½o estÃ¯Â¿Â½ vinculado ao depÃ¯Â¿Â½sito informado!");
+                "Cliente não está vinculado ao depósito informado!");
 
             return resultView;
         }
@@ -112,7 +112,7 @@ public class SolicitacaoReboqueService
             return new ObterResumoSolicitacoesDTO
             {
                 Mensagem = MensagemViewHelper.SetNotFound(
-                    "Cliente nÃ¯Â¿Â½o estÃ¯Â¿Â½ vinculado ao depÃ¯Â¿Â½sito informado!")
+                    "Cliente não está vinculado ao depósito informado!")
             };
         }
 
@@ -188,7 +188,7 @@ public class SolicitacaoReboqueService
         if (clienteDeposito is null)
         {
             ResultView.Mensagem = MensagemViewHelper.SetNotFound(
-                "Cliente nÃ¯Â¿Â½o estÃ¯Â¿Â½ vinculado ao depÃ¯Â¿Â½sito informado!"
+                "Cliente não vinculado á  deposito informado!"
             );
 
             return ResultView;
@@ -249,7 +249,7 @@ public class SolicitacaoReboqueService
 
         if (solicitacoes.Count == 0)
         {
-            ResultView.Mensagem = MensagemViewHelper.SetNotFound("Nenhuma solicitaÃ¯Â¿Â½Ã¯Â¿Â½o encontrada!");
+            ResultView.Mensagem = MensagemViewHelper.SetNotFound("Nenhuma solicitação encontrada!");
             return ResultView;
         }
 
@@ -327,7 +327,7 @@ public class SolicitacaoReboqueService
 
         if (solicitacoes.Count == 0)
         {
-            ResultView.Mensagem = MensagemViewHelper.SetNotFound("Nenhuma solicitaÃ¯Â¿Â½Ã¯Â¿Â½o encontrada!");
+            ResultView.Mensagem = MensagemViewHelper.SetNotFound("Nenhuma solicitação encontrada!");
             return ResultView;
         }
 
@@ -424,7 +424,7 @@ public class SolicitacaoReboqueService
 
         if (solicitacao is null)
         {
-            ResultView.Mensagem = MensagemViewHelper.SetNotFound("Nenhuma solicitaÃ¯Â¿Â½Ã¯Â¿Â½o encontrada!");
+            ResultView.Mensagem = MensagemViewHelper.SetNotFound("Nenhuma solicitação encontrada!");
             return ResultView;
         }
 
@@ -454,7 +454,7 @@ public class SolicitacaoReboqueService
         }
         catch
         {
-            // Falha ao obter foto nÃ¯Â¿Â½o impede retorno da solicitaÃ¯Â¿Â½Ã¯Â¿Â½o
+            // Falha ao obter foto não impede retorno da solicitação!
         }
 
         ResultView = solicitacao;
@@ -521,14 +521,14 @@ public class SolicitacaoReboqueService
             switch (isPlacaDuplicada)
             {
                 case true when isChassiDuplicado:
-                    erros.Add("Esse GRV jÃ¯Â¿Â½ existe (Placa e Chassi jÃ¯Â¿Â½ cadastrados)");
+                    erros.Add("Esse GRV já existe (Placa e Chassi cadastrados)");
                     break;
                 case true:
-                    erros.Add("Esse GRV jÃ¯Â¿Â½ existe (Placa jÃ¯Â¿Â½ cadastrada)");
+                    erros.Add("Esse GRV já está existe (Placa já está cadastrada)");
                     break;
                 default:
                     {
-                        erros.Add(isChassiDuplicado ? "Esse GRV jÃ¯Â¿Â½ existe (Chassi jÃ¯Â¿Â½ cadastrado)" : "Esse GRV jÃ¯Â¿Â½ existe");
+                        erros.Add(isChassiDuplicado ? "Esse GRV já está existe (Chassi já está cadastrado)" : "Esse GRV já está existe");
                         break;
                     }
             }
@@ -551,13 +551,13 @@ public class SolicitacaoReboqueService
                     cancellationToken: ct)!;
 
             if (!tipoExiste)
-                erros.Add("Tipo de motivo de apreensÃ¯Â¿Â½o invÃ¯Â¿Â½lido");
+                erros.Add("Tipo de motivo de apreensão inválido");
         }
         else
-            erros.Add("Tipo de motivo de apreensÃ¯Â¿Â½o Ã¯Â¿Â½ obrigatÃ¯Â¿Â½rio");
+            erros.Add("Tipo de motivo de apreensão é obrigatório");
 
         if (parameters.IdentificadorMotivoApreensao == 1 && parameters.ListagemEnquadramentoInfracao?.Count is 0)
-            erros.Add("Ã¯Â¿Â½ necessÃ¯Â¿Â½rio adicionar pelo menos uma infraÃ¯Â¿Â½Ã¯Â¿Â½o cometida.");
+            erros.Add("É necessário adicionar pelo menos uma infração cometida.");
 
 
         var solicitacaoReboqueTipoId =
@@ -638,12 +638,12 @@ public class SolicitacaoReboqueService
 
             await transaction.CommitAsync(ct);
 
-            return MensagemViewHelper.SetCreateSuccess("SolicitaÃ¯Â¿Â½Ã¯Â¿Â½o de reboque cadastrada com sucesso!");
+            return MensagemViewHelper.SetCreateSuccess("Solicitação de reboque cadastrada com sucesso!");
         }
         catch (Exception ex)
         {
             await transaction.RollbackAsync(ct);
-            return MensagemViewHelper.SetInternalServerError("Erro ao cadastrar solicitaÃ¯Â¿Â½Ã¯Â¿Â½o");
+            return MensagemViewHelper.SetInternalServerError("Erro ao cadastrar solicitação");
         }
     }
 
@@ -652,14 +652,14 @@ public class SolicitacaoReboqueService
     {
         if (solicitacaoReboqueId <= 0)
         {
-            return MensagemViewHelper.SetBadRequest("Identificador da SolicitaÃ¯Â¿Â½Ã¯Â¿Â½o de Reboque invÃ¯Â¿Â½lido!");
+            return MensagemViewHelper.SetBadRequest("Identificador da Solicitação de Reboque inválido!");
         }
 
         var solicitacao = await _context.SolicitacaoReboque
             .FirstOrDefaultAsync(x => x.Id == solicitacaoReboqueId, cancellationToken: ct);
 
         if (solicitacao.SolicitacaoReboqueStatusId == 3)
-            return MensagemViewHelper.SetBadRequest("Esta solicitaÃ¯Â¿Â½Ã¯Â¿Â½o jÃ¯Â¿Â½ foi cancelada!");
+            return MensagemViewHelper.SetBadRequest("Esta solicitação já foi cancelada!");
 
         solicitacao.SolicitacaoReboqueStatusId = 3;
         solicitacao.UsuarioAlteracaoId = userId;
@@ -672,7 +672,7 @@ public class SolicitacaoReboqueService
             await _context.SaveChangesAsync(ct);
             await transaction.CommitAsync(ct);
 
-            return MensagemViewHelper.SetUpdateSuccess("SolicitaÃ¯Â¿Â½Ã¯Â¿Â½o de reboque cancelada com sucesso!");
+            return MensagemViewHelper.SetUpdateSuccess("Solicitação de reboque cancelada com sucesso!");
         }
         catch (Exception ex)
         {
@@ -685,20 +685,20 @@ public class SolicitacaoReboqueService
         AceitarSolicitacaoReboqueParameters parameters, CancellationToken ct)
     {
         if (parameters.SolicitacaoReboqueId <= 0)
-            return MensagemViewHelper.SetBadRequest("Identificador da SolicitaÃ¯Â¿Â½Ã¯Â¿Â½o de Reboque invÃ¯Â¿Â½lido!");
+            return MensagemViewHelper.SetBadRequest("Identificador da Solicitação de Reboque inválido!");
 
         var solicitacao = await _context.SolicitacaoReboque
             .AsTracking()
             .FirstOrDefaultAsync(x => x.Id == parameters.SolicitacaoReboqueId, cancellationToken: ct);
 
         if (solicitacao == null)
-            return MensagemViewHelper.SetNotFound("SolicitaÃ¯Â¿Â½Ã¯Â¿Â½o de reboque nÃ¯Â¿Â½o encontrada!");
+            return MensagemViewHelper.SetNotFound("Solicitação de reboque não encontrada!");
 
         if (solicitacao.SolicitacaoReboqueStatusId == (byte)StatusSolicitacoesEnum.CANCELADA)
-            return MensagemViewHelper.SetBadRequest("Esta solicitaÃ¯Â¿Â½Ã¯Â¿Â½o foi cancelada e nÃ¯Â¿Â½o pode ser aceita!");
+            return MensagemViewHelper.SetBadRequest("Esta solicitação foi cancelada e não pode ser aceita!");
 
         if (solicitacao.UsuarioAceiteId != null && solicitacao.UsuarioAceiteId != parameters.IdentificadorUsuario)
-            return MensagemViewHelper.SetBadRequest("Esta solicitaÃ¯Â¿Â½Ã¯Â¿Â½o jÃ¯Â¿Â½ foi aceita por outro usuÃ¯Â¿Â½rio!");
+            return MensagemViewHelper.SetBadRequest("Esta solicitação já foi aceita por outro usuário!");
 
         var exists = await _context.SolicitacaoReboque.AsNoTracking().AnyAsync(x =>
             x.Id != parameters.SolicitacaoReboqueId &&
@@ -707,7 +707,7 @@ public class SolicitacaoReboqueService
             x.SolicitacaoReboqueStatusId != (byte)StatusSolicitacoesEnum.CANCELADA, ct);
 
         if (exists)
-            return MensagemViewHelper.SetBadRequest("Pode ser aceito apenas 1 solicitaÃ¯Â¿Â½Ã¯Â¿Â½o por vez!");
+            return MensagemViewHelper.SetBadRequest("Pode ser aceita apenas 1 solicitação por vez!");
 
         solicitacao.SolicitacaoReboqueStatusId = (byte)StatusSolicitacoesEnum.ACEITA;
         solicitacao.UsuarioAceiteId = parameters.IdentificadorUsuario;
@@ -721,7 +721,7 @@ public class SolicitacaoReboqueService
             await _context.SaveChangesAsync(ct);
             await transaction.CommitAsync(ct);
 
-            return MensagemViewHelper.SetUpdateSuccess("SolicitaÃ¯Â¿Â½Ã¯Â¿Â½o de reboque aceita com sucesso!");
+            return MensagemViewHelper.SetUpdateSuccess("Solicitação de reboque aceita com sucesso!");
         }
         catch (Exception ex)
         {
@@ -734,21 +734,21 @@ public class SolicitacaoReboqueService
         CancellationToken ct)
     {
         if (parameters.SolicitacaoReboqueId == null || parameters.SolicitacaoReboqueId <= 0)
-            return MensagemViewHelper.SetBadRequest("Identificador da SolicitaÃ¯Â¿Â½Ã¯Â¿Â½o de Reboque invÃ¯Â¿Â½lido!");
+            return MensagemViewHelper.SetBadRequest("Identificador da Solicitação de Reboque inválido!");
 
         var solicitacao = await _context.SolicitacaoReboque
             .AsTracking()
             .FirstOrDefaultAsync(x => x.Id == parameters.SolicitacaoReboqueId.Value, cancellationToken: ct);
 
         if (solicitacao is null)
-            return MensagemViewHelper.SetNotFound("SolicitaÃ¯Â¿Â½Ã¯Â¿Â½o de reboque nÃ¯Â¿Â½o encontrada!");
+            return MensagemViewHelper.SetNotFound("Solicitação de reboque não encontrada!");
 
         var statusExiste = await _context.SolicitacaoReboqueStatus
             .AsNoTracking()
             .AnyAsync(x => x.Id == parameters.SolicitacaoReboqueStatusId, cancellationToken: ct);
 
         if (!statusExiste)
-            return MensagemViewHelper.SetBadRequest("Status de SolicitaÃ¯Â¿Â½Ã¯Â¿Â½o de Reboque invÃ¯Â¿Â½lido");
+            return MensagemViewHelper.SetBadRequest("Status de Solicitação de Reboque inválido");
 
         var clienteDeposito = await _context.ClienteDeposito
             .AsNoTracking()
@@ -760,7 +760,7 @@ public class SolicitacaoReboqueService
             .FirstOrDefaultAsync(ct);
 
         if (clienteDeposito is null)
-            return MensagemViewHelper.SetBadRequest("Cliente/DepÃ¯Â¿Â½sito vinculado Ã¯Â¿Â½ solicitaÃ¯Â¿Â½Ã¯Â¿Â½o nÃ¯Â¿Â½o foi encontrado!");
+            return MensagemViewHelper.SetBadRequest("Cliente/Depósito vinculado à solicitação não foi encontrado!");
 
         await using var transaction = await _context.Database.BeginTransactionAsync(ct);
         try
@@ -841,12 +841,12 @@ public class SolicitacaoReboqueService
             await _context.SaveChangesAsync(ct);
             await transaction.CommitAsync(ct);
 
-            return MensagemViewHelper.SetUpdateSuccess("SolicitaÃ¯Â¿Â½Ã¯Â¿Â½o de reboque atualizada com sucesso!");
+            return MensagemViewHelper.SetUpdateSuccess("Solicitação de reboque atualizada com sucesso!");
         }
         catch (Exception)
         {
             await transaction.RollbackAsync(ct);
-            return MensagemViewHelper.SetInternalServerError("Erro ao atualizar solicitaÃ¯Â¿Â½Ã¯Â¿Â½o!");
+            return MensagemViewHelper.SetInternalServerError("Erro ao atualizar solicitação!");
         }
     }
 
@@ -920,11 +920,11 @@ public class SolicitacaoReboqueService
             .OrderBy(x => x)
             .ToList();
 
-        // Lacre Ã¯Â¿Â½ obrigatÃ¯Â¿Â½rio mas apenas para clientes diferentes de 61
+        // Lacre é obrigatório mas apenas para clientes diferentes de 61
         if (clienteId != 61)
         {
             if (lacresTratados == null || lacresTratados.Count == 0)
-                erros.Add("Ã¯Â¿Â½ obrigatÃ¯Â¿Â½rio informar ao menos um lacre para este cliente!");
+                erros.Add("É obrigatório informar ao menos um lacre para este cliente!");
         }
 
         if (parameters.ListagemFoto == null || parameters.ListagemFoto.Count == 0)
@@ -933,7 +933,7 @@ public class SolicitacaoReboqueService
         if (erros.Count > 0)
             return MensagemViewHelper.SetBadRequest(erros);
 
-        // Lacres: persistÃ¯Â¿Â½ncia
+        // Lacres: persistência
         if (lacresTratados != null && lacresTratados.Count > 0)
         {
             var lacresExistentes = await _context.SolicitacaoReboqueLacre
@@ -956,7 +956,7 @@ public class SolicitacaoReboqueService
             }
         }
 
-        // Equipamentos Opcionais: opcionais, podem nÃ¯Â¿Â½o ser preenchidos
+        // Equipamentos Opcionais: opcionais, podem não ser preenchidos
         if (parameters.EquipamentoOpcional != null && parameters.EquipamentoOpcional.Count > 0)
         {
             var equipamentosExistentes = await _context.SolicitacaoEquipamentoOpcional
@@ -1014,7 +1014,7 @@ public class SolicitacaoReboqueService
 
         if (parameters.Condutor == null)
             return MensagemViewHelper.SetBadRequest(
-                "Ã¯Â¿Â½ obrigatÃ¯Â¿Â½rio informar os dados do condutor para alterar o status para em trÃ¯Â¿Â½nsito!");
+                "É obrigatório informar os dados do condutor para alterar o status para em trânsito!");
 
         var condutor = await _context.SolicitacaoReboqueCondutor
             .FirstOrDefaultAsync(x => x.SolicitacaoReboqueId == solicitacao.Id, cancellationToken: ct);
@@ -1030,7 +1030,7 @@ public class SolicitacaoReboqueService
 
         if (parameters.Condutor.IdentificadorAssinaturaCondutor <= 0)
         {
-            erros.Add("NecessÃ¯Â¿Â½rio passar status da assinatura do condutor");
+            erros.Add("Necessário passar status da assinatura do condutor");
         }
         else
         {
@@ -1052,7 +1052,7 @@ public class SolicitacaoReboqueService
                 if (status.ValorCadastro == "1" || parameters.Condutor.IdentificadorAssinaturaCondutor == 1)
                 {
                     if (parameters.AssinaturaCondutor == null || parameters.AssinaturaCondutor.Length == 0)
-                        erros.Add("NecessÃ¯Â¿Â½rio a assinatura do condutor");
+                        erros.Add("Necessária a assinatura do condutor");
                 }
             }
         }
