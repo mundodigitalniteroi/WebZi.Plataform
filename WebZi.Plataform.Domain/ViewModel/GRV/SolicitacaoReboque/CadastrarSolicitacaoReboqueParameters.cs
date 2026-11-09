@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using WebZi.Plataform.Domain.ViewModel.GRV.Cadastro;
 
 namespace WebZi.Plataform.Domain.ViewModel.GRV.SolicitacaoReboque;
@@ -7,7 +8,7 @@ public class CadastrarSolicitacaoReboqueParameters
     public int IdentificadorCliente { get; set; }
     public int IdentificadorDeposito { get; set; }
     public byte IdentificadorMotivoApreensao { get; set; }
-    public int IdentificadorUsuario { get; set; }
+    [JsonIgnore] public int IdentificadorUsuario { get; set; }
 
     public string LocalRemocaoEnderecoCompleto { get; set; }
     public string? LocalRemocaoEnderecoReferencia { get; set; }

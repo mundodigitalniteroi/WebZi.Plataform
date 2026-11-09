@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using WebZi.Plataform.Domain.ViewModel.GGV;
 using WebZi.Plataform.Domain.ViewModel.GRV.Cadastro;
 
@@ -5,12 +6,12 @@ namespace WebZi.Plataform.Domain.ViewModel.GRV.SolicitacaoReboque;
 
 public class AtualizarSolicitacaoReboqueParameters
 {
-    public int? SolicitacaoReboqueId { get; set; }
+    [JsonIgnore] public int? SolicitacaoReboqueId { get; set; }
     public int? GrvId { get; set; }
     public byte SolicitacaoReboqueStatusId { get; set; }
     public int? IdentificadorReboque { get; set; }
     public int? IdentificadorReboquista { get; set; }
-    public int IdentificadorUsuario { get; set; }
+    [JsonIgnore] public int IdentificadorUsuario { get; set; }
     public List<byte[]> ListagemFoto { get; set; }
 
     public List<string> ListagemLacre { get; set; }

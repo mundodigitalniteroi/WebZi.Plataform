@@ -1,13 +1,14 @@
-﻿
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace WebZi.Plataform.Domain.ViewModel.GRV.SolicitacaoReboque;
 
 public class ListarSolicitacoesParameters
 {
-
+    [JsonIgnore]
     [Required(ErrorMessage = "Propriedade obrigatória")]
     public int IdentificadorUsuario { get; set; }
+
     public int? IdentificadorCliente { get; set; }
     public int? IdentificadorDeposito { get; set; }
 

@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace WebZi.Plataform.Domain.ViewModel.GRV.SolicitacaoReboque;
 
 public class SolicitacaoReboquePesquisaParameters
@@ -8,5 +10,5 @@ public class SolicitacaoReboquePesquisaParameters
     public string? NumeroProcesso { get; set; }
     public DateTime? DataInicial { get; set; }
     public DateTime? DataFinal { get; set; }
-    public int IdentificadorUsuario { get; set; }
+    [JsonIgnore] public int IdentificadorUsuario { get; set; }
 }

@@ -56,6 +56,35 @@ namespace WebZi.Plataform.Data.Services.GGV
             _provider = provider;
         }
 
+
+        public async Task<MensagemDTO> UpdateSetorAsync(AtualizarSetorParameters parameters, CancellationToken ct)
+        {
+            MensagemDTO ResultView = new();
+
+            var ggv = await _context.Grv.AsTracking()
+                .FirstOrDefaultAsync(x => x.GrvId == parameters.IdentificadorProcesso, ct);
+
+            if (ggv is null)
+            {
+                ResultView = MensagemViewHelper.SetNotFound(MensagemPadraoEnum.NaoEncontradoGrv);
+                return ResultView;
+            }
+
+            ggv.EstacionamentoSetor = parameters.EstacionamentoSetor;
+            ggv.EstacionamentoNumeroVaga = parameters.EstacionamentoNumeroVaga;
+            ggv.DataAlteracao = DateTime.Now;
+            ggv.UsuarioAlteracaoId = parameters.IdentificadorUsuario;
+            try
+            {
+                await _context.SaveChangesAsync(ct);
+                return MensagemViewHelper.SetUpdateSuccess();
+            }
+            catch (Exception _)
+            {
+                return MensagemViewHelper.SetInternalServerError("Não foi possível atualizar o estacionamento.");
+            }
+        }
+
         public async Task<MensagemDTO> UpdateGgvAsync(GgvParameters GgvPersistencia, CancellationToken ct)
         {
             MensagemDTO ResultView = await ValidarInformacoesPersistenciaAsync(GgvPersistencia, true, ct);

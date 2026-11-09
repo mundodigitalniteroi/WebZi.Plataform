@@ -1,8 +1,10 @@
-﻿namespace WebZi.Plataform.Domain.ViewModel.GRV.SolicitacaoReboque;
+﻿using System.Text.Json.Serialization;
+
+namespace WebZi.Plataform.Domain.ViewModel.GRV.SolicitacaoReboque;
 
 public class SolicitacoesReboqueParameters
 {
-    public int IdentificadorUsuario { get; set; }
+    [JsonIgnore] public int IdentificadorUsuario { get; set; }
     public int IdentificadorCliente { get; set; }
     public int IdentificadorDeposito { get; set; }
 }

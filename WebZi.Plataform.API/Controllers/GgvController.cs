@@ -285,5 +285,34 @@ namespace WebZi.Plataform.API.Controllers
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
         }
+
+        /// <summary>
+        /// Atualiza as informações de estacionamento do processo.
+        /// </summary>
+        /// <remarks>
+        /// O campo EstacionamentoSetor aceita até 32 caracteres.
+        /// O campo EstacionamentoNumeroVaga aceita até 10 caracteres.
+        /// </remarks>
+        [HttpPut("{identificadorProcesso}/AtualizarSetor")]
+        public async Task<ActionResult<MensagemDTO>> AtualizarSetor(
+            [FromRoute] int identificadorProcesso,
+            [FromBody] AtualizarSetorParameters parameters,
+            CancellationToken ct)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            MensagemDTO ResultView = new();
+            var userId = User.GetUserId();
+            parameters.IdentificadorProcesso = identificadorProcesso;
+            parameters.IdentificadorUsuario = userId.Value;
+            ResultView = await _provider
+                .GetService<GgvService>()
+                .UpdateSetorAsync(parameters, ct);
+
+            return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+        }
     }
 }
