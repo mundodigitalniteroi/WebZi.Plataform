@@ -446,7 +446,8 @@ namespace WebZi.Plataform.Data.Services.Liberacao
 
             ResultView.VeiculoCor = veiculoCorDescricao;
 
-            bool isObjeto = !string.IsNullOrWhiteSpace(Grv.DescricaoObjeto) || Grv.StatusOperacaoId == "O" || Grv.StatusOperacaoId == "H";
+            bool isObjeto = !string.IsNullOrWhiteSpace(Grv.DescricaoObjeto) || Grv.StatusOperacaoId == "O" ||
+                            Grv.StatusOperacaoId == "H";
             ResultView.DescricaoObjeto = Grv.DescricaoObjeto;
             ResultView.FlagObjeto = isObjeto ? "S" : "N";
 
@@ -473,10 +474,13 @@ namespace WebZi.Plataform.Data.Services.Liberacao
             string depositoEndereco = GuiaPagamentoReboqueEstadia?.DepositoEndereco ?? string.Empty;
 
             ResultView.TextoApresentacao =
-                "Este documento deverá ser apresentado no Depósito de Veículos localizado no endereço " +
+                "Este documento deverá ser apresentado no Depósito localizado no endereço " +
                 depositoEndereco + ", até a data: " +
                 prazoFormatado +
-                ", para que a retirada do veículo seja autorizada. A não apresentação até a data informada acarretará na cobrança de estadias adicionais.";
+                (isObjeto
+                    ? ", para que a retirada do objeto seja autorizada."
+                    : ", para que a retirada do veículo seja autorizada.") +
+                " A não apresentação até a data informada acarretará na cobrança de estadias adicionais.";
 
             string respNome = GuiaPagamentoReboqueEstadia?.AtendimentoResponsavelNome ??
                               Grv.Atendimento?.ResponsavelNome ?? "Não informado";
@@ -491,14 +495,36 @@ namespace WebZi.Plataform.Data.Services.Liberacao
             string dataEntradaSafe = dataHoraGuardaStr.Left(10) ?? string.Empty;
             string horaEntradaSafe = dataHoraGuardaStr.Right(5) ?? string.Empty;
 
-            ResultView.TextoDeclaracaoRetirada1 =
-                $@"Eu {respNome}, portador do CPF {respDoc}, declaro que no dia {DateTime.Now.ToString("dd 'de' MMMM 'de' yyyy", CultureInfo.GetCultureInfo("pt-BR"))}, " +
-                $"recebi do depósito {depositoNome} o veículo de placa {veicPlacaFormatada}, Marca/Modelo {veicMarcaModeloStr}, Cor {veicCorStr}, recolhido às {horaEntradaSafe} do dia {dataEntradaSafe}, " +
-                $"no endereco {depositoEndereco}";
+            if (isObjeto)
+            {
+                string descObjeto = !string.IsNullOrWhiteSpace(Grv.DescricaoObjeto)
+                    ? Grv.DescricaoObjeto
+                    : string.Empty;
 
-            ResultView.TextoDeclaracaoRetirada2 =
-                $@"Declaro também que o veículo se encontrava nas mesmas condições, quando foi removido e ainda lacrado, " +
-                "conforme numeração abaixo descrita, sendo estes lacres conferidos na minha presença, nada havendo para reclamar agora ou no futuro.";
+                string termoObjeto = !string.IsNullOrWhiteSpace(descObjeto)
+                    ? $"o objeto {descObjeto}"
+                    : "o objeto";
+
+                ResultView.TextoDeclaracaoRetirada1 =
+                    $@"Eu {respNome}, portador do CPF {respDoc}, declaro que no dia {DateTime.Now.ToString("dd 'de' MMMM 'de' yyyy", CultureInfo.GetCultureInfo("pt-BR"))}, " +
+                    $"recebi do depósito {depositoNome} {termoObjeto}, recolhido às {horaEntradaSafe} do dia {dataEntradaSafe}, " +
+                    $"no endereco {depositoEndereco}";
+
+                ResultView.TextoDeclaracaoRetirada2 =
+                    $@"Declaro também que o objeto se encontrava nas mesmas condições, quando foi removido e ainda lacrado, " +
+                    "conforme numeração abaixo descrita, sendo estes lacres conferidos na minha presença, nada havendo para reclamar agora ou no futuro.";
+            }
+            else
+            {
+                ResultView.TextoDeclaracaoRetirada1 =
+                    $@"Eu {respNome}, portador do CPF {respDoc}, declaro que no dia {DateTime.Now.ToString("dd 'de' MMMM 'de' yyyy", CultureInfo.GetCultureInfo("pt-BR"))}, " +
+                    $"recebi do depósito {depositoNome} o veículo de placa {veicPlacaFormatada}, Marca/Modelo {veicMarcaModeloStr}, Cor {veicCorStr}, recolhido às {horaEntradaSafe} do dia {dataEntradaSafe}, " +
+                    $"no endereco {depositoEndereco}";
+
+                ResultView.TextoDeclaracaoRetirada2 =
+                    $@"Declaro também que o veículo se encontrava nas mesmas condições, quando foi removido e ainda lacrado, " +
+                    "conforme numeração abaixo descrita, sendo estes lacres conferidos na minha presença, nada havendo para reclamar agora ou no futuro.";
+            }
 
             ResultView.ProprietarioProcurador = respNome;
 

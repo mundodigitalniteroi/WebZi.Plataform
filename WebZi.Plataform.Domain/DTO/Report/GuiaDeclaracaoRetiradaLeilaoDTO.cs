@@ -66,5 +66,7 @@ namespace WebZi.Plataform.Domain.DTO.Report
         public string UsuarioMatricula { get; set; }
 
         public string UsuarioCpf { get; set; }
+        public string? DescricaoObjeto { get; set; }
+        public string? FlagObjeto { get; set; }
     }
 }

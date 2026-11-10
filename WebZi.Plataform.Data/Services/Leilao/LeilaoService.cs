@@ -534,6 +534,7 @@ namespace WebZi.Plataform.Data.Services.Leilao
                     x.EstacionamentoSetor,
                     x.EstacionamentoNumeroVaga,
                     x.NumeroChave,
+                    x.DescricaoObjeto,
                     LiberacaoDataCadastro = x.Liberacao != null ? (DateTime?)x.Liberacao.DataCadastro : null,
                     AtendimentoResponsavelNome = x.Atendimento != null ? x.Atendimento.ResponsavelNome : null,
                     AtendimentoResponsavelDocumento = x.Atendimento != null ? x.Atendimento.ResponsavelDocumento : null,
@@ -619,58 +620,65 @@ namespace WebZi.Plataform.Data.Services.Leilao
                     dataLeilaoStr = grv.Arrematante.DataLeilao.Value.ToString("dd/MM/yyyy");
                 }
 
+                bool isObjeto = !string.IsNullOrWhiteSpace(grv.DescricaoObjeto);
+                ResultView.DescricaoObjeto = grv.DescricaoObjeto;
+                ResultView.FlagObjeto = isObjeto ? "S" : "N";
+                string termoRetirada = isObjeto ? "o objeto" : "o veículo";
+
                 ResultView.NomeLeilao = nomeLeilao;
                 ResultView.TextoDeclaracaoRetirada1 =
                     $"Eu {respNome}, portador(a) do CPF {respDoc}, declaro que às {horaRetiradaStr} do dia " +
-                    $"{dataRetiradaExtenso} retirei do Depósito {depositoNome} o veículo, conforme descrito abaixo, referente  " +
+                    $"{dataRetiradaExtenso} retirei do Depósito {depositoNome} {termoRetirada}, conforme descrito abaixo, referente  " +
                     $"ao Lote nº {numeroLote}, do Leilão realizado no dia {dataLeilaoStr}.";
 
                 ResultView.NumeroLote = numeroLote;
 
-                var detranHubService = _detranHubOptions != null
-                    ? new DetranHubService(_httpClientFactory, _mapper, _detranHubOptions)
-                    : (_httpClientFactory != null && _mapper != null
-                        ? new DetranHubService(_httpClientFactory, _mapper)
-                        : null);
-
-                if (detranHubService != null)
+                if (!isObjeto)
                 {
-                    string placa = !string.IsNullOrWhiteSpace(grv.Placa) && grv.Placa.IsPlaca() ? grv.Placa : null;
-                    string chassi = placa == null ? grv.Chassi : null;
-
-                    try
+                    var detranHubService = _detranHubOptions != null
+                        ? new DetranHubService(_httpClientFactory, _mapper, _detranHubOptions)
+                        : (_httpClientFactory != null && _mapper != null
+                            ? new DetranHubService(_httpClientFactory, _mapper)
+                            : null);
+                    if (detranHubService != null)
                     {
-                        var detranHubResult = await detranHubService.SearchToPlateOrChassi(placa, chassi);
+                        string placa = !string.IsNullOrWhiteSpace(grv.Placa) && grv.Placa.IsPlaca() ? grv.Placa : null;
+                        string chassi = placa == null ? grv.Chassi : null;
 
-                        if (detranHubResult?.Veiculo != null)
+                        try
                         {
-                            var veiculoHub = detranHubResult.Veiculo;
+                            var detranHubResult = await detranHubService.SearchToPlateOrChassi(placa, chassi);
 
-                            if (!string.IsNullOrWhiteSpace(veiculoHub.MarcaModelo))
-                                ResultView.VeiculoMarcaModelo = veiculoHub.MarcaModelo;
+                            if (detranHubResult?.Veiculo != null)
+                            {
+                                var veiculoHub = detranHubResult.Veiculo;
 
-                            if (!string.IsNullOrWhiteSpace(veiculoHub.Placa))
-                                ResultView.VeiculoPlaca = VeiculoHelper.FormatPlaca(veiculoHub.Placa);
+                                if (!string.IsNullOrWhiteSpace(veiculoHub.MarcaModelo))
+                                    ResultView.VeiculoMarcaModelo = veiculoHub.MarcaModelo;
 
-                            if (!string.IsNullOrWhiteSpace(veiculoHub.Renavam))
-                                ResultView.VeiculoRenavam = veiculoHub.Renavam;
+                                if (!string.IsNullOrWhiteSpace(veiculoHub.Placa))
+                                    ResultView.VeiculoPlaca = VeiculoHelper.FormatPlaca(veiculoHub.Placa);
 
-                            if (!string.IsNullOrWhiteSpace(veiculoHub.Chassi))
-                                ResultView.VeiculoChassi = veiculoHub.Chassi;
+                                if (!string.IsNullOrWhiteSpace(veiculoHub.Renavam))
+                                    ResultView.VeiculoRenavam = veiculoHub.Renavam;
 
-                            if (!string.IsNullOrWhiteSpace(veiculoHub.CorPrimaria))
-                                ResultView.VeiculoCor = veiculoHub.CorPrimaria;
+                                if (!string.IsNullOrWhiteSpace(veiculoHub.Chassi))
+                                    ResultView.VeiculoChassi = veiculoHub.Chassi;
 
-                            if (veiculoHub.AnoFabricacao.HasValue)
-                                ResultView.VeiculoAnoFabricacao = veiculoHub.AnoFabricacao.Value.ToString();
+                                if (!string.IsNullOrWhiteSpace(veiculoHub.CorPrimaria))
+                                    ResultView.VeiculoCor = veiculoHub.CorPrimaria;
 
-                            if (veiculoHub.AnoModelo.HasValue)
-                                ResultView.VeiculoAnoModelo = veiculoHub.AnoModelo.Value.ToString();
+                                if (veiculoHub.AnoFabricacao.HasValue)
+                                    ResultView.VeiculoAnoFabricacao = veiculoHub.AnoFabricacao.Value.ToString();
+
+                                if (veiculoHub.AnoModelo.HasValue)
+                                    ResultView.VeiculoAnoModelo = veiculoHub.AnoModelo.Value.ToString();
+                            }
                         }
-                    }
-                    catch
-                    {
-                        // Fallback seguro caso falhe integração externa
+                        catch
+                        {
+                            // Fallback seguro caso falhe integração externa
+                        }
                     }
                 }
 
@@ -708,8 +716,9 @@ namespace WebZi.Plataform.Data.Services.Leilao
                     ResultView.TextoDeclaracaoRetirada2 = "Declaro ter arrematado o Lote.";
                 }
 
+                string termoRetiradaDoc = isObjeto ? "do objeto" : "do veículo";
                 ResultView.TextoDeclaracaoRetirada3 =
-                    "Declaro também que, no ato da retirada do veículo no Depósito, recebi os seguintes documentos:\n\n" +
+                    $"Declaro também que, no ato da retirada {termoRetiradaDoc} no Depósito, recebi os seguintes documentos:\n\n" +
                     "- Nota Fiscal,\n\n" +
                     "- Auto de Leilão";
 
