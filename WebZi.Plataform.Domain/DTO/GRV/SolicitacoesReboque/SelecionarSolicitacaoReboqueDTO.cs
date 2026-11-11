@@ -38,7 +38,7 @@ public class SelecionarSolicitacaoReboqueDTO
     public DateTime DataCadastro { get; set; }
     public DateTime? DataSolicitacaoCancelada { get; set; }
     public DateTime? DataSolicitacaoAceito { get; set; }
-        public CondutorDTO? Condutor { get; set; }
+    public CondutorDTO? Condutor { get; set; }
     public ImageListDTO Fotos { get; set; }
 }
 

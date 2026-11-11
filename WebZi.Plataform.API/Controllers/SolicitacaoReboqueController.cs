@@ -31,23 +31,14 @@ public class SolicitacaoReboqueController : ControllerBase
 
         var userId = User.GetUserId();
         parameters.IdentificadorUsuario = userId.Value;
-        try
-        {
-            ResultView = await _provider
-                .GetService<SolicitacaoReboqueService>()
-                .ExisteSolicitacaoEmAndamentoAsync(
-                    parameters,
-                    ct
-                );
+        ResultView = await _provider
+            .GetService<SolicitacaoReboqueService>()
+            .ExisteSolicitacaoEmAndamentoAsync(
+                parameters,
+                ct
+            );
 
-            return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-        }
-        catch (Exception ex)
-        {
-            ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
-
-            return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-        }
+        return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
     }
 
     [HttpPost("ObterResumoSolicitacoes")]
@@ -59,23 +50,14 @@ public class SolicitacaoReboqueController : ControllerBase
 
         var userId = User.GetUserId();
         parameters.IdentificadorUsuario = userId.Value;
-        try
-        {
-            ResultView = await _provider
-                .GetService<SolicitacaoReboqueService>()
-                .ObterResumoSolicitacoesAsync(
-                    parameters,
-                    ct
-                );
+        ResultView = await _provider
+            .GetService<SolicitacaoReboqueService>()
+            .ObterResumoSolicitacoesAsync(
+                parameters,
+                ct
+            );
 
-            return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-        }
-        catch (Exception ex)
-        {
-            ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
-
-            return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-        }
+        return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
     }
 
     [HttpPost("ListarSolicitacoes")]
@@ -87,23 +69,14 @@ public class SolicitacaoReboqueController : ControllerBase
 
         var userId = User.GetUserId();
         parameters.IdentificadorUsuario = userId.Value;
-        try
-        {
-            ResultView = await _provider
-                .GetService<SolicitacaoReboqueService>()
-                .ListarSolicitacoesAsync(
-                    parameters,
-                    ct
-                );
+        ResultView = await _provider
+            .GetService<SolicitacaoReboqueService>()
+            .ListarSolicitacoesAsync(
+                parameters,
+                ct
+            );
 
-            return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-        }
-        catch (Exception ex)
-        {
-            ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
-
-            return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-        }
+        return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
     }
 
     [HttpPost("ListarSolicitacoesDaAutoridade")]
@@ -115,23 +88,14 @@ public class SolicitacaoReboqueController : ControllerBase
 
         var userId = User.GetUserId();
         parameters.IdentificadorUsuario = userId.Value;
-        try
-        {
-            ResultView = await _provider
-                .GetService<SolicitacaoReboqueService>()
-                .ListarSolicitacoesDaAutoridadeAsync(
-                    parameters,
-                    ct
-                );
+        ResultView = await _provider
+            .GetService<SolicitacaoReboqueService>()
+            .ListarSolicitacoesDaAutoridadeAsync(
+                parameters,
+                ct
+            );
 
-            return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-        }
-        catch (Exception ex)
-        {
-            ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
-
-            return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-        }
+        return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
     }
 
     [HttpGet("{solicitacaoReboqueId}/SelecionarSolicitacao")]
@@ -142,20 +106,11 @@ public class SolicitacaoReboqueController : ControllerBase
         SelecionarSolicitacaoReboqueDTO ResultView = new();
 
         var userId = User.GetUserId();
-        try
-        {
-            ResultView = await _provider
-                .GetService<SolicitacaoReboqueService>()
-                .GetByIdSolicitacaoReboqueAsync(userId!.Value, solicitacaoReboqueId, ct);
+        ResultView = await _provider
+            .GetService<SolicitacaoReboqueService>()
+            .GetByIdSolicitacaoReboqueAsync(userId!.Value, solicitacaoReboqueId, ct);
 
-            return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-        }
-        catch (Exception ex)
-        {
-            ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
-
-            return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
-        }
+        return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
     }
 
     [HttpPost("Cadastrar")]
@@ -167,20 +122,10 @@ public class SolicitacaoReboqueController : ControllerBase
         var userId = User.GetUserId();
         cadastrarSolicitacaoReboque.IdentificadorUsuario = userId!.Value;
 
-        try
-        {
-            ResultView = await _provider
-                .GetService<SolicitacaoReboqueService>()
-                .CreateSolicitacaoReboqueAsync(cadastrarSolicitacaoReboque, ct);
-
-            return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
-        }
-        catch (Exception ex)
-        {
-            ResultView = MensagemViewHelper.SetInternalServerError(ex);
-
-            return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
-        }
+        ResultView = await _provider
+            .GetService<SolicitacaoReboqueService>()
+            .CreateSolicitacaoReboqueAsync(cadastrarSolicitacaoReboque, ct);
+        return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
     }
 
     [HttpPut("{solicitacaoReboqueId}/Cancelar")]
@@ -192,20 +137,11 @@ public class SolicitacaoReboqueController : ControllerBase
 
         var userId = User.GetUserId();
 
-        try
-        {
-            ResultView = await _provider
-                .GetService<SolicitacaoReboqueService>()
-                .CancelarSolicitacaoReboqueAsync(userId!.Value, solicitacaoReboqueId, ct);
+        ResultView = await _provider
+            .GetService<SolicitacaoReboqueService>()
+            .CancelarSolicitacaoReboqueAsync(userId!.Value, solicitacaoReboqueId, ct);
 
-            return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
-        }
-        catch (Exception ex)
-        {
-            ResultView = MensagemViewHelper.SetInternalServerError(ex);
-
-            return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
-        }
+        return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
     }
 
     [HttpPut("{solicitacaoReboqueId}/Atualizar")]
@@ -219,20 +155,11 @@ public class SolicitacaoReboqueController : ControllerBase
         parameters.IdentificadorUsuario = userId!.Value;
         parameters.SolicitacaoReboqueId = solicitacaoReboqueId;
 
-        try
-        {
-            ResultView = await _provider
-                .GetService<SolicitacaoReboqueService>()
-                .UpdateSolicitacaoReboqueAsync(parameters, ct);
+        ResultView = await _provider
+            .GetService<SolicitacaoReboqueService>()
+            .UpdateSolicitacaoReboqueAsync(parameters, ct);
 
-            return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
-        }
-        catch (Exception ex)
-        {
-            ResultView = MensagemViewHelper.SetInternalServerError(ex);
-
-            return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
-        }
+        return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
     }
 
     [HttpPut("{solicitacaoReboqueId}/aceitar")]
@@ -248,19 +175,21 @@ public class SolicitacaoReboqueController : ControllerBase
             IdentificadorUsuario = userId!.Value,
             SolicitacaoReboqueId = solicitacaoReboqueId,
         };
-        try
-        {
-            ResultView = await _provider
-                .GetService<SolicitacaoReboqueService>()
-                .AceitarSolicitacaoReboqueAsync(parameters, ct);
+        ResultView = await _provider
+            .GetService<SolicitacaoReboqueService>()
+            .AceitarSolicitacaoReboqueAsync(parameters, ct);
 
-            return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
-        }
-        catch (Exception)
-        {
-            ResultView = MensagemViewHelper.SetInternalServerError("Erro ao aceitar solicitação!");
+        return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+    }
 
-            return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
-        }
+    [HttpDelete("{solicitacaoId}/Excluir")]
+    public async Task<ActionResult<MensagemDTO>> Excluir([FromRoute] int solicitacaoId, CancellationToken ct)
+    {
+        MensagemDTO ResultView = new();
+
+        ResultView = await _provider
+            .GetService<SolicitacaoReboqueService>()
+            .DeleteSolicitacaoReboqueAsync(solicitacaoId, ct);
+        return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
     }
 }
