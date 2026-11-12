@@ -117,10 +117,10 @@ public class PessoaService
         var possuiPermissao = await _context.PerfilAcessoUsuario
             .AsNoTracking()
             .AnyAsync(x => x.UsuarioId == usuarioId
-                           && x.PerfilAcessoId == (int)PerfisDeAcessoEnum.GerenciarUsuariosHomolog
+                           && x.PerfilAcessoId == (int)PerfisDeAcessoEnum.GerenciarUsuariosProd
                            && _context.SistemaPerfilAcessoSubModulos
-                               .Any(s => s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.GerenciarUsuariosHomolog
-                                         && s.IdSubModulo == (int)SubModuloEnum.ConsultarPessoaHomolog),
+                               .Any(s => s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.GerenciarUsuariosProd
+                                         && s.IdSubModulo == (int)SubModuloEnum.ConsultarPessoaProd),
                 cancellationToken: ct);
 
         if (!possuiPermissao)
