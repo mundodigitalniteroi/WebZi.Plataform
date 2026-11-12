@@ -12,6 +12,7 @@ public class SelecionarSolicitacaoReboqueDTO
     public int Id { get; set; }
     public int? GrvId { get; set; }
     public byte? SolicitacaoReboqueStatusId { get; set; }
+    public string? MotivoCancelamento { get; set; }
     public string? NumeroProcesso { get; set; }
     public string Cliente { get; set; }
     public string Deposito { get; set; }

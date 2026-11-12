@@ -21,4 +21,5 @@ public class SolicitacaoReboqueDTO
     public DateTime DataCriacaoSolicitacao { get; set; }
     public DateTime? DataSolicitacaoAceita { get; set; }
     public DateTime? DataSolicitacaoFinalizada { get; set; }
+    public string MotivoCancelamento { get; set; }
 }

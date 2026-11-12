@@ -21,6 +21,8 @@ public class SolicitacaoReboqueModel
     public int? UsuarioAceiteId { get; set; }
     public int? UsuarioCanceladoId { get; set; }
     public int? UsuarioAlteracaoId { get; set; }
+    public string? MotivoCancelamento { get; set; }
+
 
     public byte? TipoVeiculoId { get; set; }
     public int? CorId { get; set; }

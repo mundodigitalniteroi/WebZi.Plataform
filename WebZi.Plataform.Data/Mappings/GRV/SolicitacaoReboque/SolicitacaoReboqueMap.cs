@@ -13,28 +13,25 @@ public class SolicitacaoReboqueMap : IEntityTypeConfiguration<SolicitacaoReboque
         builder.Property(x => x.Id)
             .HasColumnName("id_solicitacao_reboque")
             .ValueGeneratedOnAdd();
-
         builder.Property(x => x.ClienteDepositoId)
             .HasColumnName("id_cliente_deposito");
-
         builder.Property(x => x.ReboqueId)
             .HasColumnName("id_reboque");
         builder.Property(x => x.ReboquistaId)
             .HasColumnName("id_reboquista");
-
         builder.Property(x => x.SolicitacaoReboqueTipoId)
             .HasColumnName("id_solicitacao_reboque_tipo")
             .HasColumnType("tinyint");
         builder.Property(x => x.SolicitacaoReboqueStatusId)
             .HasColumnName("id_solicitacao_reboque_status")
             .HasColumnType("tinyint");
-
         builder.Property(x => x.MotivoApreensaoId)
             .HasColumnName("id_motivo_apreensao")
             .HasColumnType("tinyint");
-
         builder.Property(x => x.GrvId)
             .HasColumnName("id_grv");
+        builder.Property(x => x.MotivoCancelamento)
+            .HasColumnName("motivo_cancelamento");
 
         builder.Property(x => x.UsuarioCadastroId)
             .HasColumnName("id_usuario_cadastro");
@@ -44,10 +41,10 @@ public class SolicitacaoReboqueMap : IEntityTypeConfiguration<SolicitacaoReboque
             .HasColumnName("id_usuario_cancelada");
         builder.Property(x => x.UsuarioAlteracaoId)
             .HasColumnName("id_usuario_alteracao");
-
         builder.Property(x => x.TipoVeiculoId)
             .HasColumnName("id_tipo_veiculo")
             .HasColumnType("tinyint");
+
 
         builder.Property(x => x.CorId)
             .HasColumnName("id_cor");

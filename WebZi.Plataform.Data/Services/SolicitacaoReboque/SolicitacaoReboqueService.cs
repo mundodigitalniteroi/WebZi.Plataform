@@ -197,7 +197,7 @@ public class SolicitacaoReboqueService
 
         var query = _context.SolicitacaoReboque
             .AsNoTracking()
-            .Where(x => x.ClienteDepositoId == clienteDeposito.ClienteDepositoId);
+            .Where(x => x.ClienteDepositoId == clienteDeposito.ClienteDepositoId && x.DataSolicitacaoCancelada == null);
 
 
         if (parameters.DataInicial.HasValue)
@@ -320,6 +320,7 @@ public class SolicitacaoReboqueService
                 },
                 Status = x.SolicitacaoReboqueStatus.Descricao,
                 LocalApreenssao = x.LocalRemocaoCompleto,
+                MotivoCancelamento = x.MotivoCancelamento,
                 DataCriacaoSolicitacao = x.DataCadastro,
                 DataSolicitacaoAceita = x.DataSolicitacaoAceita,
                 DataSolicitacaoFinalizada = x.DataSolicitacaoFinalizada
@@ -355,6 +356,7 @@ public class SolicitacaoReboqueService
                 DepositoLatitude = x.ClienteDeposito.Deposito.Latitude,
                 DepositoLongitude = x.ClienteDeposito.Deposito.Longitude,
                 LocalizacaoDeposito = x.ClienteDeposito.Deposito.EnderecoMob,
+                MotivoCancelamento = x.MotivoCancelamento,
                 MotivoApreensao = x.MotivoApreensao != null ? x.MotivoApreensao.Descricao : null,
                 AutoridadeId = x.AutoridadeResponsavelId,
                 NomeAgente = x.NomeAutoridadeResponsavel != null ? x.NomeAutoridadeResponsavel : "",
@@ -546,12 +548,12 @@ public class SolicitacaoReboqueService
                     erros.Add("Esse GRV já está existe (Placa já está cadastrada)");
                     break;
                 default:
-                    {
-                        erros.Add(isChassiDuplicado
-                            ? "Esse GRV já está existe (Chassi já está cadastrado)"
-                            : "Esse GRV já está existe");
-                        break;
-                    }
+                {
+                    erros.Add(isChassiDuplicado
+                        ? "Esse GRV já está existe (Chassi já está cadastrado)"
+                        : "Esse GRV já está existe");
+                    break;
+                }
             }
 
             erros.Add($"{grv.NumeroFormularioGrv}");
@@ -789,71 +791,71 @@ public class SolicitacaoReboqueService
             switch (parameters.SolicitacaoReboqueStatusId)
             {
                 case (byte)StatusSolicitacoesEnum.A_CAMINHO:
+                {
+                    var msg = await SolicitacaoStatusACaminho(solicitacao, parameters, ct);
+                    if (msg.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
                     {
-                        var msg = await SolicitacaoStatusACaminho(solicitacao, parameters, ct);
-                        if (msg.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
-                        {
-                            await transaction.RollbackAsync(ct);
-                            return msg;
-                        }
-
-                        break;
+                        await transaction.RollbackAsync(ct);
+                        return msg;
                     }
+
+                    break;
+                }
                 case (byte)StatusSolicitacoesEnum.NO_LOCAL:
+                {
+                    var msg = SolicitacaoStatusNoLocal(solicitacao, parameters);
+                    if (msg.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
                     {
-                        var msg = SolicitacaoStatusNoLocal(solicitacao, parameters);
-                        if (msg.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
-                        {
-                            await transaction.RollbackAsync(ct);
-                            return msg;
-                        }
-
-                        break;
+                        await transaction.RollbackAsync(ct);
+                        return msg;
                     }
+
+                    break;
+                }
                 case (byte)StatusSolicitacoesEnum.CARREGADO:
+                {
+                    var msg = await SolicitacaoStatusCarregado(solicitacao, clienteDeposito.ClienteId, parameters, ct);
+                    if (msg.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
                     {
-                        var msg = await SolicitacaoStatusCarregado(solicitacao, clienteDeposito.ClienteId, parameters, ct);
-                        if (msg.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
-                        {
-                            await transaction.RollbackAsync(ct);
-                            return msg;
-                        }
-
-                        break;
+                        await transaction.RollbackAsync(ct);
+                        return msg;
                     }
+
+                    break;
+                }
                 case (byte)StatusSolicitacoesEnum.EM_TRANSITO:
+                {
+                    var msg = await SolicitacaoStatusEmTransito(solicitacao, parameters, ct);
+                    if (msg.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
                     {
-                        var msg = await SolicitacaoStatusEmTransito(solicitacao, parameters, ct);
-                        if (msg.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
-                        {
-                            await transaction.RollbackAsync(ct);
-                            return msg;
-                        }
-
-                        break;
+                        await transaction.RollbackAsync(ct);
+                        return msg;
                     }
+
+                    break;
+                }
                 case (byte)StatusSolicitacoesEnum.NO_DEPOSITO:
+                {
+                    var msg = SolicitacaoStatusNoDeposito(solicitacao, parameters);
+                    if (msg.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
                     {
-                        var msg = SolicitacaoStatusNoDeposito(solicitacao, parameters);
-                        if (msg.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
-                        {
-                            await transaction.RollbackAsync(ct);
-                            return msg;
-                        }
-
-                        break;
+                        await transaction.RollbackAsync(ct);
+                        return msg;
                     }
+
+                    break;
+                }
                 case (byte)StatusSolicitacoesEnum.FINALIZADO:
+                {
+                    var msg = SolicitacaoStatusFinalizado(solicitacao, parameters);
+                    if (msg.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
                     {
-                        var msg = SolicitacaoStatusFinalizado(solicitacao, parameters);
-                        if (msg.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
-                        {
-                            await transaction.RollbackAsync(ct);
-                            return msg;
-                        }
-
-                        break;
+                        await transaction.RollbackAsync(ct);
+                        return msg;
                     }
+
+                    break;
+                }
                 default:
                     solicitacao.SolicitacaoReboqueStatusId = parameters.SolicitacaoReboqueStatusId;
                     break;
