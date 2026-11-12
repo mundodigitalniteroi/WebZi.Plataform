@@ -10,6 +10,7 @@ using WebZi.Plataform.Data.Services.Atendimento;
 using WebZi.Plataform.Data.Services.Sistema;
 using WebZi.Plataform.Data.Services.WebServices;
 using WebZi.Plataform.Domain.DTO.Generic;
+using WebZi.Plataform.Domain.DTO.GRV;
 using WebZi.Plataform.Domain.DTO.GRV.SolicitacoesReboque;
 using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.Enums;
@@ -355,6 +356,23 @@ public class SolicitacaoReboqueService
                 DepositoLongitude = x.ClienteDeposito.Deposito.Longitude,
                 LocalizacaoDeposito = x.ClienteDeposito.Deposito.EnderecoMob,
                 MotivoApreensao = x.MotivoApreensao != null ? x.MotivoApreensao.Descricao : null,
+                AutoridadeId = x.AutoridadeResponsavelId,
+                NomeAgente = x.NomeAutoridadeResponsavel != null ? x.NomeAutoridadeResponsavel : "",
+                MatriculaAgente = x.MatriculaAutoridadeResponsavel,
+                ListagemEnquadramentoInfracao = x.ListagemEnquadramentoInfracao
+                    .Select(y => new EnquadramentoInfracaoSolicitacaoDTO
+                    {
+                        IdentificadorEnquadramentoGrv = y.Id,
+                        NumeroInfracao = y.NumeroInfracao,
+                        Infracao = new EnquadramentoInfracaoDTO()
+                        {
+                            IdentificadorEnquadramentoInfracao = y.EnquadramentoInfracao.EnquadramentoInfracaoId,
+                            CodigoInfracao = y.EnquadramentoInfracao.CodigoInfracao,
+                            Artigo = y.EnquadramentoInfracao.Artigo,
+                            Descricao = y.EnquadramentoInfracao.Descricao
+                        }
+                    })
+                    .ToList(),
                 Veiculo = new SolicitacaoReboqueVeiculoDTO
                 {
                     TipoVeiculo = x.Grv != null
@@ -429,8 +447,8 @@ public class SolicitacaoReboqueService
         }
 
         var condutorModel = await _context.SolicitacaoReboqueCondutor
-    .AsNoTracking()
-    .FirstOrDefaultAsync(c => c.SolicitacaoReboqueId == solicitacao.Id, cancellationToken: ct);
+            .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.SolicitacaoReboqueId == solicitacao.Id, cancellationToken: ct);
 
         if (condutorModel != null)
         {
@@ -447,6 +465,7 @@ public class SolicitacaoReboqueService
                 InformacoesAdicionais = condutorModel.InformacoesAdicionais
             };
         }
+
         try
         {
             solicitacao.Fotos = await new BucketService(_context, _httpClientFactory)
@@ -528,7 +547,9 @@ public class SolicitacaoReboqueService
                     break;
                 default:
                     {
-                        erros.Add(isChassiDuplicado ? "Esse GRV já está existe (Chassi já está cadastrado)" : "Esse GRV já está existe");
+                        erros.Add(isChassiDuplicado
+                            ? "Esse GRV já está existe (Chassi já está cadastrado)"
+                            : "Esse GRV já está existe");
                         break;
                     }
             }
@@ -1083,6 +1104,7 @@ public class SolicitacaoReboqueService
                 condutor.NumeroChaveVeiculo = null;
             }
         }
+
         if (erros.Count > 0)
             return MensagemViewHelper.SetBadRequest(erros);
 
@@ -1131,7 +1153,7 @@ public class SolicitacaoReboqueService
         AtualizarSolicitacaoReboqueParameters parameters)
     {
         solicitacao.SolicitacaoReboqueStatusId = (byte)StatusSolicitacoesEnum.FINALIZADO;
-        solicitacao.GrvId = solicitacao.GrvId;
+        solicitacao.GrvId = parameters.GrvId;
         solicitacao.DataSolicitacaoFinalizada = DateTime.Now;
         solicitacao.DataAlteracao = DateTime.Now;
         solicitacao.UsuarioAlteracaoId = parameters.IdentificadorUsuario;

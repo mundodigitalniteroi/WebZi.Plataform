@@ -2,6 +2,7 @@ using WebZi.Plataform.Domain.DTO.Generic;
 using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.DTO.Veiculo;
 using WebZi.Plataform.Domain.DTO.GRV;
+using WebZi.Plataform.Domain.Models.GRV.SolicitacaoReboque;
 
 namespace WebZi.Plataform.Domain.DTO.GRV.SolicitacoesReboque;
 
@@ -18,7 +19,10 @@ public class SelecionarSolicitacaoReboqueDTO
     public string DepositoLongitude { get; set; }
     public string LocalizacaoDeposito { get; set; }
     public string? MotivoApreensao { get; set; }
-    public EnquadramentoInfracaoListDTO ListagemEnquadramentoInfracao { get; set; }
+    public int AutoridadeId { get; set; }
+    public string NomeAgente { get; set; }
+    public string MatriculaAgente { get; set; }
+    public List<EnquadramentoInfracaoSolicitacaoDTO> ListagemEnquadramentoInfracao { get; set; }
     public List<string> Lacres { get; set; }
     public List<SolicitacaoEquipamentoOpcional> EquipamentosOpcionais { get; set; }
     public SolicitacaoReboqueVeiculoDTO Veiculo { get; set; }
@@ -38,8 +42,6 @@ public class SelecionarSolicitacaoReboqueDTO
     public DateTime DataCadastro { get; set; }
     public DateTime? DataSolicitacaoCancelada { get; set; }
     public DateTime? DataSolicitacaoAceito { get; set; }
-        public CondutorDTO? Condutor { get; set; }
+    public CondutorDTO? Condutor { get; set; }
     public ImageListDTO Fotos { get; set; }
 }
-
-

@@ -28,9 +28,8 @@ public class SolicitacaoReboqueEnquadramentoInfracaoMap : IEntityTypeConfigurati
             .HasMaxLength(20)
             .IsUnicode(false)
             .IsRequired();
-
         builder.HasOne(x => x.SolicitacaoReboque)
-            .WithMany()
+            .WithMany(x => x.ListagemEnquadramentoInfracao)
             .HasForeignKey(x => x.SolicitacaoReboqueId);
 
         builder.HasOne(x => x.EnquadramentoInfracao)

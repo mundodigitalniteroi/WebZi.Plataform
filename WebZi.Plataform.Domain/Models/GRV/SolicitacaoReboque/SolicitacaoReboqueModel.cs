@@ -69,4 +69,5 @@ public class SolicitacaoReboqueModel
 
     public virtual ICollection<SolicitacaoEquipamentoOpcionalModel> ListagemEquipamentoOpcional { get; set; }
     public virtual ICollection<SolicitacaoReboqueLacreModel> ListagemLacres { get; set; }
+    public virtual ICollection<SolicitacaoReboqueEnquadramentoInfracaoModel> ListagemEnquadramentoInfracao { get; set; }
 }
