@@ -1,9 +1,9 @@
-using WebZi.Plataform.CrossCutting.Web;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-using System.Reflection.Metadata.Ecma335;
 using Microsoft.Extensions.DependencyInjection;
+using System.Reflection.Metadata.Ecma335;
 using WebZi.Plataform.CrossCutting.Strings;
+using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Atendimento;
@@ -13,6 +13,7 @@ using WebZi.Plataform.Domain.DTO.Generic;
 using WebZi.Plataform.Domain.DTO.GRV;
 using WebZi.Plataform.Domain.DTO.GRV.SolicitacoesReboque;
 using WebZi.Plataform.Domain.DTO.Sistema;
+using WebZi.Plataform.Domain.DTO.Veiculo;
 using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Condutor;
 using WebZi.Plataform.Domain.Models.GRV.SolicitacaoReboque;
@@ -750,6 +751,76 @@ public class SolicitacaoReboqueService
         {
             await transaction.RollbackAsync(ct);
             return MensagemViewHelper.SetInternalServerError(ex);
+        }
+    }
+
+    public async Task<MensagemDTO> DeleteSolicitacaoReboqueAsync(int solicitacaoId, CancellationToken ct)
+    {
+        if (solicitacaoId <= 0)
+            return MensagemViewHelper.SetBadRequest("Identificador da Solicitação de Reboque inválido!");
+
+        var solicitacao = await _context.SolicitacaoReboque
+            .AsNoTracking()
+            .Where(x => x.Id == solicitacaoId)
+            .Select(x => new
+            {
+                x.Id,
+                x.GrvId
+            })
+            .FirstOrDefaultAsync(ct);
+
+        if (solicitacao is null)
+            return MensagemViewHelper.SetNotFound("Solicitação de reboque não encontrada!");
+
+        if (solicitacao.GrvId != null)
+            return MensagemViewHelper.SetBadRequest("Solicitação de reboque não pode ser excluída pois já possui GRV vinculado!");
+
+        await using var transaction = await _context.Database.BeginTransactionAsync(ct);
+
+        try
+        {
+            new BucketService(_context, _httpClientFactory)
+                .DeleteFiles(BucketNomeTabelaOrigemEnum.SolicitacaoReboque, solicitacaoId);
+
+            new BucketService(_context, _httpClientFactory)
+                .DeleteFiles(BucketNomeTabelaOrigemEnum.AssinaturaCondutor, solicitacaoId);
+
+            await _context.SolicitacaoReboqueLacre
+                .Where(x => x.SolicitacaoReboqueId == solicitacaoId)
+                .ExecuteDeleteAsync(ct);
+
+            await _context.SolicitacaoReboqueEnquadramentoInfracao
+                .Where(x => x.SolicitacaoReboqueId == solicitacaoId)
+                .ExecuteDeleteAsync(ct);
+
+            await _context.SolicitacaoReboqueCondutor
+                .Where(x => x.SolicitacaoReboqueId == solicitacaoId)
+                .ExecuteDeleteAsync(ct);
+
+            await _context.SolicitacaoEquipamentoOpcional
+                .Where(x => x.SolicitacaoReboqueId == solicitacaoId)
+                .ExecuteDeleteAsync(ct);
+
+            await _context.SolicitacaoReboqueDRFA
+                .Where(x => x.SolicitacaoReboqueId == solicitacaoId)
+                .ExecuteDeleteAsync(ct);
+
+            await _context.SolicitacaoReboqueGrv
+                .Where(x => x.SolicitacaoReboqueId == solicitacaoId)
+                .ExecuteDeleteAsync(ct);
+
+            await _context.SolicitacaoReboque
+                .Where(x => x.Id == solicitacaoId)
+                .ExecuteDeleteAsync(ct);
+
+            await transaction.CommitAsync(ct);
+
+            return MensagemViewHelper.SetDeleteSuccess("Solicitação de reboque excluída com sucesso!");
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync(ct);
+            return MensagemViewHelper.SetInternalServerError("Erro ao tentar excluir a solicitação de reboque.");
         }
     }
 
