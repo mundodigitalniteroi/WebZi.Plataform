@@ -11,7 +11,7 @@ public class SolicitacaoReboqueCondutorMap : IEntityTypeConfiguration<Solicitaca
         builder.ToTable("tb_dep_condutor_solicitacao_reboque").HasKey(x => x.Id);
 
         builder.Property(x => x.Id)
-            .HasColumnName("id_condutor")
+            .HasColumnName("id_condutor_solicitacao")
             .ValueGeneratedOnAdd();
 
         builder.Property(x => x.SolicitacaoReboqueId)

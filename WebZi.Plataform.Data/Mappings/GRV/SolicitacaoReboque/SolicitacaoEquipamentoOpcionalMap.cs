@@ -1,17 +1,16 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using WebZi.Plataform.Data.Mappings.GRV.SolicitacaoReboque;
 using WebZi.Plataform.Domain.Models.Condutor;
 using WebZi.Plataform.Domain.Models.GRV.SolicitacaoReboque;
 
-namespace WebZi.Plataform.Data.Mappings.Condutor
+namespace WebZi.Plataform.Data.Mappings.GRV.SolicitacaoReboque
 {
     public class SolicitacaoEquipamentoOpcionalMap : IEntityTypeConfiguration<SolicitacaoEquipamentoOpcionalModel>
     {
         public void Configure(EntityTypeBuilder<SolicitacaoEquipamentoOpcionalModel> builder)
         {
             builder
-                .ToTable("tb_solicitacao_equipamento_opcional", "dbo")
+                .ToTable("tb_dep_solicitacao_reboque_equipamento_opcional", "dbo")
                 .HasKey(x => x.SolicitacaoEquipamentoOpcionalId);
 
             builder.Property(e => e.SolicitacaoEquipamentoOpcionalId)

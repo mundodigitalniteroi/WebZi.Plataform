@@ -359,6 +359,13 @@ public class SolicitacaoReboqueService
                 LocalizacaoDeposito = x.ClienteDeposito.Deposito.EnderecoMob,
                 MotivoCancelamento = x.MotivoCancelamento,
                 MotivoApreensao = x.MotivoApreensao != null ? x.MotivoApreensao.Descricao : null,
+                ReboqueId = x.Reboque != null ? x.ReboqueId : null,
+                Reboque = x.Reboque != null ? x.Reboque.Placa : null,
+                ReboquistaId = x.Reboquista != null ? x.ReboquistaId : null,
+                Reboquista = x.Reboquista != null ? x.Reboquista.Nome : null,
+                SolicitacaoReboqueTipo = x.SolicitacaoReboqueTipo != null ? x.SolicitacaoReboqueTipo.Descricao : null,
+                SolicitacaoReboqueStatus =
+                    x.SolicitacaoReboqueStatus != null ? x.SolicitacaoReboqueStatus.Descricao : null,
                 AutoridadeId = x.AutoridadeResponsavelId,
                 NomeAgente = x.NomeAutoridadeResponsavel != null ? x.NomeAutoridadeResponsavel : "",
                 MatriculaAgente = x.MatriculaAutoridadeResponsavel,
@@ -389,13 +396,6 @@ public class SolicitacaoReboqueService
                         : (x.MarcaModelo != null ? x.MarcaModelo.MarcaModelo : null),
                     Cor = x.Grv != null ? x.Grv.Cor.Cor : (x.Cor != null ? x.Cor.Cor : null)
                 },
-                ReboqueId = x.Reboque != null ? x.ReboqueId : null,
-                Reboque = x.Reboque != null ? x.Reboque.Placa : null,
-                ReboquistaId = x.Reboquista != null ? x.ReboquistaId : null,
-                Reboquista = x.Reboquista != null ? x.Reboquista.Nome : null,
-                SolicitacaoReboqueTipo = x.SolicitacaoReboqueTipo != null ? x.SolicitacaoReboqueTipo.Descricao : null,
-                SolicitacaoReboqueStatus =
-                    x.SolicitacaoReboqueStatus != null ? x.SolicitacaoReboqueStatus.Descricao : null,
                 LocalRemocaoCompleto = x.LocalRemocaoCompleto,
                 LocalRemocaoReferencia = x.LocalRemocaoReferencia,
                 LocalRemocaoLatitude = x.LocalRemocaoLatitude,
@@ -589,7 +589,6 @@ public class SolicitacaoReboqueService
                 ? (byte)2
                 : (byte)1;
 
-
         if (erros.Count > 0)
             return MensagemViewHelper.SetBadRequest(erros);
 
@@ -698,10 +697,10 @@ public class SolicitacaoReboqueService
 
             return MensagemViewHelper.SetUpdateSuccess("Solicitação de reboque cancelada com sucesso!");
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             await transaction.RollbackAsync(ct);
-            return MensagemViewHelper.SetInternalServerError(ex);
+            return MensagemViewHelper.SetInternalServerError("Erro ao tentar cancelar a solicitação de reboque.");
         }
     }
 
@@ -747,10 +746,10 @@ public class SolicitacaoReboqueService
 
             return MensagemViewHelper.SetUpdateSuccess("Solicitação de reboque aceita com sucesso!");
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             await transaction.RollbackAsync(ct);
-            return MensagemViewHelper.SetInternalServerError(ex);
+            return MensagemViewHelper.SetInternalServerError("Erro ao tentar aceitar a solicitação de reboque.");
         }
     }
 
@@ -1091,7 +1090,7 @@ public class SolicitacaoReboqueService
             new BucketService(_context, _httpClientFactory)
                 .SendFiles(BucketNomeTabelaOrigemEnum.SolicitacaoReboque, solicitacao.Id,
                     parameters.IdentificadorUsuario,
-                    parameters.ListagemFoto);
+                    parameters.ListagemFoto, false);
         }
 
         solicitacao.SolicitacaoReboqueStatusId = (byte)StatusSolicitacoesEnum.CARREGADO;

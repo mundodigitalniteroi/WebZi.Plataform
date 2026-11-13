@@ -22,13 +22,13 @@ namespace WebZi.Plataform.Data.Services.WebServices
         }
 
         public void SendFile(string CodigoTabelaOrigem, int TabelaOrigemId, int UsuarioCadastroId, byte[] File,
-            string TipoCadastro = "")
+            bool saveChanges = true, string TipoCadastro = "")
         {
-            SendFiles(CodigoTabelaOrigem, TabelaOrigemId, UsuarioCadastroId, new() { File }, TipoCadastro);
+            SendFiles(CodigoTabelaOrigem, TabelaOrigemId, UsuarioCadastroId, new() { File }, saveChanges, TipoCadastro);
         }
 
         public void SendFiles(string CodigoTabelaOrigem, int TabelaOrigemId, int UsuarioCadastroId, List<byte[]> Files,
-            string TipoCadastro = "", bool saveChanges = true)
+            bool saveChanges = true, string TipoCadastro = "")
         {
             ConfiguracaoModel Configuracao = _context.Configuracao
                 .AsNoTracking()
