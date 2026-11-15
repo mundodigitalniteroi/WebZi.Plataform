@@ -198,7 +198,8 @@ public class SolicitacaoReboqueService
 
         var query = _context.SolicitacaoReboque
             .AsNoTracking()
-            .Where(x => x.ClienteDepositoId == clienteDeposito.ClienteDepositoId && x.DataSolicitacaoCancelada == null);
+            .Where(x => x.ClienteDepositoId == clienteDeposito.ClienteDepositoId &&
+                        x.DataSolicitacaoCancelada == null);
 
 
         if (parameters.DataInicial.HasValue)
@@ -772,7 +773,8 @@ public class SolicitacaoReboqueService
             return MensagemViewHelper.SetNotFound("Solicitação de reboque não encontrada!");
 
         if (solicitacao.GrvId != null)
-            return MensagemViewHelper.SetBadRequest("Solicitação de reboque não pode ser excluída pois já possui GRV vinculado!");
+            return MensagemViewHelper.SetBadRequest(
+                "Solicitação de reboque não pode ser excluída pois já possui GRV vinculado!");
 
         await using var transaction = await _context.Database.BeginTransactionAsync(ct);
 
@@ -797,14 +799,6 @@ public class SolicitacaoReboqueService
                 .ExecuteDeleteAsync(ct);
 
             await _context.SolicitacaoEquipamentoOpcional
-                .Where(x => x.SolicitacaoReboqueId == solicitacaoId)
-                .ExecuteDeleteAsync(ct);
-
-            await _context.SolicitacaoReboqueDRFA
-                .Where(x => x.SolicitacaoReboqueId == solicitacaoId)
-                .ExecuteDeleteAsync(ct);
-
-            await _context.SolicitacaoReboqueGrv
                 .Where(x => x.SolicitacaoReboqueId == solicitacaoId)
                 .ExecuteDeleteAsync(ct);
 
