@@ -3164,6 +3164,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                             }
                     }
 
+                    ResultView.AvisosInformativos.Add($"{grv.GrvId}");
                     ResultView.AvisosInformativos.Add($"{grv.NumeroFormularioGrv}");
                 }
             }
