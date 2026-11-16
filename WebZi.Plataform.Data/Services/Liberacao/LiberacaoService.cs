@@ -207,7 +207,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
 
             ResultView.VeiculoChassi = GuiaPagamentoReboqueEstadia?.Chassi ?? Grv.Chassi ?? "";
 
-            ResultView.VeiculoCor = GuiaPagamentoReboqueEstadia?.Cor  ?? "";
+            ResultView.VeiculoCor = GuiaPagamentoReboqueEstadia?.Cor ?? "";
 
             string depositoEndereco = GuiaPagamentoReboqueEstadia?.DepositoEndereco ?? "";
 
@@ -655,8 +655,8 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.TipoLiberacaoId == Parameters.IdentificadorTipoLiberacao);
 
-            if (Parameters.IdentificadorTipoLiberacao <= 0)
-                return MensagemViewHelper.SetBadRequest("Precisa ter um tipo de liberação");
+            //if (Parameters.IdentificadorTipoLiberacao <= 0)
+            //    return MensagemViewHelper.SetBadRequest("Precisa ter um tipo de liberação");
 
             GrvModel Grv = await _context.Grv
                 .Include(x => x.StatusOperacao)
@@ -702,7 +702,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
 
             LiberacaoModel Liberacao = new()
             {
-                TipoLiberacaoId = Parameters.IdentificadorTipoLiberacao,
+                TipoLiberacaoId = 1,
 
                 UsuarioCadastroId = Parameters.IdentificadorUsuario
             };
@@ -746,7 +746,8 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                         .Where(x => x.GrvId == Parameters.IdentificadorProcesso)
                         .UpdateAsync(x => new GrvModel()
                         {
-                            LiberacaoId = Liberacao.LiberacaoId, StatusOperacaoId = "E",
+                            LiberacaoId = Liberacao.LiberacaoId,
+                            StatusOperacaoId = "E",
                             UsuarioAlteracaoId = Parameters.IdentificadorUsuario
                         });
 
@@ -761,11 +762,11 @@ namespace WebZi.Plataform.Data.Services.Liberacao
 
                     await transaction.CommitAsync();
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     await transaction.RollbackAsync();
 
-                    return MensagemViewHelper.SetInternalServerError(ex);
+                    return MensagemViewHelper.SetInternalServerError("Erro ao concluir o salvamento dos dados!");
                 }
             }
 
@@ -924,7 +925,8 @@ namespace WebZi.Plataform.Data.Services.Liberacao
             FaturamentoModel UltimoFaturamento = Faturamentos
                 .FirstOrDefault();
 
-            if(Grv.StatusOperacaoId != "R"){
+            if (Grv.StatusOperacaoId != "R")
+            {
                 if (UltimoFaturamento.DataPrazoRetiradaVeiculo.Value.Date < DataHoraPorDeposito.Date)
                 {
                     return MensagemViewHelper.SetBadRequest(
