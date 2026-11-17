@@ -353,7 +353,9 @@ public class SolicitacaoReboqueService
             {
                 Id = x.Id,
                 NumeroProcesso = x.Grv != null ? x.Grv.NumeroFormularioGrv : "",
+                ClienteId = x.ClienteDeposito.ClienteId,
                 Cliente = x.ClienteDeposito.Cliente.Nome,
+                DepositoId = x.ClienteDeposito.DepositoId,
                 Deposito = x.ClienteDeposito.Deposito.Nome,
                 DepositoLatitude = x.ClienteDeposito.Deposito.Latitude,
                 DepositoLongitude = x.ClienteDeposito.Deposito.Longitude,
@@ -386,16 +388,13 @@ public class SolicitacaoReboqueService
                     .ToList(),
                 Veiculo = new SolicitacaoReboqueVeiculoDTO
                 {
-                    TipoVeiculo = x.Grv != null
-                        ? x.Grv.TipoVeiculo.Descricao
-                        : (x.TipoVeiculo != null ? x.TipoVeiculo.Descricao : null),
-                    Placa = x.Grv != null ? x.Grv.Placa : x.Placa,
-                    Chassi = x.Grv != null ? x.Grv.Chassi : x.Chassi,
-                    Renavam = x.Grv != null ? x.Grv.Renavam : x.Renavam,
-                    MarcaModelo = x.Grv != null
-                        ? x.Grv.MarcaModelo.MarcaModelo
-                        : (x.MarcaModelo != null ? x.MarcaModelo.MarcaModelo : null),
-                    Cor = x.Grv != null ? x.Grv.Cor.Cor : (x.Cor != null ? x.Cor.Cor : null)
+                    TipoVeiculoId = x.TipoVeiculoId.Value,
+                    TipoVeiculo =  x.TipoVeiculo.Descricao ,
+                    Placa = x.Placa,
+                    Chassi = x.Chassi,
+                    Renavam = x.Renavam,
+                    MarcaModelo = x.MarcaModelo.MarcaModelo,
+                    Cor = x.Cor.Cor
                 },
                 LocalRemocaoCompleto = x.LocalRemocaoCompleto,
                 LocalRemocaoReferencia = x.LocalRemocaoReferencia,

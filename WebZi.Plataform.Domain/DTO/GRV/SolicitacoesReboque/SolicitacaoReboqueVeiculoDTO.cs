@@ -2,6 +2,7 @@
 
 public class SolicitacaoReboqueVeiculoDTO
 {
+    public byte? TipoVeiculoId { get; set; }
     public string TipoVeiculo { get; set; }
     public string Placa { get; set; }
     public string Chassi { get; set; }

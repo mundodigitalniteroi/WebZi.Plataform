@@ -14,7 +14,9 @@ public class SelecionarSolicitacaoReboqueDTO
     public byte? SolicitacaoReboqueStatusId { get; set; }
     public string? MotivoCancelamento { get; set; }
     public string? NumeroProcesso { get; set; }
+    public int ClienteId { get; set; }
     public string Cliente { get; set; }
+    public int DepositoId { get; set; }
     public string Deposito { get; set; }
     public string DepositoLatitude { get; set; }
     public string DepositoLongitude { get; set; }
