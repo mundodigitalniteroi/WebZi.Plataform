@@ -7,6 +7,8 @@ public class SolicitacaoReboqueVeiculoDTO
     public string Placa { get; set; }
     public string Chassi { get; set; }
     public string Renavam { get; set; }
+    public int MarcaModeloId { get; set; }
     public string MarcaModelo { get; set; }
+    public int CorId { get; set; }
     public string Cor { get; set; }
 }

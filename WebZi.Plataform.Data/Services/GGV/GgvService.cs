@@ -1336,11 +1336,11 @@ namespace WebZi.Plataform.Data.Services.GGV
                 }
             }
 
-            if (!isObjeto && GgvPersistencia.FlagChaveDeposito == "S" &&
-                string.IsNullOrWhiteSpace(GgvPersistencia.NumeroChave))
-            {
-                erros.Add("Informe o Número da Chave do Veículo");
-            }
+            //if (!isObjeto && GgvPersistencia.FlagChaveDeposito == "S" &&
+            //    string.IsNullOrWhiteSpace(GgvPersistencia.NumeroChave))
+            //{
+            //    erros.Add("Informe o Número da Chave do Veículo");
+            //}
 
             if (GgvPersistencia.FlagTransbordo == "S")
             {

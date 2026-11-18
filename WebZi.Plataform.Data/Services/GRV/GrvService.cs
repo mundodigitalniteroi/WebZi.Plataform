@@ -2758,12 +2758,12 @@ namespace WebZi.Plataform.Domain.Services.GRV
                     erros.Add("Ao informar o Telefone do Condutor é necessário informar o DDD do Telefone do Condutor");
                 }
 
-                if (GrvPersistencia.Condutor.FlagChaveVeiculo == "S"
-                    && string.IsNullOrWhiteSpace(GrvPersistencia.Condutor.NumeroChaveVeiculo))
-                {
-                    erros.Add(
-                        "Ao informar que a Chave ficou no Veículo, é necessário informar o Número/Código da Chave");
-                }
+                //if (GrvPersistencia.Condutor.FlagChaveVeiculo == "S"
+                //    && string.IsNullOrWhiteSpace(GrvPersistencia.Condutor.NumeroChaveVeiculo))
+                //{
+                //    erros.Add(
+                //        "Ao informar que a Chave ficou no Veículo, é necessário informar o Número/Código da Chave");
+                //}
             }
 
             if (GrvPersistencia.ListagemLacre?.Count > 0)

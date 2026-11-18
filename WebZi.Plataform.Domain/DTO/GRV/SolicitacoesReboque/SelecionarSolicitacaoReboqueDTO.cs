@@ -21,6 +21,7 @@ public class SelecionarSolicitacaoReboqueDTO
     public string DepositoLatitude { get; set; }
     public string DepositoLongitude { get; set; }
     public string LocalizacaoDeposito { get; set; }
+    public byte? MotivoApreensaoId { get; set; }
     public string? MotivoApreensao { get; set; }
     public int AutoridadeId { get; set; }
     public string NomeAgente { get; set; }
