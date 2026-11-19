@@ -125,17 +125,17 @@ namespace WebZi.Plataform.Data.Services.WebServices
                 .OrderByDescending(x => x.DataEmissao)
                 .FirstOrDefault();
 
-            // if (Boleto == null)
-            // {
+            if (Boleto == null)
+            {
                 if (Faturamento.Status != "P")
                 {
                     return Create(FaturamentoId, UsuarioId);
                 }
 
-            //     ResultView.Mensagem = MensagemViewHelper.SetNotFound("Boleto não encontrado");
-            //
-            //     return ResultView;
-            // }
+                ResultView.Mensagem = MensagemViewHelper.SetNotFound("Boleto não encontrado");
+
+                return ResultView;
+            }
 
             BucketArquivoModel BucketArquivo = _context.BucketArquivo
                 .Include(x => x.BucketNomeTabelaOrigem)

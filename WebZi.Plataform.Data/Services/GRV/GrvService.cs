@@ -163,7 +163,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             return MensagemViewHelper.SetCreateSuccess();
         }
 
-        public async Task<MensagemDTO> UpdateGrv(GrvAtualizarParameters GrvPersistencia,
+        public async Task<MensagemDTO> UpdateGrvAsync(GrvAtualizarParameters GrvPersistencia,
             CancellationToken ct = default)
         {
             MensagemDTO ResultView = new();
@@ -502,7 +502,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 grv.DescricaoObjeto = null;
             }
 
-            using (IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync(ct))
+            await using (IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync(ct))
             {
                 try
                 {

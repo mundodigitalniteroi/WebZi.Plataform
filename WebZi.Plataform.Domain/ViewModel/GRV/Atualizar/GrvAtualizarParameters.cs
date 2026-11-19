@@ -1,12 +1,12 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using WebZi.Plataform.Domain.ViewModel.GGV;
 
 namespace WebZi.Plataform.Domain.ViewModel.GRV.Cadastro
 {
     public class GrvAtualizarParameters
     {
-        [Required(ErrorMessage = "Propriedade obrigatória")]
-        [StringLength(14, MinimumLength = 0)]
+        // [Required(ErrorMessage = "Propriedade obrigatória")]
+        // [StringLength(14, MinimumLength = 0)]
         public string NumeroProcesso { get; set; }
 
         [Required(ErrorMessage = "Propriedade obrigatória")]
