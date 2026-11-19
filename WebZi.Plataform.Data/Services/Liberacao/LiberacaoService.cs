@@ -641,8 +641,6 @@ namespace WebZi.Plataform.Data.Services.Liberacao
 
             string encrypted = CryptographyHelper.EncryptString(key, payload);
 
-            string decrypted = CryptographyHelper.DecryptString(key, encrypted);
-
             ResultView.QRCodeString = encrypted;
             ResultView.QRCode = QRCodeHelper.CreateImageAsByteArray(encrypted, "PNG");
 
@@ -996,7 +994,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
             return ResultView;
         }
 
-        public async Task<MensagemDTO> EntregaSimplificadaAsync(EntregaParameters Parameters)
+        public async Task<MensagemDTO> EntregaSimplificadaAsync(EntregaParameters Parameters, CancellationToken ct)
         {
             MensagemDTO ResultView = new GrvService(_context)
                 .ValidateInputGrv(Parameters.IdentificadorProcesso, Parameters.IdentificadorUsuario);
@@ -1006,18 +1004,14 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                 return ResultView;
             }
 
-            TipoLiberacaoModel TipoLiberacao = await _context
-                .TipoLiberacao
-                .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.TipoLiberacaoId == Parameters.IdentificadorTipoLiberacao);
-
-            if (Parameters.IdentificadorTipoLiberacao <= 0)
-                return MensagemViewHelper.SetBadRequest("Precisa ter um tipo de liberação");
+            //
+            // if (Parameters.IdentificadorTipoLiberacao <= 0)
+            //     return MensagemViewHelper.SetBadRequest("Precisa ter um tipo de liberação");
 
             GrvModel Grv = await _context.Grv
                 .Include(x => x.StatusOperacao)
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.GrvId == Parameters.IdentificadorProcesso);
+                .FirstOrDefaultAsync(x => x.GrvId == Parameters.IdentificadorProcesso, cancellationToken: ct);
 
             if (Grv is null)
                 return MensagemViewHelper.SetNotFound("Processo não encontrado");
@@ -1048,7 +1042,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                     .Include(x => x.Atendimento)
                     .Where(x => x.Atendimento.GrvId == Parameters.IdentificadorProcesso && x.Status != "C")
                     .AsNoTracking()
-                    .ToListAsync();
+                    .ToListAsync(cancellationToken: ct);
 
                 if (Faturamentos == null)
                 {
@@ -1076,39 +1070,39 @@ namespace WebZi.Plataform.Data.Services.Liberacao
 
             LiberacaoModel Liberacao = new()
             {
-                TipoLiberacaoId = Parameters.IdentificadorTipoLiberacao,
+                TipoLiberacaoId = 1,
 
                 UsuarioCadastroId = Parameters.IdentificadorUsuario
             };
 
 
-            using (IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync())
+            await using (IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync(ct))
             {
                 try
                 {
-                    await _context.Liberacao.AddAsync(Liberacao);
+                    await _context.Liberacao.AddAsync(Liberacao, ct);
 
-                    await _context.SaveChangesAsync();
+                    await _context.SaveChangesAsync(ct);
 
                     if (Parameters.IdentificadorTipoLiberacao == 2)
                     {
                         await _context.LiberacaoEspecial
                             .Where(x => x.IdGrv == Parameters.IdentificadorProcesso)
-                            .UpdateAsync(x => new LiberacaoEspecialModel() { DataLiberacao = Liberacao.DataCadastro });
+                            .UpdateAsync(x => new LiberacaoEspecialModel() { DataLiberacao = Liberacao.DataCadastro }, cancellationToken: ct);
                     }
 
                     if (Grv.StatusOperacaoId.Equals("R"))
                     {
                         if (Parameters.IdentificadorSaidaReparo == null)
                         {
+                            await transaction.RollbackAsync(ct);
                             ResultView = MensagemViewHelper.SetBadRequest("Propriedade obrigatória");
-                            await transaction.RollbackAsync();
                             return ResultView;
                         }
 
                         var saidaReparo = await _context.SaidaReparo
                             .AsTracking()
-                            .FirstOrDefaultAsync(x => x.Id == Parameters.IdentificadorSaidaReparo.Value);
+                            .FirstOrDefaultAsync(x => x.Id == Parameters.IdentificadorSaidaReparo.Value, cancellationToken: ct);
 
                         if (saidaReparo != null)
                         {
@@ -1133,7 +1127,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                             StatusOperacaoId = statusDestino,
                             UsuarioAlteracaoId = Parameters.IdentificadorUsuario,
                             DataAlteracao = DateTime.Now
-                        });
+                        }, cancellationToken: ct);
 
                     if (Parameters.ResponsavelFoto != null)
                     {
@@ -1142,15 +1136,15 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                                 Parameters.IdentificadorUsuario, Parameters.ResponsavelFoto);
                     }
 
-                    await _context.SaveChangesAsync();
+                    await _context.SaveChangesAsync(ct);
 
-                    await transaction.CommitAsync();
+                    await transaction.CommitAsync(ct);
                 }
                 catch (Exception ex)
                 {
-                    await transaction.RollbackAsync();
+                    await transaction.RollbackAsync(ct);
 
-                    return MensagemViewHelper.SetInternalServerError(ex);
+                    return MensagemViewHelper.SetInternalServerError(MensagemPadraoEnum.ErroOperacaoPadrao);
                 }
             }
 
@@ -1533,7 +1527,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
             {
                 await transaction.RollbackAsync(ct);
 
-                return MensagemViewHelper.SetInternalServerError(ex.Message);
+                return MensagemViewHelper.SetInternalServerError(MensagemPadraoEnum.ErroOperacaoPadrao);
             }
         }
 

@@ -5,6 +5,7 @@ using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Usuario;
 using WebZi.Plataform.Domain.DTO.Liberacao;
 using WebZi.Plataform.Domain.DTO.Sistema;
+using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Faturamento;
 using WebZi.Plataform.Domain.Models.GRV;
 using WebZi.Plataform.Domain.Models.Liberacao;
@@ -93,7 +94,7 @@ public class LiberacaoEspecialService
         }
         catch (Exception e)
         {
-            return MensagemViewHelper.SetBadRequest(e.Message);
+            return MensagemViewHelper.SetInternalServerError(MensagemPadraoEnum.ErroOperacaoPadrao);
         }
     }
     public async Task UpdateLiberacaoEspecialAsync(AtualizarLiberacaoEspecialParameters parameters, CancellationToken ct)
@@ -142,9 +143,9 @@ public class LiberacaoEspecialService
             };
             await _context.LiberacaoEspecial.AddAsync(liberacaoEspecial, ct);
         }
-        catch (Exception e)
+        catch (Exception)
         {
-            throw new DbUpdateException(e.Message);
+            throw;
         }
     }
 }

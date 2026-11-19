@@ -15,9 +15,6 @@ namespace WebZi.Plataform.Data.Services.Sistema
         public HttpClientFactoryService(IHttpClientFactory httpClientFactory)
         {
             _httpClientFactory = httpClientFactory;
-
-            ServicePointManager.SecurityProtocol =
-                SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
         }
 
         public async Task<bool> ResourceExists(string url, CancellationToken ct = default)

@@ -127,9 +127,9 @@ namespace WebZi.Plataform.Data.Services.WebServices
                     {
                         DetranRioVeiculoWS = await GetFromDetranAsync(Placa + Chassi, "ROOT");
                     }
-                    catch (ArgumentException aex)
+                    catch (ArgumentException)
                     {
-                        ResultView.Mensagem = MensagemViewHelper.SetBadRequest(aex.Message);
+                        ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Parâmetro de consulta inválido.");
 
                         return ResultView;
                     }
@@ -151,9 +151,9 @@ namespace WebZi.Plataform.Data.Services.WebServices
                     return await SetValuesToViewModelAsync(DetranRioVeiculoBD);
                 }
             }
-            catch(Exception e)
+            catch(Exception)
             {
-                throw new Exception(e.Message);
+                throw;
             }
         }
 

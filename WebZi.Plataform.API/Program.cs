@@ -71,6 +71,11 @@ static void ConfigureServices(WebApplicationBuilder builder)
     var audience = jwtSection["Audience"];
     var secret = jwtSection["Secret"];
 
+    if (string.IsNullOrWhiteSpace(secret))
+    {
+        throw new InvalidOperationException("Configuração 'Jwt:Secret' não foi informada ou é inválida.");
+    }
+
     IConfiguration config = builder.Configuration;
     builder.Services.Configure<WSNfseOptions>(config.GetSection("WSNFSE"));
     builder.Services.Configure<EvolutionOptions>(config.GetSection("EvolutionApi"));
@@ -138,6 +143,21 @@ static void ConfigureJson(WebApplicationBuilder builder)
 
 static void ConfigureWebApplication(WebApplication app)
 {
+    app.UseExceptionHandler(exceptionHandlerApp =>
+    {
+        exceptionHandlerApp.Run(async context =>
+        {
+            context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+            context.Response.ContentType = "application/json";
+
+            var mensagem = WebZi.Plataform.Data.Helper.MensagemViewHelper.SetInternalServerError(
+                WebZi.Plataform.Domain.Enums.MensagemPadraoEnum.ErroInternoPadrao);
+
+            var json = System.Text.Json.JsonSerializer.Serialize(mensagem);
+            await context.Response.WriteAsync(json);
+        });
+    });
+
     // Configure the HTTP request pipeline.
     if (app.Environment.IsDevelopment())
     {

@@ -105,7 +105,7 @@ namespace WebZi.Plataform.Data.Services.DRFA
             }
             catch (Exception ex)
             {
-                return MensagemViewHelper.SetInternalServerError(ex);
+                return MensagemViewHelper.SetInternalServerError(MensagemPadraoEnum.ErroOperacaoPadrao);
             }
         }
 
@@ -335,7 +335,7 @@ namespace WebZi.Plataform.Data.Services.DRFA
             }
             catch (Exception ex)
             {
-                return MensagemViewHelper.SetInternalServerError("Ocorreu um erro ao atualizar o registro de recuperação.", ex);
+                return MensagemViewHelper.SetInternalServerError("Ocorreu um erro ao atualizar o registro de recuperação.");
             }
         }
 
@@ -368,7 +368,7 @@ namespace WebZi.Plataform.Data.Services.DRFA
             }
             catch (Exception ex)
             {
-                return MensagemViewHelper.SetInternalServerError("Ocorreu um erro ao atualizar o agendamento de retirada.", ex);
+                return MensagemViewHelper.SetInternalServerError("Ocorreu um erro ao atualizar o agendamento de retirada.");
             }
         }
     }

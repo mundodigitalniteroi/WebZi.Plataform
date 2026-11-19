@@ -80,22 +80,30 @@ namespace WebZi.Plataform.Data.Services.Sistema
                 .ToList();
         }
 
+        private static string EscapeIdentifier(string identifier)
+        {
+            if (string.IsNullOrWhiteSpace(identifier) || !System.Text.RegularExpressions.Regex.IsMatch(identifier, @"^[a-zA-Z_][a-zA-Z0-9_]*$"))
+            {
+                throw new ArgumentException("Nome de tabela ou coluna inválido.", nameof(identifier));
+            }
+
+            return $"[{identifier.Replace("]", "]]")}]";
+        }
+
         private List<int> ListIds(string tableName, string columnName, int id)
         {
             string pk = ListPrimaryKeys(tableName)
                 .FirstOrDefault()
                 .COLUMN_NAME;
 
-            StringBuilder SQL = new();
+            string safeTable = EscapeIdentifier(tableName);
+            string safeColumn = EscapeIdentifier(columnName);
+            string safePk = EscapeIdentifier(pk);
 
-            SQL.Append("SELECT ").Append(pk).AppendLine(" AS Value");
-
-            SQL.Append("  FROM ").AppendLine(tableName);
-
-            SQL.Append(" WHERE ").Append(columnName).Append(" = ").Append(id);
+            string sql = $"SELECT {safePk} AS Value FROM {safeTable} WHERE {safeColumn} = @id";
 
             List<GenericIntModel> list = _context.GenericInt
-                .FromSqlRaw(SQL.ToString())
+                .FromSqlRaw(sql, new SqlParameter("@id", id))
                 .ToList();
 
             List<int> Ids = new();
@@ -115,13 +123,12 @@ namespace WebZi.Plataform.Data.Services.Sistema
 
         private void DeleteFilha(string tableName, string columnName, int id)
         {
-            StringBuilder SQL = new();
+            string safeTable = EscapeIdentifier(tableName);
+            string safeColumn = EscapeIdentifier(columnName);
 
-            SQL.Append("DELETE FROM ").AppendLine(tableName);
+            string sql = $"DELETE FROM {safeTable} WHERE {safeColumn} = @id";
 
-            SQL.Append(" WHERE ").Append(columnName).Append(" = ").Append(id);
-
-            _context.Database.ExecuteSqlRaw(SQL.ToString());
+            _context.Database.ExecuteSqlRaw(sql, new SqlParameter("@id", id));
         }
     }
 }

@@ -4,21 +4,36 @@ namespace WebZi.Plataform.CrossCutting.Configuration
 {
     public static class AppSettingsHelper
     {
-        private static readonly IConfigurationBuilder builder = new ConfigurationBuilder().AddJsonFile(path: "appsettings.json", optional: false);
+        private static IConfigurationRoot BuildConfiguration()
+        {
+            string environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")
+                ?? Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
+
+            ConfigurationBuilder configurationBuilder = new();
+            configurationBuilder.SetBasePath(AppContext.BaseDirectory);
+            configurationBuilder.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+
+            if (!string.IsNullOrWhiteSpace(environment))
+            {
+                configurationBuilder.AddJsonFile($"appsettings.{environment}.json", optional: true, reloadOnChange: true);
+            }
+
+            return configurationBuilder.Build();
+        }
 
         public static string GetConnectionString()
         {
-            return builder.Build().GetConnectionString("DefaultConnection");
+            return BuildConfiguration().GetConnectionString("DefaultConnection");
         }
 
         public static string GetConnectionString(string connectionStringName)
         {
-            return builder.Build().GetConnectionString(connectionStringName);
+            return BuildConfiguration().GetConnectionString(connectionStringName);
         }
 
         public static string GetValue(string section, string element)
         {
-            IConfigurationRoot configuration = builder.Build();
+            IConfigurationRoot configuration = BuildConfiguration();
 
             IConfigurationSection configurationSection = configuration.GetSection(section).GetSection(element);
 
@@ -27,7 +42,7 @@ namespace WebZi.Plataform.CrossCutting.Configuration
 
         public static string GetValue(string section)
         {
-            IConfigurationRoot configuration = builder.Build();
+            IConfigurationRoot configuration = BuildConfiguration();
 
             IConfigurationSection configurationSection = configuration.GetSection(section);
 

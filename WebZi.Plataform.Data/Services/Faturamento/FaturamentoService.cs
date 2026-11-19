@@ -1678,7 +1678,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             }
             catch (Exception ex)
             {
-                ResultView.Mensagem = MensagemViewHelper.SetBadRequest(ex.Message);
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Não foi possível realizar o cálculo do faturamento.");
                 return ResultView;
             }
 
@@ -1911,7 +1911,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             {
                 await transaction.RollbackAsync(ct);
 
-                return MensagemViewHelper.SetInternalServerError("Ocorreu um erro ao alterar a Forma de Pagamento", ex);
+                return MensagemViewHelper.SetInternalServerError("Ocorreu um erro ao alterar a Forma de Pagamento");
             }
 
             return MensagemViewHelper.SetOk("Forma de Pagamento alterada com sucesso");
@@ -2082,7 +2082,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             catch (Exception ex)
             {
                 ResultView.Mensagem =
-                    MensagemViewHelper.SetBadRequest($"Ocorreu um erro ao confirmar o pagamento: {ex.Message}");
+                    MensagemViewHelper.SetBadRequest("Ocorreu um erro ao confirmar o pagamento.");
                 return ResultView;
             }
         }
@@ -3356,7 +3356,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             }
             catch (Exception ex)
             {
-                return MensagemViewHelper.SetInternalServerError(ex.Message);
+                return MensagemViewHelper.SetInternalServerError("Erro ao gerar faturamento adicional.");
             }
         }
     }

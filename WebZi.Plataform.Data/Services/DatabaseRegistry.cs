@@ -10,10 +10,22 @@ namespace WebZi.Plataform.Data.Services
     {
         public static void RegisterDatabase(this IServiceCollection services, IConfiguration configuration)
         {
+            string environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")
+                ?? Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT")
+                ?? "Production";
+
+            bool isDevelopment = string.Equals(environment, "Development", StringComparison.OrdinalIgnoreCase);
+
             services.AddDbContext<AppDbContext>(options =>
-                options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"), providerOptions => providerOptions.CommandTimeout(120))
-                    .LogTo(Console.WriteLine, LogLevel.Information) // Exibe as queries executadas no BD pelo EF
-            );
+            {
+                options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"), providerOptions => providerOptions.CommandTimeout(120));
+
+                if (isDevelopment)
+                {
+                    options.LogTo(Console.WriteLine, LogLevel.Information)
+                           .EnableSensitiveDataLogging();
+                }
+            });
         }
     }
 }

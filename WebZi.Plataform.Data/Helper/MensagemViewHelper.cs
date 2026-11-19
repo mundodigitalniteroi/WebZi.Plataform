@@ -188,17 +188,7 @@ namespace WebZi.Plataform.Data.Helper
             }
             else
             {
-                Mensagem.Erros.Add("Ocorreu um erro interno");
-            }
-
-            if (ex != null)
-            {
-                Mensagem.Erros.Add(ex.Message);
-
-                if (ex.InnerException != null)
-                {
-                    Mensagem.Erros.Add(ex.InnerException.Message);
-                }
+                Mensagem.Erros.Add(MensagemPadraoEnum.ErroInternoPadrao);
             }
 
             return Mensagem;
@@ -332,17 +322,7 @@ namespace WebZi.Plataform.Data.Helper
             }
             else
             {
-                Mensagem.Erros.Add("O Serviço de dependência requisitado está inoperante ou indisponível");
-            }
-
-            if (ex != null)
-            {
-                Mensagem.Erros.Add(ex.Message);
-
-                if (ex.InnerException != null)
-                {
-                    Mensagem.Erros.Add(ex.InnerException.Message);
-                }
+                Mensagem.Erros.Add(MensagemPadraoEnum.ServicoIndisponivelPadrao);
             }
 
             return Mensagem;

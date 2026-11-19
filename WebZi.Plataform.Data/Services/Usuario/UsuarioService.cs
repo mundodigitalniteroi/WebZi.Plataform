@@ -244,10 +244,10 @@ namespace WebZi.Plataform.Data.Services.Usuario
             var possuiPermissao = await _context.PerfilAcessoUsuario
                 .AsNoTracking()
                 .AnyAsync(x => x.UsuarioId == usuarioId
-                               && x.PerfilAcessoId == (int)PerfisDeAcessoEnum.GerenciarUsuariosProd
+                               && x.PerfilAcessoId == (int)PerfisDeAcessoEnum.GerenciarUsuariosHomolog
                                && _context.SistemaPerfilAcessoSubModulos
-                                   .Any(s => s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.GerenciarUsuariosProd
-                                             && s.IdSubModulo == (int)SubModuloEnum.VerPerfisDeAcessoProd),
+                                   .Any(s => s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.GerenciarUsuariosHomolog
+                                             && s.IdSubModulo == (int)SubModuloEnum.VerPerfisDeAcessoHomolog),
                     cancellationToken: ct);
 
             if (!possuiPermissao)
@@ -256,14 +256,15 @@ namespace WebZi.Plataform.Data.Services.Usuario
                 return ResultView;
             }
 
-            var limit = take.HasValue && take.Value > 0 ? take.Value : 20;
-            var offset = skip.HasValue && skip.Value >= 0 ? skip.Value : 0;
+            var limit = take is > 0 ? take.Value : 20;
+            var offset = skip is >= 0 ? skip.Value : 0;
             var result = await _context.PerfilAcesso
                 .Where(x => x.FlagAtivo == 'S')
                 .Skip(offset)
                 .Take(limit)
                 .AsNoTracking()
                 .ProjectTo<PerfilAcessoDTO>(_mapper.ConfigurationProvider)
+                .OrderBy(x => x.Descricao)
                 .ToListAsync(ct);
 
             ResultView.Listagem = result;
@@ -286,8 +287,8 @@ namespace WebZi.Plataform.Data.Services.Usuario
 
             var temSubModulo = await _context.SistemaPerfilAcessoSubModulos
                 .AsNoTracking()
-                .AnyAsync(s => s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.GerenciarUsuariosProd
-                               && s.IdSubModulo == (int)SubModuloEnum.VerPerfisDeAcessoProd, ct);
+                .AnyAsync(s => s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.GerenciarUsuariosHomolog
+                               && s.IdSubModulo == (int)SubModuloEnum.VerPerfisDeAcessoHomolog, ct);
 
             if (!temSubModulo)
             {
@@ -298,7 +299,7 @@ namespace WebZi.Plataform.Data.Services.Usuario
             var possuiPerfil = await _context.PerfilAcessoUsuario
                 .AsNoTracking()
                 .AnyAsync(x => x.UsuarioId == usuarioId
-                               && x.PerfilAcessoId == (int)PerfisDeAcessoEnum.GerenciarUsuariosProd, ct);
+                               && x.PerfilAcessoId == (int)PerfisDeAcessoEnum.GerenciarUsuariosHomolog, ct);
 
             if (!possuiPerfil)
             {
@@ -374,8 +375,8 @@ namespace WebZi.Plataform.Data.Services.Usuario
 
             var temSubModulo = await _context.SistemaPerfilAcessoSubModulos
                 .AsNoTracking()
-                .AnyAsync(s => s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.GerenciarUsuariosProd
-                               && s.IdSubModulo == (int)SubModuloEnum.VerPerfisDeAcessoProd, ct);
+                .AnyAsync(s => s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.GerenciarUsuariosHomolog
+                               && s.IdSubModulo == (int)SubModuloEnum.VerPerfisDeAcessoHomolog, ct);
 
             if (!temSubModulo)
             {
@@ -386,7 +387,7 @@ namespace WebZi.Plataform.Data.Services.Usuario
             var possuiPerfil = await _context.PerfilAcessoUsuario
                 .AsNoTracking()
                 .AnyAsync(x => x.UsuarioId == usuarioId
-                               && x.PerfilAcessoId == (int)PerfisDeAcessoEnum.GerenciarUsuariosProd, ct);
+                               && x.PerfilAcessoId == (int)PerfisDeAcessoEnum.GerenciarUsuariosHomolog, ct);
 
             if (!possuiPerfil)
             {
@@ -637,7 +638,7 @@ namespace WebZi.Plataform.Data.Services.Usuario
             }
             catch (Exception e)
             {
-                ResultView = MensagemViewHelper.SetBadRequest($"[Envio da Mensagem]: {e.Message}");
+                ResultView = MensagemViewHelper.SetInternalServerError("Não foi possível enviar o código de verificação no momento.");
                 return ResultView;
             }
 
@@ -660,7 +661,7 @@ namespace WebZi.Plataform.Data.Services.Usuario
             if (exists == null)
                 return MensagemViewHelper.SetNotFound();
             if (exists.Validated)
-                return MensagemViewHelper.SetOk();
+                return MensagemViewHelper.SetBadRequest("Código já utilizado. Solicite um novo código.");
             if (exists.Attempts >= 5)
                 return MensagemViewHelper.SetBadRequest("Limite de tentativas excedido.");
             var now = DateTime.UtcNow.AddHours(-3);
@@ -701,7 +702,7 @@ namespace WebZi.Plataform.Data.Services.Usuario
             await _context.AuthMfaCodes.AddAsync(auth);
             var result = await _context.SaveChangesAsync();
             if (result <= 0)
-                MensagemViewHelper.SetBadRequest("Erro ao registrar mfa code");
+                return MensagemViewHelper.SetBadRequest("Erro ao registrar mfa code");
             return MensagemViewHelper.SetCreateSuccess();
         }
 
@@ -895,8 +896,7 @@ namespace WebZi.Plataform.Data.Services.Usuario
             catch (Exception e)
             {
                 await _transaction.RollbackAsync(ct);
-                var mensagem = e.InnerException != null ? $"{e.Message} -> {e.InnerException.Message}" : e.Message;
-                ResultView = MensagemViewHelper.SetBadRequest(mensagem);
+                ResultView = MensagemViewHelper.SetInternalServerError("Não foi possível cadastrar o usuário no momento.");
                 return ResultView;
             }
         }
@@ -1091,8 +1091,7 @@ namespace WebZi.Plataform.Data.Services.Usuario
             catch (Exception e)
             {
                 await _transaction.RollbackAsync(ct);
-                var mensagem = e.InnerException != null ? $"{e.Message} -> {e.InnerException.Message}" : e.Message;
-                ResultView = MensagemViewHelper.SetBadRequest(mensagem);
+                ResultView = MensagemViewHelper.SetInternalServerError("Não foi possível atualizar o usuário no momento.");
                 return ResultView;
             }
         }
@@ -1130,7 +1129,7 @@ namespace WebZi.Plataform.Data.Services.Usuario
             }
             catch (Exception e)
             {
-                ResultView = MensagemViewHelper.SetBadRequest(e.Message);
+                ResultView = MensagemViewHelper.SetInternalServerError("Não foi possível desvincular o cliente.");
                 return ResultView;
             }
         }
@@ -1168,7 +1167,7 @@ namespace WebZi.Plataform.Data.Services.Usuario
             }
             catch (Exception e)
             {
-                ResultView = MensagemViewHelper.SetBadRequest(e.Message);
+                ResultView = MensagemViewHelper.SetInternalServerError("Não foi possível desvincular o depósito.");
                 return ResultView;
             }
         }
@@ -1206,7 +1205,7 @@ namespace WebZi.Plataform.Data.Services.Usuario
             }
             catch (Exception e)
             {
-                ResultView = MensagemViewHelper.SetBadRequest(e.Message);
+                ResultView = MensagemViewHelper.SetInternalServerError("Não foi possível desvincular os perfis.");
                 return ResultView;
             }
         }
@@ -1239,7 +1238,7 @@ namespace WebZi.Plataform.Data.Services.Usuario
             }
             catch (Exception e)
             {
-                ResultView = MensagemViewHelper.SetBadRequest(e.Message);
+                ResultView = MensagemViewHelper.SetInternalServerError("Não foi possível desvincular a permissão.");
                 return ResultView;
             }
         }

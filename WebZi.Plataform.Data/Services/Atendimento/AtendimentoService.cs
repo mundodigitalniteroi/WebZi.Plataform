@@ -1121,7 +1121,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                     await transaction.RollbackAsync(ct);
 
                     ResultView.Mensagem =
-                        MensagemViewHelper.SetInternalServerError("Ocorreu um erro ao cadastrar atendimento");
+                        MensagemViewHelper.SetInternalServerError(MensagemPadraoEnum.ErroOperacaoPadrao);
 
                     return ResultView;
                 }
@@ -1353,7 +1353,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 {
                     await transaction.RollbackAsync(ct);
 
-                    ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+                    ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(MensagemPadraoEnum.ErroOperacaoPadrao);
 
                     return ResultView;
                 }
@@ -1469,7 +1469,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 catch (Exception ex)
                 {
                     await transaction.RollbackAsync(ct);
-                    ResultView = MensagemViewHelper.SetInternalServerError(ex);
+                    ResultView = MensagemViewHelper.SetInternalServerError(MensagemPadraoEnum.ErroOperacaoPadrao);
                     return ResultView;
                 }
             }
@@ -1738,7 +1738,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 {
                     await transaction.RollbackAsync();
 
-                    return MensagemViewHelper.SetInternalServerError(ex);
+                    return MensagemViewHelper.SetInternalServerError(MensagemPadraoEnum.ErroOperacaoPadrao);
                 }
             }
 
@@ -1968,7 +1968,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             catch (Exception ex)
             {
                 await _transaction.RollbackAsync(ct);
-                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+                ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(MensagemPadraoEnum.ErroOperacaoPadrao);
                 return ResultView;
             }
         }
@@ -2062,7 +2062,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 catch (Exception ex)
                 {
                     await _transaction.RollbackAsync(ct);
-                    ResultView = MensagemViewHelper.SetInternalServerError(ex);
+                    ResultView = MensagemViewHelper.SetInternalServerError(MensagemPadraoEnum.ErroOperacaoPadrao);
                     return ResultView;
                 }
             }
@@ -2112,7 +2112,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             catch (Exception ex)
             {
                 await transaction.RollbackAsync(ct);
-                return MensagemViewHelper.SetInternalServerError(ex);
+                return MensagemViewHelper.SetInternalServerError(MensagemPadraoEnum.ErroOperacaoPadrao);
             }
         }
 

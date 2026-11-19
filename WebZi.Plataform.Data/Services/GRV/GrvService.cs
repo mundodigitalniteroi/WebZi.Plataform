@@ -81,7 +81,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
             _httpClientFactory = httpClientFactory;
         }
 
-        public async Task<MensagemDTO> CreateAssinaturaAgenteAsync(int GrvId, int UsuarioId, byte[] Imagem)
+        public async Task<MensagemDTO> CreateAssinaturaAgenteAsync(int GrvId, int UsuarioId, byte[] Imagem,
+            CancellationToken ct = default)
         {
             MensagemDTO ResultView = ValidateInputGrv(GrvId, UsuarioId);
 
@@ -95,7 +96,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 return MensagemViewHelper.SetBadRequest("Nenhuma imagem enviada para a API");
             }
 
-            GrvModel Grv = await GetByIdAsync(GrvId);
+            GrvModel Grv = await GetByIdAsync(GrvId, ct);
 
             if (Grv.StatusOperacao.StatusOperacaoId != "G")
             {
@@ -108,7 +109,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x =>
                     x.BucketNomeTabelaOrigem.Codigo == BucketNomeTabelaOrigemEnum.AssinaturaAgente &&
-                    x.TabelaOrigemId == GrvId);
+                    x.TabelaOrigemId == GrvId, cancellationToken: ct);
 
             if (BucketArquivo != null)
             {
@@ -121,7 +122,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
             return MensagemViewHelper.SetCreateSuccess();
         }
 
-        public async Task<MensagemDTO> CreateAssinaturaCondutorAsync(int GrvId, int UsuarioId, byte[] Imagem)
+        public async Task<MensagemDTO> CreateAssinaturaCondutorAsync(int GrvId, int UsuarioId, byte[] Imagem,
+            CancellationToken ct = default)
         {
             MensagemDTO ResultView = ValidateInputGrv(GrvId, UsuarioId);
 
@@ -135,7 +137,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 return MensagemViewHelper.SetBadRequest("Nenhuma imagem enviada para a API");
             }
 
-            GrvModel Grv = await GetByIdAsync(GrvId);
+            GrvModel Grv = await GetByIdAsync(GrvId, ct);
 
             if (Grv.StatusOperacao.StatusOperacaoId != "G")
             {
@@ -148,7 +150,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x =>
                     x.BucketNomeTabelaOrigem.Codigo == BucketNomeTabelaOrigemEnum.AssinaturaCondutor &&
-                    x.TabelaOrigemId == GrvId);
+                    x.TabelaOrigemId == GrvId, cancellationToken: ct);
 
             if (BucketArquivo != null)
             {
@@ -161,7 +163,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
             return MensagemViewHelper.SetCreateSuccess();
         }
 
-        public async Task<MensagemDTO> UpdateGrv(GrvAtualizarParameters GrvPersistencia, CancellationToken ct)
+        public async Task<MensagemDTO> UpdateGrv(GrvAtualizarParameters GrvPersistencia,
+            CancellationToken ct = default)
         {
             MensagemDTO ResultView = new();
 
@@ -557,7 +560,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 {
                     await transaction.RollbackAsync(ct);
 
-                    ResultView = MensagemViewHelper.SetInternalServerError(ex);
+                    ResultView = MensagemViewHelper.SetInternalServerError(MensagemPadraoEnum.ErroOperacaoPadrao);
 
                     return ResultView;
                 }
@@ -651,7 +654,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 {
                     await transaction.RollbackAsync(ct);
 
-                    return MensagemViewHelper.SetInternalServerError(ex);
+                    return MensagemViewHelper.SetInternalServerError(MensagemPadraoEnum.ErroOperacaoPadrao);
                 }
             }
 
@@ -828,7 +831,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 foreach (string item in GrvPersistencia.ListagemLacre)
                 {
                     grv.ListagemLacre.Add(new LacreModel
-                    { UsuarioCadastroId = GrvPersistencia.IdentificadorUsuario, Lacre = item });
+                        { UsuarioCadastroId = GrvPersistencia.IdentificadorUsuario, Lacre = item });
                 }
             }
 
@@ -932,7 +935,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 {
                     await transaction.RollbackAsync(ct);
 
-                    ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(ex);
+                    ResultView.Mensagem =
+                        MensagemViewHelper.SetInternalServerError(MensagemPadraoEnum.ErroOperacaoPadrao);
 
                     return ResultView;
                 }
@@ -1125,7 +1129,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
             return MensagemViewHelper.SetCreateSuccess(Fotos.Fotos.Count);
         }
 
-        public async Task<MensagemDTO> CreateLacresAsync(int GrvId, int UsuarioId, List<string> ListagemLacre)
+        public async Task<MensagemDTO> CreateLacresAsync(int GrvId, int UsuarioId, List<string> ListagemLacre,
+            CancellationToken ct)
         {
             MensagemDTO ResultView = ValidateInputGrv(GrvId, UsuarioId);
 
@@ -1173,7 +1178,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 return MensagemViewHelper.SetBadRequest(erros);
             }
 
-            using (IDbContextTransaction transaction = _context.Database.BeginTransaction())
+            await using (IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync(ct))
             {
                 try
                 {
@@ -1189,22 +1194,23 @@ namespace WebZi.Plataform.Domain.Services.GRV
                         });
                     }
 
-                    _context.SaveChanges();
+                    await _context.SaveChangesAsync(ct);
 
-                    transaction.Commit();
+                    await transaction.CommitAsync(ct);
                 }
                 catch (Exception ex)
                 {
-                    transaction.Rollback();
+                    await transaction.RollbackAsync(ct);
 
-                    return MensagemViewHelper.SetInternalServerError(ex);
+                    return MensagemViewHelper.SetInternalServerError(MensagemPadraoEnum.ErroOperacaoPadrao);
                 }
             }
 
             return MensagemViewHelper.SetCreateSuccess(ListagemLacre.Count, "Lacre(s) cadastrado(s) com sucesso");
         }
 
-        public async Task<MensagemDTO> DeleteAssinaturaAgenteAsync(int GrvId, int UsuarioId)
+        public async Task<MensagemDTO> DeleteAssinaturaAgenteAsync(int GrvId, int UsuarioId,
+            CancellationToken ct = default)
         {
             MensagemDTO ResultView = ValidateInputGrv(GrvId, UsuarioId);
 
@@ -1213,7 +1219,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 return ResultView;
             }
 
-            GrvModel Grv = await GetByIdAsync(GrvId);
+            GrvModel Grv = await GetByIdAsync(GrvId, ct);
 
             if (Grv.StatusOperacao.StatusOperacaoId != "G")
             {
@@ -1226,7 +1232,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.TabelaOrigemId == GrvId
                                           && x.BucketNomeTabelaOrigem.Codigo ==
-                                          BucketNomeTabelaOrigemEnum.AssinaturaAgente);
+                                          BucketNomeTabelaOrigemEnum.AssinaturaAgente, ct);
 
             if (BucketArquivo == null)
             {
@@ -1239,7 +1245,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
             return MensagemViewHelper.SetDeleteSuccess();
         }
 
-        public async Task<MensagemDTO> DeleteAssinaturaCondutorAsync(int GrvId, int UsuarioId)
+        public async Task<MensagemDTO> DeleteAssinaturaCondutorAsync(int GrvId, int UsuarioId,
+            CancellationToken ct = default)
         {
             MensagemDTO ResultView = ValidateInputGrv(GrvId, UsuarioId);
 
@@ -1248,7 +1255,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 return ResultView;
             }
 
-            GrvModel Grv = await GetByIdAsync(GrvId);
+            GrvModel Grv = await GetByIdAsync(GrvId, ct);
 
             if (Grv.StatusOperacao.StatusOperacaoId != "G")
             {
@@ -1261,7 +1268,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.TabelaOrigemId == GrvId
                                           && x.BucketNomeTabelaOrigem.Codigo ==
-                                          BucketNomeTabelaOrigemEnum.AssinaturaCondutor);
+                                          BucketNomeTabelaOrigemEnum.AssinaturaCondutor, ct);
 
             if (BucketArquivo == null)
             {
@@ -1274,7 +1281,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
             return MensagemViewHelper.SetDeleteSuccess();
         }
 
-        public async Task<MensagemDTO> DeleteFotosAsync(int GrvId, int UsuarioId, List<int> ListagemTabelaOrigemId)
+        public async Task<MensagemDTO> DeleteFotosAsync(int GrvId, int UsuarioId, List<int> ListagemTabelaOrigemId,
+            CancellationToken ct = default)
         {
             MensagemDTO ResultView = ValidateInputGrv(GrvId, UsuarioId);
 
@@ -1288,7 +1296,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 return MensagemViewHelper.SetBadRequest("Informe os Identificadores das Fotos");
             }
 
-            GrvModel Grv = await GetByIdAsync(GrvId);
+            GrvModel Grv = await GetByIdAsync(GrvId, ct);
 
             if (!new[] { "E", "G", "L", "R", "T", "U", "V" }.Contains(Grv.StatusOperacaoId))
             {
@@ -1302,7 +1310,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                             && ListagemTabelaOrigemId.Contains(x.RepositorioArquivoId)
                             && x.BucketNomeTabelaOrigem.Codigo == BucketNomeTabelaOrigemEnum.FotoVeiculoGRV)
                 .AsNoTracking()
-                .ToListAsync();
+                .ToListAsync(ct);
 
             if (BucketArquivos?.Count > 0)
             {
@@ -1326,7 +1334,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
         }
 
         public async Task<MensagemDTO> DeleteGrvAsync(string NumeroFormularioGrv, string FaturamentoProdutoId,
-            int ClienteId, int DepositoId, string Login, string Senha)
+            int ClienteId, int DepositoId, string Login, string Senha, CancellationToken ct = default)
         {
             UsuarioDTO Usuario = await new UsuarioService(_context, _mapper)
                 .GetByCredentialsAsync(Login, Senha);
@@ -1349,12 +1357,12 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 .FirstOrDefaultAsync(x => x.FaturamentoProdutoId == FaturamentoProdutoId
                                           && x.ClienteId == ClienteId
                                           && x.DepositoId == DepositoId
-                                          && x.NumeroFormularioGrv == NumeroFormularioGrv);
+                                          && x.NumeroFormularioGrv == NumeroFormularioGrv, cancellationToken: ct);
 
-            return await DeleteGrvAsync(Grv.GrvId, Usuario.IdentificadorUsuario);
+            return await DeleteGrvAsync(Grv.GrvId, Usuario.IdentificadorUsuario, ct);
         }
 
-        public async Task<MensagemDTO> DeleteInfracaoAsync(int grvId, int infracaoId)
+        public async Task<MensagemDTO> DeleteInfracaoAsync(int grvId, int infracaoId, CancellationToken ct = default)
         {
             if (grvId <= 0)
                 return MensagemViewHelper.SetBadRequest(MensagemPadraoEnum.IdentificadorGrvInvalido);
@@ -1362,10 +1370,10 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 return MensagemViewHelper.SetBadRequest("Identificador da infração inválido.");
             EnquadramentoInfracaoGrvModel infracao = await _context.EnquadramentoInfracaoGrv
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.EnquadramentoInfracaoId == infracaoId && x.GrvId == grvId);
+                .FirstOrDefaultAsync(x => x.EnquadramentoInfracaoId == infracaoId && x.GrvId == grvId, ct);
             if (infracao == null)
                 return MensagemViewHelper.SetBadRequest("Infração não encontrada ou não pertence a este processo.");
-            GrvModel grv = await GetByIdAsync(grvId);
+            GrvModel grv = await GetByIdAsync(grvId, ct);
             if (grv == null)
                 return MensagemViewHelper.SetNotFound(MensagemPadraoEnum.NaoEncontradoGrv);
 
@@ -1373,25 +1381,26 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 return MensagemViewHelper.SetBadRequest(
                     $"O status atual deste processo não permite a exclusão de infração. Status atual: {grv.StatusOperacao?.Descricao}");
 
-            using (IDbContextTransaction transaction = _context.Database.BeginTransaction())
+            await using (IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync(ct))
             {
                 try
                 {
                     _context.EnquadramentoInfracaoGrv.Remove(infracao);
-                    await _context.SaveChangesAsync();
-                    transaction.Commit();
+                    await _context.SaveChangesAsync(ct);
+                    await transaction.CommitAsync(ct);
                 }
                 catch (Exception ex)
                 {
-                    transaction.Rollback();
-                    return MensagemViewHelper.SetInternalServerError(ex);
+                    await transaction.RollbackAsync(ct);
+                    return MensagemViewHelper.SetInternalServerError(MensagemPadraoEnum.ErroOperacaoPadrao);
                 }
             }
 
             return MensagemViewHelper.SetDeleteSuccess(1, "Infração excluída com sucesso.");
         }
 
-        public async Task<MensagemDTO> DeleteGrvAsync(int GrvId, string Login, string Senha)
+        public async Task<MensagemDTO> DeleteGrvAsync(int GrvId, string Login, string Senha,
+            CancellationToken ct = default)
         {
             UsuarioDTO Usuario = await _provider.GetService<UsuarioService>()
                 .GetByCredentialsAsync(Login, Senha);
@@ -1414,10 +1423,10 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 return ResultView;
             }
 
-            return await DeleteGrvAsync(GrvId, Usuario.IdentificadorUsuario);
+            return await DeleteGrvAsync(GrvId, Usuario.IdentificadorUsuario, ct);
         }
 
-        private async Task<MensagemDTO> DeleteGrvAsync(int GrvId, int UsuarioId)
+        private async Task<MensagemDTO> DeleteGrvAsync(int GrvId, int UsuarioId, CancellationToken ct)
         {
             MensagemDTO ResultView = new();
 
@@ -1425,7 +1434,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 .Include(x => x.TipoPermissao)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.UsuarioId == UsuarioId
-                                          && x.TipoPermissao.Codigo == "EXCLUSAOGRV");
+                                          && x.TipoPermissao.Codigo == "EXCLUSAOGRV", cancellationToken: ct);
 
             if (UsuarioPermissao == null)
             {
@@ -1438,7 +1447,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 .Include(x => x.Atendimento)
                 .Include(x => x.Liberacao)
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.GrvId == GrvId);
+                .FirstOrDefaultAsync(x => x.GrvId == GrvId, cancellationToken: ct);
 
             if (Grv == null)
             {
@@ -1461,7 +1470,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                     .ToList();
             }
 
-            using IDbContextTransaction transaction = _context.Database.BeginTransaction();
+            await using IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync(ct);
 
             try
             {
@@ -1469,22 +1478,22 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
                 if (Grv.Liberacao != null)
                 {
-                    _context.Liberacao
+                    await _context.Liberacao
                         .Where(x => x.LiberacaoId == Grv.LiberacaoId)
-                        .Delete();
+                        .DeleteAsync(ct);
                 }
 
                 new ExclusaoHierarquicaService(_context).Iniciar("tb_dep_grv", "id_grv", GrvId);
 
-                _context.SaveChanges();
+                await _context.SaveChangesAsync(ct);
 
-                transaction.Commit();
+                await transaction.CommitAsync(ct);
             }
             catch (Exception ex)
             {
-                transaction.Rollback();
+                await transaction.RollbackAsync(ct);
 
-                return MensagemViewHelper.SetInternalServerError(ex);
+                return MensagemViewHelper.SetInternalServerError(MensagemPadraoEnum.ErroOperacaoPadrao);
             }
 
             new BucketService(_context, _httpClientFactory)
@@ -1526,7 +1535,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
             return MensagemViewHelper.SetOk("Processo excluído com sucesso");
         }
 
-        public async Task<MensagemDTO> DeleteLacresAsync(int GrvId, int UsuarioId, List<int> ListagemIdentificadorLacre)
+        public async Task<MensagemDTO> DeleteLacresAsync(int GrvId, int UsuarioId, List<int> ListagemIdentificadorLacre,
+            CancellationToken ct = default)
         {
             MensagemDTO ResultView = ValidateInputGrv(GrvId, UsuarioId);
 
@@ -1552,7 +1562,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 .Where(x => x.GrvId != GrvId
                             && ListagemIdentificadorLacre.Contains(x.LacreId))
                 .AsNoTracking()
-                .ToListAsync();
+                .ToListAsync(cancellationToken: ct);
 
             if (Lacres?.Count > 0)
             {
@@ -1569,24 +1579,24 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 return MensagemViewHelper.SetBadRequest(erros);
             }
 
-            using (IDbContextTransaction transaction = _context.Database.BeginTransaction())
+            await using (IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync(ct))
             {
                 try
                 {
                     foreach (int Lacre in ListagemIdentificadorLacre)
                     {
-                        _context.Lacre.DeleteByKey(Lacre);
+                        await _context.Lacre.DeleteByKeyAsync(ct, Lacre);
                     }
 
-                    _context.SaveChanges();
+                    await _context.SaveChangesAsync(ct);
 
-                    transaction.Commit();
+                    await transaction.CommitAsync(ct);
                 }
                 catch (Exception ex)
                 {
-                    transaction.Rollback();
+                    await transaction.RollbackAsync(ct);
 
-                    return MensagemViewHelper.SetInternalServerError(ex);
+                    return MensagemViewHelper.SetInternalServerError(MensagemPadraoEnum.ErroOperacaoPadrao);
                 }
             }
 
@@ -1603,7 +1613,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 .FirstOrDefault();
         }
 
-        public async Task<GrvModel> GetByIdAsync(int GrvId)
+        public async Task<GrvModel> GetByIdAsync(int GrvId, CancellationToken ct = default)
         {
             return await _context.Grv
                 .Include(x => x.StatusOperacao)
@@ -1632,10 +1642,10 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 .ThenInclude(x => x.VistoriaStatus)
                 .Include(x => x.ClienteCodigoIdentificacao)
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.GrvId == GrvId);
+                .FirstOrDefaultAsync(x => x.GrvId == GrvId, cancellationToken: ct);
         }
 
-        public async Task<GrvViewModelList> GetByIdAsync(int GrvId, int UsuarioId, CancellationToken ct)
+        public async Task<GrvViewModelList> GetByIdAsync(int GrvId, int UsuarioId, CancellationToken ct = default)
         {
             GrvViewModelList ResultView = new()
             {
@@ -1647,7 +1657,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 return ResultView;
             }
 
-            GrvModel Grv = await GetByIdAsync(GrvId);
+            GrvModel Grv = await GetByIdAsync(GrvId, ct);
 
             if (Grv == null)
             {
@@ -1678,7 +1688,11 @@ namespace WebZi.Plataform.Domain.Services.GRV
             grvDTO.FlagTransbordo = Grv.FlagTransbordo;
             grvDTO.DataTransbordo = Grv.DataTransbordo;
             grvDTO.CodigoIdentificacaoCliente = Grv.ClienteCodigoIdentificacao?.CodigoIdentificacao;
-            grvDTO.FlagObjetoApreendido = (!string.IsNullOrWhiteSpace(Grv.DescricaoObjeto) || Grv.StatusOperacaoId == "O" || Grv.StatusOperacaoId == "H") ? "S" : "N";
+            grvDTO.FlagObjetoApreendido =
+                (!string.IsNullOrWhiteSpace(Grv.DescricaoObjeto) || Grv.StatusOperacaoId == "O" ||
+                 Grv.StatusOperacaoId == "H")
+                    ? "S"
+                    : "N";
             // grvDTO.ListagemServicoAssociadoVeiculo = (await _provider
             //     .GetService<FaturamentoService>()
             //     .ListServicoAssociadoTipoVeiculoAsync(Grv.GrvId, UsuarioId)).Listagem;
@@ -1694,7 +1708,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
         }
 
         public async Task<GrvViewModelList> GetByNumeroFormularioGrvAsync(string NumeroFormularioGrv,
-            string FaturamentoProdutoId, int ClienteId, int DepositoId, int UsuarioId, CancellationToken ct)
+            string FaturamentoProdutoId, int ClienteId, int DepositoId, int UsuarioId, CancellationToken ct = default)
         {
             GrvViewModelList ResultView = new()
             {
@@ -1707,7 +1721,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             }
 
             GrvModel Grv = await _context.Grv
-                .AsNoTracking()
+                .AsNoTracking().Include(grvModel => grvModel.ClienteCodigoIdentificacao)
                 .FirstOrDefaultAsync(x => x.NumeroFormularioGrv == NumeroFormularioGrv
                                           && x.ClienteId == ClienteId
                                           && x.DepositoId == DepositoId
@@ -1720,7 +1734,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 return ResultView;
             }
 
-            Grv = await GetByIdAsync(Grv.GrvId);
+            Grv = await GetByIdAsync(Grv.GrvId, ct);
 
             ResultView.Mensagem = ValidateInputGrv(Grv, UsuarioId);
 
@@ -1754,7 +1768,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
             return ResultView;
         }
 
-        public async Task<ImageListDTO> GetAssinaturaAgenteAsync(int GrvId, int UsuarioId)
+        public async Task<ImageListDTO> GetAssinaturaAgenteAsync(int GrvId, int UsuarioId,
+            CancellationToken ct = default)
         {
             ImageListDTO ResultView = new()
             {
@@ -1771,7 +1786,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.TabelaOrigemId == GrvId
                                           && x.BucketNomeTabelaOrigem.Codigo ==
-                                          BucketNomeTabelaOrigemEnum.AssinaturaAgente);
+                                          BucketNomeTabelaOrigemEnum.AssinaturaAgente, ct);
 
             if (BucketArquivo == null)
             {
@@ -1785,7 +1800,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 .DownloadFileAsync(BucketNomeTabelaOrigemEnum.AssinaturaAgente, GrvId);
         }
 
-        public async Task<ImageListDTO> GetAssinaturaCondutorAsync(int GrvId, int UsuarioId)
+        public async Task<ImageListDTO> GetAssinaturaCondutorAsync(int GrvId, int UsuarioId,
+            CancellationToken ct = default)
         {
             ImageListDTO ResultView = new()
             {
@@ -1802,7 +1818,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.TabelaOrigemId == GrvId
                                           && x.BucketNomeTabelaOrigem.Codigo ==
-                                          BucketNomeTabelaOrigemEnum.AssinaturaCondutor);
+                                          BucketNomeTabelaOrigemEnum.AssinaturaCondutor, ct);
 
             if (BucketArquivo == null)
             {
@@ -1816,7 +1832,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 .DownloadFileAsync(BucketNomeTabelaOrigemEnum.AssinaturaCondutor, GrvId);
         }
 
-        public async Task<StatusOperacaoListDTO> GetStatusOperacaoByIdAsync(string StatusOperacaoId)
+        public async Task<StatusOperacaoListDTO> GetStatusOperacaoByIdAsync(string StatusOperacaoId,
+            CancellationToken ct = default)
         {
             StatusOperacaoListDTO ResultView = new();
 
@@ -1829,7 +1846,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             StatusOperacaoModel result = await _context.StatusOperacao
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.StatusOperacaoId == StatusOperacaoId.ToUpperTrim().ToNullIfEmpty());
+                .FirstOrDefaultAsync(x => x.StatusOperacaoId == StatusOperacaoId.ToUpperTrim().ToNullIfEmpty(), ct);
 
             if (result != null)
             {
@@ -1846,7 +1863,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
         }
 
         public async Task<AutoridadeResponsavelListDTO> ListAutoridadesResponsaveisUfOuDepositoAsync(int? depositoId,
-            string? UF, string? nomeAutoridade, int skip = 0, int take = 300)
+            string? UF, string? nomeAutoridade, int skip = 0, int take = 300, CancellationToken ct = default)
         {
             AutoridadeResponsavelListDTO ResultView = new();
 
@@ -1875,7 +1892,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 var deposito = await _context.Deposito
                     .Include(x => x.Endereco)
                     .AsNoTracking()
-                    .FirstOrDefaultAsync(x => x.DepositoId == depositoId);
+                    .FirstOrDefaultAsync(x => x.DepositoId == depositoId, ct);
 
                 if (deposito?.Endereco?.UF == null)
                 {
@@ -1886,11 +1903,11 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 uf = deposito.Endereco.UF.Trim().ToUpper();
             }
 
-            return await ListAutoridadesResponsaveisAsync(uf, nomeAutoridade, skip, take);
+            return await ListAutoridadesResponsaveisAsync(uf, nomeAutoridade, skip, take, ct);
         }
 
         private async Task<AutoridadeResponsavelListDTO> ListAutoridadesResponsaveisAsync(string uf,
-            string? nomeAutoridade, int skip, int take)
+            string? nomeAutoridade, int skip, int take, CancellationToken ct = default)
         {
             AutoridadeResponsavelListDTO ResultView = new();
 
@@ -1917,7 +1934,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 query = query.Take(take);
 
             var result = await query
-                .ToListAsync();
+                .ToListAsync(ct);
 
             if (result == null || result.Count == 0)
             {
@@ -1931,7 +1948,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
             return ResultView;
         }
 
-        public async Task<ImageListDTO> ListDocumentosCondutorAsync(int GrvId, int UsuarioId)
+        public async Task<ImageListDTO> ListDocumentosCondutorAsync(int GrvId, int UsuarioId,
+            CancellationToken ct = default)
         {
             ImageListDTO ResultView = new()
             {
@@ -1947,19 +1965,19 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 .Where(x => x.GrvId == GrvId)
                 .AsNoTracking()
                 .Select(x => x.CondutorDocumentoId)
-                .ToListAsync();
+                .ToListAsync(ct);
 
             return await new BucketService(_context, _httpClientFactory)
                 .DownloadFilesAsync("GRV_DOCCONDUTOR", DocumentosCondutor);
         }
 
-        public async Task<EnquadramentoInfracaoListDTO> ListEnquadramentoInfracaoAsync()
+        public async Task<EnquadramentoInfracaoListDTO> ListEnquadramentoInfracaoAsync(CancellationToken ct = default)
         {
             EnquadramentoInfracaoListDTO ResultView = new();
 
             List<EnquadramentoInfracaoModel> result = await _context.EnquadramentoInfracao
                 .AsNoTracking()
-                .ToListAsync();
+                .ToListAsync(ct);
 
             if (result?.Count > 0)
             {
@@ -1977,13 +1995,13 @@ namespace WebZi.Plataform.Domain.Services.GRV
             return ResultView;
         }
 
-        public async Task<TipoRegistroListDTO> ListTipoRegistroAsync()
+        public async Task<TipoRegistroListDTO> ListTipoRegistroAsync(CancellationToken ct = default)
         {
             TipoRegistroListDTO ResultView = new();
 
             List<TipoRegistroModel> result = await _context.TipoRegistro
                 .AsNoTracking()
-                .ToListAsync();
+                .ToListAsync(ct);
 
             if (result?.Count > 0)
             {
@@ -2001,7 +2019,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             return ResultView;
         }
 
-        public async Task<ImageListDTO> ListFotoAsync(int GrvId, int UsuarioId)
+        public async Task<ImageListDTO> ListFotoAsync(int GrvId, int UsuarioId, CancellationToken ct = default)
         {
             ImageListDTO ResultView = new()
             {
@@ -2017,7 +2035,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 .DownloadFileAsync(BucketNomeTabelaOrigemEnum.FotoVeiculoGRV, GrvId);
         }
 
-        public async Task<GrvPesquisaDadosMestresDTO> ListItemPesquisaAsync(int UsuarioId)
+        public async Task<GrvPesquisaDadosMestresDTO> ListItemPesquisaAsync(int UsuarioId,
+            CancellationToken ct = default)
         {
             return new()
             {
@@ -2035,7 +2054,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
                 ListagemStatusOperacao = await _provider
                     .GetService<GrvService>()
-                    .ListStatusOperacaoAsync(),
+                    .ListStatusOperacaoAsync(ct),
 
                 //ListagemReboque = await _provider
                 //    .GetService<UsuarioService>()
@@ -2047,7 +2066,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             };
         }
 
-        public async Task<LacreViewModelList> ListLacreAsync(int GrvId, int UsuarioId)
+        public async Task<LacreViewModelList> ListLacreAsync(int GrvId, int UsuarioId, CancellationToken ct = default)
         {
             LacreViewModelList ResultView = new()
             {
@@ -2062,7 +2081,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             List<LacreModel> result = await _context.Lacre
                 .Where(x => x.GrvId == GrvId)
                 .AsNoTracking()
-                .ToListAsync();
+                .ToListAsync(ct);
 
             if (result?.Count > 0)
             {
@@ -2080,13 +2099,13 @@ namespace WebZi.Plataform.Domain.Services.GRV
             return ResultView;
         }
 
-        public async Task<MotivoApreensaoListDTO> ListMotivoApreensaoAsync()
+        public async Task<MotivoApreensaoListDTO> ListMotivoApreensaoAsync(CancellationToken ct = default)
         {
             MotivoApreensaoListDTO ResultView = new();
 
             List<MotivoApreensaoModel> result = await _context.MotivoApreensao
                 .AsNoTracking()
-                .ToListAsync();
+                .ToListAsync(ct);
 
             if (result?.Count > 0)
             {
@@ -2104,13 +2123,13 @@ namespace WebZi.Plataform.Domain.Services.GRV
             return ResultView;
         }
 
-        public async Task<StatusOperacaoListDTO> ListStatusOperacaoAsync()
+        public async Task<StatusOperacaoListDTO> ListStatusOperacaoAsync(CancellationToken ct = default)
         {
             StatusOperacaoListDTO ResultView = new();
 
             List<StatusOperacaoModel> result = await _context.StatusOperacao
                 .AsNoTracking()
-                .ToListAsync();
+                .ToListAsync(ct);
 
             if (result?.Count > 0)
             {
@@ -2130,7 +2149,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
             return ResultView;
         }
 
-        public async Task<GrvPesquisaResultListDTO> SearchAsync(GrvPesquisaParameters GrvPesquisa)
+        public async Task<GrvPesquisaResultListDTO> SearchAsync(GrvPesquisaParameters GrvPesquisa,
+            CancellationToken ct = default)
         {
             List<string> erros = new();
 
@@ -2152,7 +2172,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 List<string> Produtos = await _context.FaturamentoProduto
                     .Select(x => x.FaturamentoProdutoId)
                     .AsNoTracking()
-                    .ToListAsync();
+                    .ToListAsync(ct);
 
                 foreach (string Codigo in GrvPesquisa.ListagemCodigoProduto)
                 {
@@ -2170,7 +2190,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 List<string> StatusOperacoes = await _context.StatusOperacao
                     .Select(x => x.StatusOperacaoId)
                     .AsNoTracking()
-                    .ToListAsync();
+                    .ToListAsync(ct);
 
                 foreach (string StatusOperacao in GrvPesquisa.ListagemStatusOperacao)
                 {
@@ -2290,7 +2310,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             #endregion
 
-            var totalCount = await query.CountAsync();
+            var totalCount = await query.CountAsync(ct);
 
             if (totalCount == 0)
             {
@@ -2335,9 +2355,13 @@ namespace WebZi.Plataform.Domain.Services.GRV
                     Cliente = x.Cliente.Nome,
                     Deposito = x.Deposito.Nome,
                     DescricaoObjeto = x.DescricaoObjeto,
-                    FlagObjetoApreendido = (!string.IsNullOrWhiteSpace(x.DescricaoObjeto) || x.StatusOperacaoId == "O" || x.StatusOperacaoId == "H") ? "S" : "N"
+                    FlagObjetoApreendido =
+                        (!string.IsNullOrWhiteSpace(x.DescricaoObjeto) || x.StatusOperacaoId == "O" ||
+                         x.StatusOperacaoId == "H")
+                            ? "S"
+                            : "N"
                 })
-                .ToListAsync();
+                .ToListAsync(ct);
 
             ResultView.Mensagem = MensagemViewHelper.SetFound(totalCount);
 
@@ -2499,7 +2523,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
             return MensagemViewHelper.SetOk();
         }
 
-        public async Task<MensagemDTO> CheckAlteracaoStatusGrvAsync(int GrvId, string StatusOperacaoId, int UsuarioId)
+        public async Task<MensagemDTO> CheckAlteracaoStatusGrvAsync(int GrvId, string StatusOperacaoId, int UsuarioId,
+            CancellationToken ct = default)
         {
             MensagemDTO ResultView = ValidateInputGrv(GrvId, UsuarioId);
 
@@ -2511,7 +2536,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
             GrvModel Grv = await _context.Grv
                 .Include(x => x.StatusOperacao)
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.GrvId == GrvId);
+                .FirstOrDefaultAsync(x => x.GrvId == GrvId, ct);
 
             if (Grv == null)
             {
@@ -2520,7 +2545,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             StatusOperacaoModel StatusOperacao = await _context.StatusOperacao
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.StatusOperacaoId == StatusOperacaoId);
+                .FirstOrDefaultAsync(x => x.StatusOperacaoId == StatusOperacaoId, ct);
 
             if (StatusOperacao == null)
             {
@@ -2536,7 +2561,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
         }
 
         public async Task<MensagemDTO> CheckInformacoesPersistenciaAsync(GrvParameters GrvPersistencia,
-            CancellationToken ct)
+            CancellationToken ct = default)
         {
             if (GrvPersistencia == null)
             {
@@ -3155,13 +3180,13 @@ namespace WebZi.Plataform.Domain.Services.GRV
                             ResultView.AvisosImpeditivos.Add("Esse GRV já existe (Placa já cadastrada)");
                             break;
                         default:
-                            {
-                                ResultView.AvisosImpeditivos.Add(isChassiDuplicado
-                                    ? "Esse GRV já existe (Chassi já cadastrado)"
-                                    : "Esse GRV já existe");
+                        {
+                            ResultView.AvisosImpeditivos.Add(isChassiDuplicado
+                                ? "Esse GRV já existe (Chassi já cadastrado)"
+                                : "Esse GRV já existe");
 
-                                break;
-                            }
+                            break;
+                        }
                     }
 
                     ResultView.AvisosInformativos.Add($"{grv.GrvId}");

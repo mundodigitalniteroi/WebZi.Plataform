@@ -59,5 +59,9 @@
         public static readonly string UsuarioSemPermissaoAcessoDeposito = "Usuário sem permissão de acesso ao Depósito";
 
         public static readonly string UsuarioSemPermissaoAcessoGrv = "Usuário sem permissão de acesso ao Processo";
+
+        public const string ErroInternoPadrao = "Não foi possível concluir a solicitação no momento. Por favor, tente novamente em alguns instantes.";
+        public const string ServicoIndisponivelPadrao = "Este serviço está temporariamente indisponível no momento. Por favor, tente novamente em alguns instantes.";
+        public const string ErroOperacaoPadrao = "Não foi possível processar a operação solicitada. Verifique os dados informados ou tente novamente em instantes.";
     }
 }

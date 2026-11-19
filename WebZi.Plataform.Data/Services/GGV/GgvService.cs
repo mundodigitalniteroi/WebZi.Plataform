@@ -390,7 +390,7 @@ namespace WebZi.Plataform.Data.Services.GGV
                 {
                     await transaction.RollbackAsync(ct);
 
-                    ResultView = MensagemViewHelper.SetInternalServerError(ex);
+                    ResultView = MensagemViewHelper.SetInternalServerError(MensagemPadraoEnum.ErroOperacaoPadrao);
 
                     return ResultView;
                 }
@@ -827,7 +827,7 @@ namespace WebZi.Plataform.Data.Services.GGV
                 {
                     await transaction.RollbackAsync(ct);
 
-                    ResultView = MensagemViewHelper.SetInternalServerError(ex);
+                    ResultView = MensagemViewHelper.SetInternalServerError(MensagemPadraoEnum.ErroOperacaoPadrao);
 
                     return ResultView;
                 }
@@ -1193,7 +1193,7 @@ namespace WebZi.Plataform.Data.Services.GGV
                 {
                     await transaction.RollbackAsync(ct);
 
-                    return MensagemViewHelper.SetInternalServerError(ex);
+                    return MensagemViewHelper.SetInternalServerError(MensagemPadraoEnum.ErroOperacaoPadrao);
                 }
             }
 

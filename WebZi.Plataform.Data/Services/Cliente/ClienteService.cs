@@ -241,6 +241,7 @@ namespace WebZi.Plataform.Data.Services.Cliente
                     Nome = x.Nome,
                     FlagAtivo = x.FlagAtivo
                 })
+                .OrderBy(x => x.Nome)
                 .ToListAsync(ct);
 
             ResultView.Listagem = result;

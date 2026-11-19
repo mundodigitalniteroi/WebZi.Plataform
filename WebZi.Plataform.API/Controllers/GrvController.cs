@@ -241,7 +241,7 @@ namespace WebZi.Plataform.API.Controllers
         // TODO: [Authorize]
         [IgnoreAntiforgeryToken]
         public async Task<ActionResult<MensagemDTO>> CadastrarLacres(int IdentificadorProcesso,
-            int IdentificadorUsuario, [FromBody] List<string> ListagemLacre)
+            int IdentificadorUsuario, [FromBody] List<string> ListagemLacre, CancellationToken ct)
         {
             if (!ModelState.IsValid)
             {
@@ -254,7 +254,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<GrvService>()
-                    .CreateLacresAsync(IdentificadorProcesso, IdentificadorUsuario, ListagemLacre);
+                    .CreateLacresAsync(IdentificadorProcesso, IdentificadorUsuario, ListagemLacre, ct);
 
                 return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
             }

@@ -236,6 +236,7 @@ namespace WebZi.Plataform.Data.Services.Deposito
                     Nome = x.Deposito.Nome,
                     FlagAtivo = x.Deposito.FlagAtivo
                 })
+                .OrderBy(x => x.Nome)
                 .ToListAsync(ct);
 
             ResultView.Listagem = result;

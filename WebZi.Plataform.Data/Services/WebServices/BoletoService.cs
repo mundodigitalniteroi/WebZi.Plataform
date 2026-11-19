@@ -48,7 +48,8 @@ namespace WebZi.Plataform.Data.Services.WebServices
 
             if (FaturamentoId <= 0)
             {
-                ResultView.Mensagem = MensagemViewHelper.SetBadRequest(MensagemPadraoEnum.IdentificadorFaturamentoInvalido);
+                ResultView.Mensagem =
+                    MensagemViewHelper.SetBadRequest(MensagemPadraoEnum.IdentificadorFaturamentoInvalido);
 
                 return ResultView;
             }
@@ -97,7 +98,8 @@ namespace WebZi.Plataform.Data.Services.WebServices
             if (Faturamento.TipoMeioCobranca.Alias != TipoMeioCobrancaAliasEnum.Boleto &&
                 Faturamento.TipoMeioCobranca.Alias != TipoMeioCobrancaAliasEnum.BoletoEspecial)
             {
-                ResultView.Mensagem = MensagemViewHelper.SetBadRequest($"Esse Faturamento está cadastrado em outra Forma de Pagamento: {Faturamento.TipoMeioCobranca.Descricao}");
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest(
+                    $"Esse Faturamento está cadastrado em outra Forma de Pagamento: {Faturamento.TipoMeioCobranca.Descricao}");
 
                 return ResultView;
             }
@@ -123,23 +125,23 @@ namespace WebZi.Plataform.Data.Services.WebServices
                 .OrderByDescending(x => x.DataEmissao)
                 .FirstOrDefault();
 
-            if (Boleto == null)
-            {
+            // if (Boleto == null)
+            // {
                 if (Faturamento.Status != "P")
                 {
                     return Create(FaturamentoId, UsuarioId);
                 }
 
-                ResultView.Mensagem = MensagemViewHelper.SetNotFound("Boleto não encontrado");
-
-                return ResultView;
-            }
+            //     ResultView.Mensagem = MensagemViewHelper.SetNotFound("Boleto não encontrado");
+            //
+            //     return ResultView;
+            // }
 
             BucketArquivoModel BucketArquivo = _context.BucketArquivo
                 .Include(x => x.BucketNomeTabelaOrigem)
                 .AsNoTracking()
                 .FirstOrDefault(x => x.BucketNomeTabelaOrigem.Codigo == BucketNomeTabelaOrigemEnum.Boleto &&
-                                          x.TabelaOrigemId == Boleto.FaturamentoBoletoId);
+                                     x.TabelaOrigemId == Boleto.FaturamentoBoletoId);
 
             if (BucketArquivo != null)
             {
@@ -161,7 +163,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
                     .OrderByDescending(x => x.FaturamentoBoletoId)
                     .AsNoTracking()
                     .FirstOrDefault(x => x.FaturamentoBoleto.FaturamentoId == FaturamentoId &&
-                                              x.FaturamentoBoleto.Status != "C");
+                                         x.FaturamentoBoleto.Status != "C");
 
                 if (FaturamentoBoletoImagem != null)
                 {
@@ -182,7 +184,8 @@ namespace WebZi.Plataform.Data.Services.WebServices
                         return Create(FaturamentoId, UsuarioId);
                     }
 
-                    ResultView.Mensagem = MensagemViewHelper.SetNotFound("A imagem do Boleto não foi gerado ou foi excluído");
+                    ResultView.Mensagem =
+                        MensagemViewHelper.SetNotFound("A imagem do Boleto não foi gerado ou foi excluído");
 
                     return ResultView;
                 }
@@ -195,7 +198,8 @@ namespace WebZi.Plataform.Data.Services.WebServices
 
             if (FaturamentoId <= 0)
             {
-                ResultView.Mensagem = MensagemViewHelper.SetBadRequest(MensagemPadraoEnum.IdentificadorFaturamentoInvalido);
+                ResultView.Mensagem =
+                    MensagemViewHelper.SetBadRequest(MensagemPadraoEnum.IdentificadorFaturamentoInvalido);
 
                 return ResultView;
             }
@@ -227,7 +231,8 @@ namespace WebZi.Plataform.Data.Services.WebServices
                 Faturamento.TipoMeioCobranca.Alias != TipoMeioCobrancaAliasEnum.BoletoEspecial)
             {
                 ResultView.Mensagem = MensagemViewHelper
-                    .SetBadRequest($"Esse Faturamento está cadastrado em outra Forma de Pagamento: {Faturamento.TipoMeioCobranca.Descricao}");
+                    .SetBadRequest(
+                        $"Esse Faturamento está cadastrado em outra Forma de Pagamento: {Faturamento.TipoMeioCobranca.Descricao}");
 
                 return ResultView;
             }
@@ -263,6 +268,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
             Cancel(Faturamento.FaturamentoId);
 
             #region Preenchimento do Modelo
+
             BoletoTodos DadosBoleto = new()
             {
                 cedente_agencia = ViewBoleto.CedenteAgencia,
@@ -315,28 +321,34 @@ namespace WebZi.Plataform.Data.Services.WebServices
             {
                 List<FaturamentoRegraModel> FaturamentoRegras = _context.FaturamentoRegra
                     .Include(x => x.FaturamentoRegraTipo)
-                    .Where(x => x.ClienteId == Faturamento.Atendimento.Grv.ClienteId && x.DepositoId == Faturamento.Atendimento.Grv.DepositoId)
+                    .Where(x => x.ClienteId == Faturamento.Atendimento.Grv.ClienteId &&
+                                x.DepositoId == Faturamento.Atendimento.Grv.DepositoId)
                     .AsNoTracking()
                     .ToList();
 
                 if (FaturamentoRegras?.Count > 0)
                 {
                     FaturamentoRegraModel FaturamentoRegra = FaturamentoRegras
-                        .FirstOrDefault(x => x.FaturamentoRegraTipo.Codigo == FaturamentoRegraTipoEnum.QuantidadeDiasSomarDataVencimentoBoleto);
+                        .FirstOrDefault(x =>
+                            x.FaturamentoRegraTipo.Codigo ==
+                            FaturamentoRegraTipoEnum.QuantidadeDiasSomarDataVencimentoBoleto);
 
                     if (FaturamentoRegra != null)
                     {
                         BoletoGerado.DiasConfiguracaoDataVencimento = int.Parse(FaturamentoRegra.Valor);
 
-                        BoletoGerado.DataVencimento = DateTimeHelper.AddDays(BoletoGerado.DataVencimento, BoletoGerado.DiasConfiguracaoDataVencimento);
+                        BoletoGerado.DataVencimento = DateTimeHelper.AddDays(BoletoGerado.DataVencimento,
+                            BoletoGerado.DiasConfiguracaoDataVencimento);
 
                         DadosBoleto.vencimento = BoletoGerado.DataVencimento.ToString("dd/MM/yyyy");
                     }
                 }
             }
+
             #endregion Preenchimento do Modelo
 
             #region Execução do WebService de geração do Boleto
+
             WebServiceUrlModel WebServiceUrl = _context.WebServiceUrl
                 .AsNoTracking()
                 .FirstOrDefault(x => x.Name == "WsBoletoSoap");
@@ -347,12 +359,13 @@ namespace WebZi.Plataform.Data.Services.WebServices
 
             string url;
 
-            BoletoGerado.Boleto = new WsBoletoSoapClient(EndpointConfiguration.WsBoletoSoap, WebServiceUrl.Url).BoletoBancosRetornoLinha(
+            BoletoGerado.Boleto = new WsBoletoSoapClient(EndpointConfiguration.WsBoletoSoap,
+                "http://api.boletos.gestordepatios.app.br/wsboleto.asmx").BoletoBancosRetornoLinha(
                 boleto: DadosBoleto,
                 login: WebServiceUrl.Username,
                 senha: WebServiceUrl.Password,
                 Tipo: "img",
-                isdev: true,
+                isdev: false,
                 linha: out linha,
                 linha_id: out linhaId,
                 url: out url);
@@ -360,9 +373,11 @@ namespace WebZi.Plataform.Data.Services.WebServices
             BoletoGerado.BoletoId = linhaId;
 
             BoletoGerado.Linha = linha;
+
             #endregion Execução do WebService de geração do Boleto
 
             #region Cadastro do Boleto e da Imagem
+
             BoletoModel Boleto = new()
             {
                 FaturamentoId = Faturamento.FaturamentoId,
@@ -389,7 +404,8 @@ namespace WebZi.Plataform.Data.Services.WebServices
                     _context.SaveChanges();
 
                     new BucketService(_context, _httpClientFactory)
-                        .SendFile(BucketNomeTabelaOrigemEnum.Boleto, Boleto.FaturamentoBoletoId, UsuarioId, BoletoGerado.Boleto);
+                        .SendFile(BucketNomeTabelaOrigemEnum.Boleto, Boleto.FaturamentoBoletoId, UsuarioId,
+                            BoletoGerado.Boleto);
 
                     transaction.Commit();
                 }
@@ -400,6 +416,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
                     throw;
                 }
             }
+
             #endregion Cadastro do Boleto e da Imagem
 
             ResultView.Identificador = linhaId;
@@ -417,9 +434,9 @@ namespace WebZi.Plataform.Data.Services.WebServices
         {
             // Apesar de ser uma lista, por regra, só pode haver 1 Boleto cadastrado não pago
             List<BoletoModel> result = _context.FaturamentoBoleto
-                    .Where(x => x.FaturamentoId == FaturamentoId
-                             && x.Status == "N")
-                    .ToList();
+                .Where(x => x.FaturamentoId == FaturamentoId
+                            && x.Status == "N")
+                .ToList();
 
             if (result?.Count > 0)
             {

@@ -74,11 +74,24 @@ namespace WebZi.Plataform.Data.Database
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder
-                .UseSqlServer(AppSettingsHelper.GetConnectionString("DefaultConnection"),
-                    providerOptions => providerOptions.CommandTimeout(120))
-                .LogTo(Console.WriteLine, LogLevel.Information) // Exibe as queries executadas no BD pelo EF
-                .EnableSensitiveDataLogging(); // Configura o EF para exibir os dados sensíveis
+            if (!optionsBuilder.IsConfigured)
+            {
+                string environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")
+                    ?? Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT")
+                    ?? "Production";
+
+                bool isDevelopment = string.Equals(environment, "Development", StringComparison.OrdinalIgnoreCase);
+
+                optionsBuilder
+                    .UseSqlServer(AppSettingsHelper.GetConnectionString("DefaultConnection"),
+                        providerOptions => providerOptions.CommandTimeout(120));
+
+                if (isDevelopment)
+                {
+                    optionsBuilder.LogTo(Console.WriteLine, LogLevel.Information)
+                                  .EnableSensitiveDataLogging();
+                }
+            }
         }
 
         public string GetConnectionString()

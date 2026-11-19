@@ -23,6 +23,7 @@ using WebZi.Plataform.Domain.DTO.Generic;
 using WebZi.Plataform.Domain.DTO.Leilao;
 using WebZi.Plataform.Domain.DTO.Report;
 using WebZi.Plataform.Domain.DTO.Sistema;
+using WebZi.Plataform.Domain.Enums;
 using WebZi.Plataform.Domain.Models.Arrematantes;
 using WebZi.Plataform.Domain.Models.GRV;
 using WebZi.Plataform.Domain.Models.Leilao;
@@ -139,7 +140,7 @@ namespace WebZi.Plataform.Data.Services.Leilao
             }
             catch (Exception ex)
             {
-                ResultView = MensagemViewHelper.SetBadRequest(ex.Message);
+                ResultView = MensagemViewHelper.SetInternalServerError(MensagemPadraoEnum.ErroOperacaoPadrao);
                 return ResultView;
             }
         }
@@ -188,7 +189,7 @@ namespace WebZi.Plataform.Data.Services.Leilao
             }
             catch (Exception ex)
             {
-                return MensagemViewHelper.SetBadRequest(ex.Message);
+                return MensagemViewHelper.SetInternalServerError("Erro ao atualizar arrematante.");
             }
         }
 
@@ -231,7 +232,7 @@ namespace WebZi.Plataform.Data.Services.Leilao
             }
             catch (Exception ex)
             {
-                return MensagemViewHelper.SetBadRequest(ex.Message);
+                return MensagemViewHelper.SetInternalServerError("Erro ao atualizar arrematante.");
             }
         }
 
@@ -274,7 +275,7 @@ namespace WebZi.Plataform.Data.Services.Leilao
             }
             catch (Exception ex)
             {
-                return MensagemViewHelper.SetBadRequest(ex.Message);
+                return MensagemViewHelper.SetInternalServerError("Erro ao atualizar arrematante.");
             }
         }
 
@@ -1034,7 +1035,7 @@ namespace WebZi.Plataform.Data.Services.Leilao
             }
             catch (Exception ex)
             {
-                return MensagemViewHelper.SetBadRequest(ex.Message);
+                return MensagemViewHelper.SetInternalServerError("Erro ao atualizar arrematante.");
             }
         }
 

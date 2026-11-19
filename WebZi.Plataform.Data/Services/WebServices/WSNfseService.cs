@@ -308,7 +308,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
             }
             catch (Exception ex)
             {
-                ResultView.Mensagem.Erros.Add($"Falha ao chamar WSNFSe: {ex.Message}");
+                ResultView.Mensagem.Erros.Add("Falha na comunicação com o serviço de emissão de NFSe.");
                 return ResultView;
             }
 
@@ -382,7 +382,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
             }
             catch (Exception ex)
             {
-                ResultView.Mensagem.Erros.Add($"Falha ao chamar WSNFSe: {ex.Message}");
+                ResultView.Mensagem.Erros.Add("Falha na comunicação com o serviço de emissão de NFSe.");
                 return ResultView;
             }
 
@@ -459,7 +459,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
             }
             catch (Exception e)
             {
-                ResultView.Mensagem = MensagemViewHelper.SetBadRequest(e.Message);
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Formato do JSON da NFe inválido.");
                 return ResultView;
             }
         }
@@ -557,7 +557,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
             }
             catch (Exception e)
             {
-                ResultView = MensagemViewHelper.SetBadRequest(e.Message);
+                ResultView = MensagemViewHelper.SetInternalServerError("Erro ao atualizar dados da Nota Fiscal.");
                 return ResultView;
             }
         }

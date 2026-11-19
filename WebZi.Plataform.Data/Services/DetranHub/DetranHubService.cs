@@ -1,5 +1,7 @@
 using AutoMapper;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.Identity.Client;
 using WebZi.Plataform.CrossCutting.Veiculo;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
@@ -71,7 +73,8 @@ public class DetranHubService
         }
         catch (Exception ex)
         {
-            ResultView.Mensagem = MensagemViewHelper.SetServiceUnavailable(ex.Message);
+            ResultView.Mensagem = MensagemViewHelper.SetServiceUnavailable();
+            Console.WriteLine(ex.Message);
             return ResultView;
         }
 

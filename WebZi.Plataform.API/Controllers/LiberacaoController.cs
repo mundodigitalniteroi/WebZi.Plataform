@@ -26,7 +26,7 @@ namespace WebZi.Plataform.API.Controllers
         [HttpPost("EntregaSimplificada")]
         // TODO: [Authorize]
         [IgnoreAntiforgeryToken]
-        public async Task<ActionResult<MensagemDTO>> EntregaSimplificada([FromBody] EntregaParameters Parameters)
+        public async Task<ActionResult<MensagemDTO>> EntregaSimplificada([FromBody] EntregaParameters Parameters, CancellationToken ct)
         {
             if (!ModelState.IsValid)
             {
@@ -39,7 +39,7 @@ namespace WebZi.Plataform.API.Controllers
             {
                 ResultView = await _provider
                     .GetService<LiberacaoService>()
-                    .EntregaSimplificadaAsync(Parameters);
+                    .EntregaSimplificadaAsync(Parameters, ct);
 
                 return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
             }
