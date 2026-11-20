@@ -145,6 +145,7 @@ namespace WebZi.Plataform.Data.Services.Usuario
                     return ResultView;
                 }
             }
+
             UsuarioModel result = await _context.Usuario
                 .Where(x => (UsuarioId > 0 ? x.UsuarioId == UsuarioId : true) &&
                             (!string.IsNullOrWhiteSpace(Login) ? x.Login == Login : true))
@@ -603,17 +604,41 @@ namespace WebZi.Plataform.Data.Services.Usuario
             }
         }
 
-        public async Task<MensagemDTO> GenerateMfaCode(int usuarioId)
+        public async Task<MensagemDTO> GenerateMfaCodeAsync(int usuarioId,
+            CancellationToken ct)
         {
             MensagemDTO ResultView = new();
 
-            var exists = _context.Usuario.Any(x => x.UsuarioId == usuarioId);
-            if (!exists)
+            if (usuarioId <= 0)
+                return MensagemViewHelper.SetUnauthorized();
+
+
+            var pessoa = await _context.Usuario
+                .Where(x => x.UsuarioId == usuarioId)
+                .Select(x => new PessoaIdDTO()
+                {
+                    Id = x.PessoaId.Value
+                })
+                .FirstOrDefaultAsync(cancellationToken: ct);
+            if (pessoa is null)
                 return MensagemViewHelper.SetNotFound("Usuario não encontrado");
+
+            var now = DateTime.UtcNow.AddHours(-3);
+            var ultimoCodigo = await _context.AuthMfaCodes
+                .AsNoTracking()
+                .Take(1)
+                .OrderByDescending(x => x.CreatedAt)
+                .FirstOrDefaultAsync(x => x.UsuarioId == usuarioId, ct);
+
+            if (ultimoCodigo != null && (now - ultimoCodigo.CreatedAt).TotalSeconds < 60)
+            {
+                return MensagemViewHelper.SetBadRequest(
+                    "Aguarde 60 segundos antes de solicitar um novo código de verificação.");
+            }
 
             var telefone = await _provider
                 .GetService<PessoaService>()
-                .GetPessoaTelefoneByIdAsync(usuarioId);
+                .GetPessoaTelefoneByIdAsync(pessoa.Id);
 
             if (string.IsNullOrWhiteSpace(telefone))
                 return MensagemViewHelper.SetNotFound();
@@ -638,26 +663,31 @@ namespace WebZi.Plataform.Data.Services.Usuario
             }
             catch (Exception e)
             {
-                ResultView = MensagemViewHelper.SetInternalServerError("Não foi possível enviar o código de verificação no momento.");
+                ResultView =
+                    MensagemViewHelper.SetInternalServerError(
+                        "Não foi possível enviar o código de verificação no momento.");
                 return ResultView;
             }
 
             return MensagemViewHelper.SetCreateSuccess();
         }
 
-        public async Task<MensagemDTO> ValidMfaCode(ConfirmarCodigoMfaParameters request)
+        public async Task<MensagemDTO> ValidMfaCode(ConfirmarCodigoMfaParameters request, CancellationToken ct)
         {
+            if (request.UsuarioId <= 0)
+                return MensagemViewHelper.SetUnauthorized();
+
             var codeHash = GenerateSha256Hex($"enable:{request.UsuarioId}:{request.Codigo}:{_options.Value.Secret}");
-            var result = await SearchMfaCode(request.UsuarioId, codeHash);
+            var result = await SearchMfaCode(request.UsuarioId, codeHash, ct);
             return result;
         }
 
-        private async Task<MensagemDTO> SearchMfaCode(int usuarioId, string codeHash)
+        private async Task<MensagemDTO> SearchMfaCode(int usuarioId, string codeHash, CancellationToken ct)
         {
             var exists = await _context.AuthMfaCodes
                 .AsTracking()
                 .OrderByDescending(x => x.CreatedAt)
-                .FirstOrDefaultAsync(x => x.UsuarioId == usuarioId);
+                .FirstOrDefaultAsync(x => x.UsuarioId == usuarioId, cancellationToken: ct);
             if (exists == null)
                 return MensagemViewHelper.SetNotFound();
             if (exists.Validated)
@@ -668,21 +698,23 @@ namespace WebZi.Plataform.Data.Services.Usuario
             if (exists.ExpiresAt <= now)
             {
                 exists.Attempts++;
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(ct);
                 return MensagemViewHelper.SetBadRequest("Tempo limite excedido.");
             }
 
             if (exists.CodeHash != codeHash)
             {
                 exists.Attempts++;
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(ct);
                 return MensagemViewHelper.SetBadRequest("Código inválido.");
             }
 
             exists.Attempts++;
             exists.Validated = true;
-            var result = await _context.SaveChangesAsync();
-            return result <= 0 ? MensagemViewHelper.SetBadRequest("Problema atualizar") : MensagemViewHelper.SetOk();
+            var result = await _context.SaveChangesAsync(ct);
+            return result <= 0
+                ? MensagemViewHelper.SetBadRequest(MensagemPadraoEnum.ErroOperacaoPadrao)
+                : MensagemViewHelper.SetOk();
         }
 
         private async Task<MensagemDTO> RegistrarMfaCodeAsync(int usuarioId, string codeHash, DateTime expiresAt)
@@ -896,7 +928,8 @@ namespace WebZi.Plataform.Data.Services.Usuario
             catch (Exception e)
             {
                 await _transaction.RollbackAsync(ct);
-                ResultView = MensagemViewHelper.SetInternalServerError("Não foi possível cadastrar o usuário no momento.");
+                ResultView =
+                    MensagemViewHelper.SetInternalServerError("Não foi possível cadastrar o usuário no momento.");
                 return ResultView;
             }
         }
@@ -1091,7 +1124,8 @@ namespace WebZi.Plataform.Data.Services.Usuario
             catch (Exception e)
             {
                 await _transaction.RollbackAsync(ct);
-                ResultView = MensagemViewHelper.SetInternalServerError("Não foi possível atualizar o usuário no momento.");
+                ResultView =
+                    MensagemViewHelper.SetInternalServerError("Não foi possível atualizar o usuário no momento.");
                 return ResultView;
             }
         }

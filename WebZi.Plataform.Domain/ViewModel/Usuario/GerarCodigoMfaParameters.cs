@@ -1,9 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace WebZi.Plataform.Domain.ViewModel.Usuario;
 
 public class GerarCodigoMfaParameters
 {
-    [Required(ErrorMessage = "Propriedade obrigatória")]
+    [JsonIgnore]
     public int UsuarioId { get; set; }
 }

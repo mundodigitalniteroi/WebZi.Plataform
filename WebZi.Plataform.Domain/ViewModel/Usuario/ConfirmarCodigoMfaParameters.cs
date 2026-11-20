@@ -1,11 +1,12 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json.Serialization;
 
 namespace WebZi.Plataform.Domain.ViewModel.Usuario;
 
 public class ConfirmarCodigoMfaParameters
 {
-    [Required(ErrorMessage = "Propriedade obrigatória")]
+    [JsonIgnore]
     public int UsuarioId { get; set; }
 
     [Required(ErrorMessage = "Propriedade obrigatória")]

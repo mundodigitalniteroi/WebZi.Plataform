@@ -328,7 +328,9 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpPost("GerarCodigoMfa")]
-        public async Task<ActionResult<MensagemDTO>> GerarCodigoMfa(GerarCodigoMfaParameters parameters)
+        [Authorize]
+        public async Task<ActionResult<MensagemDTO>> GerarCodigoMfa(GerarCodigoMfaParameters parameters,
+            CancellationToken ct)
         {
             if (!ModelState.IsValid)
             {
@@ -336,13 +338,19 @@ namespace WebZi.Plataform.API.Controllers
             }
 
             MensagemDTO ResultView = new();
-            // var userId = User.GetUserId();
-
+            var userId = User.GetUserId();
+            parameters.UsuarioId = userId.Value;
             try
             {
+                if (userId is not > 0)
+                {
+                    ResultView = MensagemViewHelper.SetUnauthorized();
+                    return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+                }
+
                 ResultView = await _provider
                     .GetService<UsuarioService>()
-                    .GenerateMfaCode(parameters.UsuarioId);
+                    .GenerateMfaCodeAsync(parameters.UsuarioId, ct);
 
                 return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
             }
@@ -355,7 +363,8 @@ namespace WebZi.Plataform.API.Controllers
         }
 
         [HttpPost("ConfirmarCodigoMfa")]
-        public async Task<ActionResult<MensagemDTO>> ConfirmarCodigoMfa(ConfirmarCodigoMfaParameters request)
+        [Authorize]
+        public async Task<ActionResult<MensagemDTO>> ConfirmarCodigoMfa(ConfirmarCodigoMfaParameters request, CancellationToken ct)
         {
             if (!ModelState.IsValid)
             {
@@ -363,12 +372,19 @@ namespace WebZi.Plataform.API.Controllers
             }
 
             MensagemDTO ResultView = new();
-
+            var userId = User.GetUserId();
+            request.UsuarioId = userId.Value;
             try
             {
+                if (userId is not > 0)
+                {
+                    ResultView = MensagemViewHelper.SetUnauthorized();
+                    return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
+                }
+
                 ResultView = await _provider
                     .GetService<UsuarioService>()
-                    .ValidMfaCode(request);
+                    .ValidMfaCode(request, ct);
 
                 return StatusCode((int)ResultView.HtmlStatusCode, ResultView);
             }

@@ -47,7 +47,7 @@ public class PessoaService
             .FirstOrDefaultAsync(ct);
     }
 
-    public async Task<string> GetPessoaTelefoneByIdAsync(int pessoaId)
+    public async Task<string> GetPessoaTelefoneByIdAsync(long pessoaId)
         => await _context.TipoPessoaContatos
             .Include(x => x.Pessoa)
             .Where(x => x.PessoaId == pessoaId && x.TipoContatoId == 1 && x.FlagContatoPrincipal == 'S')
