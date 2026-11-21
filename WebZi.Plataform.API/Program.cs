@@ -138,32 +138,15 @@ static void ConfigureJson(WebApplicationBuilder builder)
 
     // System.Json
     builder.Services
-        .Configure<JsonOptions>(options => options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
+        .Configure<JsonOptions>(options =>
+            options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
 }
 
 static void ConfigureWebApplication(WebApplication app)
 {
-    app.UseExceptionHandler(exceptionHandlerApp =>
-    {
-        exceptionHandlerApp.Run(async context =>
-        {
-            context.Response.StatusCode = StatusCodes.Status500InternalServerError;
-            context.Response.ContentType = "application/json";
-
-            var mensagem = WebZi.Plataform.Data.Helper.MensagemViewHelper.SetInternalServerError(
-                WebZi.Plataform.Domain.Enums.MensagemPadraoEnum.ErroInternoPadrao);
-
-            var json = System.Text.Json.JsonSerializer.Serialize(mensagem);
-            await context.Response.WriteAsync(json);
-        });
-    });
-
     // Configure the HTTP request pipeline.
-    if (app.Environment.IsDevelopment())
-    {
-        app.UseSwagger();
-        app.UseSwaggerUI();
-    }
+    app.UseSwagger();
+    app.UseSwaggerUI();
 
     app.UseCors(options =>
     {
