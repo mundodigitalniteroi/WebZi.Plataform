@@ -3,7 +3,7 @@
     public class FotoTipoCadastroParameters
     {
         //[Required(ErrorMessage = "Propriedade obrigatória")]
-        public int IdentificadorTipoCadastro { get; set; }
+        public int? IdentificadorTipoCadastro { get; set; }
 
         //[Required(ErrorMessage = "Propriedade obrigatória")]
         public byte[] Foto { get; set; }

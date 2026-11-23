@@ -31,6 +31,7 @@ namespace WebZi.Plataform.Domain.ViewModel.GRV.Cadastro
 
         public int IdentificadorMarcaModelo { get; set; }
 
+        [Required(ErrorMessage = "Propriedade obrigatória")]
         public byte IdentificadorMotivoApreensao { get; set; }
 
         [Required(ErrorMessage = "Propriedade obrigatória")]

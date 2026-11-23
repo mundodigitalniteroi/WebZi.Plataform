@@ -842,8 +842,9 @@ namespace WebZi.Plataform.Data.Services.GGV
 
                 foreach (FotoTipoCadastroParameters item in GgvPersistencia.ListagemFotos)
                 {
+                    item.IdentificadorTipoCadastro ??= 5;
                     string TipoCadastro = ListagemTipoCadastroFoto
-                        .Where(x => x.TabelaGenericaId == item.IdentificadorTipoCadastro)
+                        .Where(x => x.TabelaGenericaId == item.IdentificadorTipoCadastro )
                         .Select(x => x.ValorCadastro)
                         .FirstOrDefault();
 
@@ -1254,7 +1255,16 @@ namespace WebZi.Plataform.Data.Services.GGV
                 .DownloadFileAsync(BucketNomeTabelaOrigemEnum.FotoVeiculoGRV, GrvId);
             var ggv = await new BucketService(_context, _httpClientFactory)
                 .DownloadFileAsync(BucketNomeTabelaOrigemEnum.FotoVeiculoGGV, GrvId);
-            return ggv.Listagem.Count < 1 ? grv : ggv;
+
+
+            if (grv.Listagem.Count > 0)
+            {
+
+                ggv.Listagem.AddRange(grv.Listagem);
+                ggv.Mensagem = MensagemViewHelper.SetFound(ggv.Listagem.Count);
+            }
+
+            return ggv;
         }
 
         public async Task<MensagemDTO> ValidarInformacoesPersistenciaAsync(GgvParameters GgvPersistencia,

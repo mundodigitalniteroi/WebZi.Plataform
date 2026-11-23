@@ -803,11 +803,13 @@ namespace WebZi.Plataform.Data.Services.Usuario
 
             if (!string.IsNullOrWhiteSpace(parameters.NomePessoa))
             {
-                var pessoa = await _provider?.GetService<PessoaService>().GetByNomeAsync(parameters.NomePessoa, ct)!;
-                if (pessoa is { IdentificadorPessoa: > 0 })
+                var pessoa = await _provider?.GetService<PessoaService>().GetByIdsync(parameters.identificadorPessoa, ct)!;
+  
+                if (pessoa != null && pessoa.IdentificadorPessoa > 0)
                 {
                     parameters.identificadorPessoa = pessoa.IdentificadorPessoa;
                 }
+                
             }
 
             if (parameters.identificadorPessoa <= 0)
@@ -983,10 +985,10 @@ namespace WebZi.Plataform.Data.Services.Usuario
                 usuario.Login = loginNormalized;
             }
 
-            if (parameters.identificadorPessoa <= 0 && !string.IsNullOrWhiteSpace(parameters.NomePessoa))
+            if (parameters.identificadorPessoa >= 0)
             {
                 var pessoaService = _provider?.GetService<PessoaService>() ?? new PessoaService(_context, _mapper);
-                var pessoa = await pessoaService.GetByNomeAsync(parameters.NomePessoa, ct);
+                var pessoa = await pessoaService.GetByIdsync(parameters.identificadorPessoa, ct);
                 if (pessoa != null && pessoa.IdentificadorPessoa > 0)
                 {
                     parameters.identificadorPessoa = pessoa.IdentificadorPessoa;

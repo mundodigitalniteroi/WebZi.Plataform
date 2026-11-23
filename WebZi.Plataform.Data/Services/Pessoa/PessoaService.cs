@@ -25,6 +25,23 @@ public class PessoaService
         _mapper = mapper;
     }
 
+    public async Task<PessoaDTO?> GetByIdsync(long pessoaId, CancellationToken ct)
+    {
+  
+
+        return await _context.Pessoa
+            .AsNoTracking()
+            .Where(x => x.IdPessoa == pessoaId)
+            .Select(x => new PessoaDTO
+            {
+                IdentificadorPessoa = x.IdPessoa,
+                Nome = x.Nome != null ? x.Nome.Trim() : "",
+                NomeDoMeio = x.NomeMeio != null ? x.NomeMeio.Trim() : "",
+                Sobrenome = x.Sobrenome != null ? x.Sobrenome.Trim() : ""
+            })
+            .FirstOrDefaultAsync(ct);
+    }
+
     public async Task<PessoaDTO?> GetByNomeAsync(string nome, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(nome))
