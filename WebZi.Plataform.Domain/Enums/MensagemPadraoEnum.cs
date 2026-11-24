@@ -5,6 +5,8 @@
         public const string NaoEncontradoAtendimento = "Atendimento inexistente";
 
         public static readonly string NaoEncontradoCliente = "Cliente inexistente";
+        public static readonly string NaoEncontradoClienteAssociado = "Este Cliente associado não existe";
+        public static readonly string NaoEncontradoDepositoAssociado = "Este Depósito associado não existe";
 
         public static readonly string NaoEncontradoAssociacaoClienteDeposito = "Este Cliente e Depósito não são associados";
 
