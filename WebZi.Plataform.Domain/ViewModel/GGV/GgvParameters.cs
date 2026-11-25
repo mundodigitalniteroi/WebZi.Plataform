@@ -31,7 +31,7 @@ namespace WebZi.Plataform.Domain.ViewModel.GGV
         [RegularExpression("S|N", ErrorMessage = "Valor da Flag inválido, informe S ou N")]
         public string FlagTransbordo { get; set; }
 
-        public VistoriaParameters Vistoria { get; set; }
+        public VistoriaParameters? Vistoria { get; set; }
 
         // public List<EquipamentoOpcionalParameters> ListagemEquipamentoOpcional { get; set; }
 

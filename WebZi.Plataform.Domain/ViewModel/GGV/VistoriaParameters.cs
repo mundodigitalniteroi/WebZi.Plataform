@@ -10,20 +10,20 @@ namespace WebZi.Plataform.Domain.ViewModel.GGV
 
         public string MotivoNaoRealizacaoVistoria { get; set; }
 
-        [Required(ErrorMessage = "Propriedade obrigatória")]
-        [RegularExpression("S|N", ErrorMessage = "Valor da Flag inválido, informe S ou N")]
+        // [Required(ErrorMessage = "Propriedade obrigatória")]
+        // [RegularExpression("S|N", ErrorMessage = "Valor da Flag inválido, informe S ou N")]
         public string FlagPossuiRestricoes { get; set; }
 
-        [Required(ErrorMessage = "Propriedade obrigatória")]
-        [RegularExpression("S|N", ErrorMessage = "Valor da Flag inválido, informe S ou N")]
+        // [Required(ErrorMessage = "Propriedade obrigatória")]
+        // [RegularExpression("S|N", ErrorMessage = "Valor da Flag inválido, informe S ou N")]
         public string FlagPossuiVidroEletrico { get; set; }
 
-        [Required(ErrorMessage = "Propriedade obrigatória")]
-        [RegularExpression("S|N", ErrorMessage = "Valor da Flag inválido, informe S ou N")]
+        // [Required(ErrorMessage = "Propriedade obrigatória")]
+        // [RegularExpression("S|N", ErrorMessage = "Valor da Flag inválido, informe S ou N")]
         public string FlagPossuiTravaEletrica { get; set; }
 
-        [Required(ErrorMessage = "Propriedade obrigatória")]
-        [RegularExpression("S|N", ErrorMessage = "Valor da Flag inválido, informe S ou N")]
+        // [Required(ErrorMessage = "Propriedade obrigatória")]
+        // [RegularExpression("S|N", ErrorMessage = "Valor da Flag inválido, informe S ou N")]
         public string FlagPossuiPlaca { get; set; }
 
         [StringLength(7, MinimumLength = 7)]
@@ -33,12 +33,12 @@ namespace WebZi.Plataform.Domain.ViewModel.GGV
 
         public int IdentificadorStatusVistoria { get; set; }
 
-        [Required(ErrorMessage = "Propriedade obrigatória")]
+        // [Required(ErrorMessage = "Propriedade obrigatória")]
         public byte IdentificadorSituacaoChassi { get; set; }
 
         public string IdentificadorTipoDirecao { get; set; }
 
-        [Required(ErrorMessage = "Propriedade obrigatória")]
+        // [Required(ErrorMessage = "Propriedade obrigatória")]
         public int IdentificadorEstadoGeralVeiculo { get; set; }
 
         public int IdentificadorCorOstentada { get; set; }
@@ -49,7 +49,7 @@ namespace WebZi.Plataform.Domain.ViewModel.GGV
 
         public string NumeroMotor { get; set; }
 
-        [Required(ErrorMessage = "Propriedade obrigatória")]
+        // [Required(ErrorMessage = "Propriedade obrigatória")]
         public DateTime DataVistoria { get; set; }
 
         public string ResumoVistoria { get; set; }
