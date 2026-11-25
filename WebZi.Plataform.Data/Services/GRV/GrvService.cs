@@ -635,7 +635,7 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 return MensagemViewHelper.SetBadRequest("O GRV já está com o status U.");
             }
 
-            using (IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync(ct))
+            await using (IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync(ct))
             {
                 try
                 {
@@ -2273,8 +2273,8 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             var query = _context.Grv
                 .Where(x =>
-                    x.UsuarioClienteDepositoGrv.UsuarioId == GrvPesquisa.IdentificadorUsuario &&
-                    x.UsuarioClienteDepositoGrv.FaturamentoProdutoCodigo == x.FaturamentoProdutoId)
+                    x.Cliente.UsuariosClientes.Any(uc => uc.UsuarioId == GrvPesquisa.IdentificadorUsuario) &&
+                    x.FaturamentoProdutoId == x.FaturamentoProdutoId)
                 .AsQueryable();
 
             #region Filtros

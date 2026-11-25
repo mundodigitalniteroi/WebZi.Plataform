@@ -1180,7 +1180,7 @@ namespace WebZi.Plataform.Data.Services.GGV
                     "Nenhum serviço encontrado para exclusão ou os serviços não pertencem a este Processo");
             }
 
-            using (IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync(ct))
+            await using (IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync(ct))
             {
                 try
                 {

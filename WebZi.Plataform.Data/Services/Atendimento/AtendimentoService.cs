@@ -2090,7 +2090,9 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                         .SetProperty(x => x.IdUsuario, parameters.IdentificadorUsuario), ct);
 
                 if (rowsSaida == 0)
+                {
                     return MensagemViewHelper.SetNotFound("Saida para Reparo não registrada");
+                }
 
                 int rowsGrv = await _context.Grv
                     .Where(x => x.GrvId == grvId.Value)

@@ -877,7 +877,7 @@ namespace WebZi.Plataform.Data.Services.Usuario
                             UsuarioId = newUserId,
                             TipoPermissaoId = (short)permissaoId,
                             UsuarioCadastroId = usuarioCadastroId,
-                            DataCadastro = DateTime.UtcNow.AddHours(-3),
+                            DataCadastro = DateTime.Now,
                             FlagAtivo = "S"
                         }).ToList();
 
@@ -902,7 +902,7 @@ namespace WebZi.Plataform.Data.Services.Usuario
                         UsuarioId = newUserId,
                         ClienteId = clienteId,
                         UsuarioCadastroId = usuarioCadastroId,
-                        DataCadastro = DateTime.UtcNow.AddHours(-3)
+                        DataCadastro = DateTime.Now
                     }).ToList();
 
                     await _context.UsuarioCliente.AddRangeAsync(clientesList, ct);
@@ -915,7 +915,7 @@ namespace WebZi.Plataform.Data.Services.Usuario
                         UsuarioId = newUserId,
                         DepositoId = depositoId,
                         UsuarioCadastroId = usuarioCadastroId,
-                        DataCadastro = DateTime.UtcNow.AddHours(-3)
+                        DataCadastro = DateTime.Now
                     }).ToList();
 
                     await _context.UsuarioDeposito.AddRangeAsync(depositosList, ct);
