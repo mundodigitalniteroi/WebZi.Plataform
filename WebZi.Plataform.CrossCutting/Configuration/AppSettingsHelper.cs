@@ -4,6 +4,7 @@ namespace WebZi.Plataform.CrossCutting.Configuration
 {
     public static class AppSettingsHelper
     {
+        private static readonly Lazy<IConfigurationRoot> _configuration = new(BuildConfiguration);
         private static IConfigurationRoot BuildConfiguration()
         {
             string environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")
@@ -23,28 +24,28 @@ namespace WebZi.Plataform.CrossCutting.Configuration
 
         public static string GetConnectionString()
         {
-            return BuildConfiguration().GetConnectionString("DefaultConnection");
+            return _configuration.Value.GetConnectionString("DefaultConnection");
         }
 
         public static string GetConnectionString(string connectionStringName)
         {
-            return BuildConfiguration().GetConnectionString(connectionStringName);
+            return _configuration.Value.GetConnectionString(connectionStringName);
         }
+
 
         public static string GetValue(string section, string element)
         {
-            IConfigurationRoot configuration = BuildConfiguration();
-
-            IConfigurationSection configurationSection = configuration.GetSection(section).GetSection(element);
+            IConfigurationSection configurationSection = _configuration.Value
+                .GetSection(section)
+                .GetSection(element);
 
             return configurationSection.Value;
         }
 
         public static string GetValue(string section)
         {
-            IConfigurationRoot configuration = BuildConfiguration();
-
-            IConfigurationSection configurationSection = configuration.GetSection(section);
+            IConfigurationSection configurationSection = _configuration.Value
+                .GetSection(section);
 
             return configurationSection.Value;
         }
