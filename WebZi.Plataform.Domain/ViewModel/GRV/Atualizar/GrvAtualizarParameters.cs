@@ -77,18 +77,22 @@ namespace WebZi.Plataform.Domain.ViewModel.GRV.Cadastro
 
         [MaxLength(10)] public string EstacionamentoNumeroVaga { get; set; }
 
-        [MaxLength(15)] public string Latitude { get; set; }
+        [MaxLength(25, ErrorMessage = "{0} Não pode ultrapassar de {1}")]
+        public string Latitude { get; set; }
 
-        [MaxLength(15)] public string Longitude { get; set; }
+        [MaxLength(25, ErrorMessage = "{0} Não pode ultrapassar de {1}")]
+        public string Longitude { get; set; }
 
         [MaxLength(2)] public string VeiculoUF { get; set; }
 
         [Required(ErrorMessage = "Propriedade obrigatória")]
         public DateTime DataHoraRemocao { get; set; }
 
-        [MaxLength(15)] public string LatitudeAcautelamento { get; set; }
+        [MaxLength(25, ErrorMessage = "{0} Não pode ultrapassar de {1}")]
+        public string LatitudeAcautelamento { get; set; }
 
-        [MaxLength(15)] public string LongitudeAcautelamento { get; set; }
+        [MaxLength(25, ErrorMessage = "{0} Não pode ultrapassar de {1}")]
+        public string LongitudeAcautelamento { get; set; }
 
         public decimal? DistanciaAteAcautelamento { get; set; }
 
