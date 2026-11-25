@@ -23,6 +23,7 @@ namespace WebZi.Plataform.Domain.DTO.Faturamento
         public int? IdentificadorFaturamento { get; set; }
 
         public int? IdentificadorProcesso { get; set; }
+        public int IdentificadorClienteDeposito { get; set; }
 
         public string? NumeroProcesso { get; set; }
         public string? CodigoAlvaraDeLiberacao { get; set; }

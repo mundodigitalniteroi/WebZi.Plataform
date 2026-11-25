@@ -1,11 +1,11 @@
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using System.Data;
 using System.Globalization;
 using System.Text.RegularExpressions;
-using Microsoft.Extensions.DependencyInjection;
 using WebZi.Plataform.CrossCutting.Date;
 using WebZi.Plataform.CrossCutting.Number;
 using WebZi.Plataform.CrossCutting.Strings;
@@ -30,6 +30,7 @@ using WebZi.Plataform.Domain.DTO.Faturamento.Cadastro;
 using WebZi.Plataform.Domain.DTO.Faturamento.Servico;
 using WebZi.Plataform.Domain.DTO.Faturamento.Simulacao;
 using WebZi.Plataform.Domain.DTO.Generic;
+using WebZi.Plataform.Domain.DTO.GRV;
 using WebZi.Plataform.Domain.DTO.Liberacao;
 using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.DTO.Veiculo;
@@ -183,17 +184,13 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 {
                     dataVencimento = dataVencimento.AddDays(1);
                 }
-                else if (CalculoDiarias.Feriados != null) //3. Se for Feriado
+                else if (CalculoDiarias.Feriados != null && CalculoDiarias.Feriados.Any(x => x.Date == dataVencimento.Date)) //3. Se for Feriado
                 {
-                    if (CalculoDiarias.Feriados.Any(x => x.Date == dataVencimento.Date))
-                    {
-                        // É feriado
-                        dataVencimento = dataVencimento.AddDays(1);
-                    }
-                    else
-                    {
-                        break; // Não é feriado
-                    }
+                    dataVencimento = dataVencimento.AddDays(1);
+                }
+                else
+                {
+                    break; // É um dia útil
                 }
             }
 
@@ -1810,6 +1807,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     ParametrosCalculoFaturamento.ClienteDeposito.Deposito.ComplementoEndereco)
             };
 
+
+            ResultView.IdentificadorClienteDeposito = ParametrosCalculoFaturamento.ClienteDeposito.ClienteDepositoId;
             ResultView.Mensagem = MensagemViewHelper.SetOk();
 
             return ResultView;
@@ -2675,7 +2674,11 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     })
                     .ToListAsync(ct)
                 : new List<SimulacaoFaturamentoDTO>();
-
+            ResultView.IdentificadorClienteDeposito = await _context.ClienteDeposito
+                        .AsNoTracking()
+                        .Where(x => x.ClienteId == grvData.Cliente.ClienteId && x.DepositoId == grvData.Deposito.DepositoId)
+                        .Select( x => x.ClienteDepositoId)
+                        .FirstOrDefaultAsync(ct);
             if (listagemFaturamentosAtendimento.Count == 0)
             {
                 var faturamentoUnico = await faturamentosQuery
