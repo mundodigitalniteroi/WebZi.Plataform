@@ -28,7 +28,7 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("GerarBoleto")]
         // TODO: [Authorize]
-        public ActionResult<BoletoDTO> GerarBoleto(int IdentificadorFaturamento, int IdentificadorUsuario)
+        public async Task<ActionResult<BoletoDTO>> GerarBoleto(int IdentificadorFaturamento, int IdentificadorUsuario, bool reprocessar = false, CancellationToken ct = default)
         {
             if (!ModelState.IsValid)
             {
@@ -39,9 +39,9 @@ namespace WebZi.Plataform.API.Controllers
 
             try
             {
-                ResultView = _provider
+                ResultView = await _provider
                     .GetService<BoletoService>()
-                    .Create(IdentificadorFaturamento, IdentificadorUsuario);
+                    .CreateAsync(IdentificadorFaturamento, IdentificadorUsuario, reprocessar, ct);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }
@@ -345,7 +345,7 @@ namespace WebZi.Plataform.API.Controllers
 
         [HttpGet("SelecionarBoleto")]
         // TODO: [Authorize]
-        public ActionResult<BoletoDTO> SelecionarBoleto(int IdentificadorFaturamento, int IdentificadorUsuario)
+        public async Task<ActionResult<BoletoDTO>> SelecionarBoleto(int IdentificadorFaturamento, int IdentificadorUsuario, CancellationToken ct = default)
         {
             if (!ModelState.IsValid)
             {
@@ -356,9 +356,9 @@ namespace WebZi.Plataform.API.Controllers
 
             try
             {
-                ResultView = _provider
+                ResultView = await _provider
                     .GetService<BoletoService>()
-                    .GetBoletoNaoCancelado(IdentificadorFaturamento, IdentificadorUsuario);
+                    .GetBoletoNaoCanceladoAsync(IdentificadorFaturamento, IdentificadorUsuario, ct);
 
                 return StatusCode((int)ResultView.Mensagem.HtmlStatusCode, ResultView);
             }

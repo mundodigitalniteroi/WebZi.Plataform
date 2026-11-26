@@ -19,7 +19,7 @@ public sealed class LiberacaoPatioParameters
 
     [JsonProperty("valor_guincho")]
     [JsonPropertyName("valor_guincho")]
-    public decimal ValorGuincho { get; set; }
+    public decimal? ValorGuincho { get; set; }
 
     [JsonProperty("num_dias")]
     [JsonPropertyName("num_dias")]

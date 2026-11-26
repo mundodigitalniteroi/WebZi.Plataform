@@ -1,3 +1,4 @@
+using WebZi.Plataform.Domain.DTO.Faturamento.Simulacao;
 using WebZi.Plataform.Domain.DTO.Sistema;
 
 namespace WebZi.Plataform.Domain.DTO.Report
@@ -98,5 +99,51 @@ namespace WebZi.Plataform.Domain.DTO.Report
         public string Logo { get; set; }
 
         public byte[] QRCode { get; set; }
+
+        public string? FaturamentoNumeroIdentificacao { get; set; }
+
+        public string? FaturamentoDataVencimento { get; set; }
+
+        public string? StatusPagamento { get; set; }
+
+        public string? PrazoRetiradaVeiculo { get; set; }
+
+        public int QuantidadeEstadias { get; set; }
+
+        public string? QuantidadeQuilometragem { get; set; }
+
+        public string? PrecoEstadias { get; set; }
+
+        public string? PrecoReboque { get; set; }
+
+        public string? PrecoQuilometragem { get; set; }
+
+        public string? FaturamentoValorFaturado { get; set; }
+
+        public string? ValorFaturadoEstadias { get; set; }
+
+        public string? ValorFaturadoReboque { get; set; }
+
+        public string? ValorFaturadoQuilometragem { get; set; }
+
+        public string? ValorDemaisServicos { get; set; }
+
+        public string? TipoDescontoEstadias { get; set; }
+
+        public string? ValorDescontoEstadias { get; set; }
+
+        public string? TipoDescontoReboque { get; set; }
+
+        public string? ValorDescontoReboque { get; set; }
+
+        public string? TipoDescontoQuilometragem { get; set; }
+
+        public string? ValorDescontoQuilometragem { get; set; }
+
+        public string? ValorTotalDesconto { get; set; }
+
+        public string? FaturamentoValorPagar { get; set; }
+
+        public List<SimulacaoFaturamentoComposicaoDTO> ListagemServico { get; set; }
     }
 }

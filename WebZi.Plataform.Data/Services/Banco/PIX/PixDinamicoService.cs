@@ -182,7 +182,8 @@ namespace WebZi.Plataform.Data.Services.Banco.PIX
             try
             {
                 Debug.WriteLine(JsonHelper.Serialize(PixDinamicoEnvio));
-
+                // "https://localhost:44371/api/pix/GerarPix"
+                // PixDinamicoUrl.UrlApi
                 PixDinamicoRetorno = new HttpClientFactoryService(_httpClientFactory)
                     .Post<PixDinamicoRetornoModel>(PixDinamicoUrl.UrlApi, PixDinamicoEnvio);
             }

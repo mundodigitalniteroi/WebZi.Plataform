@@ -93,6 +93,7 @@ namespace WebZi.Plataform.Domain.DTO.Faturamento
         public string Bairro { get; set; }
         public string Municipio { get; set; }
         public string UF { get; set; }
+        public string FlagEmissaoNotaFiscal { get; set; }
     }
 
     public class DepositoConsultaDados

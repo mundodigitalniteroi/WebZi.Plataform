@@ -2307,6 +2307,12 @@ namespace WebZi.Plataform.Domain.Services.GRV
                 query = query.Where(x => x.DataHoraRemocao >= GrvPesquisa.DataInicialRemocao.Value);
             if (GrvPesquisa.DataFinalRemocao.HasValue)
                 query = query.Where(x => x.DataHoraRemocao <= GrvPesquisa.DataFinalRemocao.Value);
+            if (!string.IsNullOrWhiteSpace(GrvPesquisa.NomeReboquista))
+                query = query.Where(x => x.Reboquista.Nome == GrvPesquisa.NomeReboquista);
+            if (!string.IsNullOrWhiteSpace(GrvPesquisa.PlacaReboque))
+                query = query.Where(x => x.Reboque.Placa == GrvPesquisa.PlacaReboque);
+            if (!string.IsNullOrWhiteSpace(GrvPesquisa.Lacre))
+                query = query.Where(x => x.ListagemLacre.Any(l => l.Lacre == GrvPesquisa.Lacre));
 
             #endregion
 
@@ -2321,12 +2327,9 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             IQueryable<GrvModel> queryPaginada = query.OrderByDescending(x => x.DataCadastro);
 
-            if (GrvPesquisa.Skip.HasValue && GrvPesquisa.Skip.Value > 0)
+            if (GrvPesquisa.Skip is > 0)
                 queryPaginada = queryPaginada.Skip(GrvPesquisa.Skip.Value);
-            if (GrvPesquisa.Take.HasValue && GrvPesquisa.Take.Value > 0)
-                queryPaginada = queryPaginada.Take(GrvPesquisa.Take.Value);
-            else
-                queryPaginada = queryPaginada.Take(100);
+            queryPaginada = queryPaginada.Take(GrvPesquisa.Take is > 0 ? GrvPesquisa.Take.Value : 100);
 
             ResultView.Listagem = await queryPaginada
                 .AsNoTracking()

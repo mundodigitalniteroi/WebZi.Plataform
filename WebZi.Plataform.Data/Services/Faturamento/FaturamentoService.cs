@@ -184,7 +184,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 {
                     dataVencimento = dataVencimento.AddDays(1);
                 }
-                else if (CalculoDiarias.Feriados != null && CalculoDiarias.Feriados.Any(x => x.Date == dataVencimento.Date)) //3. Se for Feriado
+                else if (CalculoDiarias.Feriados != null &&
+                         CalculoDiarias.Feriados.Any(x => x.Date == dataVencimento.Date)) //3. Se for Feriado
                 {
                     dataVencimento = dataVencimento.AddDays(1);
                 }
@@ -304,42 +305,85 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             return Tributacoes;
         }
 
-        private static bool CheckServicoDeveSerCalculado(ViewFaturamentoServicoGrvModel FaturamentoServicoGrv,
-            FaturamentoModel UltimoFaturamento, CalculoFaturamentoParametroModel ParametrosCalculoFaturamento)
+        private static string ObterNomeServicoGrv(ViewFaturamentoServicoGrvModel servico)
         {
+            if (!string.IsNullOrWhiteSpace(servico.ServicoDescricao))
+            {
+                return servico.ServicoDescricao.Trim();
+            }
+
+            if (!string.IsNullOrWhiteSpace(servico.Descricao))
+            {
+                return servico.Descricao.Trim();
+            }
+
+            return $"Serviço Tipo ID {servico.FaturamentoServicoTipoId}";
+        }
+
+        private static bool CheckServicoDeveSerCalculado(
+            ViewFaturamentoServicoGrvModel FaturamentoServicoGrv,
+            FaturamentoModel UltimoFaturamento,
+            CalculoFaturamentoParametroModel ParametrosCalculoFaturamento)
+        {
+            return CheckServicoDeveSerCalculado(FaturamentoServicoGrv, UltimoFaturamento, ParametrosCalculoFaturamento,
+                out _);
+        }
+
+        private static bool CheckServicoDeveSerCalculado(
+            ViewFaturamentoServicoGrvModel FaturamentoServicoGrv,
+            FaturamentoModel UltimoFaturamento,
+            CalculoFaturamentoParametroModel ParametrosCalculoFaturamento,
+            out string motivoNaoCalculo)
+        {
+            motivoNaoCalculo = "";
+
             if (ParametrosCalculoFaturamento.FaturamentoProdutoId != "DEP" &&
                 ParametrosCalculoFaturamento.FaturamentoProdutoId != "DRF" &&
                 FaturamentoServicoGrv.FaturamentoServicoGrvId == 0)
             {
+                motivoNaoCalculo =
+                    $"Serviço avulso não é suportado para o produto '{ParametrosCalculoFaturamento.FaturamentoProdutoId}' (suportado apenas para 'DEP' e 'DRF')";
                 return false;
             }
             else if (FaturamentoServicoGrv.FlagPermiteAlteracaoValor == "S" &&
                      FaturamentoServicoGrv.Valor <= 0)
             {
+                string valorFormatado = FaturamentoServicoGrv.Valor.HasValue
+                    ? FaturamentoServicoGrv.Valor.Value.ToString("F2", CultureInfo.InvariantCulture)
+                    : "nulo";
+                motivoNaoCalculo =
+                    $"Serviço permite alteração de valor, porém o valor informado é menor ou igual a zero (Valor = {valorFormatado})";
                 return false;
             }
             else if (FaturamentoServicoGrv.FlagRealizarCobranca == "N")
             {
-                // Se o Usuário escolheu por não cobrar o Serviço
+                motivoNaoCalculo = "Serviço marcado para não realizar cobrança ";
                 return false;
             }
             else if (!ParametrosCalculoFaturamento.FlagFaturamentoCompleto &&
                      FaturamentoServicoGrv.FlagCobrarSomentePrimeiraFatura == "S")
             {
-                // Se não for o primeiro Faturamento e se o Serviço for para ser cobrado apenas no primeiro Faturamento
+                motivoNaoCalculo =
+                    "Serviço configurado para cobrar somente na primeira fatura e a operação atual não é um faturamento completo/inicial";
                 return false;
             }
             else if (FaturamentoServicoGrv.FlagCobrarSomentePrimeiraFatura == "S" &&
                      UltimoFaturamento != null &&
                      UltimoFaturamento.Status == "P")
             {
-                // Se a última Fatura for paga e o Serviço só pode ser cobrado na primeira Fatura
+                motivoNaoCalculo =
+                    "Serviço configurado para cobrar somente na primeira fatura e a última fatura já foi quitada";
                 return false;
             }
             else if (ParametrosCalculoFaturamento.IsComboio &&
-                     FaturamentoServicoGrv.FlagRebocada == "S")
+                     (FaturamentoServicoGrv.FlagRebocada == "S" ||
+                      FaturamentoServicoGrv.FlagNaoCobrarSeNaoUsouReboque == "S"))
             {
-                // Não cobrar rebocada caso o veículo entrou no Depósito por Comboio
+                string flagCausa = FaturamentoServicoGrv.FlagNaoCobrarSeNaoUsouReboque == "S"
+                    ? "FlagNaoCobrarSeNaoUsouReboque = 'S'"
+                    : "FlagRebocada = 'S'";
+                motivoNaoCalculo =
+                    $"Serviço não é cobrado quando o veículo não utiliza reboque / entrada no depósito em comboio ({flagCausa})";
                 return false;
             }
             else if (FaturamentoServicoGrv.FaturamentoRegraTipoCodigo != null &&
@@ -347,7 +391,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                      FaturamentoRegraTipoEnum.CobrarTarifaBancaria &&
                      !ParametrosCalculoFaturamento.TipoMeioCobrancaId.Equals(1))
             {
-                // Se o serviço tiver a regra "Cobrança de Tarifa Bancária" e se o Tipo do Meio de Cobrança for Boleto
+                motivoNaoCalculo =
+                    $"Serviço possui regra de Cobrança de Tarifa Bancária exclusiva para Boleto (Meio de Cobrança utilizado: {ParametrosCalculoFaturamento.TipoMeioCobrancaId})";
                 return false;
             }
 
@@ -369,8 +414,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             if (TipoMeioCobrancaAtual.Alias == TipoMeioCobrancaAliasEnum.Boleto ||
                 TipoMeioCobrancaAtual.Alias == TipoMeioCobrancaAliasEnum.BoletoEspecial)
             {
-                new BoletoService(_context, _httpClientFactory)
-                    .Cancel(FaturamentoId);
+                await new BoletoService(_context, _httpClientFactory)
+                    .CancelAsync(FaturamentoId, ct);
             }
             else if (TipoMeioCobrancaAtual.Alias == TipoMeioCobrancaAliasEnum.PixEstatico)
             {
@@ -526,7 +571,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 {
                     string tipoVeiculo = ObterDescricaoTipoVeiculo(ParametrosCalculoFaturamento.TipoVeiculoId);
                     throw new Exception(
-                        $"Não foi encontrado Serviço associado a este Processo para o tipo de veículo: {tipoVeiculo}");
+                        $"Não foi encontrado Serviço associado a este Processo (GRV ID {ParametrosCalculoFaturamento.GrvId}) para o tipo de veículo: {tipoVeiculo} e Produto: '{ParametrosCalculoFaturamento.FaturamentoProdutoId}' (verifique se os serviços do processo estão ativos para cobrança e possuem valor).");
                 }
             }
 
@@ -548,7 +593,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             {
                 string tipoVeiculo = ObterDescricaoTipoVeiculo(ParametrosCalculoFaturamento.TipoVeiculoId);
                 throw new Exception(
-                    $"Não foi encontrado Serviço associado ao Cliente + Depósito + Tipo de Veículo ({tipoVeiculo}) + Produto");
+                    $"Não foi encontrado Serviço ativo com vigência associado aos parâmetros: Cliente ID {ParametrosCalculoFaturamento.ClienteDeposito.ClienteId}, Depósito ID {ParametrosCalculoFaturamento.ClienteDeposito.DepositoId}, Tipo de Veículo ({tipoVeiculo}) e Produto '{ParametrosCalculoFaturamento.FaturamentoProdutoId}'.");
             }
 
             if (ParametrosCalculoFaturamento.FaturarSemGrv)
@@ -562,7 +607,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             if (FaturamentoServicosGrvs?.Count == 0)
             {
                 string tipoVeiculo = ObterDescricaoTipoVeiculo(ParametrosCalculoFaturamento.TipoVeiculoId);
-                throw new Exception($"Não foi encontrado Serviço registrado para o tipo de veículo: {tipoVeiculo}");
+                throw new Exception(
+                    $"Não foi encontrado Serviço registrado para faturamento do tipo de veículo: {tipoVeiculo} (Produto: '{ParametrosCalculoFaturamento.FaturamentoProdutoId}').");
             }
 
             #endregion Selecionar todos os Serviços associados ao CLIDEP, incluindo os com a Vigência finalizada
@@ -590,6 +636,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             List<ViewFaturamentoServicoAssociadoVeiculoModel>
                 FaturamentoServicosAssociadosVeiculosTodasVigenciasEncontradas = new();
 
+            List<string> servicosDesconsiderados = new();
+
             decimal ValorFaturado = 0;
             int DiariasCalculadas = 0;
             int Horas = 0;
@@ -597,8 +645,11 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             foreach (ViewFaturamentoServicoGrvModel FaturamentoServicoGrv in FaturamentoServicosGrvs)
             {
                 if (!CheckServicoDeveSerCalculado(FaturamentoServicoGrv, UltimoFaturamento,
-                        ParametrosCalculoFaturamento))
+                        ParametrosCalculoFaturamento, out string motivoNaoCalculo))
                 {
+                    string nomeServico = ObterNomeServicoGrv(FaturamentoServicoGrv);
+                    servicosDesconsiderados.Add(
+                        $"'{nomeServico}' (Tipo ID {FaturamentoServicoGrv.FaturamentoServicoTipoId}): {motivoNaoCalculo}");
                     continue;
                 }
 
@@ -840,6 +891,9 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
                     if (FaturamentoComposicao.QuantidadeComposicao == 0)
                     {
+                        string nomeServico = ObterNomeServicoGrv(FaturamentoServicoGrv);
+                        servicosDesconsiderados.Add(
+                            $"'{nomeServico}' (Tipo ID {FaturamentoServicoGrv.FaturamentoServicoTipoId}): Quantidade da composição calculada resultou em zero");
                         continue;
                     }
 
@@ -906,8 +960,11 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             if (FaturamentoComposicoes.Count == 0)
             {
                 string tipoVeiculo = ObterDescricaoTipoVeiculo(ParametrosCalculoFaturamento.TipoVeiculoId);
+                string detalheServicos = servicosDesconsiderados.Count > 0
+                    ? $" Detalhes dos serviços avaliados e desconsiderados: {string.Join("; ", servicosDesconsiderados)}."
+                    : "";
                 throw new Exception(
-                    $"Não foi possível compor nenhum serviço de faturamento para o tipo de veículo: {tipoVeiculo}");
+                    $"Não foi possível compor nenhum serviço de faturamento para o tipo de veículo: {tipoVeiculo}.{detalheServicos}");
             }
 
             #endregion Composição do Faturamento
@@ -1068,7 +1125,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.GrvId == GrvId);
 
-            if (Grv == null)
+            if (Grv?.Atendimento == null)
             {
                 return 0;
             }
@@ -1279,14 +1336,25 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             if (result?.Count > 0)
             {
+                List<string> motivosNaoInclusao = new();
+
                 foreach (ViewFaturamentoServicoAssociadoVeiculoModel item in result)
                 {
                     if (item.FlagNaoCobrarSeNaoUsouReboque == "S" && Grv.FlagComboio == "S")
                     {
+                        string nomeServico = !string.IsNullOrWhiteSpace(item.ServicoDescricao)
+                            ? item.ServicoDescricao.Trim()
+                            : $"ID {item.FaturamentoServicoTipoVeiculoId}";
+                        motivosNaoInclusao.Add(
+                            $"'{nomeServico}' (configurado para não cobrar sem uso de reboque / entrada por comboio)");
                         continue;
                     }
                     else if (item.FlagServicoObrigatorio == "S" || item.FlagServicoObrigatorioGlobal == "S")
                     {
+                        string nomeServico = !string.IsNullOrWhiteSpace(item.ServicoDescricao)
+                            ? item.ServicoDescricao.Trim()
+                            : $"ID {item.FaturamentoServicoTipoVeiculoId}";
+                        motivosNaoInclusao.Add($"'{nomeServico}' (serviço obrigatório)");
                         continue;
                     }
 
@@ -1318,9 +1386,12 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 else
                 {
                     string tipoVeiculo = ObterDescricaoTipoVeiculo(Grv.TipoVeiculoId);
+                    string detalhe = motivosNaoInclusao.Count > 0
+                        ? $" Serviços desconsiderados: {string.Join("; ", motivosNaoInclusao)}."
+                        : "";
                     ResultView.Mensagem =
                         MensagemViewHelper.SetNotFound(
-                            $"Nenhum serviço associado ativo para o tipo de veículo: {tipoVeiculo}");
+                            $"Nenhum serviço disponível para inclusão manual para o tipo de veículo: {tipoVeiculo}.{detalhe}");
                 }
             }
             else
@@ -1328,7 +1399,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 string tipoVeiculo = ObterDescricaoTipoVeiculo(Grv.TipoVeiculoId);
                 ResultView.Mensagem =
                     MensagemViewHelper.SetNotFound(
-                        $"Nenhum serviço associado encontrado para o tipo de veículo: {tipoVeiculo}");
+                        $"Nenhum serviço associado ativo encontrado para o tipo de veículo: {tipoVeiculo} (Cliente ID {Grv.ClienteId}, Depósito ID {Grv.DepositoId}, Produto '{Grv.FaturamentoProdutoId}').");
             }
 
             return ResultView;
@@ -1495,11 +1566,6 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 model.IdentificadorDeposito = Grv.DepositoId;
             }
 
-            var podeEmitirNota = await _context.FaturamentoRegra
-                .AnyAsync(x =>
-                    x.ClienteId == model.IdentificadorCliente && x.DepositoId == model.IdentificadorDeposito &&
-                    x.FaturamentoRegraTipoId == 11, cancellationToken: ct);
-
             if (model.IdentificadorProcesso <= 0 && model.Placa.IsNullOrWhiteSpace() &&
                 model.Chassi.IsNullOrWhiteSpace())
             {
@@ -1637,7 +1703,11 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
                 IsComboio = model.IsComboio,
 
-                StatusOperacaoId = (Grv.StatusOperacaoId == "O" || Grv.StatusOperacaoId == "H" || !string.IsNullOrWhiteSpace(Grv.DescricaoObjeto)) ? "H" : "V",
+                StatusOperacaoId =
+                    (Grv.StatusOperacaoId == "O" || Grv.StatusOperacaoId == "H" ||
+                     !string.IsNullOrWhiteSpace(Grv.DescricaoObjeto))
+                        ? "H"
+                        : "V",
 
                 IsLeilaoStatus = new[] { "1", "3", "7" }.Contains(Grv.StatusOperacaoId),
 
@@ -1675,7 +1745,9 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             }
             catch (Exception ex)
             {
-                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Não foi possível realizar o cálculo do faturamento.");
+                ResultView.Mensagem =
+                    MensagemViewHelper.SetBadRequest(
+                        $"Não foi possível realizar o cálculo do faturamento. {ex.Message}");
                 return ResultView;
             }
 
@@ -1781,7 +1853,10 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             ResultView.IdentificadorAtendimento = Grv.Atendimento != null ? Grv.Atendimento.AtendimentoId : 0;
             ResultView.DescricaoObjeto = Grv.DescricaoObjeto;
-            ResultView.FlagObjetoApreendido = (!string.IsNullOrWhiteSpace(Grv.DescricaoObjeto) || Grv.StatusOperacaoId == "O" || Grv.StatusOperacaoId == "H") ? "S" : "N";
+            ResultView.FlagObjetoApreendido = (!string.IsNullOrWhiteSpace(Grv.DescricaoObjeto) ||
+                                               Grv.StatusOperacaoId == "O" || Grv.StatusOperacaoId == "H")
+                ? "S"
+                : "N";
             EnderecoService Endereco = new();
 
             ResultView.Cliente = new()
@@ -1792,7 +1867,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 Endereco = Endereco.FormatarEndereco(ParametrosCalculoFaturamento.ClienteDeposito.Cliente.Endereco,
                     ParametrosCalculoFaturamento.ClienteDeposito.Cliente.NumeroEndereco,
                     ParametrosCalculoFaturamento.ClienteDeposito.Cliente.ComplementoEndereco),
-                EmitirNota = podeEmitirNota ? true : false
+                EmitirNota = Grv.Cliente.FlagEmissaoNotaFiscal == "S"
             };
 
             ResultView.Deposito = new()
@@ -2242,7 +2317,11 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 StatusOperacaoId = g.StatusOperacaoId,
                 StatusOperacaoDescricao = g.StatusOperacaoDescricao,
                 DescricaoObjeto = g.DescricaoObjeto,
-                FlagObjetoApreendido = (!string.IsNullOrWhiteSpace(g.DescricaoObjeto) || g.StatusOperacaoId == "O" || g.StatusOperacaoId == "H") ? "S" : "N",
+                FlagObjetoApreendido =
+                    (!string.IsNullOrWhiteSpace(g.DescricaoObjeto) || g.StatusOperacaoId == "O" ||
+                     g.StatusOperacaoId == "H")
+                        ? "S"
+                        : "N",
                 Cliente = g.ClienteId.HasValue
                     ? new ClienteConsultaDados
                     {
@@ -2675,10 +2754,10 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     .ToListAsync(ct)
                 : new List<SimulacaoFaturamentoDTO>();
             ResultView.IdentificadorClienteDeposito = await _context.ClienteDeposito
-                        .AsNoTracking()
-                        .Where(x => x.ClienteId == grvData.Cliente.ClienteId && x.DepositoId == grvData.Deposito.DepositoId)
-                        .Select( x => x.ClienteDepositoId)
-                        .FirstOrDefaultAsync(ct);
+                .AsNoTracking()
+                .Where(x => x.ClienteId == grvData.Cliente.ClienteId && x.DepositoId == grvData.Deposito.DepositoId)
+                .Select(x => x.ClienteDepositoId)
+                .FirstOrDefaultAsync(ct);
             if (listagemFaturamentosAtendimento.Count == 0)
             {
                 var faturamentoUnico = await faturamentosQuery
@@ -3005,12 +3084,6 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
             ResultView.LiberacaoEspecial = liberacaoEspecial;
 
-            bool podeEmitirNota = grvData?.Cliente != null && grvData?.Deposito != null && await _context
-                .FaturamentoRegra
-                .AnyAsync(x =>
-                    x.ClienteId == grvData.Cliente.ClienteId &&
-                    x.DepositoId == grvData.Deposito.DepositoId &&
-                    x.FaturamentoRegraTipoId == 11, cancellationToken: ct);
 
             EnderecoService endereco = new();
 
@@ -3028,7 +3101,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                         grvData.Cliente.Bairro,
                         grvData.Cliente.Municipio,
                         grvData.Cliente.UF),
-                    EmitirNota = podeEmitirNota
+                    EmitirNota = grvData.Cliente.FlagEmissaoNotaFiscal  == "S"
                 };
             }
             else
@@ -3359,7 +3432,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             }
             catch (Exception ex)
             {
-                return MensagemViewHelper.SetInternalServerError("Erro ao gerar faturamento adicional.");
+                return MensagemViewHelper.SetInternalServerError($"Erro ao gerar faturamento adiciona");
             }
         }
     }

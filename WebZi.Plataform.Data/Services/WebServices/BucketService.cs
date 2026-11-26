@@ -27,6 +27,12 @@ namespace WebZi.Plataform.Data.Services.WebServices
             SendFiles(CodigoTabelaOrigem, TabelaOrigemId, UsuarioCadastroId, new() { File }, saveChanges, TipoCadastro);
         }
 
+        public async Task SendFileAsync(string CodigoTabelaOrigem, int TabelaOrigemId, int UsuarioCadastroId, byte[] File,
+            bool saveChanges = true, string TipoCadastro = "", CancellationToken ct = default)
+        {
+            await SendFilesAsync(CodigoTabelaOrigem, TabelaOrigemId, UsuarioCadastroId, new() { File }, saveChanges, TipoCadastro, ct);
+        }
+
         public void SendFiles(string CodigoTabelaOrigem, int TabelaOrigemId, int UsuarioCadastroId, List<byte[]> Files,
             bool saveChanges = true, string TipoCadastro = "")
         {
@@ -98,6 +104,81 @@ namespace WebZi.Plataform.Data.Services.WebServices
 
                 if (saveChanges)
                     _context.SaveChanges();
+            }
+        }
+
+        public async Task SendFilesAsync(string CodigoTabelaOrigem, int TabelaOrigemId, int UsuarioCadastroId, List<byte[]> Files,
+            bool saveChanges = true, string TipoCadastro = "", CancellationToken ct = default)
+        {
+            ConfiguracaoModel Configuracao = await _context.Configuracao
+                .AsNoTracking()
+                .FirstOrDefaultAsync(ct);
+
+            BucketNomeTabelaOrigemModel BucketNomeTabelaOrigem = await _context.BucketNomeTabelaOrigem
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Codigo == CodigoTabelaOrigem, ct);
+
+            string NomeArquivo = string.Empty;
+
+            List<BucketArquivoEnvioModel> ArquivosEnvio = new();
+
+            foreach (byte[] File in Files)
+            {
+                NomeArquivo = Guid.NewGuid().ToString() + ".jpg";
+
+                ArquivosEnvio.Add(new()
+                {
+                    NomeBucket = Configuracao.RepositorioArquivoNomeBucket,
+
+                    NomeArquivo = NomeArquivo,
+
+                    ArquivoBase64 = Convert.ToBase64String(File),
+
+                    NomePasta = BucketNomeTabelaOrigem.DiretorioRemoto,
+
+                    NomeArquivoCompleto = NomeArquivo,
+
+                    NomeArquivoOriginal = NomeArquivo,
+                });
+            }
+
+            HttpClientFactoryService HttpClientFactoryService = new(_httpClientFactory);
+
+            List<BucketArquivoRetornoModel> BucketArquivosRetorno = await HttpClientFactoryService
+                .PostBasicAuthAsync<List<BucketArquivoRetornoModel>>
+                (
+                    url: Configuracao.RepositorioArquivoUrl,
+                    username: Configuracao.RepositorioArquivoUsername,
+                    password: Configuracao.RepositorioArquivoPassword,
+                    obj: ArquivosEnvio,
+                    ct: ct
+                );
+
+            foreach (BucketArquivoRetornoModel BucketArquivoRetorno in BucketArquivosRetorno)
+            {
+                BucketArquivoModel BucketArquivo = new()
+                {
+                    NomeTabelaOrigemId = BucketNomeTabelaOrigem.NomeTabelaOrigemId,
+
+                    TabelaOrigemId = TabelaOrigemId,
+
+                    UsuarioCadastroId = UsuarioCadastroId,
+
+                    NomeArquivo = BucketArquivoRetorno.NomeArquivo,
+
+                    TamanhoBytes = BucketArquivoRetorno.TamanhoBytes,
+
+                    Url = BucketArquivoRetorno.Url,
+
+                    PermissaoAcesso = BucketArquivoRetorno.PermissaoAcesso,
+
+                    TipoCadastro = TipoCadastro
+                };
+
+                await _context.BucketArquivo.AddAsync(BucketArquivo, ct);
+
+                if (saveChanges)
+                    await _context.SaveChangesAsync(ct);
             }
         }
 
@@ -569,6 +650,65 @@ namespace WebZi.Plataform.Data.Services.WebServices
         public int DeleteFiles(string CodigoTabelaOrigem, int TabelaOrigemId)
         {
             return DeleteFiles(CodigoTabelaOrigem, new List<int> { TabelaOrigemId });
+        }
+
+        public async Task<int> DeleteFilesAsync(string CodigoTabelaOrigem, int TabelaOrigemId, CancellationToken ct = default)
+        {
+            return await DeleteFilesAsync(CodigoTabelaOrigem, new List<int> { TabelaOrigemId }, false, ct);
+        }
+
+        public async Task<int> DeleteFilesAsync(string CodigoTabelaOrigem, List<int> ListagemId, bool isByRepositorioArquivoId = false, CancellationToken ct = default)
+        {
+            ConfiguracaoModel Configuracao = await _context.Configuracao
+                .AsNoTracking()
+                .FirstOrDefaultAsync(ct);
+
+            IQueryable<BucketArquivoModel> query = _context.BucketArquivo
+                .Include(x => x.BucketNomeTabelaOrigem)
+                .Where(x => x.BucketNomeTabelaOrigem.Codigo == CodigoTabelaOrigem);
+
+            if (isByRepositorioArquivoId)
+            {
+                query = query.Where(x => ListagemId.Contains(x.RepositorioArquivoId));
+            }
+            else
+            {
+                query = query.Where(x => ListagemId.Contains(x.TabelaOrigemId));
+            }
+
+            List<BucketArquivoModel> BucketArquivos = await query.ToListAsync(ct);
+
+            if (BucketArquivos.Count > 0)
+            {
+                HttpClientFactoryService Service = new(_httpClientFactory);
+
+                foreach (BucketArquivoModel BucketArquivo in BucketArquivos)
+                {
+                    DeletarArquivoEnvioModel DeletarArquivoEnvio = new()
+                    {
+                        NomeBucket = Configuracao.RepositorioArquivoNomeBucket,
+
+                        NomeArquivo = BucketArquivo.NomeArquivo,
+
+                        NomePasta = BucketArquivo.BucketNomeTabelaOrigem.DiretorioRemoto
+                    };
+
+                    await Service.DeleteBasicAuthAsync<BucketMensagemRetornoModel>
+                    (
+                        url: Configuracao.RepositorioArquivoUrl,
+                        username: Configuracao.RepositorioArquivoUsername,
+                        password: Configuracao.RepositorioArquivoPassword,
+                        obj: DeletarArquivoEnvio,
+                        ct: ct
+                    );
+
+                    _context.BucketArquivo.Remove(BucketArquivo);
+                }
+
+                await _context.SaveChangesAsync(ct);
+            }
+
+            return BucketArquivos.Count;
         }
 
         public void DeleteFile(int RepositorioArquivoId)

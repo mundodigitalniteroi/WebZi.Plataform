@@ -1,5 +1,9 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
+using WebZi.Plataform.Data.Services.GGV;
 using WebZi.Plataform.Data.Services.Sistema;
 using WebZi.Plataform.Domain.DTO.Banco;
 using WebZi.Plataform.Domain.DTO.GGV;
@@ -70,12 +74,15 @@ public class TransalvadorService
         if (liberacaoPatioResponse is not { Success: true })
         {
             string mensagem = liberacaoPatioResponse?.Message ?? liberacaoPatioResponse?.Mensagem ?? string.Empty;
-            List<string> erros = ExtrairErros(liberacaoPatioResponse?.Errors ?? liberacaoPatioResponse?.Erros, mensagem);
+            List<string> erros =
+                ExtrairErros(liberacaoPatioResponse?.Errors ?? liberacaoPatioResponse?.Erros, mensagem);
 
             bool jaLiberado = mensagem.Contains("já foi confirmada anteriormente", StringComparison.OrdinalIgnoreCase)
-                || mensagem.Contains("ja foi confirmada anteriormente", StringComparison.OrdinalIgnoreCase)
-                || erros.Any(e => e.Contains("já foi confirmada anteriormente", StringComparison.OrdinalIgnoreCase)
-                               || e.Contains("ja foi confirmada anteriormente", StringComparison.OrdinalIgnoreCase));
+                              || mensagem.Contains("ja foi confirmada anteriormente",
+                                  StringComparison.OrdinalIgnoreCase)
+                              || erros.Any(e =>
+                                  e.Contains("já foi confirmada anteriormente", StringComparison.OrdinalIgnoreCase)
+                                  || e.Contains("ja foi confirmada anteriormente", StringComparison.OrdinalIgnoreCase));
 
             if (jaLiberado)
             {

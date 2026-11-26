@@ -8,6 +8,7 @@ using WebZi.Plataform.CrossCutting.Veiculo;
 using WebZi.Plataform.CrossCutting.Web;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Data.Helper;
+using WebZi.Plataform.Data.Services.Cliente;
 using WebZi.Plataform.Data.Services.Deposito;
 using WebZi.Plataform.Data.Services.Empresa;
 using WebZi.Plataform.Data.Services.Faturamento;
@@ -765,12 +766,19 @@ namespace WebZi.Plataform.Data.Services.GGV
                 }
             }
 
+            MensagemDTO transalvadorResult = null;
+
             if (!isObjeto && Grv.ClienteId == ClienteTransalvadorId)
             {
-                MensagemDTO transalvadorResult = await RegistrarEntradaTransalvadorAsync(Grv, ct);
-
-                if (transalvadorResult.HtmlStatusCode is not (HtmlStatusCodeEnum.Created or HtmlStatusCodeEnum.Ok))
-                    return transalvadorResult;
+                try
+                {
+                    transalvadorResult = await RegistrarEntradaTransalvadorAsync(Grv, ct);
+                }
+                catch (Exception ex)
+                {
+                    transalvadorResult = MensagemViewHelper.SetBadRequest(
+                        $"Falha de comunicação com a Transalvador: {ex.Message}");
+                }
             }
 
             if (Grv.ClienteId == 61 || Grv.Cliente.FlagClientePossuiCodigoIdentificacao == "S")
@@ -844,7 +852,7 @@ namespace WebZi.Plataform.Data.Services.GGV
                 {
                     item.IdentificadorTipoCadastro ??= 5;
                     string TipoCadastro = ListagemTipoCadastroFoto
-                        .Where(x => x.TabelaGenericaId == item.IdentificadorTipoCadastro )
+                        .Where(x => x.TabelaGenericaId == item.IdentificadorTipoCadastro)
                         .Select(x => x.ValorCadastro)
                         .FirstOrDefault();
 
@@ -862,7 +870,27 @@ namespace WebZi.Plataform.Data.Services.GGV
                         Files);
             }
 
-            return MensagemViewHelper.SetCreateSuccess();
+            MensagemDTO response = MensagemViewHelper.SetCreateSuccess();
+
+            if (transalvadorResult != null &&
+                transalvadorResult.HtmlStatusCode is not (HtmlStatusCodeEnum.Created or HtmlStatusCodeEnum.Ok))
+            {
+                List<string> motivosErro = transalvadorResult.AvisosImpeditivos
+                    .Concat(transalvadorResult.Erros)
+                    .Concat(transalvadorResult.Alertas)
+                    .Where(m => !string.IsNullOrWhiteSpace(m))
+                    .Distinct()
+                    .ToList();
+
+                string detalheErro = motivosErro.Count > 0
+                    ? string.Join(" | ", motivosErro)
+                    : "Não foi possível comunicar com o sistema da Transalvador.";
+
+                response.Alertas.Add(
+                    $"O cadastro do GGV foi concluído na plataforma, porém ocorreu um problema ao registrar o veículo na Transalvador: {detalheErro}");
+            }
+
+            return response;
         }
 
         public async Task<MensagemDTO> CreateFotosAsync(FotoGgvParameters Fotos)
@@ -1259,7 +1287,6 @@ namespace WebZi.Plataform.Data.Services.GGV
 
             if (grv.Listagem.Count > 0)
             {
-
                 ggv.Listagem.AddRange(grv.Listagem);
                 ggv.Mensagem = MensagemViewHelper.SetFound(ggv.Listagem.Count);
             }
@@ -1452,7 +1479,8 @@ namespace WebZi.Plataform.Data.Services.GGV
                         if (await _context.VistoriaStatus
                                 .AsNoTracking()
                                 .FirstOrDefaultAsync(x =>
-                                    x.VistoriaStatusId == GgvPersistencia.Vistoria.IdentificadorStatusVistoria) == null)
+                                        x.VistoriaStatusId == GgvPersistencia.Vistoria.IdentificadorStatusVistoria,
+                                    cancellationToken: ct) == null)
                         {
                             erros.Add("Identificador do Status da Vistoria inexistente");
                         }
@@ -1464,7 +1492,7 @@ namespace WebZi.Plataform.Data.Services.GGV
                                 .AsNoTracking()
                                 .FirstOrDefaultAsync(x =>
                                     x.VistoriaSituacaoChassiId ==
-                                    GgvPersistencia.Vistoria.IdentificadorSituacaoChassi) ==
+                                    GgvPersistencia.Vistoria.IdentificadorSituacaoChassi, cancellationToken: ct) ==
                             null)
                         {
                             erros.Add("Identificador da Situação do Chassi inexistente");
@@ -1497,7 +1525,8 @@ namespace WebZi.Plataform.Data.Services.GGV
                             .AsNoTracking()
                             .FirstOrDefaultAsync(x => x.Codigo == "VISTORIA_ESTADO_GERAL_VEICULO"
                                                       && x.TabelaGenericaId == GgvPersistencia.Vistoria
-                                                          .IdentificadorEstadoGeralVeiculo) == null)
+                                                          .IdentificadorEstadoGeralVeiculo, cancellationToken: ct) ==
+                        null)
                     {
                         erros.Add("Identificador do Estado Geral do Veículo inexistente");
                     }
@@ -1793,8 +1822,56 @@ namespace WebZi.Plataform.Data.Services.GGV
             return erros.Count == 0 ? MensagemViewHelper.SetOk() : MensagemViewHelper.SetBadRequest(erros);
         }
 
+
+        public async Task<MensagemDTO> ReenviarVeiculoTransalvadorAsync(
+            ReenviarVeiculoApreendidoParameters parameters,
+            CancellationToken ct = default)
+        {
+            var validacaoClienteDeposito = await _provider.GetRequiredService<ClienteDeposito.ClienteDepositoService>()
+                .ValidateClienteDepositoAsync(parameters.identificadorCliente, parameters.identificadorDeposito);
+
+            if (validacaoClienteDeposito.HtmlStatusCode != HtmlStatusCodeEnum.Ok)
+                return validacaoClienteDeposito;
+
+            if (parameters.identificadorCliente != ClienteTransalvadorId)
+                return MensagemViewHelper.SetBadRequest("O cliente informado não pertence à integração Transalvador.");
+
+            var grv = await _context.Grv
+                .Include(x => x.MarcaModelo)
+                .Include(x => x.TipoVeiculo)
+                .Include(x => x.Reboque)
+                .Include(x => x.MotivoApreensao)
+                .Include(x => x.ListagemEnquadramentoInfracao)
+                .ThenInclude(x => x.EnquadramentoInfracao)
+                .AsTracking()
+                .FirstOrDefaultAsync(x =>
+                    x.ClienteId == parameters.identificadorCliente &&
+                    x.DepositoId == parameters.identificadorDeposito &&
+                    x.NumeroFormularioGrv == parameters.NumeroProcesso, cancellationToken: ct);
+
+            if (grv is null)
+                return MensagemViewHelper.SetNotFound(MensagemPadraoEnum.NaoEncontradoGrv);
+
+            if (!grv.DataHoraGuarda.HasValue)
+                return MensagemViewHelper.SetBadRequest(
+                    "O processo ainda não possui Data/Hora de Guarda (GGV) registrada para envio à Transalvador.");
+
+            var result = await RegistrarEntradaTransalvadorAsync(grv, ct);
+
+            if (result.HtmlStatusCode is not (HtmlStatusCodeEnum.Created or HtmlStatusCodeEnum.Ok))
+                return result;
+            await _context.SaveChangesAsync(ct);
+
+            return MensagemViewHelper.SetOk("Veículo reenviado para a Transalvador com sucesso.");
+        }
+
+
         private async Task<MensagemDTO> RegistrarEntradaTransalvadorAsync(GrvModel grv, CancellationToken ct)
         {
+            if (grv.IdEntradaTransalvador is not null)
+                return MensagemViewHelper.SetBadRequest(
+                    "Veiculo já registrado na aplicação externa.");
+
             var sistemaExternoId = await _context.Deposito
                 .AsNoTracking()
                 .Where(x => x.DepositoId == grv.DepositoId)
@@ -1813,11 +1890,11 @@ namespace WebZi.Plataform.Data.Services.GGV
                     "").ToUpper();
 
             string codigoInfracao = null;
-            if (grv.MotivoApreensaoId == 1)
+            if (grv.MotivoApreensaoId == 1 && grv.ListagemEnquadramentoInfracao != null)
             {
                 var rawCodigo = grv.ListagemEnquadramentoInfracao
-                    .Select(x => x.EnquadramentoInfracao.CodigoInfracao)
-                    .FirstOrDefault();
+                    .Select(x => x.EnquadramentoInfracao?.CodigoInfracao)
+                    .FirstOrDefault(x => !string.IsNullOrWhiteSpace(x));
 
                 if (!string.IsNullOrWhiteSpace(rawCodigo))
                 {
@@ -1830,13 +1907,13 @@ namespace WebZi.Plataform.Data.Services.GGV
 
             var parameters = new EntradaPatioParameters
             {
-                TipoVeiculo = grv.TipoVeiculo.Descricao ?? string.Empty,
+                TipoVeiculo = grv.TipoVeiculo?.Descricao ?? string.Empty,
                 DataEntrada = grv.DataHoraGuarda!.Value,
                 Placa = grv.Placa ?? string.Empty,
                 Uf = grv.VeiculoUF ?? string.Empty,
                 MarcaModelo = grv.MarcaModelo?.MarcaModelo ?? string.Empty,
                 NumeroProcesso = grv.NumeroFormularioGrv ?? string.Empty,
-                PlacaReboque = grv.FlagComboio == "N" ? grv.Reboque.Placa : string.Empty,
+                PlacaReboque = (grv.FlagComboio == "N" && grv.Reboque != null) ? grv.Reboque.Placa : string.Empty,
                 IdPatio = idPatio,
                 MotivoApreensao = motivoApreenssao,
                 CodigoInfracao = codigoInfracao

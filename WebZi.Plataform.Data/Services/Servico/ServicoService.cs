@@ -28,6 +28,7 @@ namespace WebZi.Plataform.Data.Services.Servico
     {
         private readonly AppDbContext _context;
         private readonly IMapper _mapper;
+
         public ServicoService(AppDbContext context, IMapper mapper)
         {
             _context = context;
@@ -97,8 +98,7 @@ namespace WebZi.Plataform.Data.Services.Servico
 
             ClienteModel Cliente = await _context.Cliente
                 .Where(x => x.ClienteId == ClienteId)
-                .AsNoTracking().
-                FirstOrDefaultAsync();
+                .AsNoTracking().FirstOrDefaultAsync();
 
             if (Cliente == null)
             {
@@ -120,7 +120,8 @@ namespace WebZi.Plataform.Data.Services.Servico
 
             ReboqueModel result = await _context.Reboque
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.Placa == Placa.ToUpper().Trim() && x.ClienteId == ClienteId && x.DepositoId == DepositoId);
+                .FirstOrDefaultAsync(x =>
+                    x.Placa == Placa.ToUpper().Trim() && x.ClienteId == ClienteId && x.DepositoId == DepositoId);
 
             if (result != null)
             {
@@ -212,7 +213,7 @@ namespace WebZi.Plataform.Data.Services.Servico
 
             List<ReboqueModel> result = await _context.Reboque
                 .Where(x => x.ClienteId == ClienteId
-                    && x.DepositoId == DepositoId && x.FlagAtivo == "S")
+                            && x.DepositoId == DepositoId && x.FlagAtivo == "S")
                 .AsNoTracking()
                 .ToListAsync();
 
@@ -302,8 +303,7 @@ namespace WebZi.Plataform.Data.Services.Servico
 
             ClienteModel Cliente = await _context.Cliente
                 .Where(x => x.ClienteId == ClienteId)
-                .AsNoTracking().
-                FirstOrDefaultAsync();
+                .AsNoTracking().FirstOrDefaultAsync();
 
             if (Cliente == null)
             {
@@ -388,12 +388,17 @@ namespace WebZi.Plataform.Data.Services.Servico
 
             return ResultView;
         }
+
         public async Task<MensagemDTO> CreateReboquistaAsync(CadastrarReboquistaParameters parameters)
         {
             MensagemDTO ResultView = new();
             List<string> Erros = new();
+
             #region Consulta
 
+            var exists = await _context.Reboquista.AsNoTracking().AnyAsync(x =>
+                x.ClienteId == parameters.IdentificadorCliente && x.DepositoId == parameters.IdentificadorDeposito &&
+                x.Nome == parameters.NomeReboquista);
             var clientes = await _context.UsuarioCliente
                 .AsNoTracking()
                 .AnyAsync(x =>
@@ -404,17 +409,20 @@ namespace WebZi.Plataform.Data.Services.Servico
                     x.UsuarioId == parameters.IdentificadorUsuario && x.DepositoId == parameters.IdentificadorDeposito);
             var clienteDeposito = await _context.ClienteDeposito
                 .AsNoTracking()
-                .AnyAsync(x => x.ClienteId == parameters.IdentificadorCliente && x.DepositoId == parameters.IdentificadorDeposito);
-                
+                .AnyAsync(x =>
+                    x.ClienteId == parameters.IdentificadorCliente && x.DepositoId == parameters.IdentificadorDeposito);
+
             #endregion
 
+            if (exists)
+                Erros.Add(MensagemPadraoEnum.ReboquistaJaEstaCadastrado);
             if (!clientes)
                 Erros.Add(MensagemPadraoEnum.UsuarioSemPermissaoAcessoCliente);
-            if(!deposito)
+            if (!deposito)
                 Erros.Add(MensagemPadraoEnum.UsuarioSemPermissaoAcessoDeposito);
-            if(!clienteDeposito)
+            if (!clienteDeposito)
                 Erros.Add(MensagemPadraoEnum.NaoEncontradoAssociacaoClienteDeposito);
-    
+
 
             ReboquistaModel body = new()
             {
@@ -429,6 +437,7 @@ namespace WebZi.Plataform.Data.Services.Servico
                 ResultView = MensagemViewHelper.SetBadRequest(Erros);
                 return ResultView;
             }
+
             await using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
@@ -446,11 +455,14 @@ namespace WebZi.Plataform.Data.Services.Servico
             ResultView = MensagemViewHelper.SetCreateSuccess();
             return ResultView;
         }
+
         public async Task<MensagemDTO> UpdateReboquistaAsync(AtualizarReboquistaParameters parameters)
         {
             MensagemDTO ResultView = new();
             List<string> Erros = new();
+
             #region Consulta
+
             var reboquista = await _context.Reboquista
                 .AsNoTracking()
                 .AnyAsync(x => x.ReboquistaId == parameters.IdentificadorReboquista);
@@ -464,7 +476,9 @@ namespace WebZi.Plataform.Data.Services.Servico
                     x.UsuarioId == parameters.IdentificadorUsuario && x.DepositoId == parameters.IdentificadorDeposito);
             var clienteDeposito = await _context.ClienteDeposito
                 .AsNoTracking()
-                .AnyAsync(x => x.ClienteId == parameters.IdentificadorCliente && x.DepositoId == parameters.IdentificadorDeposito);
+                .AnyAsync(x =>
+                    x.ClienteId == parameters.IdentificadorCliente && x.DepositoId == parameters.IdentificadorDeposito);
+
             #endregion
 
             if (!reboquista)
@@ -488,12 +502,12 @@ namespace WebZi.Plataform.Data.Services.Servico
                 await _context.Reboquista
                     .Where(x => x.ReboquistaId == parameters.IdentificadorReboquista)
                     .ExecuteUpdateAsync(x => x
-                            .SetProperty(x => x.ClienteId, parameters.IdentificadorCliente)
-                            .SetProperty(x => x.DepositoId, parameters.IdentificadorDeposito)
-                            .SetProperty(x => x.UsuarioAlteracaoId, parameters.IdentificadorUsuario)
-                            .SetProperty(x => x.Nome, parameters.NomeReboquista)
-                            .SetProperty(x => x.DataAlteracao, DateTime.UtcNow.AddHours(-3))
-                            .SetProperty(x => x.FlagAtivo, parameters.FlagAtivo)
+                        .SetProperty(x => x.ClienteId, parameters.IdentificadorCliente)
+                        .SetProperty(x => x.DepositoId, parameters.IdentificadorDeposito)
+                        .SetProperty(x => x.UsuarioAlteracaoId, parameters.IdentificadorUsuario)
+                        .SetProperty(x => x.Nome, parameters.NomeReboquista)
+                        .SetProperty(x => x.DataAlteracao, DateTime.UtcNow.AddHours(-3))
+                        .SetProperty(x => x.FlagAtivo, parameters.FlagAtivo)
                     );
                 await transaction.CommitAsync();
             }
@@ -507,12 +521,17 @@ namespace WebZi.Plataform.Data.Services.Servico
             ResultView = MensagemViewHelper.SetUpdateSuccess();
             return ResultView;
         }
+
         public async Task<MensagemDTO> CreateReboqueAsync(CadastrarReboqueParameters parameters)
         {
             MensagemDTO ResultView = new();
             List<string> Erros = new();
+
             #region Consulta
 
+            var exists = await _context.Reboque.AsNoTracking().AnyAsync(x =>
+                x.ClienteId == parameters.IdentificadorCliente && x.DepositoId == parameters.IdentificadorDeposito &&
+                x.Placa == parameters.Placa);
             var clientes = await _context.UsuarioCliente
                 .AsNoTracking()
                 .AnyAsync(x =>
@@ -523,10 +542,13 @@ namespace WebZi.Plataform.Data.Services.Servico
                     x.UsuarioId == parameters.IdentificadorUsuario && x.DepositoId == parameters.IdentificadorDeposito);
             var clienteDeposito = await _context.ClienteDeposito
                 .AsNoTracking()
-                .AnyAsync(x => x.ClienteId == parameters.IdentificadorCliente && x.DepositoId == parameters.IdentificadorDeposito);
+                .AnyAsync(x =>
+                    x.ClienteId == parameters.IdentificadorCliente && x.DepositoId == parameters.IdentificadorDeposito);
 
             #endregion
 
+            if (exists)
+                Erros.Add(MensagemPadraoEnum.ReboqueJaEstaCadastrado);
             if (!clientes)
                 Erros.Add(MensagemPadraoEnum.UsuarioSemPermissaoAcessoCliente);
             if (!deposito)
@@ -554,6 +576,7 @@ namespace WebZi.Plataform.Data.Services.Servico
                 ResultView = MensagemViewHelper.SetBadRequest(Erros);
                 return ResultView;
             }
+
             await using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
@@ -571,11 +594,14 @@ namespace WebZi.Plataform.Data.Services.Servico
             ResultView = MensagemViewHelper.SetCreateSuccess();
             return ResultView;
         }
+
         public async Task<MensagemDTO> UpdateReboqueAsync(AtualizarReboqueParameters parameters)
         {
             MensagemDTO ResultView = new();
             List<string> Erros = new();
+
             #region Consulta
+
             var reboque = await _context.Reboquista
                 .AsNoTracking()
                 .AnyAsync(x => x.ReboquistaId == parameters.IdentificadorReboque);
@@ -589,10 +615,12 @@ namespace WebZi.Plataform.Data.Services.Servico
                     x.UsuarioId == parameters.IdentificadorUsuario && x.DepositoId == parameters.IdentificadorDeposito);
             var clienteDeposito = await _context.ClienteDeposito
                 .AsNoTracking()
-                .AnyAsync(x => x.ClienteId == parameters.IdentificadorCliente && x.DepositoId == parameters.IdentificadorDeposito);
+                .AnyAsync(x =>
+                    x.ClienteId == parameters.IdentificadorCliente && x.DepositoId == parameters.IdentificadorDeposito);
 
             #endregion
-            if(!reboque)
+
+            if (!reboque)
                 Erros.Add(MensagemPadraoEnum.UsuarioSemPermissaoAcessoCliente);
             if (!clientes)
                 Erros.Add(MensagemPadraoEnum.UsuarioSemPermissaoAcessoCliente);
@@ -607,6 +635,7 @@ namespace WebZi.Plataform.Data.Services.Servico
                 ResultView = MensagemViewHelper.SetBadRequest(Erros);
                 return ResultView;
             }
+
             await using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
@@ -618,10 +647,14 @@ namespace WebZi.Plataform.Data.Services.Servico
                         .SetProperty(x => x.UsuarioAlteracaoId, parameters.IdentificadorUsuario)
                         .SetProperty(x => x.Codigo, parameters.Codigo)
                         .SetProperty(x => x.Placa, parameters.Placa)
-                        .SetProperty(x => x.Chassi, string.IsNullOrWhiteSpace(parameters.Chassi) ? null : parameters.Chassi)
-                        .SetProperty(x => x.Renavam, string.IsNullOrWhiteSpace(parameters.Renavam) ? null : parameters.Renavam)
-                        .SetProperty(x => x.Marca, string.IsNullOrWhiteSpace(parameters.Marca) ? null : parameters.Marca)
-                        .SetProperty(x => x.Modelo, string.IsNullOrWhiteSpace(parameters.Modelo) ? null : parameters.Modelo)
+                        .SetProperty(x => x.Chassi,
+                            string.IsNullOrWhiteSpace(parameters.Chassi) ? null : parameters.Chassi)
+                        .SetProperty(x => x.Renavam,
+                            string.IsNullOrWhiteSpace(parameters.Renavam) ? null : parameters.Renavam)
+                        .SetProperty(x => x.Marca,
+                            string.IsNullOrWhiteSpace(parameters.Marca) ? null : parameters.Marca)
+                        .SetProperty(x => x.Modelo,
+                            string.IsNullOrWhiteSpace(parameters.Modelo) ? null : parameters.Modelo)
                         .SetProperty(x => x.Ano, parameters.Ano)
                         .SetProperty(x => x.DataAlteracao, DateTime.UtcNow.AddHours(-3))
                         .SetProperty(x => x.FlagAtivo, parameters.FlagAtivo)

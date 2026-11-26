@@ -27,6 +27,7 @@ using WebZi.Plataform.Data.Services.Localizacao;
 using WebZi.Plataform.Data.Services.Report;
 using WebZi.Plataform.Data.Services.Transalvador;
 using WebZi.Plataform.Data.Services.WebServices;
+using WebZi.Plataform.Domain.DTO.Faturamento.Simulacao;
 using WebZi.Plataform.Domain.DTO.Generic;
 using WebZi.Plataform.Domain.DTO.Liberacao;
 using WebZi.Plataform.Domain.DTO.Report;
@@ -286,6 +287,8 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                 .Include(x => x.Cor)
                 .Include(x => x.MarcaModelo)
                 .Include(x => x.Reboque)
+                .Include(x => x.Condutor)
+                .Include(x => x.Arrematante)
                 .Include(x => x.Atendimento)
                 .ThenInclude(x => x.SaidaParaReparo)
                 .Include(x => x.Liberacao)
@@ -335,6 +338,11 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                     GuiaPagamentoReboqueEstadia = null;
                 }
             }
+
+            LiberacaoEspecialModel liberacaoEspecial = await _context.LiberacaoEspecial
+                .AsNoTracking()
+                .OrderByDescending(x => x.IdLiberacaoEspecial)
+                .FirstOrDefaultAsync(x => x.IdGrv == GrvId);
 
             var prazo = GuiaPagamentoReboqueEstadia?.PrazoRetiradaVeiculo;
 
@@ -451,7 +459,7 @@ namespace WebZi.Plataform.Data.Services.Liberacao
             ResultView.DescricaoObjeto = Grv.DescricaoObjeto;
             ResultView.FlagObjeto = isObjeto ? "S" : "N";
 
-            DateTime? dataEntregaValor = Grv.Atendimento?.SaidaParaReparo?.DataRetorno ?? Grv.Liberacao?.DataCadastro;
+            DateTime? dataEntregaValor = Grv.Atendimento?.SaidaParaReparo?.DataRetorno ?? null;
             string? dataEntregaFormatada = dataEntregaValor.HasValue
                 ? DateTimeHelper.FormatDateTime(dataEntregaValor.Value, DateTimeHelper.DateTimeFormat.DateTimeFormatted)
                 : null;
@@ -482,12 +490,64 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                     : ", para que a retirada do veículo seja autorizada.") +
                 " A não apresentação até a data informada acarretará na cobrança de estadias adicionais.";
 
-            string respNome = GuiaPagamentoReboqueEstadia?.AtendimentoResponsavelNome ??
-                              Grv.Atendimento?.ResponsavelNome ?? "Não informado";
-            string respDoc = GuiaPagamentoReboqueEstadia?.AtendimentoResponsavelDocumento ??
-                             (!string.IsNullOrWhiteSpace(Grv.Atendimento?.ResponsavelDocumento)
-                                 ? DocumentHelper.FormatCPF(Grv.Atendimento.ResponsavelDocumento)
-                                 : "Não informado");
+            string FirstNonEmpty(params string[] values)
+            {
+                if (values != null)
+                {
+                    foreach (string val in values)
+                    {
+                        if (!string.IsNullOrWhiteSpace(val))
+                        {
+                            return val.Trim();
+                        }
+                    }
+                }
+
+                return string.Empty;
+            }
+
+            string respNomeCandidato = FirstNonEmpty(
+                GuiaPagamentoReboqueEstadia?.AtendimentoResponsavelNome,
+                Grv.Atendimento?.ResponsavelNome,
+                Grv.Atendimento?.ProprietarioNome,
+                Grv.Atendimento?.FormaLiberacaoNome,
+                liberacaoEspecial?.PortadorNome,
+                Grv.Arrematante?.Nome,
+                Grv.Condutor?.Nome);
+
+            string respNome = !string.IsNullOrWhiteSpace(respNomeCandidato) ? respNomeCandidato : "Não informado";
+
+            string respDocCandidato = FirstNonEmpty(
+                GuiaPagamentoReboqueEstadia?.AtendimentoResponsavelDocumento,
+                Grv.Atendimento?.ResponsavelDocumento,
+                Grv.Atendimento?.ProprietarioDocumento,
+                Grv.Atendimento?.FormaLiberacaoCPF,
+                Grv.Arrematante?.CpfCnpj,
+                Grv.Condutor?.Documento,
+                liberacaoEspecial?.NumeroDocumento);
+
+            string respDoc;
+            if (string.IsNullOrWhiteSpace(respDocCandidato))
+            {
+                respDoc = "Não informado";
+            }
+            else
+            {
+                string digitsOnly = respDocCandidato.GetNumbers() ?? string.Empty;
+                if (digitsOnly.Length == 11)
+                {
+                    respDoc = DocumentHelper.FormatCPF(digitsOnly);
+                }
+                else if (digitsOnly.Length == 14)
+                {
+                    respDoc = DocumentHelper.FormatCNPJ(digitsOnly);
+                }
+                else
+                {
+                    respDoc = respDocCandidato;
+                }
+            }
+
             string veicPlacaFormatada = ResultView.VeiculoPlaca;
             string veicMarcaModeloStr = ResultView.VeiculoMarcaModelo;
             string veicCorStr = ResultView.VeiculoCor;
@@ -546,13 +606,64 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                 ? numChave
                 : "Não informado";
 
-            ViewUsuarioModel Usuario = await _context.ViewUsuario
-                .FirstOrDefaultAsync(x => x.UsuarioId == UsuarioId);
-
-            if (Usuario != null)
+            int?[] candidatosUsuarioId = new int?[]
             {
-                ResultView.UsuarioNome = Usuario.NomeCompleto;
-                ResultView.UsuarioMatricula = Usuario.Matricula;
+                Grv.Liberacao?.UsuarioCadastroId,
+                Grv.Atendimento?.UsuarioCadastroId,
+                liberacaoEspecial?.IdUsuarioCadastro,
+                UsuarioId
+            };
+
+            foreach (int? idCand in candidatosUsuarioId)
+            {
+                if (!idCand.HasValue || idCand.Value <= 0)
+                {
+                    continue;
+                }
+
+                ViewUsuarioModel usuarioView = await _context.ViewUsuario
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(x => x.UsuarioId == idCand.Value);
+
+                if (usuarioView != null && !string.IsNullOrWhiteSpace(usuarioView.NomeCompleto))
+                {
+                    ResultView.UsuarioNome = usuarioView.NomeCompleto.Trim();
+                    ResultView.UsuarioMatricula = usuarioView.Matricula ?? string.Empty;
+                    break;
+                }
+
+                UsuarioModel usuarioModel = await _context.Usuario
+                    .Include(x => x.Pessoa)
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(x => x.UsuarioId == idCand.Value);
+
+                if (usuarioModel != null)
+                {
+                    string nomeMontado = string.Empty;
+                    if (usuarioModel.Pessoa != null)
+                    {
+                        nomeMontado = string.Join(" ", new[]
+                        {
+                            usuarioModel.Pessoa.Nome,
+                            usuarioModel.Pessoa.NomeMeio,
+                            usuarioModel.Pessoa.Sobrenome
+                        }.Where(p => !string.IsNullOrWhiteSpace(p))).Trim();
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(nomeMontado))
+                    {
+                        ResultView.UsuarioNome = nomeMontado;
+                        ResultView.UsuarioMatricula = usuarioModel.Matricula ?? string.Empty;
+                        break;
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(usuarioModel.Login))
+                    {
+                        ResultView.UsuarioNome = usuarioModel.Login;
+                        ResultView.UsuarioMatricula = usuarioModel.Matricula ?? string.Empty;
+                        break;
+                    }
+                }
             }
 
 
@@ -650,6 +761,42 @@ namespace WebZi.Plataform.Data.Services.Liberacao
 
                 ResultView.ListagemLacre.AddRange(Grv.ListagemLacre.Select(x => x.Lacre).ToList());
             }
+
+            #region FATURAMENTO E SERVIÇOS
+
+            if (GuiaPagamentoReboqueEstadia != null)
+            {
+                ResultView.FaturamentoNumeroIdentificacao = GuiaPagamentoReboqueEstadia.FaturamentoNumeroIdentificacao;
+                ResultView.FaturamentoDataVencimento = GuiaPagamentoReboqueEstadia.FaturamentoDataVencimento;
+                ResultView.StatusPagamento = GuiaPagamentoReboqueEstadia.StatusPagamento;
+                ResultView.PrazoRetiradaVeiculo = GuiaPagamentoReboqueEstadia.PrazoRetiradaVeiculo;
+                ResultView.QuantidadeEstadias = GuiaPagamentoReboqueEstadia.QuantidadeEstadias;
+                ResultView.QuantidadeQuilometragem = GuiaPagamentoReboqueEstadia.QuantidadeQuilometragem;
+                ResultView.PrecoEstadias = GuiaPagamentoReboqueEstadia.PrecoEstadias;
+                ResultView.PrecoReboque = GuiaPagamentoReboqueEstadia.PrecoReboque;
+                ResultView.PrecoQuilometragem = GuiaPagamentoReboqueEstadia.PrecoQuilometragem;
+                ResultView.FaturamentoValorFaturado = GuiaPagamentoReboqueEstadia.FaturamentoValorFaturado;
+                ResultView.ValorFaturadoEstadias = GuiaPagamentoReboqueEstadia.ValorFaturadoEstadias;
+                ResultView.ValorFaturadoReboque = GuiaPagamentoReboqueEstadia.ValorFaturadoReboque;
+                ResultView.ValorFaturadoQuilometragem = GuiaPagamentoReboqueEstadia.ValorFaturadoQuilometragem;
+                ResultView.ValorDemaisServicos = GuiaPagamentoReboqueEstadia.ValorDemaisServicos;
+                ResultView.TipoDescontoEstadias = GuiaPagamentoReboqueEstadia.TipoDescontoEstadias;
+                ResultView.ValorDescontoEstadias = GuiaPagamentoReboqueEstadia.ValorDescontoEstadias;
+                ResultView.TipoDescontoReboque = GuiaPagamentoReboqueEstadia.TipoDescontoReboque;
+                ResultView.ValorDescontoReboque = GuiaPagamentoReboqueEstadia.ValorDescontoReboque;
+                ResultView.TipoDescontoQuilometragem = GuiaPagamentoReboqueEstadia.TipoDescontoQuilometragem;
+                ResultView.ValorDescontoQuilometragem = GuiaPagamentoReboqueEstadia.ValorDescontoQuilometragem;
+                ResultView.ValorTotalDesconto = GuiaPagamentoReboqueEstadia.ValorTotalDesconto;
+                ResultView.FaturamentoValorPagar = GuiaPagamentoReboqueEstadia.FaturamentoValorPagar;
+                ResultView.ListagemServico = GuiaPagamentoReboqueEstadia.ListagemServico ??
+                                             new List<SimulacaoFaturamentoComposicaoDTO>();
+            }
+            else
+            {
+                ResultView.ListagemServico = new List<SimulacaoFaturamentoComposicaoDTO>();
+            }
+
+            #endregion FATURAMENTO E SERVIÇOS
 
             ResultView.Mensagem = MensagemViewHelper.SetOk(ResultView.Mensagem, "Documento gerado com sucesso");
 
@@ -1088,7 +1235,8 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                     {
                         await _context.LiberacaoEspecial
                             .Where(x => x.IdGrv == Parameters.IdentificadorProcesso)
-                            .UpdateAsync(x => new LiberacaoEspecialModel() { DataLiberacao = Liberacao.DataCadastro }, cancellationToken: ct);
+                            .UpdateAsync(x => new LiberacaoEspecialModel() { DataLiberacao = Liberacao.DataCadastro },
+                                cancellationToken: ct);
                     }
 
                     if (Grv.StatusOperacaoId.Equals("R"))
@@ -1102,7 +1250,8 @@ namespace WebZi.Plataform.Data.Services.Liberacao
 
                         var saidaReparo = await _context.SaidaReparo
                             .AsTracking()
-                            .FirstOrDefaultAsync(x => x.Id == Parameters.IdentificadorSaidaReparo.Value, cancellationToken: ct);
+                            .FirstOrDefaultAsync(x => x.Id == Parameters.IdentificadorSaidaReparo.Value,
+                                cancellationToken: ct);
 
                         if (saidaReparo != null)
                         {
@@ -1440,25 +1589,27 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                 {
                     var composicoes = UltimoFaturamento?.ListagemFaturamentoComposicao;
 
-                    decimal valorDiaria = (decimal)(composicoes?
+                    decimal valorDiaria = (decimal)composicoes?
                         .Where(x => x.FaturamentoServicoTipoVeiculo?.FaturamentoServicoAssociado
                                         ?.FaturamentoServicoTipoId == 1
                                     || x.TipoComposicao == TipoCobrancaFaturamentoEnum.Diárias)
-                        .Sum(x => x.ValorComposicao));
+                        .Sum(x => x.ValorComposicao);
 
-                    decimal valorGuincho = (decimal)(composicoes?
-                        .Where(x => x.FaturamentoServicoTipoVeiculo?.FaturamentoServicoAssociado
-                            ?.FaturamentoServicoTipoId == 2)
-                        .Sum(x => x.ValorComposicao));
+                    decimal? valorGuincho = Grv.FlagComboio == "S" && Grv.ReboqueId is null && Grv.ReboquistaId is null
+                        ? (decimal)composicoes?
+                            .Where(x => x.FaturamentoServicoTipoVeiculo?.FaturamentoServicoAssociado
+                                ?.FaturamentoServicoTipoId == 2)
+                            .Sum(x => x.ValorComposicao)
+                        : null;
 
-                    int numDias = (int)(composicoes?
+                    int numDias = (int)composicoes?
                         .Where(x => x.FaturamentoServicoTipoVeiculo?.FaturamentoServicoAssociado
                                         ?.FaturamentoServicoTipoId == 1
                                     || x.TipoComposicao == TipoCobrancaFaturamentoEnum.Diárias)
-                        .Sum(x => x.QuantidadeComposicao));
+                        .Sum(x => x.QuantidadeComposicao);
 
-                    decimal valorDesconto = (decimal)(composicoes?
-                        .Sum(x => x.ValorDesconto));
+                    decimal valorDesconto = (decimal)composicoes?
+                        .Sum(x => x.ValorDesconto);
 
                     decimal valorTotal = (decimal)UltimoFaturamento?.ValorFaturado;
 

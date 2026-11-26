@@ -8,7 +8,8 @@
         public static readonly string NaoEncontradoClienteAssociado = "Este Cliente associado não existe";
         public static readonly string NaoEncontradoDepositoAssociado = "Este Depósito associado não existe";
 
-        public static readonly string NaoEncontradoAssociacaoClienteDeposito = "Este Cliente e Depósito não são associados";
+        public static readonly string NaoEncontradoAssociacaoClienteDeposito =
+            "Este Cliente e Depósito não são associados";
 
         public static readonly string NaoEncontradoDeposito = "Depósito inexistente";
 
@@ -24,7 +25,8 @@
 
         public static readonly string IdentificadorAtendimentoInvalido = "Identificador do Atendimento inválido";
 
-        public static readonly string IdentificadorAutoridadeResponsavelInvalido = "Identificador da Autoridade Responsável inválido";
+        public static readonly string IdentificadorAutoridadeResponsavelInvalido =
+            "Identificador da Autoridade Responsável inválido";
 
         public static readonly string IdentificadorClienteInvalido = "Identificador do Cliente inválido";
 
@@ -34,15 +36,19 @@
 
         public static readonly string IdentificadorFaturamentoInvalido = "Identificador do Faturamento inválido";
 
-        public static readonly string IdentificadorTipoMeioCobrancaInvalido = "Identificador da Forma de Pagamento inválido";
+        public static readonly string IdentificadorTipoMeioCobrancaInvalido =
+            "Identificador da Forma de Pagamento inválido";
 
         public static readonly string IdentificadorGrvInvalido = "Identificador do Processo inválido";
 
         public static readonly string IdentificadorMarcaModeloInvalido = "Identificador da Marca/Modelo inválido";
 
-        public static readonly string IdentificadorMotivoApreensaoInvalido = "Identificador do Motivo da Apreensão inválido";
+        public static readonly string IdentificadorMotivoApreensaoInvalido =
+            "Identificador do Motivo da Apreensão inválido";
 
         public static readonly string IdentificadorReboqueInvalido = "Identificador do Reboque inválido";
+        public static readonly string ReboqueJaEstaCadastrado = "Este reboque já foi cadastrado";
+        public static readonly string ReboquistaJaEstaCadastrado = "Este reboquista já foi cadastrado";
 
         public static readonly string IdentificadorReboquistaInvalido = "Identificador do Reboquista inválido";
 
@@ -56,14 +62,23 @@
 
         public static readonly string NumeroProcessoInvalido = "Número do Processo inválido";
 
-        public static readonly string UsuarioSemPermissaoAcessoClienteDeposito = "Usuário sem permissão de acesso ao Cliente e Depósito";
+        public static readonly string UsuarioSemPermissaoAcessoClienteDeposito =
+            "Usuário sem permissão de acesso ao Cliente e Depósito";
+
         public static readonly string UsuarioSemPermissaoAcessoCliente = "Usuário sem permissão de acesso ao Cliente";
         public static readonly string UsuarioSemPermissaoAcessoDeposito = "Usuário sem permissão de acesso ao Depósito";
 
         public static readonly string UsuarioSemPermissaoAcessoGrv = "Usuário sem permissão de acesso ao Processo";
 
-        public const string ErroInternoPadrao = "Não foi possível concluir a solicitação no momento. Por favor, tente novamente em alguns instantes.";
-        public const string ServicoIndisponivelPadrao = "Este serviço está temporariamente indisponível no momento. Por favor, tente novamente em alguns instantes.";
-        public const string ErroOperacaoPadrao = "Não foi possível processar a operação solicitada. Verifique os dados informados ou tente novamente em instantes.";
+        public const string ErroInternoPadrao =
+            "Não foi possível concluir a solicitação no momento. Por favor, tente novamente em alguns instantes.";
+
+        public const string ServicoIndisponivelPadrao =
+            "Este serviço está temporariamente indisponível no momento. Por favor, tente novamente em alguns instantes.";
+
+        public const string ErroOperacaoPadrao =
+            "Não foi possível processar a operação solicitada. Verifique os dados informados ou tente novamente em instantes.";
+        public const string ErroNaAplicacaoExterna =
+            "Não foi possível concluir a operação na aplicação externa. Verifique os dados informados ou tente novamente em instantes.";
     }
 }

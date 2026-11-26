@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using WebZi.Plataform.Data.Helper;
 using WebZi.Plataform.Data.Services.Servico;
+using WebZi.Plataform.Data.Services.Usuario;
 using WebZi.Plataform.Domain.DTO.Servico;
 using WebZi.Plataform.Domain.DTO.Sistema;
 using WebZi.Plataform.Domain.ViewModel.GRV.Cadastro;
@@ -114,6 +115,8 @@ namespace WebZi.Plataform.API.Controllers
                 return BadRequest(ModelState);
             }
 
+            var userId = User.GetUserId();
+            parameters.IdentificadorUsuario = userId.Value;
             try
             {
                 ResultView = await _provider

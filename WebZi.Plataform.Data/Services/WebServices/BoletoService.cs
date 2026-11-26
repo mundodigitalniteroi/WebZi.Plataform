@@ -32,17 +32,27 @@ namespace WebZi.Plataform.Data.Services.WebServices
             _httpClientFactory = httpClientFactory;
         }
 
-        public BoletoDTO GetBoletoNaoPago(int FaturamentoId, int UsuarioId)
+        public async Task<BoletoDTO> GetBoletoNaoPagoAsync(int FaturamentoId, int UsuarioId, CancellationToken ct = default)
         {
-            return GetBoleto(FaturamentoId, UsuarioId, "N");
+            return await GetBoletoAsync(FaturamentoId, UsuarioId, "N", ct);
         }
 
-        public BoletoDTO GetBoletoNaoCancelado(int FaturamentoId, int UsuarioId)
+        public async Task<BoletoDTO> GetBoletoNaoCanceladoAsync(int FaturamentoId, int UsuarioId, CancellationToken ct = default)
         {
-            return GetBoleto(FaturamentoId, UsuarioId);
+            return await GetBoletoAsync(FaturamentoId, UsuarioId, "", ct);
         }
 
-        private BoletoDTO GetBoleto(int FaturamentoId, int UsuarioId, string StatusBoleto = "")
+        public Task<BoletoDTO> GetBoletoNaoPago(int FaturamentoId, int UsuarioId, CancellationToken ct = default)
+        {
+            return GetBoletoNaoPagoAsync(FaturamentoId, UsuarioId, ct);
+        }
+
+        public Task<BoletoDTO> GetBoletoNaoCancelado(int FaturamentoId, int UsuarioId, CancellationToken ct = default)
+        {
+            return GetBoletoNaoCanceladoAsync(FaturamentoId, UsuarioId, ct);
+        }
+
+        private async Task<BoletoDTO> GetBoletoAsync(int FaturamentoId, int UsuarioId, string StatusBoleto = "", CancellationToken ct = default)
         {
             BoletoDTO ResultView = new();
 
@@ -54,29 +64,29 @@ namespace WebZi.Plataform.Data.Services.WebServices
                 return ResultView;
             }
 
-            FaturamentoModel Faturamento = new();
+            FaturamentoModel Faturamento = null;
 
             if (!string.IsNullOrWhiteSpace(StatusBoleto))
             {
-                Faturamento = _context.Faturamento
+                Faturamento = await _context.Faturamento
                     .Include(x => x.ListagemBoleto.Where(x => x.Status == StatusBoleto))
                     .Include(x => x.TipoMeioCobranca)
                     .Include(x => x.Atendimento)
                     .ThenInclude(x => x.Grv)
                     .OrderByDescending(x => x.DataCadastro)
                     .AsNoTracking()
-                    .FirstOrDefault(x => x.FaturamentoId == FaturamentoId);
+                    .FirstOrDefaultAsync(x => x.FaturamentoId == FaturamentoId, ct);
             }
             else
             {
-                Faturamento = _context.Faturamento
+                Faturamento = await _context.Faturamento
                     .Include(x => x.ListagemBoleto.Where(x => x.Status != "C"))
                     .Include(x => x.TipoMeioCobranca)
                     .Include(x => x.Atendimento)
                     .ThenInclude(x => x.Grv)
                     .OrderByDescending(x => x.DataCadastro)
                     .AsNoTracking()
-                    .FirstOrDefault(x => x.FaturamentoId == FaturamentoId);
+                    .FirstOrDefaultAsync(x => x.FaturamentoId == FaturamentoId, ct);
             }
 
             if (Faturamento != null)
@@ -113,7 +123,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
             {
                 if (Faturamento.Status != "P")
                 {
-                    return Create(FaturamentoId, UsuarioId);
+                    return await CreateAsync(FaturamentoId, UsuarioId, false, ct);
                 }
 
                 ResultView.Mensagem = MensagemViewHelper.SetNotFound("Boleto não encontrado");
@@ -129,7 +139,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
             {
                 if (Faturamento.Status != "P")
                 {
-                    return Create(FaturamentoId, UsuarioId);
+                    return await CreateAsync(FaturamentoId, UsuarioId, false, ct);
                 }
 
                 ResultView.Mensagem = MensagemViewHelper.SetNotFound("Boleto não encontrado");
@@ -137,11 +147,11 @@ namespace WebZi.Plataform.Data.Services.WebServices
                 return ResultView;
             }
 
-            BucketArquivoModel BucketArquivo = _context.BucketArquivo
+            BucketArquivoModel BucketArquivo = await _context.BucketArquivo
                 .Include(x => x.BucketNomeTabelaOrigem)
                 .AsNoTracking()
-                .FirstOrDefault(x => x.BucketNomeTabelaOrigem.Codigo == BucketNomeTabelaOrigemEnum.Boleto &&
-                                     x.TabelaOrigemId == Boleto.FaturamentoBoletoId);
+                .FirstOrDefaultAsync(x => x.BucketNomeTabelaOrigem.Codigo == BucketNomeTabelaOrigemEnum.Boleto &&
+                                     x.TabelaOrigemId == Boleto.FaturamentoBoletoId, ct);
 
             if (BucketArquivo != null)
             {
@@ -151,19 +161,19 @@ namespace WebZi.Plataform.Data.Services.WebServices
 
                 ResultView.LinhaDigitavel = Boleto.Linha;
 
-                ResultView.Imagem = new HttpClientFactoryService(_httpClientFactory)
-                    .DownloadFile(BucketArquivo.Url);
+                ResultView.Imagem = await new HttpClientFactoryService(_httpClientFactory)
+                    .DownloadFileAsync(BucketArquivo.Url, ct);
 
                 return ResultView;
             }
             else
             {
-                BoletoImagemModel FaturamentoBoletoImagem = _context.FaturamentoBoletoImagem
+                BoletoImagemModel FaturamentoBoletoImagem = await _context.FaturamentoBoletoImagem
                     .Include(x => x.FaturamentoBoleto)
                     .OrderByDescending(x => x.FaturamentoBoletoId)
                     .AsNoTracking()
-                    .FirstOrDefault(x => x.FaturamentoBoleto.FaturamentoId == FaturamentoId &&
-                                         x.FaturamentoBoleto.Status != "C");
+                    .FirstOrDefaultAsync(x => x.FaturamentoBoleto.FaturamentoId == FaturamentoId &&
+                                         x.FaturamentoBoleto.Status != "C", ct);
 
                 if (FaturamentoBoletoImagem != null)
                 {
@@ -181,7 +191,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
                 {
                     if (Faturamento.Status != "P")
                     {
-                        return Create(FaturamentoId, UsuarioId);
+                        return await CreateAsync(FaturamentoId, UsuarioId, false, ct);
                     }
 
                     ResultView.Mensagem =
@@ -192,9 +202,30 @@ namespace WebZi.Plataform.Data.Services.WebServices
             }
         }
 
-        public BoletoDTO Create(int FaturamentoId, int UsuarioId)
+        public async Task<BoletoDTO> CreateAsync(int FaturamentoId, int UsuarioId, bool reprocessar = false, CancellationToken ct = default)
         {
             BoletoDTO ResultView = new();
+
+            if (reprocessar)
+            {
+                bool permitirEdicao = await _context.PerfilAcessoUsuario
+                    .AsNoTracking()
+                    .AnyAsync(x => x.UsuarioId == UsuarioId
+                              && (x.PerfilAcessoId == (int)PerfisDeAcessoEnum.AtendimentoEditProd ||
+                                  x.PerfilAcessoId == (int)PerfisDeAcessoEnum.AtendimentoEditHomolog)
+                              && _context.SistemaPerfilAcessoSubModulos
+                                  .Any(s => (s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.AtendimentoEditProd ||
+                                             s.IdPerfilAcesso == (int)PerfisDeAcessoEnum.AtendimentoEditHomolog)
+                                            && s.IdSubModulo == (int)SubModuloEnum.EditarAtendimento), ct);
+
+                if (!permitirEdicao)
+                {
+                    ResultView.Mensagem =
+                        MensagemViewHelper.SetBadRequest("Não possui permissão para reprocessar o boleto");
+
+                    return ResultView;
+                }
+            }
 
             if (FaturamentoId <= 0)
             {
@@ -204,12 +235,12 @@ namespace WebZi.Plataform.Data.Services.WebServices
                 return ResultView;
             }
 
-            FaturamentoModel Faturamento = _context.Faturamento
+            FaturamentoModel Faturamento = await _context.Faturamento
                 .Include(x => x.TipoMeioCobranca)
                 .Include(x => x.Atendimento)
                 .ThenInclude(x => x.Grv)
                 .AsNoTracking()
-                .FirstOrDefault(x => x.FaturamentoId == FaturamentoId);
+                .FirstOrDefaultAsync(x => x.FaturamentoId == FaturamentoId, ct);
 
             if (Faturamento != null)
             {
@@ -242,7 +273,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
 
                 return ResultView;
             }
-            else if (Faturamento.Status == "P")
+            else if (Faturamento.Status == "P" && !reprocessar)
             {
                 ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Esse Faturamento já foi pago");
 
@@ -255,8 +286,8 @@ namespace WebZi.Plataform.Data.Services.WebServices
                 return ResultView;
             }
 
-            ViewFaturamentoBoletoModel ViewBoleto = _context.ViewFaturamentoBoleto
-                .FirstOrDefault(x => x.FaturamentoId == Faturamento.FaturamentoId);
+            ViewFaturamentoBoletoModel ViewBoleto = await _context.ViewFaturamentoBoleto
+                .FirstOrDefaultAsync(x => x.FaturamentoId == Faturamento.FaturamentoId, ct);
 
             if (ViewBoleto == null)
             {
@@ -265,7 +296,7 @@ namespace WebZi.Plataform.Data.Services.WebServices
                 return ResultView;
             }
 
-            Cancel(Faturamento.FaturamentoId);
+            await CancelAsync(Faturamento.FaturamentoId, ct);
 
             #region Preenchimento do Modelo
 
@@ -319,12 +350,12 @@ namespace WebZi.Plataform.Data.Services.WebServices
 
             if (Faturamento.TipoMeioCobranca.Alias == TipoMeioCobrancaAliasEnum.BoletoEspecial)
             {
-                List<FaturamentoRegraModel> FaturamentoRegras = _context.FaturamentoRegra
+                List<FaturamentoRegraModel> FaturamentoRegras = await _context.FaturamentoRegra
                     .Include(x => x.FaturamentoRegraTipo)
                     .Where(x => x.ClienteId == Faturamento.Atendimento.Grv.ClienteId &&
                                 x.DepositoId == Faturamento.Atendimento.Grv.DepositoId)
                     .AsNoTracking()
-                    .ToList();
+                    .ToListAsync(ct);
 
                 if (FaturamentoRegras?.Count > 0)
                 {
@@ -349,26 +380,34 @@ namespace WebZi.Plataform.Data.Services.WebServices
 
             #region Execução do WebService de geração do Boleto
 
-            WebServiceUrlModel WebServiceUrl = _context.WebServiceUrl
+            WebServiceUrlModel WebServiceUrl = await _context.WebServiceUrl
                 .AsNoTracking()
-                .FirstOrDefault(x => x.Name == "WsBoletoSoap");
+                .FirstOrDefaultAsync(x => x.Name == "WsBoletoSoap", ct);
 
             int linhaId;
 
             string linha;
 
-            string url;
+            try
+            {
+                WsBoletoSoapClient soapClient = new(EndpointConfiguration.WsBoletoSoap, WebServiceUrl.Url);
 
-            BoletoGerado.Boleto = new WsBoletoSoapClient(EndpointConfiguration.WsBoletoSoap,
-                "http://api.boletos.gestordepatios.app.br/wsboleto.asmx").BoletoBancosRetornoLinha(
-                boleto: DadosBoleto,
-                login: WebServiceUrl.Username,
-                senha: WebServiceUrl.Password,
-                Tipo: "img",
-                isdev: false,
-                linha: out linha,
-                linha_id: out linhaId,
-                url: out url);
+                BoletoBancosRetornoLinhaResponse retornoSoap = await soapClient.BoletoBancosRetornoLinhaAsync(
+                    boleto: DadosBoleto,
+                    login: WebServiceUrl.Username,
+                    senha: WebServiceUrl.Password,
+                    Tipo: "img",
+                    isdev: false);
+
+                BoletoGerado.Boleto = retornoSoap.Body.BoletoBancosRetornoLinhaResult;
+                linhaId = retornoSoap.Body.linha_id;
+                linha = retornoSoap.Body.linha;
+            }
+            catch (Exception)
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest(MensagemPadraoEnum.ErroNaAplicacaoExterna);
+                return ResultView;
+            }
 
             BoletoGerado.BoletoId = linhaId;
 
@@ -395,23 +434,23 @@ namespace WebZi.Plataform.Data.Services.WebServices
                 DataEmissao = DateTime.Now
             };
 
-            using (IDbContextTransaction transaction = _context.Database.BeginTransaction())
+            await using (IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync(ct))
             {
                 try
                 {
-                    _context.FaturamentoBoleto.Add(Boleto);
+                    await _context.FaturamentoBoleto.AddAsync(Boleto, ct);
 
-                    _context.SaveChanges();
+                    await _context.SaveChangesAsync(ct);
 
-                    new BucketService(_context, _httpClientFactory)
-                        .SendFile(BucketNomeTabelaOrigemEnum.Boleto, Boleto.FaturamentoBoletoId, UsuarioId,
-                            BoletoGerado.Boleto);
+                    await new BucketService(_context, _httpClientFactory)
+                        .SendFileAsync(BucketNomeTabelaOrigemEnum.Boleto, Boleto.FaturamentoBoletoId, UsuarioId,
+                            BoletoGerado.Boleto, true, "", ct);
 
-                    transaction.Commit();
+                    await transaction.CommitAsync(ct);
                 }
                 catch (Exception)
                 {
-                    transaction.Rollback();
+                    await transaction.RollbackAsync(ct);
 
                     throw;
                 }
@@ -430,29 +469,33 @@ namespace WebZi.Plataform.Data.Services.WebServices
             return ResultView;
         }
 
-        public void Cancel(int FaturamentoId)
+        public async Task CancelAsync(int FaturamentoId, CancellationToken ct = default)
         {
-            // Apesar de ser uma lista, por regra, só pode haver 1 Boleto cadastrado não pago
-            List<BoletoModel> result = _context.FaturamentoBoleto
+            // Se reprocessar for verdadeiro, cancela qualquer boleto anterior que não esteja cancelado ("N" ou "P")
+            // Caso contrário, cancela apenas boleto não pago ("N")
+            List<BoletoModel> result = await _context.FaturamentoBoleto
                 .Where(x => x.FaturamentoId == FaturamentoId
                             && x.Status == "N")
-                .ToList();
+                .ToListAsync(ct);
 
             if (result?.Count > 0)
             {
+                BucketService bucketService = new(_context, _httpClientFactory);
+
                 foreach (BoletoModel FaturamentoBoleto in result)
                 {
                     FaturamentoBoleto.Status = "C";
 
                     _context.FaturamentoBoleto.Update(FaturamentoBoleto);
 
-                    _context.FaturamentoBoletoImagem
+                    await _context.FaturamentoBoletoImagem
                         .Where(x => x.FaturamentoBoletoId == FaturamentoBoleto.FaturamentoBoletoId)
-                        .Delete();
+                        .DeleteAsync(ct);
 
-                    new BucketService(_context, _httpClientFactory)
-                        .DeleteFiles("FATURAMENBOLETO", FaturamentoBoleto.FaturamentoBoletoId);
+                    await bucketService.DeleteFilesAsync("FATURAMENBOLETO", FaturamentoBoleto.FaturamentoBoletoId, ct);
                 }
+
+                await _context.SaveChangesAsync(ct);
             }
         }
     }
