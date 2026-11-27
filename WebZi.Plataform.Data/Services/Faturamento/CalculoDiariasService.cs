@@ -19,6 +19,208 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             _context = context;
         }
 
+        public async Task<CalculoDiariasModel> CalcularAsync(CalculoFaturamentoParametroModel ParametrosCalculoDiarias, CancellationToken ct = default)
+        {
+            CalculoDiariasModel CalculoDiarias = new()
+            {
+                ClienteId = ParametrosCalculoDiarias.ClienteDeposito.ClienteId,
+
+                DepositoId = ParametrosCalculoDiarias.ClienteDeposito.DepositoId,
+
+                MaximoDiariasParaCobranca = ParametrosCalculoDiarias.ClienteDeposito.Cliente.MaximoDiariasParaCobranca,
+
+                MaximoDiasVencimento = ParametrosCalculoDiarias.ClienteDeposito.Cliente.MaximoDiasVencimento,
+
+                HoraDiaria = ParametrosCalculoDiarias.ClienteDeposito.Cliente.HoraDiaria,
+
+                DataHoraInicialParaCalculo = ParametrosCalculoDiarias.DataHoraInicialParaCalculo,
+
+                DataHoraFinalParaCalculo = ParametrosCalculoDiarias.DataHoraFinalParaCalculo,
+
+                FlagClienteRealizaFaturamentoArrecadacao = ParametrosCalculoDiarias.ClienteDeposito.Cliente.FlagClienteRealizaFaturamentoArrecadacao == "S",
+
+                FlagUsarHoraDiaria = ParametrosCalculoDiarias.ClienteDeposito.Cliente.FlagUsarHoraDiaria == "S",
+
+                FlagEmissaoNotaFiscalERP = ParametrosCalculoDiarias.ClienteDeposito.Cliente.FlagEmissaoNotaFiscal == "S",
+
+                FlagCobrarDiariasDiasCorridos = ParametrosCalculoDiarias.ClienteDeposito.Cliente.FlagCobrarDiariasDiasCorridos == "S",
+
+                IsComboio = ParametrosCalculoDiarias.IsComboio,
+
+                IsPrimeiroFaturamento = (new[] { "V", "H", "1", "B", "D" }.Contains(ParametrosCalculoDiarias.StatusOperacaoId)),
+            };
+
+            if (!CalculoDiarias.DataHoraFinalParaCalculo.HasValue || CalculoDiarias.DataHoraFinalParaCalculo == DateTime.MinValue)
+            {
+                CalculoDiarias.DataHoraFinalParaCalculo = ParametrosCalculoDiarias.DataHoraPorDeposito;
+            }
+
+            #region REGRA DA HORA DA VIRADA DA DIÁRIA
+            if (CalculoDiarias.FlagUsarHoraDiaria)
+            {
+                CalculoDiarias.DataHoraDiaria = new DateTime
+                (
+                    CalculoDiarias.DataHoraFinalParaCalculo.Value.Year,
+                    CalculoDiarias.DataHoraFinalParaCalculo.Value.Month,
+                    CalculoDiarias.DataHoraFinalParaCalculo.Value.Day,
+                    int.Parse(StringHelper.Left(CalculoDiarias.HoraDiaria, 2)),
+                    int.Parse(StringHelper.Right(CalculoDiarias.HoraDiaria, 2)),
+                    0
+                );
+            }
+            else
+            {
+                CalculoDiarias.DataHoraDiaria = new DateTime
+                (
+                    CalculoDiarias.DataHoraFinalParaCalculo.Value.Year,
+                    CalculoDiarias.DataHoraFinalParaCalculo.Value.Month,
+                    CalculoDiarias.DataHoraFinalParaCalculo.Value.Day,
+                    CalculoDiarias.DataHoraInicialParaCalculo.Hour,
+                    CalculoDiarias.DataHoraInicialParaCalculo.Minute,
+                    0
+                );
+            }
+            #endregion REGRA DA HORA DA VIRADA DA DIÁRIA
+
+            List<FaturamentoRegraModel> RegrasFaturamento = await _context.FaturamentoRegra
+                .Include(x => x.FaturamentoRegraTipo)
+                .Where(x => x.ClienteId == CalculoDiarias.ClienteId && x.DepositoId == CalculoDiarias.DepositoId)
+                .AsNoTracking()
+                .ToListAsync(ct);
+
+            if (RegrasFaturamento?.Count == 0)
+            {
+                RegrasFaturamento = null;
+            }
+
+            CalculoDiarias = await GetLocalizacaoDepositoAsync(CalculoDiarias, ct);
+
+            CalculoDiarias.DataHoraOntem = CalculoDiarias.DataHoraFinalParaCalculo.Value.AddDays(-1);
+
+            CalculoDiarias.DataHoraOntem = new DateTime(CalculoDiarias.DataHoraOntem.Year,
+                                                        CalculoDiarias.DataHoraOntem.Month,
+                                                        CalculoDiarias.DataHoraOntem.Day,
+                                                        23,
+                                                        59,
+                                                        59);
+
+            CalculoDiarias.Feriados = await new FeriadoService(_context)
+                .ListDataFeriadoAsync(CalculoDiarias.UF,
+                                      CalculoDiarias.MunicipioId,
+                                      CalculoDiarias.DataHoraInicialParaCalculo.Date.Year,
+                                      CalculoDiarias.DataHoraDiaria.Date.AddDays(10).Year,
+                                      ct);
+
+            CalculoDiarias.QuantidadeDiariasPagas = await GetQuantidadeDiariasPagasAsync(CalculoDiarias, ct);
+
+            CalculoDiarias.FlagCobrarTodasDiarias = RegrasFaturamento?.Count > 0 &&
+                RegrasFaturamento.Any(w => w.FaturamentoRegraTipo.Codigo == FaturamentoRegraTipoEnum.CalculoDiasNaoCobradas);
+
+            if (CalculoDiarias.MaximoDiariasParaCobranca > 0 &&
+                CalculoDiarias.QuantidadeDiariasPagas > 0 &&
+                CalculoDiarias.FlagCobrarTodasDiarias)
+            {
+                CalculoDiarias.Diarias = DateTimeHelper.GetDaysBetweenTwoDates(CalculoDiarias.DataHoraInicialParaCalculo.Date, CalculoDiarias.DataHoraDiaria.Date);
+
+                CalculoDiarias.Diarias -= CalculoDiarias.QuantidadeDiariasPagas;
+
+                if (CalculoDiarias.Diarias <= 0)
+                {
+                    CalculoDiarias.Diarias = 1;
+                }
+            }
+            else
+            {
+                CalculoDiarias.Diarias = DateTimeHelper.GetDaysBetweenTwoDates(CalculoDiarias.DataHoraInicialParaCalculo.Date, CalculoDiarias.DataHoraDiaria.Date);
+            }
+
+            CalculoDiarias.QuantidadeDiasUteis = FeriadoService.GetDiasUteis(CalculoDiarias.DataHoraInicialParaCalculo.Date,
+                                                              CalculoDiarias.DataHoraOntem.Date,
+                                                              CalculoDiarias.Feriados);
+
+            if ((CalculoDiarias.DataHoraInicialParaCalculo.Date == CalculoDiarias.DataHoraDiaria.Date) &&
+                (CalculoDiarias.DataHoraInicialParaCalculo.Date == CalculoDiarias.DataHoraFinalParaCalculo.Value.Date))
+            {
+                CalculoDiarias.Diarias = 1;
+            }
+            else if (CalculoDiarias.Diarias == CalculoDiarias.QuantidadeDiasUteis)
+            {
+                if ((CalculoDiarias.DataHoraFinalParaCalculo.Value.Hour > CalculoDiarias.DataHoraDiaria.Hour) ||
+                   ((CalculoDiarias.DataHoraFinalParaCalculo.Value.Hour == CalculoDiarias.DataHoraDiaria.Hour) &&
+                   (CalculoDiarias.DataHoraFinalParaCalculo.Value.Minute > CalculoDiarias.DataHoraDiaria.Minute)))
+                {
+                    CalculoDiarias.Diarias++;
+                }
+            }
+            else if (CalculoDiarias.FlagCobrarDiariasDiasCorridos)
+            {
+                if ((CalculoDiarias.DataHoraFinalParaCalculo.Value.Hour > CalculoDiarias.DataHoraDiaria.Hour) ||
+                   ((CalculoDiarias.DataHoraFinalParaCalculo.Value.Hour == CalculoDiarias.DataHoraDiaria.Hour) &&
+                   (CalculoDiarias.DataHoraFinalParaCalculo.Value.Minute > CalculoDiarias.DataHoraDiaria.Minute)))
+                {
+                    CalculoDiarias.Diarias++;
+                }
+            }
+            else if (FeriadoService.IsDiaUtil(CalculoDiarias.DataHoraInicialParaCalculo, CalculoDiarias.Feriados) && (!FeriadoService.IsDiaUtil(CalculoDiarias.DataHoraOntem.Date, CalculoDiarias.Feriados)) && (CalculoDiarias.QuantidadeDiasUteis <= 1))
+            {
+                int dias = CalculoDiarias.Diarias;
+
+                CalculoDiarias.Diarias = GetAdicionarDiaRegraFaturamento(RegrasFaturamento, CalculoDiarias.DataHoraFinalParaCalculo.Value, CalculoDiarias.Diarias);
+
+                if (CalculoDiarias.Diarias == dias)
+                {
+                    CalculoDiarias.Diarias = 1;
+                }
+            }
+            else if (!FeriadoService.IsDiaUtil(CalculoDiarias.DataHoraInicialParaCalculo, CalculoDiarias.Feriados) && !FeriadoService.IsDiaUtil(CalculoDiarias.DataHoraOntem, CalculoDiarias.Feriados) && (CalculoDiarias.QuantidadeDiasUteis <= 1))
+            {
+                if (!FeriadoService.IsDiaUtil(CalculoDiarias.DataHoraOntem.Date, CalculoDiarias.Feriados))
+                {
+                    int dias = CalculoDiarias.Diarias;
+
+                    CalculoDiarias.Diarias = GetAdicionarDiaRegraFaturamento(RegrasFaturamento, CalculoDiarias.DataHoraFinalParaCalculo.Value, CalculoDiarias.Diarias);
+
+                    if (CalculoDiarias.Diarias == dias)
+                    {
+                        CalculoDiarias.Diarias = 1;
+                    }
+                }
+                else
+                {
+                    CalculoDiarias.Diarias++;
+                }
+            }
+            else if (CalculoDiarias.QuantidadeDiasUteis >= 1)
+            {
+                if ((CalculoDiarias.DataHoraFinalParaCalculo.Value.Hour > CalculoDiarias.DataHoraDiaria.Hour) ||
+                   ((CalculoDiarias.DataHoraFinalParaCalculo.Value.Hour == CalculoDiarias.DataHoraDiaria.Hour) &&
+                   (CalculoDiarias.DataHoraFinalParaCalculo.Value.Minute > CalculoDiarias.DataHoraDiaria.Minute)))
+                {
+                    CalculoDiarias.Diarias++;
+                }
+            }
+
+            int totalRealDias = CalculoDiarias.Diarias;
+
+            CalculoDiarias.Diarias = GetMaximoDiaCobranca(CalculoDiarias.MaximoDiariasParaCobranca, CalculoDiarias.Diarias, CalculoDiarias.QuantidadeDiariasPagas);
+
+            if (ParametrosCalculoDiarias.FaturamentoAdicional)
+            {
+                CalculoDiarias.Diarias = GetMaximoDiariasCobrarFaturaAdicional(RegrasFaturamento, CalculoDiarias.Diarias);
+            }
+
+            CalculoDiarias.Diarias = GetRegraNaoCobrarDiariaAtual(RegrasFaturamento, CalculoDiarias, CalculoDiarias.Feriados, totalRealDias, CalculoDiarias.Diarias);
+
+            CalculoDiarias.Diarias = GetRegraNaoCobrarPrimeiraDiaria(RegrasFaturamento, CalculoDiarias, CalculoDiarias.Diarias);
+
+            if (CalculoDiarias.Diarias <= 0)
+            {
+                CalculoDiarias.Diarias = 1;
+            }
+
+            return CalculoDiarias;
+        }
+
         public CalculoDiariasModel Calcular(CalculoFaturamentoParametroModel ParametrosCalculoDiarias)
         {
             CalculoDiariasModel CalculoDiarias = new()
@@ -230,6 +432,45 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             }
 
             return CalculoDiarias;
+        }
+
+        private async Task<CalculoDiariasModel> GetLocalizacaoDepositoAsync(CalculoDiariasModel CalculoDiarias, CancellationToken ct = default)
+        {
+            var depositoInfo = await _context.Deposito
+                .Where(x => x.DepositoId == CalculoDiarias.DepositoId)
+                .Select(x => new
+                {
+                    UF = x.Endereco != null ? x.Endereco.UF : null,
+                    MunicipioId = x.Endereco != null ? (int?)x.Endereco.MunicipioId : null
+                })
+                .AsNoTracking()
+                .FirstOrDefaultAsync(ct);
+
+            if (depositoInfo != null)
+            {
+                CalculoDiarias.UF = depositoInfo.UF;
+                CalculoDiarias.MunicipioId = depositoInfo.MunicipioId ?? 0;
+            }
+
+            return CalculoDiarias;
+        }
+
+        private async Task<int> GetQuantidadeDiariasPagasAsync(CalculoDiariasModel CalculoDiarias, CancellationToken ct = default)
+        {
+            if (!CalculoDiarias.IsPrimeiroFaturamento)
+            {
+                decimal? total = await _context.FaturamentoComposicao
+                    .Where(x => x.TipoComposicao == TipoCobrancaFaturamentoEnum.Diárias &&
+                                x.QuantidadeComposicao > 0 &&
+                                x.Faturamento.AtendimentoId == CalculoDiarias.AtendimentoId &&
+                                x.Faturamento.Status == "P")
+                    .AsNoTracking()
+                    .SumAsync(s => s.QuantidadeComposicao, ct);
+
+                return total.HasValue ? (int)total.Value : 0;
+            }
+
+            return 0;
         }
 
         private CalculoDiariasModel GetLocalizacaoDeposito(CalculoDiariasModel CalculoDiarias)

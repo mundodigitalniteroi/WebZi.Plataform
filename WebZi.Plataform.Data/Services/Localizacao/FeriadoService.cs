@@ -1,4 +1,5 @@
-﻿using WebZi.Plataform.CrossCutting.Date;
+﻿using Microsoft.EntityFrameworkCore;
+using WebZi.Plataform.CrossCutting.Date;
 using WebZi.Plataform.Data.Database;
 using WebZi.Plataform.Domain.Models.Localizacao;
 
@@ -60,6 +61,45 @@ namespace WebZi.Plataform.Data.Services.Localizacao
             }
 
             return true;
+        }
+
+        public async Task<List<DateTime>> ListDataFeriadoAsync(string UF, int MunicipioId, int AnoInicial, int AnoFinal = 0, CancellationToken ct = default)
+        {
+            if (AnoFinal <= 0)
+            {
+                AnoFinal = AnoInicial;
+            }
+
+            List<DateTime> DatasFeriados = new();
+
+            for (int ano = AnoInicial; ano <= AnoFinal; ano++)
+            {
+                int anoAtual = ano;
+                List<FeriadoModel> Feriados = await _context.Feriado
+                    .AsNoTracking()
+                    .Where(x => (x.Ano == null || x.Ano == anoAtual) &&
+                                (x.FlagFeriadoNacional == "S" ||
+                                 x.UF == UF && x.MunicipioId == null ||
+                                 x.MunicipioId == MunicipioId))
+                    .ToListAsync(ct);
+
+                foreach (FeriadoModel item in Feriados)
+                {
+                    if (item.Ano == null)
+                    {
+                        DatasFeriados.Add(new(anoAtual, item.Mes, item.Dia));
+                    }
+                    else
+                    {
+                        DatasFeriados.Add(new(item.Ano.Value, item.Mes, item.Dia));
+                    }
+                }
+            }
+
+            return DatasFeriados
+                .Distinct()
+                .OrderBy(x => x)
+                .ToList();
         }
 
         public List<DateTime> ListDataFeriado(string UF, int MunicipioId, int AnoInicial, int AnoFinal = 0)

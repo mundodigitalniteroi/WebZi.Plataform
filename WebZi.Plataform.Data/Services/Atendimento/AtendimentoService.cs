@@ -320,12 +320,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             #region Nota Fiscal
 
-            var permitirEmissao = await _context.FaturamentoRegra
-                .AnyAsync(x =>
-                    x.ClienteId == Grv.ClienteId && x.DepositoId == Grv.DepositoId &&
-                    x.FaturamentoRegraTipoId == 11, cancellationToken: ct);
-
-            if (Grv.Cliente.FlagEmissaoNotaFiscal == "S" && permitirEmissao)
+            if (Grv.Cliente.FlagEmissaoNotaFiscal == "S")
             {
                 #region Receptor da Nota Fiscal
 
@@ -969,10 +964,6 @@ namespace WebZi.Plataform.Data.Services.Atendimento
 
             DateTime DataHoraPorDeposito = new DepositoService(_context)
                 .GetDataHoraPorDeposito(Grv.DepositoId);
-            var permitirEmissao = await _context.FaturamentoRegra
-                .AnyAsync(x =>
-                    x.ClienteId == Grv.ClienteId && x.DepositoId == Grv.DepositoId &&
-                    x.FaturamentoRegraTipoId == 11, cancellationToken: ct);
 
             #endregion Consultas
 
@@ -1045,7 +1036,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 FormaLiberacaoPlaca = null
             };
 
-            if (Grv.Cliente.FlagEmissaoNotaFiscal == "S" && permitirEmissao)
+            if (Grv.Cliente.FlagEmissaoNotaFiscal == "S")
             {
                 Atendimento.NotaFiscalNome = AtendimentoInput.NotaFiscalNome.ToUpperTrim();
 
@@ -1094,22 +1085,26 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             {
                 try
                 {
-                    _context.Atendimento.Add(Atendimento);
+                    await _context.Atendimento.AddAsync(Atendimento, ct);
 
                     await _context.SaveChangesAsync(ct);
 
-                    Faturamento = new FaturamentoService(_context)
-                        .Faturar(ParametrosCalculoFaturamento, out CalculoDiarias);
+                    var faturamentoService = _provider?.GetService<FaturamentoService>()
+                                             ?? new FaturamentoService(_context, _mapper, _httpClientFactory,
+                                                 _provider);
+
+                    (Faturamento, CalculoDiarias) = await faturamentoService
+                        .FaturarAsync(ParametrosCalculoFaturamento, ct);
 
 
-                    CreateFotoResponsavel(Atendimento.AtendimentoId, AtendimentoInput.IdentificadorUsuario,
-                        AtendimentoInput.ResponsavelFoto);
+                    await CreateFotoResponsavel(Atendimento.AtendimentoId, AtendimentoInput.IdentificadorUsuario,
+                        AtendimentoInput.ResponsavelFoto, ct: ct);
 
                     UpdateStatusERP(ParametrosCalculoFaturamento.ClienteDeposito, Faturamento, Atendimento);
 
-                    CreateLiberacaoLeilao(ParametrosCalculoFaturamento);
+                    await CreateLiberacaoLeilaoAsync(ParametrosCalculoFaturamento, ct);
 
-                    UpdateGrv(ParametrosCalculoFaturamento);
+                    await UpdateGrv(ParametrosCalculoFaturamento, ct);
 
                     await _context.SaveChangesAsync(ct);
                     await transaction.CommitAsync(ct);
@@ -1168,22 +1163,6 @@ namespace WebZi.Plataform.Data.Services.Atendimento
         public async Task<AtendimentoCadastroDTO> CreateAtendimentoLeilaoAsync(
             AtendimentoLeilaoParameters AtendimentoInput, CancellationToken ct)
         {
-            #region Consultas
-
-            GrvModel Grv = await _context.Grv
-                .Include(x => x.Cliente)
-                .Include(x => x.Deposito)
-                .Where(x => x.GrvId == AtendimentoInput.IdentificadorProcesso)
-                .AsNoTracking()
-                .FirstOrDefaultAsync(cancellationToken: ct);
-
-            //var permitirEmissao = await _context.FaturamentoRegra
-            //    .AnyAsync(x =>
-            //        x.ClienteId == Grv.ClienteId && x.DepositoId == Grv.DepositoId &&
-            //        x.FaturamentoRegraTipoId == 11, cancellationToken: ct);
-
-            #endregion Consultas
-
             #region Dados do Atendimento
 
             AtendimentoModel Atendimento = new()
@@ -1230,7 +1209,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             {
                 try
                 {
-                    _context.Atendimento.Add(Atendimento);
+                    await _context.Atendimento.AddAsync(Atendimento, ct);
 
                     GrvModel grv = await _context.Grv
                         .AsTracking()
@@ -1353,7 +1332,8 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 {
                     await transaction.RollbackAsync(ct);
 
-                    ResultView.Mensagem = MensagemViewHelper.SetInternalServerError(MensagemPadraoEnum.ErroOperacaoPadrao);
+                    ResultView.Mensagem =
+                        MensagemViewHelper.SetInternalServerError(MensagemPadraoEnum.ErroOperacaoPadrao);
 
                     return ResultView;
                 }
@@ -1380,11 +1360,6 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 .Where(x => x.AtendimentoId == AtendimentoInput.IdentificadorAtendimento)
                 .AsTracking()
                 .FirstOrDefaultAsync(cancellationToken: ct);
-
-            var permitirEmissao = await _context.FaturamentoRegra
-                .AnyAsync(x =>
-                    x.ClienteId == Atendimento.Grv.ClienteId && x.DepositoId == Atendimento.Grv.DepositoId &&
-                    x.FaturamentoRegraTipoId == 11, cancellationToken: ct);
 
             #endregion Consultas
 
@@ -1426,7 +1401,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                 .Replace("-", "");
             Atendimento.FormaLiberacaoNome = AtendimentoInput.FormaLiberacaoNome.ToUpperTrim();
             Atendimento.FormaLiberacaoPlaca = AtendimentoInput.FormaLiberacaoPlaca.Replace("-", "").ToUpperTrim();
-            if (permitirEmissao)
+            if (Atendimento.Grv.Cliente.FlagEmissaoNotaFiscal == "S")
             {
                 Atendimento.NotaFiscalNome = AtendimentoInput.NotaFiscalNome.ToUpperTrim();
                 Atendimento.NotaFiscalDocumento = AtendimentoInput.NotaFiscalDocumento.Replace(".", "")
@@ -1454,8 +1429,8 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             {
                 try
                 {
-                    CreateFotoResponsavel(Atendimento.AtendimentoId, AtendimentoInput.IdentificadorUsuario,
-                        AtendimentoInput.ResponsavelFoto);
+                    await CreateFotoResponsavel(Atendimento.AtendimentoId, AtendimentoInput.IdentificadorUsuario,
+                        AtendimentoInput.ResponsavelFoto, ct);
 
                     if (AtendimentoInput.IdentificadorTipoMeioCobranca == 12)
                     {
@@ -1479,28 +1454,30 @@ namespace WebZi.Plataform.Data.Services.Atendimento
         }
 
 
-        private void CreateFotoResponsavel(int AtendimentoId, int UsuarioId, byte[] ResponsavelFoto)
+        private async Task CreateFotoResponsavel(int AtendimentoId, int UsuarioId, byte[] ResponsavelFoto,
+            CancellationToken ct)
         {
             if (ResponsavelFoto != null)
             {
-                new BucketService(_context, _httpClientFactory)
-                    .SendFile(BucketNomeTabelaOrigemEnum.AtendimentoFotoResponsavel, AtendimentoId,
-                        UsuarioId, ResponsavelFoto);
+                await new BucketService(_context, _httpClientFactory)
+                    .SendFileAsync(BucketNomeTabelaOrigemEnum.AtendimentoFotoResponsavel, AtendimentoId,
+                        UsuarioId, ResponsavelFoto, ct: ct);
             }
         }
 
-        public void CreateLiberacaoLeilao(CalculoFaturamentoParametroModel ParametrosCalculoFaturamento)
+        public async Task CreateLiberacaoLeilaoAsync(CalculoFaturamentoParametroModel ParametrosCalculoFaturamento,
+            CancellationToken ct)
         {
             if (new[] { "1", "2", "3" }.Contains(ParametrosCalculoFaturamento.StatusOperacaoLeilaoId))
             {
-                _context.LiberacaoLeilao.Add(new()
+                await _context.LiberacaoLeilao.AddAsync(new()
                 {
                     GrvId = ParametrosCalculoFaturamento.GrvId,
 
                     StatusOperacaoLeilaoId = ParametrosCalculoFaturamento.StatusOperacaoLeilaoId,
 
                     UsuarioCadastroId = ParametrosCalculoFaturamento.UsuarioCadastroId
-                });
+                }, ct);
             }
         }
 
@@ -2274,11 +2251,12 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             }
         }
 
-        private void UpdateGrv(CalculoFaturamentoParametroModel ParametrosCalculoFaturamento)
+        private async Task UpdateGrv(CalculoFaturamentoParametroModel ParametrosCalculoFaturamento,
+            CancellationToken ct)
         {
-            GrvModel Grv = _context.Grv
-                .Where(x => x.GrvId == ParametrosCalculoFaturamento.GrvId)
-                .FirstOrDefault();
+            GrvModel Grv = await _context.Grv
+                .AsTracking()
+                .FirstOrDefaultAsync(x => x.GrvId == ParametrosCalculoFaturamento.GrvId, cancellationToken: ct);
 
             Grv.StatusOperacaoId = ParametrosCalculoFaturamento.StatusOperacaoId;
 
@@ -2369,8 +2347,11 @@ namespace WebZi.Plataform.Data.Services.Atendimento
             CalculoFaturamentoParametroModel parametrosCalculo =
                 await MontarParametrosCalculoFaturamentoAsync(payload, dataInicial, dataFinal, ct);
 
-            FaturamentoModel novoFaturamento = _provider.GetService<FaturamentoService>()
-                .Faturar(parametrosCalculo, out _);
+            var faturamentoService = _provider?.GetService<FaturamentoService>()
+                                     ?? new FaturamentoService(_context, _mapper, _httpClientFactory, _provider);
+
+            (FaturamentoModel novoFaturamento, CalculoDiariasModel _) = await faturamentoService
+                .FaturarAsync(parametrosCalculo, ct);
 
             novoFaturamento.UsuarioCadastroId = payload.IdentificadorUsuario;
             novoFaturamento.DataPrazoRetiradaVeiculo = dataFinal;

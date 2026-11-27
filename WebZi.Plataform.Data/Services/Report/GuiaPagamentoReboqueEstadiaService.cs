@@ -234,51 +234,66 @@ namespace WebZi.Plataform.Data.Services.Report
                     _mapper.Map<List<SimulacaoFaturamentoComposicaoDTO>>(Faturamento.ListagemFaturamentoComposicao);
             }
 
-            List<TabelaGenericaModel> ListagemTipoCobranca = await new TabelaGenericaService(_context)
-                .ListAsync("FAT_TIPO_COBRANCA");
-
-            if (GuiaPagamentoEstadiaReboque.ListagemServico != null)
+            if (GuiaPagamentoEstadiaReboque.ListagemServico != null && GuiaPagamentoEstadiaReboque.ListagemServico.Count > 0)
             {
+                var idsServicosTipoVeiculo = GuiaPagamentoEstadiaReboque.ListagemServico
+                    .Select(s => s.IdentificadorFaturamentoServicoTipoVeiculo)
+                    .Where(id => id.HasValue && id.Value > 0)
+                    .Select(id => id.Value)
+                    .Distinct()
+                    .ToList();
+
+                var servicosTipoVeiculoMap = idsServicosTipoVeiculo.Count > 0
+                    ? await _context.FaturamentoServicoTipoVeiculo
+                        .Where(x => idsServicosTipoVeiculo.Contains(x.FaturamentoServicoTipoVeiculoId))
+                        .Select(x => new
+                        {
+                            x.FaturamentoServicoTipoVeiculoId,
+                            x.FaturamentoServicoAssociadoId,
+                            NomeServico = x.FaturamentoServicoAssociado != null ? x.FaturamentoServicoAssociado.Descricao : null,
+                            DataVigenciaInicial = x.FaturamentoServicoAssociado != null ? x.FaturamentoServicoAssociado.DataVigenciaInicial : (DateTime?)null,
+                            DataVigenciaFinal = x.FaturamentoServicoAssociado != null ? x.FaturamentoServicoAssociado.DataVigenciaFinal : null,
+                            FlagServicoObrigatorio = (x.FaturamentoServicoAssociado != null && x.FaturamentoServicoAssociado.FlagServicoObrigatorio == "S") ||
+                                                     (x.FaturamentoServicoAssociado != null && x.FaturamentoServicoAssociado.FaturamentoServicoTipo != null && x.FaturamentoServicoAssociado.FaturamentoServicoTipo.FlagServicoObrigatorio == "S")
+                                                     ? "S" : "N",
+                            ServicoGrv = x.FaturamentoServicosGrvs
+                                .Where(g => g.GrvId == GrvId)
+                                .Select(g => new { g.FaturamentoServicoGrvId, g.TempoTrabalhado })
+                                .FirstOrDefault()
+                        })
+                        .AsNoTracking()
+                        .ToDictionaryAsync(x => x.FaturamentoServicoTipoVeiculoId)
+                    : new();
+
+                List<TabelaGenericaModel> ListagemTipoCobranca = await new TabelaGenericaService(_context)
+                    .ListAsync("FAT_TIPO_COBRANCA");
+
                 foreach (var Servico in GuiaPagamentoEstadiaReboque.ListagemServico)
                 {
-                    var faturamentoServicoTipoVeiculo = await _context.FaturamentoServicoTipoVeiculo
-                        .Include(x => x.FaturamentoServicoAssociado)
-                            .ThenInclude(faturamentoServicoAssociadoModel => faturamentoServicoAssociadoModel.FaturamentoServicoTipo)
-                        .Include(x => x.FaturamentoServicosGrvs)
-                        .AsNoTracking()
-                        .FirstOrDefaultAsync(x => x.FaturamentoServicoTipoVeiculoId == Servico.IdentificadorFaturamentoServicoTipoVeiculo);
+                    if (Servico.IdentificadorFaturamentoServicoTipoVeiculo.HasValue &&
+                        servicosTipoVeiculoMap.TryGetValue(Servico.IdentificadorFaturamentoServicoTipoVeiculo.Value, out var servicoInfo))
+                    {
+                        Servico.IdentificadorServicoGrv = servicoInfo.ServicoGrv?.FaturamentoServicoGrvId;
+                        Servico.TempoTrabalhado = servicoInfo.ServicoGrv?.TempoTrabalhado;
+                        Servico.IdentificadorFaturamentoServicoAssociado = servicoInfo.FaturamentoServicoAssociadoId;
+                        Servico.NomeServico = servicoInfo.NomeServico;
 
-                    var servicoGrv = faturamentoServicoTipoVeiculo?.FaturamentoServicosGrvs
-                        ?.FirstOrDefault(x => x.GrvId == GrvId);
+                        if (servicoInfo.DataVigenciaInicial.HasValue)
+                        {
+                            Servico.DataVigenciaInicial = servicoInfo.DataVigenciaInicial.Value;
+                        }
 
-                    Servico.IdentificadorServicoGrv = servicoGrv?.FaturamentoServicoGrvId;
-                    Servico.TempoTrabalhado = servicoGrv?.TempoTrabalhado;
+                        Servico.DataVigenciaFinal = servicoInfo.DataVigenciaFinal;
+                        Servico.FlagServicoObrigatorio = servicoInfo.FlagServicoObrigatorio;
+                    }
 
                     if (Servico.TipoServico == TipoCobrancaFaturamentoEnum.Horas || Servico.TipoServico == "H")
                     {
                         Servico.QuantidadeServico = null;
                     }
 
-                    Servico.IdentificadorFaturamentoServicoAssociado =
-                        faturamentoServicoTipoVeiculo?.FaturamentoServicoAssociadoId;
-
                     Servico.DescricaoTipoServico = ListagemTipoCobranca
                         ?.FirstOrDefault(x => x.ValorCadastro == Servico.TipoServico)?.Descricao;
-
-                    Servico.NomeServico = faturamentoServicoTipoVeiculo?.FaturamentoServicoAssociado?.Descricao;
-
-                    if (faturamentoServicoTipoVeiculo?.FaturamentoServicoAssociado != null)
-                    {
-                        Servico.DataVigenciaInicial = faturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.DataVigenciaInicial;
-                        Servico.DataVigenciaFinal = faturamentoServicoTipoVeiculo.FaturamentoServicoAssociado.DataVigenciaFinal;
-                    }
-
-                    Servico.FlagServicoObrigatorio =
-                        faturamentoServicoTipoVeiculo?.FaturamentoServicoAssociado?.FlagServicoObrigatorio == "S" ||
-                        faturamentoServicoTipoVeiculo?.FaturamentoServicoAssociado?.FaturamentoServicoTipo
-                            ?.FlagServicoObrigatorio == "S"
-                            ? "S"
-                            : "N";
                 }
             }
 
@@ -538,24 +553,32 @@ namespace WebZi.Plataform.Data.Services.Report
                     string chassiLimpo = (GuiaPagamentoEstadiaReboque.Chassi ?? Grv.Chassi)?.NormalizeChassi();
 
                     var veiculoBd = await _context.DetranRioVeiculo
-                        .Include(x => x.Cor)
-                        .Include(x => x.MarcaModelo)
                         .AsNoTracking()
                         .OrderByDescending(x => x.DetranVeiculoId)
-                        .FirstOrDefaultAsync(x =>
+                        .Where(x =>
                             (!string.IsNullOrWhiteSpace(placaLimpa) && x.Placa == placaLimpa) ||
-                            (string.IsNullOrWhiteSpace(placaLimpa) && !string.IsNullOrWhiteSpace(chassiLimpo) && x.Chassi == chassiLimpo));
+                            (string.IsNullOrWhiteSpace(placaLimpa) && !string.IsNullOrWhiteSpace(chassiLimpo) && x.Chassi == chassiLimpo))
+                        .Select(x => new
+                        {
+                            x.Placa,
+                            x.Chassi,
+                            x.Renavam,
+                            x.DescricaoTipo,
+                            Cor = x.Cor != null ? x.Cor.Cor : null,
+                            MarcaModelo = x.MarcaModelo != null ? x.MarcaModelo.MarcaModelo : null
+                        })
+                        .FirstOrDefaultAsync();
 
                     if (veiculoBd != null)
                     {
-                        if (string.IsNullOrWhiteSpace(GuiaPagamentoEstadiaReboque.Cor) && veiculoBd.Cor != null)
+                        if (string.IsNullOrWhiteSpace(GuiaPagamentoEstadiaReboque.Cor) && !string.IsNullOrWhiteSpace(veiculoBd.Cor))
                         {
-                            GuiaPagamentoEstadiaReboque.Cor = veiculoBd.Cor.Cor;
+                            GuiaPagamentoEstadiaReboque.Cor = veiculoBd.Cor;
                         }
 
-                        if (string.IsNullOrWhiteSpace(GuiaPagamentoEstadiaReboque.MarcaModelo) && veiculoBd.MarcaModelo != null)
+                        if (string.IsNullOrWhiteSpace(GuiaPagamentoEstadiaReboque.MarcaModelo) && !string.IsNullOrWhiteSpace(veiculoBd.MarcaModelo))
                         {
-                            GuiaPagamentoEstadiaReboque.MarcaModelo = veiculoBd.MarcaModelo.MarcaModelo;
+                            GuiaPagamentoEstadiaReboque.MarcaModelo = veiculoBd.MarcaModelo;
                         }
 
                         if (string.IsNullOrWhiteSpace(GuiaPagamentoEstadiaReboque.TipoVeiculo) && !string.IsNullOrWhiteSpace(veiculoBd.DescricaoTipo))
@@ -596,32 +619,32 @@ namespace WebZi.Plataform.Data.Services.Report
             return GuiaPagamentoEstadiaReboque;
         }
 
-        private GuiaPagamentoReboqueEstadiaDTO FillRodape(GuiaPagamentoReboqueEstadiaDTO GuiaPagamentoEstadiaReboque, int UsuarioId)
+        private async Task<GuiaPagamentoReboqueEstadiaDTO> FillRodapeAsync(GuiaPagamentoReboqueEstadiaDTO GuiaPagamentoEstadiaReboque, int UsuarioId)
         {
-            UsuarioModel Usuario = _context.Usuario
-                .Include(x => x.Pessoa)
+            var usuario = await _context.Usuario
+                .Where(x => x.UsuarioId == UsuarioId)
+                .Select(x => new
+                {
+                    Nome = x.Pessoa != null ? x.Pessoa.Nome : null,
+                    NomeMeio = x.Pessoa != null ? x.Pessoa.NomeMeio : null,
+                    Sobrenome = x.Pessoa != null ? x.Pessoa.Sobrenome : null,
+                    x.Login
+                })
                 .AsNoTracking()
-                .FirstOrDefault(x => x.UsuarioId == UsuarioId);
+                .FirstOrDefaultAsync();
 
             string nomeCompleto = string.Empty;
 
-            if (Usuario?.Pessoa != null)
+            if (usuario != null)
             {
-                StringBuilder sbNome = new();
+                var partes = new[] { usuario.Nome, usuario.NomeMeio, usuario.Sobrenome }
+                    .Where(p => !string.IsNullOrWhiteSpace(p));
+                nomeCompleto = string.Join(" ", partes);
 
-                sbNome.Append(Usuario.Pessoa.Nome);
-
-                if (!string.IsNullOrWhiteSpace(Usuario.Pessoa.NomeMeio))
+                if (string.IsNullOrWhiteSpace(nomeCompleto))
                 {
-                    sbNome.Append(" " + Usuario.Pessoa.NomeMeio);
+                    nomeCompleto = usuario.Login ?? string.Empty;
                 }
-
-                if (!string.IsNullOrWhiteSpace(Usuario.Pessoa.Sobrenome))
-                {
-                    sbNome.Append(" " + Usuario.Pessoa.Sobrenome);
-                }
-
-                nomeCompleto = sbNome.ToString();
             }
 
             DateTime dataHora = GuiaPagamentoEstadiaReboque.DataHoraAtualDateTime != default
@@ -762,7 +785,7 @@ namespace WebZi.Plataform.Data.Services.Report
             GuiaPagamentoEstadiaReboque = await FillComposicaoFaturamentoAsync(GuiaPagamentoEstadiaReboque, Faturamento, Grv.GrvId);
 
             // RODAPÉ
-            GuiaPagamentoEstadiaReboque = FillRodape(GuiaPagamentoEstadiaReboque, UsuarioId);
+            GuiaPagamentoEstadiaReboque = await FillRodapeAsync(GuiaPagamentoEstadiaReboque, UsuarioId);
 
             // LOGOMARCA
             if (Grv.ClienteId > 0)
@@ -955,7 +978,7 @@ namespace WebZi.Plataform.Data.Services.Report
             GuiaPagamentoEstadiaReboque = await FillComposicaoFaturamentoAsync(GuiaPagamentoEstadiaReboque, Faturamento, Grv.GrvId);
 
             // RODAPÉ
-            GuiaPagamentoEstadiaReboque = FillRodape(GuiaPagamentoEstadiaReboque, UsuarioId);
+            GuiaPagamentoEstadiaReboque = await FillRodapeAsync(GuiaPagamentoEstadiaReboque, UsuarioId);
 
             // LOGOMARCA
             if (Grv.ClienteId > 0)

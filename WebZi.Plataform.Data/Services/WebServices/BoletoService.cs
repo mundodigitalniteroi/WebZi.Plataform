@@ -320,19 +320,19 @@ namespace WebZi.Plataform.Data.Services.WebServices
 
                 numeroDocumento = ViewBoleto.NumeroDocumento,
 
-                sacado_bairro = ViewBoleto.SacadoBairro,
+                sacado_bairro = StringHelper.Normalize(ViewBoleto.SacadoBairro),
 
-                sacado_cep = ViewBoleto.SacadoCEP,
+                sacado_cep = StringHelper.Normalize(ViewBoleto.SacadoCEP),
 
-                sacado_cidade = ViewBoleto.SacadoCidade,
+                sacado_cidade = StringHelper.Normalize(ViewBoleto.SacadoCidade),
 
                 sacado_cpfCnpj = ViewBoleto.SacadoDocumento.Trim(),
 
-                sacado_endereco = ViewBoleto.SacadoEndereco,
+                sacado_endereco = StringHelper.Normalize(ViewBoleto.SacadoEndereco),
 
                 sacado_nome = StringHelper.Normalize(ViewBoleto.SacadoNome ?? string.Empty),
 
-                sacado_uf = ViewBoleto.SacadoUF,
+                sacado_uf = StringHelper.Normalize(ViewBoleto.SacadoUF),
 
                 valor_boleto = ViewBoleto.ValorBoleto,
 

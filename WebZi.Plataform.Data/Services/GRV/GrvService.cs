@@ -573,37 +573,37 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (GrvPersistencia.ListagemFoto?.Count > 0)
             {
-                new BucketService(_context, _httpClientFactory)
-                    .SendFiles(BucketNomeTabelaOrigemEnum.FotoVeiculoGRV, grv.GrvId, grv.UsuarioCadastroId,
-                        GrvPersistencia.ListagemFoto);
+                await new BucketService(_context, _httpClientFactory)
+                    .SendFilesAsync(BucketNomeTabelaOrigemEnum.FotoVeiculoGRV, grv.GrvId, grv.UsuarioCadastroId,
+                        GrvPersistencia.ListagemFoto, ct: ct);
             }
 
             if (GrvPersistencia.DRFA?.ArquivoDoRegistroDoRouboFurto is not null)
             {
-                new BucketService(_context, _httpClientFactory)
-                    .SendFile(BucketNomeTabelaOrigemEnum.DRFAArquivoDeRouboFurto, grv.GrvId, grv.UsuarioCadastroId,
-                        GrvPersistencia.DRFA?.ArquivoDoRegistroDoRouboFurto);
+                await new BucketService(_context, _httpClientFactory)
+                    .SendFileAsync(BucketNomeTabelaOrigemEnum.DRFAArquivoDeRouboFurto, grv.GrvId, grv.UsuarioCadastroId,
+                        GrvPersistencia.DRFA?.ArquivoDoRegistroDoRouboFurto, ct: ct);
             }
 
             if (GrvPersistencia.DRFA?.RegistroRecuperacao?.ArquivoDeRecuperacao is not null)
             {
-                new BucketService(_context, _httpClientFactory)
-                    .SendFile(BucketNomeTabelaOrigemEnum.DRFAArquivoRegistroRecuperacao, grv.GrvId,
-                        grv.UsuarioCadastroId, GrvPersistencia.DRFA.RegistroRecuperacao.ArquivoDeRecuperacao);
+                await new BucketService(_context, _httpClientFactory)
+                    .SendFileAsync(BucketNomeTabelaOrigemEnum.DRFAArquivoRegistroRecuperacao, grv.GrvId,
+                        grv.UsuarioCadastroId, GrvPersistencia.DRFA.RegistroRecuperacao.ArquivoDeRecuperacao, ct: ct);
             }
 
             if (GrvPersistencia.ImagemAssinaturaAgente != null)
             {
-                new BucketService(_context, _httpClientFactory)
-                    .SendFile(BucketNomeTabelaOrigemEnum.AssinaturaAgente, grv.GrvId, grv.UsuarioCadastroId,
-                        GrvPersistencia.ImagemAssinaturaAgente);
+                await new BucketService(_context, _httpClientFactory)
+                    .SendFileAsync(BucketNomeTabelaOrigemEnum.AssinaturaAgente, grv.GrvId, grv.UsuarioCadastroId,
+                        GrvPersistencia.ImagemAssinaturaAgente, ct: ct);
             }
 
             if (GrvPersistencia.ImagemAssinaturaCondutor != null)
             {
-                new BucketService(_context, _httpClientFactory)
-                    .SendFile(BucketNomeTabelaOrigemEnum.AssinaturaCondutor, grv.GrvId, grv.UsuarioCadastroId,
-                        GrvPersistencia.ImagemAssinaturaCondutor);
+                await new BucketService(_context, _httpClientFactory)
+                    .SendFileAsync(BucketNomeTabelaOrigemEnum.AssinaturaCondutor, grv.GrvId, grv.UsuarioCadastroId,
+                        GrvPersistencia.ImagemAssinaturaCondutor, ct: ct);
             }
 
             ResultView = MensagemViewHelper.SetUpdateSuccess();
@@ -949,37 +949,37 @@ namespace WebZi.Plataform.Domain.Services.GRV
 
             if (GrvPersistencia.ListagemFoto?.Count > 0)
             {
-                new BucketService(_context, _httpClientFactory)
-                    .SendFiles(BucketNomeTabelaOrigemEnum.FotoVeiculoGRV, grv.GrvId, grv.UsuarioCadastroId,
-                        GrvPersistencia.ListagemFoto);
+                await new BucketService(_context, _httpClientFactory)
+                    .SendFilesAsync(BucketNomeTabelaOrigemEnum.FotoVeiculoGRV, grv.GrvId, grv.UsuarioCadastroId,
+                        GrvPersistencia.ListagemFoto, ct: ct);
             }
 
             if (GrvPersistencia.DRFA?.ArquivoDoRegistroDoRouboFurto is not null)
             {
-                new BucketService(_context, _httpClientFactory)
-                    .SendFile(BucketNomeTabelaOrigemEnum.DRFAArquivoDeRouboFurto, grv.GrvId, grv.UsuarioCadastroId,
-                        GrvPersistencia.DRFA?.ArquivoDoRegistroDoRouboFurto);
+                await new BucketService(_context, _httpClientFactory)
+                    .SendFileAsync(BucketNomeTabelaOrigemEnum.DRFAArquivoDeRouboFurto, grv.GrvId, grv.UsuarioCadastroId,
+                        GrvPersistencia.DRFA?.ArquivoDoRegistroDoRouboFurto, ct: ct);
             }
 
             if (GrvPersistencia.DRFA?.RegistroRecuperacao?.ArquivoDeRecuperacao is not null)
             {
-                new BucketService(_context, _httpClientFactory)
-                    .SendFile(BucketNomeTabelaOrigemEnum.DRFAArquivoRegistroRecuperacao, grv.GrvId,
-                        grv.UsuarioCadastroId, GrvPersistencia.DRFA.RegistroRecuperacao.ArquivoDeRecuperacao);
+                await new BucketService(_context, _httpClientFactory)
+                    .SendFileAsync(BucketNomeTabelaOrigemEnum.DRFAArquivoRegistroRecuperacao, grv.GrvId,
+                        grv.UsuarioCadastroId, GrvPersistencia.DRFA.RegistroRecuperacao.ArquivoDeRecuperacao, ct: ct);
             }
 
             if (GrvPersistencia.ImagemAssinaturaAgente != null)
             {
-                new BucketService(_context, _httpClientFactory)
-                    .SendFile(BucketNomeTabelaOrigemEnum.AssinaturaAgente, grv.GrvId, grv.UsuarioCadastroId,
-                        GrvPersistencia.ImagemAssinaturaAgente);
+                await new BucketService(_context, _httpClientFactory)
+                    .SendFileAsync(BucketNomeTabelaOrigemEnum.AssinaturaAgente, grv.GrvId, grv.UsuarioCadastroId,
+                        GrvPersistencia.ImagemAssinaturaAgente, ct: ct);
             }
 
             if (GrvPersistencia.ImagemAssinaturaCondutor != null)
             {
-                new BucketService(_context, _httpClientFactory)
-                    .SendFile(BucketNomeTabelaOrigemEnum.AssinaturaCondutor, grv.GrvId, grv.UsuarioCadastroId,
-                        GrvPersistencia.ImagemAssinaturaCondutor);
+                await new BucketService(_context, _httpClientFactory)
+                    .SendFileAsync(BucketNomeTabelaOrigemEnum.AssinaturaCondutor, grv.GrvId, grv.UsuarioCadastroId,
+                        GrvPersistencia.ImagemAssinaturaCondutor, ct: ct);
             }
 
             ResultView.Mensagem = MensagemViewHelper.SetCreateSuccess();
@@ -2972,6 +2972,11 @@ namespace WebZi.Plataform.Domain.Services.GRV
             }
             else if (MotivoApreensao.FlagDefault == "S")
             {
+                List<IGrouping<string, string>> NumeroInfracao = GrvPersistencia.ListagemEnquadramentoInfracao
+                    .Where(x => string.IsNullOrWhiteSpace(x.NumeroInfracao.Trim()))
+                    .Select(x => x.NumeroInfracao.Trim())
+                    .GroupBy(x => x)
+                    .ToList();
                 if (GrvPersistencia?.ListagemEnquadramentoInfracao.Count == 0)
                 {
                     ResultView.AvisosImpeditivos.Add("Informe o Enquadramento da Infração");
@@ -3010,27 +3015,9 @@ namespace WebZi.Plataform.Domain.Services.GRV
                         }
                     }
 
-                    List<IGrouping<string, string>> NumeroInfracao = GrvPersistencia.ListagemEnquadramentoInfracao
-                        .Where(x => string.IsNullOrWhiteSpace(x.NumeroInfracao.Trim()))
-                        .Select(x => x.NumeroInfracao.Trim())
-                        .GroupBy(x => x)
-                        .ToList();
-
                     if (NumeroInfracao.Count >= 1)
                     {
                         ResultView.AvisosImpeditivos.Add("Existem Número da Infração não informados");
-                    }
-
-                    NumeroInfracao = GrvPersistencia.ListagemEnquadramentoInfracao
-                        .Where(x => !string.IsNullOrWhiteSpace(x.NumeroInfracao.Trim()))
-                        .Select(x => x.NumeroInfracao.Trim())
-                        .GroupBy(x => x)
-                        .Where(x => x.Count() > 1)
-                        .ToList();
-
-                    if (NumeroInfracao.Count >= 1)
-                    {
-                        ResultView.AvisosImpeditivos.Add("Existem Número da Infração duplicados");
                     }
                 }
             }

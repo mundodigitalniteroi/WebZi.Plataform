@@ -408,10 +408,17 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                 ? Grv.Chassi
                 : GuiaPagamentoReboqueEstadia?.Chassi;
 
-            DetranRioVeiculoDTO veiculoConsultado =
-                await ObterVeiculoPorPlacaOuChassiAsync(placaParaConsulta, chassiParaConsulta);
+            DetranRioVeiculoDTO veiculoConsultado = null;
+            if (GuiaPagamentoReboqueEstadia == null ||
+                string.IsNullOrWhiteSpace(GuiaPagamentoReboqueEstadia.TipoVeiculo) ||
+                string.IsNullOrWhiteSpace(GuiaPagamentoReboqueEstadia.MarcaModelo) ||
+                string.IsNullOrWhiteSpace(GuiaPagamentoReboqueEstadia.Cor))
+            {
+                veiculoConsultado = await ObterVeiculoPorPlacaOuChassiAsync(placaParaConsulta, chassiParaConsulta);
+            }
 
             string veiculoTipoDescricao = veiculoConsultado?.TipoVeiculo?.Descricao
+                                          ?? GuiaPagamentoReboqueEstadia?.TipoVeiculo
                                           ?? Grv.TipoVeiculo?.Descricao
                                           ?? string.Empty;
 
@@ -614,54 +621,77 @@ namespace WebZi.Plataform.Data.Services.Liberacao
                 UsuarioId
             };
 
-            foreach (int? idCand in candidatosUsuarioId)
+            var idsCandidatosValidos = candidatosUsuarioId
+                .Where(id => id.HasValue && id.Value > 0)
+                .Select(id => id.Value)
+                .Distinct()
+                .ToList();
+
+            if (idsCandidatosValidos.Count > 0)
             {
-                if (!idCand.HasValue || idCand.Value <= 0)
-                {
-                    continue;
-                }
-
-                ViewUsuarioModel usuarioView = await _context.ViewUsuario
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(x => x.UsuarioId == idCand.Value);
-
-                if (usuarioView != null && !string.IsNullOrWhiteSpace(usuarioView.NomeCompleto))
-                {
-                    ResultView.UsuarioNome = usuarioView.NomeCompleto.Trim();
-                    ResultView.UsuarioMatricula = usuarioView.Matricula ?? string.Empty;
-                    break;
-                }
-
-                UsuarioModel usuarioModel = await _context.Usuario
-                    .Include(x => x.Pessoa)
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(x => x.UsuarioId == idCand.Value);
-
-                if (usuarioModel != null)
-                {
-                    string nomeMontado = string.Empty;
-                    if (usuarioModel.Pessoa != null)
+                var usuariosViewMap = await _context.ViewUsuario
+                    .Where(x => idsCandidatosValidos.Contains(x.UsuarioId))
+                    .Select(x => new
                     {
-                        nomeMontado = string.Join(" ", new[]
+                        x.UsuarioId,
+                        NomeCompleto = x.NomeCompleto != null ? x.NomeCompleto.Trim() : null,
+                        x.Matricula
+                    })
+                    .AsNoTracking()
+                    .ToDictionaryAsync(x => x.UsuarioId);
+
+                var usuariosModelMap = await _context.Usuario
+                    .Where(x => idsCandidatosValidos.Contains(x.UsuarioId))
+                    .Select(x => new
+                    {
+                        x.UsuarioId,
+                        x.Matricula,
+                        x.Login,
+                        NomePessoa = x.Pessoa != null ? x.Pessoa.Nome : null,
+                        NomeMeioPessoa = x.Pessoa != null ? x.Pessoa.NomeMeio : null,
+                        SobrenomePessoa = x.Pessoa != null ? x.Pessoa.Sobrenome : null
+                    })
+                    .AsNoTracking()
+                    .ToDictionaryAsync(x => x.UsuarioId);
+
+                foreach (int? idCand in candidatosUsuarioId)
+                {
+                    if (!idCand.HasValue || idCand.Value <= 0)
+                    {
+                        continue;
+                    }
+
+                    int id = idCand.Value;
+
+                    if (usuariosViewMap.TryGetValue(id, out var uv) && !string.IsNullOrWhiteSpace(uv.NomeCompleto))
+                    {
+                        ResultView.UsuarioNome = uv.NomeCompleto;
+                        ResultView.UsuarioMatricula = uv.Matricula ?? string.Empty;
+                        break;
+                    }
+
+                    if (usuariosModelMap.TryGetValue(id, out var um))
+                    {
+                        string nomeMontado = string.Join(" ", new[]
                         {
-                            usuarioModel.Pessoa.Nome,
-                            usuarioModel.Pessoa.NomeMeio,
-                            usuarioModel.Pessoa.Sobrenome
+                            um.NomePessoa,
+                            um.NomeMeioPessoa,
+                            um.SobrenomePessoa
                         }.Where(p => !string.IsNullOrWhiteSpace(p))).Trim();
-                    }
 
-                    if (!string.IsNullOrWhiteSpace(nomeMontado))
-                    {
-                        ResultView.UsuarioNome = nomeMontado;
-                        ResultView.UsuarioMatricula = usuarioModel.Matricula ?? string.Empty;
-                        break;
-                    }
+                        if (!string.IsNullOrWhiteSpace(nomeMontado))
+                        {
+                            ResultView.UsuarioNome = nomeMontado;
+                            ResultView.UsuarioMatricula = um.Matricula ?? string.Empty;
+                            break;
+                        }
 
-                    if (!string.IsNullOrWhiteSpace(usuarioModel.Login))
-                    {
-                        ResultView.UsuarioNome = usuarioModel.Login;
-                        ResultView.UsuarioMatricula = usuarioModel.Matricula ?? string.Empty;
-                        break;
+                        if (!string.IsNullOrWhiteSpace(um.Login))
+                        {
+                            ResultView.UsuarioNome = um.Login;
+                            ResultView.UsuarioMatricula = um.Matricula ?? string.Empty;
+                            break;
+                        }
                     }
                 }
             }
@@ -737,7 +767,11 @@ namespace WebZi.Plataform.Data.Services.Liberacao
             #endregion FORMA DE LIBERAÇÃO
 
             // LOGOMARCA
-            if (Grv.ClienteId > 0)
+            if (!string.IsNullOrWhiteSpace(GuiaPagamentoReboqueEstadia?.Logo))
+            {
+                ResultView.Logo = GuiaPagamentoReboqueEstadia.Logo;
+            }
+            else if (Grv.ClienteId > 0)
             {
                 ImageListDTO Listagem = await new ClienteService(_context, _mapper, _httpClientFactory)
                     .GetLogomarcaAsync(Grv.ClienteId);
