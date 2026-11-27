@@ -285,7 +285,20 @@ namespace WebZi.Plataform.Data.Services.WebServices
 
                 return ResultView;
             }
+            
+            BoletoModel ultimoBoleto = await _context.FaturamentoBoleto
+                .AsNoTracking()
+                .Where(x => x.FaturamentoId == FaturamentoId)
+                .OrderByDescending(x => x.FaturamentoBoletoId)
+                .FirstOrDefaultAsync(ct);
 
+            if (ultimoBoleto != null && ultimoBoleto.Status != "N" && ultimoBoleto.Status != "C")
+            {
+                ResultView.Mensagem = MensagemViewHelper.SetBadRequest("Não é possível emitir um novo boleto pois o último boleto gerado já consta como pago ou não está com status permitido.");
+
+                return ResultView;
+            }
+            
             ViewFaturamentoBoletoModel ViewBoleto = await _context.ViewFaturamentoBoleto
                 .FirstOrDefaultAsync(x => x.FaturamentoId == Faturamento.FaturamentoId, ct);
 
