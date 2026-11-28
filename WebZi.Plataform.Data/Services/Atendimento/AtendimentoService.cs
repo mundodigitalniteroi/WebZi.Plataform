@@ -1540,20 +1540,23 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                     .AsNoTracking()
                     .FirstOrDefaultAsync(x => x.ClienteId == Grv.ClienteId && x.DepositoId == Grv.DepositoId),
 
-                FaturamentoDescontos = descontoParameters?.Select(x => new CalculoFaturamentoDescontoModel
-                {
-                    FaturamentoServicoTipoVeiculoId = x.FaturamentoServicoTipoVeiculoId,
-                    TipoComposicao = x.TipoComposicao,
-                    FaturamentoTipoComposicaoId = x.FaturamentoTipoComposicaoId,
-                    UsuarioDescontoId = x.UsuarioDescontoId,
-                    TipoDesconto = x.TipoDesconto,
-                    QuantidadeDesconto = x.QuantidadeDesconto,
-                    ValorDesconto = x.ValorDesconto,
-                    ObservacaoDesconto = x.ObservacaoDesconto
-                }).ToList(),
+                FaturamentoDescontos = descontoParameters?
+                    .Where(x => !string.IsNullOrWhiteSpace(x.TipoDesconto) &&
+                                (x.ValorDesconto > 0 || x.QuantidadeDesconto > 0))
+                    .Select(x => new CalculoFaturamentoDescontoModel
+                    {
+                        FaturamentoServicoTipoVeiculoId = x.FaturamentoServicoTipoVeiculoId,
+                        TipoComposicao = x.TipoComposicao,
+                        FaturamentoTipoComposicaoId = x.FaturamentoTipoComposicaoId,
+                        UsuarioDescontoId = x.UsuarioDescontoId,
+                        TipoDesconto = x.TipoDesconto,
+                        QuantidadeDesconto = x.QuantidadeDesconto,
+                        ValorDesconto = x.ValorDesconto,
+                        ObservacaoDesconto = x.ObservacaoDesconto
+                    }).ToList(),
 
                 FaturamentoQuantidadesAlteradas = descontoParameters?
-                    .Where(x => x.QuantidadeAjuste != 0)
+                    .Where(x => x.QuantidadeAjuste.HasValue)
                     .Select(x => new CalculoFaturamentoQuantidadeAlteradaModel
                     {
                         FaturamentoServicoTipoVeiculoId = x.FaturamentoServicoTipoVeiculoId,
@@ -1562,6 +1565,7 @@ namespace WebZi.Plataform.Data.Services.Atendimento
                         UsuarioAlteracaoQuantidadeId = x.UsuarioDescontoId,
                         QuantidadeAjuste = x.QuantidadeAjuste,
                         QuantidadeAlterada = 0,
+                        ObservacaoQuantidadeAlterada = x.ObservacaoDesconto
                     }).ToList()
             };
 

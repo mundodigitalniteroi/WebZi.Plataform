@@ -104,8 +104,8 @@ namespace WebZi.Plataform.Data.Services.Faturamento
 
                     if (FaturamentoComposicao.TipoDesconto == TipoDescontoFaturamentoEnum.Valor)
                     {
-                        FaturamentoComposicao.ValorFaturado =
-                            Math.Round(FaturamentoComposicao.ValorComposicao - FaturamentoDesconto.ValorDesconto, 2);
+                        decimal valorCalculado = Math.Round(FaturamentoComposicao.ValorComposicao - FaturamentoDesconto.ValorDesconto, 2);
+                        FaturamentoComposicao.ValorFaturado = valorCalculado < 0 ? 0 : valorCalculado;
                     }
                     else
                     {
@@ -123,7 +123,15 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             FaturamentoComposicaoModel FaturamentoComposicao,
             CalculoFaturamentoQuantidadeAlteradaModel FaturamentoQuantidadeAlterada, int quantidadeCalculada)
         {
-            int quantidadeAjuste = FaturamentoQuantidadeAlterada.QuantidadeAjuste ?? 0;
+            if (!FaturamentoQuantidadeAlterada.QuantidadeAjuste.HasValue)
+            {
+                return FaturamentoComposicao;
+            }
+
+            int quantidadeAjusteInformado = FaturamentoQuantidadeAlterada.QuantidadeAjuste.Value;
+            int quantidadeAjuste = quantidadeAjusteInformado == 0
+                ? -quantidadeCalculada
+                : quantidadeAjusteInformado;
 
             if (quantidadeAjuste < 0)
             {
@@ -848,16 +856,14 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                                 if (FaturamentoQuantidadeAlterada != null)
                                 {
                                     int quantidadeCalculada = CalculoDiarias.Diarias;
-                                    int quantidadeAjuste = FaturamentoQuantidadeAlterada.QuantidadeAjuste ?? 0;
-                                    CalculoDiarias.Diarias = quantidadeCalculada + quantidadeAjuste;
-                                    if (CalculoDiarias.Diarias <= 0)
-                                    {
-                                        throw new ArgumentException(
-                                            $"A quantidade final não pode ser zero ou negativa. Quantidade calculada: {quantidadeCalculada}, Ajuste: {quantidadeAjuste}");
-                                    }
-
                                     FaturamentoComposicao = AplicarQuantidadeAlterada(FaturamentoComposicao,
                                         FaturamentoQuantidadeAlterada, quantidadeCalculada);
+                                    CalculoDiarias.Diarias = quantidadeCalculada + Convert.ToInt32(FaturamentoComposicao.QuantidadeAlterada);
+                                    if (CalculoDiarias.Diarias < 0)
+                                    {
+                                        throw new ArgumentException(
+                                            $"A quantidade final não pode ser negativa. Quantidade calculada: {quantidadeCalculada}, Ajuste: {FaturamentoComposicao.QuantidadeAlterada}");
+                                    }
                                 }
 
                                 FaturamentoComposicao.QuantidadeComposicao = CalculoDiarias.Diarias;
@@ -967,6 +973,16 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 }
                 else if (FaturamentoServicoGrv.TipoCobranca == TipoCobrancaFaturamentoEnum.Quantidade)
                 {
+                    FaturamentoQuantidadeAlterada = null;
+
+                    if (ParametrosCalculoFaturamento.FlagFaturamentoCompleto &&
+                        ParametrosCalculoFaturamento.FaturamentoQuantidadesAlteradas?.Count > 0)
+                    {
+                        FaturamentoQuantidadeAlterada = ParametrosCalculoFaturamento.FaturamentoQuantidadesAlteradas
+                            .Find(w => w.FaturamentoServicoTipoVeiculoId ==
+                                       FaturamentoServicoGrv.FaturamentoServicoTipoVeiculoId);
+                    }
+
                     if (FaturamentoServicoGrv.FlagRebocada == "S")
                     {
                         FaturamentoComposicao.QuantidadeComposicao = 1;
@@ -993,19 +1009,21 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     {
                         FaturamentoComposicao.QuantidadeComposicao =
                             FaturamentoServicoGrv.QuantidadeDesconto.HasValue &&
-                            FaturamentoServicoGrv.QuantidadeDesconto.Value > 0
+                            FaturamentoServicoGrv.QuantidadeDesconto.Value >= 0
                                 ? FaturamentoServicoGrv.QuantidadeDesconto.Value
                                 : (FaturamentoServicoGrv.Valor.HasValue
                                     ? Math.Round(FaturamentoServicoGrv.Valor.Value, 2)
                                     : 1);
                     }
 
-                    if (FaturamentoComposicao.QuantidadeComposicao == 0)
+                    if (FaturamentoQuantidadeAlterada != null)
                     {
-                        string nomeServico = ObterNomeServicoGrv(FaturamentoServicoGrv);
-                        servicosDesconsiderados.Add(
-                            $"'{nomeServico}' (Tipo ID {FaturamentoServicoGrv.FaturamentoServicoTipoId}): Quantidade da composição calculada resultou em zero");
-                        continue;
+                        int quantidadeCalculada = Convert.ToInt32(FaturamentoComposicao.QuantidadeComposicao ?? 0);
+
+                        FaturamentoComposicao = AplicarQuantidadeAlterada(FaturamentoComposicao,
+                            FaturamentoQuantidadeAlterada, quantidadeCalculada);
+
+                        FaturamentoComposicao.QuantidadeComposicao = quantidadeCalculada + Convert.ToInt32(FaturamentoComposicao.QuantidadeAlterada);
                     }
 
                     FaturamentoComposicao.ValorComposicao = Math.Round(
@@ -1476,16 +1494,14 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                                 if (FaturamentoQuantidadeAlterada != null)
                                 {
                                     int quantidadeCalculada = CalculoDiarias.Diarias;
-                                    int quantidadeAjuste = FaturamentoQuantidadeAlterada.QuantidadeAjuste ?? 0;
-                                    CalculoDiarias.Diarias = quantidadeCalculada + quantidadeAjuste;
-                                    if (CalculoDiarias.Diarias <= 0)
-                                    {
-                                        throw new ArgumentException(
-                                            $"A quantidade final não pode ser zero ou negativa. Quantidade calculada: {quantidadeCalculada}, Ajuste: {quantidadeAjuste}");
-                                    }
-
                                     FaturamentoComposicao = AplicarQuantidadeAlterada(FaturamentoComposicao,
                                         FaturamentoQuantidadeAlterada, quantidadeCalculada);
+                                    CalculoDiarias.Diarias = quantidadeCalculada + Convert.ToInt32(FaturamentoComposicao.QuantidadeAlterada);
+                                    if (CalculoDiarias.Diarias < 0)
+                                    {
+                                        throw new ArgumentException(
+                                            $"A quantidade final não pode ser negativa. Quantidade calculada: {quantidadeCalculada}, Ajuste: {FaturamentoComposicao.QuantidadeAlterada}");
+                                    }
                                 }
 
                                 FaturamentoComposicao.QuantidadeComposicao = CalculoDiarias.Diarias;
@@ -1599,6 +1615,16 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 }
                 else if (FaturamentoServicoGrv.TipoCobranca == TipoCobrancaFaturamentoEnum.Quantidade)
                 {
+                    FaturamentoQuantidadeAlterada = null;
+
+                    if (ParametrosCalculoFaturamento.FlagFaturamentoCompleto &&
+                        ParametrosCalculoFaturamento.FaturamentoQuantidadesAlteradas?.Count > 0)
+                    {
+                        FaturamentoQuantidadeAlterada = ParametrosCalculoFaturamento.FaturamentoQuantidadesAlteradas
+                            .Find(w => w.FaturamentoServicoTipoVeiculoId ==
+                                       FaturamentoServicoGrv.FaturamentoServicoTipoVeiculoId);
+                    }
+
                     if (FaturamentoServicoGrv.FlagRebocada == "S")
                     {
                         FaturamentoComposicao.QuantidadeComposicao = 1;
@@ -1625,19 +1651,21 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                     {
                         FaturamentoComposicao.QuantidadeComposicao =
                             FaturamentoServicoGrv.QuantidadeDesconto.HasValue &&
-                            FaturamentoServicoGrv.QuantidadeDesconto.Value > 0
+                            FaturamentoServicoGrv.QuantidadeDesconto.Value >= 0
                                 ? FaturamentoServicoGrv.QuantidadeDesconto.Value
                                 : (FaturamentoServicoGrv.Valor.HasValue
                                     ? Math.Round(FaturamentoServicoGrv.Valor.Value, 2)
                                     : 1);
                     }
 
-                    if (FaturamentoComposicao.QuantidadeComposicao == 0)
+                    if (FaturamentoQuantidadeAlterada != null)
                     {
-                        string nomeServico = ObterNomeServicoGrv(FaturamentoServicoGrv);
-                        servicosDesconsiderados.Add(
-                            $"'{nomeServico}': Quantidade da composição calculada resultou em zero");
-                        continue;
+                        int quantidadeCalculada = Convert.ToInt32(FaturamentoComposicao.QuantidadeComposicao ?? 0);
+
+                        FaturamentoComposicao = AplicarQuantidadeAlterada(FaturamentoComposicao,
+                            FaturamentoQuantidadeAlterada, quantidadeCalculada);
+
+                        FaturamentoComposicao.QuantidadeComposicao = quantidadeCalculada + Convert.ToInt32(FaturamentoComposicao.QuantidadeAlterada);
                     }
 
                     FaturamentoComposicao.ValorComposicao = Math.Round(
