@@ -1910,6 +1910,7 @@ namespace WebZi.Plataform.Data.Services.GGV
                 TipoVeiculo = grv.TipoVeiculo?.Descricao ?? string.Empty,
                 DataEntrada = grv.DataHoraGuarda!.Value,
                 Placa = grv.Placa ?? string.Empty,
+                Chassi = grv.Chassi ?? string.Empty,
                 Uf = grv.VeiculoUF ?? string.Empty,
                 MarcaModelo = grv.MarcaModelo?.MarcaModelo ?? string.Empty,
                 NumeroProcesso = grv.NumeroFormularioGrv ?? string.Empty,

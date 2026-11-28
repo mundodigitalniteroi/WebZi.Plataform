@@ -9,6 +9,10 @@ public sealed class EntradaPatioParameters
     [JsonPropertyName("placa")]
     public string Placa { get; set; }
 
+    [JsonProperty("num_chassi")]
+    [JsonPropertyName("num_chassi")]
+    public string Chassi { get; set; }
+
     [JsonProperty("marca_modelo")]
     [JsonPropertyName("marca_modelo")]
     public string MarcaModelo { get; set; }
@@ -40,8 +44,8 @@ public sealed class EntradaPatioParameters
     [JsonProperty("codigo_motivo")]
     [JsonPropertyName("codigo_motivo")]
     public string MotivoApreensao { get; set; }
+
     [JsonProperty("cod_infracao")]
     [JsonPropertyName("cod_infracao")]
     public string? CodigoInfracao { get; set; }
-
 }
