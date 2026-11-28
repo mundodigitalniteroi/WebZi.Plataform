@@ -483,14 +483,10 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 return false;
             }
             else if (ParametrosCalculoFaturamento.IsComboio &&
-                     (FaturamentoServicoGrv.FlagRebocada == "S" ||
-                      FaturamentoServicoGrv.FlagNaoCobrarSeNaoUsouReboque == "S"))
+                     FaturamentoServicoGrv.FlagRebocada == "S")
             {
-                string flagCausa = FaturamentoServicoGrv.FlagNaoCobrarSeNaoUsouReboque == "S"
-                    ? "FlagNaoCobrarSeNaoUsouReboque = 'S'"
-                    : "FlagRebocada = 'S'";
                 motivoNaoCalculo =
-                    $"Serviço não é cobrado quando o veículo não utiliza reboque / entrada no depósito em comboio ({flagCausa})";
+                    "Serviço não é cobrado quando o veículo não utiliza reboque / entrada no depósito em comboio";
                 return false;
             }
             else if (FaturamentoServicoGrv.FaturamentoRegraTipoCodigo != null &&
@@ -563,7 +559,7 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 .FirstOrDefaultAsync(ct);
 
             return !string.IsNullOrWhiteSpace(nomeTipoVeiculo)
-                ? $"{nomeTipoVeiculo.Trim()} (ID {tipoVeiculoId})"
+                ? $"{nomeTipoVeiculo.Trim()}"
                 : "";
         }
 
@@ -594,7 +590,6 @@ namespace WebZi.Plataform.Data.Services.Faturamento
                 ParametrosCalculoFaturamento.DataHoraFinalParaCalculo =
                     ParametrosCalculoFaturamento.DataHoraPorDeposito;
             }
-
             #region Selecionar o Atendimento
 
             AtendimentoModel Atendimento = null;
@@ -2221,7 +2216,9 @@ namespace WebZi.Plataform.Data.Services.Faturamento
             if (ResultView.Listagem.Count == 0)
             {
                 var grv = await _context.Grv.AsNoTracking().FirstOrDefaultAsync(x => x.GrvId == GrvId, ct);
-                string tipoVeiculo = grv != null ? await ObterDescricaoTipoVeiculoAsync(grv.TipoVeiculoId, ct) : "Não informado";
+                string tipoVeiculo = grv != null
+                    ? await ObterDescricaoTipoVeiculoAsync(grv.TipoVeiculoId, ct)
+                    : "Não informado";
                 ResultView.Mensagem =
                     MensagemViewHelper.SetNotFound($"Nenhum serviço registrado para o tipo de veículo: {tipoVeiculo}");
                 return ResultView;
